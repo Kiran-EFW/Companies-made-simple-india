@@ -2,6 +2,7 @@ import os
 import shutil
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
 from sqlalchemy.orm import Session
+from typing import List
 from src.database import get_db
 from src.models.user import User
 from src.models.company import Company, CompanyStatus
@@ -86,7 +87,7 @@ async def upload_document(
     )
 
 
-@router.get("/company/{company_id}", response_model=list[DocumentOut])
+@router.get("/company/{company_id}", response_model=List[DocumentOut])
 def list_company_documents(
     company_id: int,
     db: Session = Depends(get_db),
@@ -105,7 +106,7 @@ class AdminDocumentVerifyRequest(BaseModel):
     is_approved: bool
     rejection_reason: str = None
 
-@router.get("/admin/pending", response_model=list[DocumentOut])
+@router.get("/admin/pending", response_model=List[DocumentOut])
 def admin_list_pending_documents(
     db: Session = Depends(get_db),
     # In a real app we'd check for an Admin role here

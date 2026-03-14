@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+from typing import List
 from src.schemas.pricing import PricingRequest, PricingResponse, StateOption
 from src.services.pricing_engine import calculate_total_cost, get_available_states, PLATFORM_FEES
 
@@ -20,7 +21,7 @@ def calculate_pricing(request: PricingRequest):
     return result
 
 
-@router.get("/states", response_model=list[StateOption])
+@router.get("/states", response_model=List[StateOption])
 def list_states():
     """List all supported states with display names."""
     return get_available_states()

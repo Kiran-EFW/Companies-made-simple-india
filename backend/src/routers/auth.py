@@ -57,10 +57,10 @@ def login(user_data: UserLogin, db: Session = Depends(get_db)):
 
 @router.post("/dev-login", response_model=Token)
 def dev_login(db: Session = Depends(get_db)):
-    # ONLY FOR DEVELOPMENT
-    import os
-    # if os.getenv("ENV") != "development":
-    #    raise HTTPException(status_code=403, detail="Only allowed in development")
+    """ONLY FOR DEVELOPMENT — disabled in production."""
+    from src.config import get_settings
+    if get_settings().environment != "development":
+        raise HTTPException(status_code=403, detail="Only allowed in development")
     
     user = db.query(User).first()
     if not user:

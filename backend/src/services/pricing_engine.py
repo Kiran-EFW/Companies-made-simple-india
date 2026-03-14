@@ -434,7 +434,7 @@ def calculate_total_cost(
     return result
 
 
-def get_available_states() -> list[dict]:
+def get_available_states():
     """Return list of available states with display names, sorted alphabetically."""
     return sorted(
         [

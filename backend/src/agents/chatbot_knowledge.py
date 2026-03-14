@@ -495,7 +495,7 @@ def extract_section(section_heading: str) -> str:
     return "\n".join(result).strip()
 
 
-def keyword_search(query: str, max_sections: int = 3) -> tuple[str, list[str]]:
+def keyword_search(query: str, max_sections: int = 3) -> "tuple[str, list[str]]":
     """
     Search the knowledge base using keyword matching.
 
@@ -504,7 +504,7 @@ def keyword_search(query: str, max_sections: int = 3) -> tuple[str, list[str]]:
     query_lower = query.lower()
     query_words = set(query_lower.split())
 
-    scored_topics: list[tuple[str, int, str, str]] = []
+    scored_topics = []  # list of (topic_id, score, title, section_text)
 
     for topic_id, topic_info in KNOWLEDGE_TOPICS.items():
         score = 0

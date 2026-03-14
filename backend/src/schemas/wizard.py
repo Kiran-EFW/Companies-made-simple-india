@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import List
 
 
 class WizardRequest(BaseModel):
@@ -15,12 +15,12 @@ class EntityRecommendation(BaseModel):
     entity_type: str
     name: str
     match_score: int
-    pros: list[str]
-    cons: list[str]
+    pros: List[str]
+    cons: List[str]
     best_for: str
 
 
 class WizardResponse(BaseModel):
     recommended: EntityRecommendation
-    alternatives: list[EntityRecommendation]
+    alternatives: List[EntityRecommendation]
     total_options: int

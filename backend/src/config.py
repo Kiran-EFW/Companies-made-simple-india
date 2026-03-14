@@ -8,8 +8,8 @@ class Settings(BaseSettings):
     app_name: str = "Companies Made Simple India"
     api_v1_prefix: str = "/api/v1"
     
-    # Security
-    secret_key: str = "cms_india_super_secret_key_change_in_prod"
+    # Security — MUST be overridden via SECRET_KEY env var in production
+    secret_key: str = "cms_india_dev_only_key_override_in_production"
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 1440  # 24 hours
 
