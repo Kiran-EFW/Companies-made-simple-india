@@ -872,7 +872,11 @@ def list_staff(
     current_user: User = Depends(get_admin_user),
 ):
     """List all internal staff with hierarchy info."""
-    query = db.query(User).filter(User.role != UserRole.USER, User.is_active == True)
+    query = (
+        db.query(User)
+        .options(joinedload(User.manager))
+        .filter(User.role != UserRole.USER, User.is_active == True)
+    )
 
     if department:
         query = query.filter(User.department == department)
@@ -883,11 +887,7 @@ def list_staff(
 
     results = []
     for u in staff:
-        manager_name = None
-        if u.reports_to:
-            mgr = db.query(User).filter(User.id == u.reports_to).first()
-            if mgr:
-                manager_name = mgr.full_name
+        manager_name = u.manager.full_name if u.manager else None
 
         results.append({
             "id": u.id,

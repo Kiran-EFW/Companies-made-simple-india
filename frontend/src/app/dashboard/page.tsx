@@ -304,7 +304,12 @@ export default function DashboardPage() {
                                </div>
                                <a 
                                  href="#" 
-                                 onClick={(e) => { e.preventDefault(); alert("Downloading " + doc.original_filename + " (Simulated)"); }}
+                                 onClick={(e) => {
+                                   e.preventDefault();
+                                   const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+                                   const token = localStorage.getItem("access_token");
+                                   window.open(`${baseUrl}/documents/${doc.id}/download?token=${token}`, "_blank");
+                                 }}
                                  className="text-purple-400 hover:text-purple-300 text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity"
                                >
                                  Download
@@ -332,7 +337,7 @@ export default function DashboardPage() {
                                  <h4 className="text-sm font-semibold">Business Bank Account</h4>
                                  <p className="text-[10px] text-gray-500">Partnered with Mercury, ICICI & HDFC</p>
                               </div>
-                              <button className="text-xs font-bold text-purple-400 group-hover:underline">Open Now →</button>
+                              <Link href="/dashboard/compliance" className="text-xs font-bold text-purple-400 group-hover:underline">Get Started →</Link>
                            </div>
                            <div className="p-4 rounded-lg bg-black/40 border border-gray-800 flex justify-between items-center group hover:border-purple-500/30 transition-colors">
                               <div>

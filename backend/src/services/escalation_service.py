@@ -80,8 +80,12 @@ class EscalationService:
         tasks = query.all()
         count = 0
 
+        # Batch-load already-escalated task IDs to avoid N+1 queries
+        task_ids = [t.id for t in tasks]
+        already_escalated = self._batch_already_escalated(db, rule.id, "filing_task", task_ids)
+
         for task in tasks:
-            if self._already_escalated(db, rule.id, "filing_task", task.id):
+            if task.id in already_escalated:
                 continue
             self._execute_escalation(db, rule, "filing_task", task.id, task.company_id)
             task.escalation_level = (task.escalation_level or 0) + 1
@@ -106,8 +110,12 @@ class EscalationService:
         tasks = query.all()
         count = 0
 
+        # Batch-load already-escalated task IDs to avoid N+1 queries
+        task_ids = [t.id for t in tasks]
+        already_escalated = self._batch_already_escalated(db, rule.id, "filing_task", task_ids)
+
         for task in tasks:
-            if self._already_escalated(db, rule.id, "filing_task", task.id):
+            if task.id in already_escalated:
                 continue
             self._execute_escalation(db, rule, "filing_task", task.id, task.company_id)
             task.escalation_level = (task.escalation_level or 0) + 1
@@ -130,8 +138,13 @@ class EscalationService:
         )
 
         count = 0
+
+        # Batch-load already-escalated item IDs to avoid N+1 queries
+        item_ids = [i.id for i in items]
+        already_escalated = self._batch_already_escalated(db, rule.id, "verification_queue", item_ids)
+
         for item in items:
-            if self._already_escalated(db, rule.id, "verification_queue", item.id):
+            if item.id in already_escalated:
                 continue
             self._execute_escalation(db, rule, "verification_queue", item.id, item.company_id)
             count += 1
@@ -145,6 +158,28 @@ class EscalationService:
         if rule.priority_filter:
             query = query.filter(FilingTask.priority.in_(rule.priority_filter))
         return query
+
+    def _batch_already_escalated(
+        self, db: Session, rule_id: int, target_type: str, target_ids: List[int]
+    ) -> set:
+        """Batch-check which targets already have unresolved escalations for this rule.
+
+        Returns a set of target_ids that are already escalated, replacing N individual
+        queries with a single IN-clause query.
+        """
+        if not target_ids:
+            return set()
+        return set(
+            row[0] for row in
+            db.query(EscalationLog.target_id)
+            .filter(
+                EscalationLog.rule_id == rule_id,
+                EscalationLog.target_type == target_type,
+                EscalationLog.target_id.in_(target_ids),
+                EscalationLog.is_resolved == False,
+            )
+            .all()
+        )
 
     def _already_escalated(
         self, db: Session, rule_id: int, target_type: str, target_id: int

@@ -99,7 +99,8 @@ export default function PricingPage() {
   async function calculatePricing() {
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:8000/api/v1/pricing/calculate", {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+      const res = await fetch(`${baseUrl}/pricing/calculate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

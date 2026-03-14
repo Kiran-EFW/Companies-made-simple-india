@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import { getUnreadCount, getNotifications, markNotificationRead, markAllNotificationsRead } from "@/lib/api";
-import Link from "next/link";
 
 function timeAgo(dateStr: string): string {
   const now = new Date();
@@ -255,13 +254,12 @@ export default function NotificationBell() {
 
           {/* Footer */}
           <div className="px-4 py-2.5 border-t text-center" style={{ borderColor: "var(--color-border)" }}>
-            <Link
-              href="/notifications"
+            <button
               onClick={() => setIsOpen(false)}
               className="text-xs text-purple-400 hover:text-purple-300 font-medium transition-colors"
             >
-              View all notifications
-            </Link>
+              Close
+            </button>
           </div>
         </div>
       )}

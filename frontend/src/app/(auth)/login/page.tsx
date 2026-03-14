@@ -103,9 +103,9 @@ export default function LoginPage() {
             <label className="block text-sm font-medium" style={{ color: "var(--color-text-secondary)" }}>
               Password
             </label>
-            <Link href="#" className="text-xs hover:text-white transition-colors" style={{ color: "var(--color-text-muted)" }}>
+            <span className="text-xs cursor-pointer hover:text-white transition-colors" style={{ color: "var(--color-text-muted)" }} onClick={() => alert("Password reset coming soon. Contact support@companiesmade.in for help.")}>
               Forgot password?
-            </Link>
+            </span>
           </div>
           <input
             required
