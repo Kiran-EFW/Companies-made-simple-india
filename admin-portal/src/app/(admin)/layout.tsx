@@ -2,10 +2,11 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { ToastProvider } from "@/components/toast";
 
 const NAV_ITEMS = [
   {
-    href: "/admin/dashboard",
+    href: "/dashboard",
     label: "Dashboard",
     icon: (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -14,7 +15,7 @@ const NAV_ITEMS = [
     ),
   },
   {
-    href: "/admin/companies",
+    href: "/companies",
     label: "Companies",
     matchPrefix: true,
     icon: (
@@ -24,7 +25,7 @@ const NAV_ITEMS = [
     ),
   },
   {
-    href: "/admin/team",
+    href: "/team",
     label: "Team",
     icon: (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -33,7 +34,7 @@ const NAV_ITEMS = [
     ),
   },
   {
-    href: "/admin/analytics",
+    href: "/analytics",
     label: "Analytics",
     icon: (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -42,7 +43,7 @@ const NAV_ITEMS = [
     ),
   },
   {
-    href: "/admin/sla",
+    href: "/sla",
     label: "SLA Tracking",
     icon: (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -51,7 +52,7 @@ const NAV_ITEMS = [
     ),
   },
   {
-    href: "/admin/ops",
+    href: "/ops",
     label: "My Queue",
     icon: (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -60,7 +61,7 @@ const NAV_ITEMS = [
     ),
   },
   {
-    href: "/admin/ops/tasks",
+    href: "/ops/tasks",
     label: "Filing Tasks",
     matchPrefix: true,
     icon: (
@@ -70,7 +71,7 @@ const NAV_ITEMS = [
     ),
   },
   {
-    href: "/admin/ops/documents",
+    href: "/ops/documents",
     label: "Doc Review",
     icon: (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -79,7 +80,7 @@ const NAV_ITEMS = [
     ),
   },
   {
-    href: "/admin/ops/escalations",
+    href: "/ops/escalations",
     label: "Escalations",
     icon: (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -88,7 +89,7 @@ const NAV_ITEMS = [
     ),
   },
   {
-    href: "/admin/ops/workload",
+    href: "/ops/workload",
     label: "Workload",
     icon: (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -112,7 +113,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Admin Sidebar */}
         <aside className="w-64 glass-card border-r border-t-0 border-b-0 border-l-0 rounded-none flex flex-col">
           <div className="p-6 border-b border-gray-800">
-            <Link href="/admin/dashboard" className="flex items-center gap-2">
+            <Link href="/dashboard" className="flex items-center gap-2">
               <svg className="w-6 h-6 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
               </svg>
@@ -142,12 +143,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </nav>
 
           <div className="p-4 border-t border-gray-800">
-            <Link href="/dashboard" className="flex items-center gap-2 text-xs text-gray-500 hover:text-purple-400 transition-colors">
+            <a href="http://localhost:3000/dashboard" className="flex items-center gap-2 text-xs text-gray-500 hover:text-purple-400 transition-colors">
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
               </svg>
               Back to User Dashboard
-            </Link>
+            </a>
             <p className="text-[10px] text-gray-600 mt-3 text-center">CMS India &copy; 2026</p>
           </div>
         </aside>
@@ -161,7 +162,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               radial-gradient(circle at 0% 100%, rgba(16, 185, 129, 0.03) 0%, transparent 25%)
             `
           }} />
-          {children}
+          <ToastProvider>{children}</ToastProvider>
         </main>
       </div>
     </div>

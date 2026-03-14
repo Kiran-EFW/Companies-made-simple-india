@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     razorpay_key_secret: str = ""
     razorpay_webhook_secret: str = ""
 
+    # CORS
+    cors_origins: str = ""
+
     # Email (SendGrid)
     sendgrid_api_key: str = ""
     from_email: str = "hello@companiesmade.in"

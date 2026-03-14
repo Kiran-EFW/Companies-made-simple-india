@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getReviewQueue, claimDocReview, verifyDocument } from "@/lib/api";
+import { useToast } from "@/components/toast";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -110,6 +111,7 @@ function isToday(dateStr: string | null): boolean {
 // ---------------------------------------------------------------------------
 
 export default function DocumentReviewQueuePage() {
+  const { toast } = useToast();
   const [items, setItems] = useState<ReviewItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<FilterTab>("pending");
@@ -130,8 +132,8 @@ export default function DocumentReviewQueuePage() {
       if (activeTab !== "all") params.decision = activeTab;
       const data = await getReviewQueue(params);
       setItems(Array.isArray(data) ? data : data?.items ?? data?.reviews ?? []);
-    } catch (e) {
-      console.error("Failed to load review queue:", e);
+    } catch (e: any) {
+      toast(e.message || "Failed to load review queue", "error");
     } finally {
       setLoading(false);
     }
@@ -149,9 +151,10 @@ export default function DocumentReviewQueuePage() {
     setClaimingId(item.document_id);
     try {
       await claimDocReview(item.document_id);
+      toast("Review claimed", "success");
       await fetchQueue();
-    } catch (e) {
-      console.error("Claim failed:", e);
+    } catch (e: any) {
+      toast(e.message || "Claim failed", "error");
     } finally {
       setClaimingId(null);
     }
@@ -184,10 +187,11 @@ export default function DocumentReviewQueuePage() {
             ? rejectionReason || undefined
             : undefined,
       });
+      toast("Document verified", "success");
       closeAction();
       await fetchQueue();
-    } catch (e) {
-      console.error("Verification failed:", e);
+    } catch (e: any) {
+      toast(e.message || "Verification failed", "error");
     } finally {
       setSubmitting(false);
     }

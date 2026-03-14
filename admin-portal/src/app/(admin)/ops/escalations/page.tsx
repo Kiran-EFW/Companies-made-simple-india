@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getEscalations, resolveEscalation, getEscalationRules } from "@/lib/api";
+import { useToast } from "@/components/toast";
 
 const ACTION_COLORS: Record<string, string> = {
   notify: "text-blue-400",
@@ -36,6 +37,7 @@ function formatDate(dateStr: string): string {
 }
 
 export default function EscalationsPage() {
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<"escalations" | "rules">("escalations");
   const [escalations, setEscalations] = useState<any[]>([]);
   const [rules, setRules] = useState<any[]>([]);
@@ -51,8 +53,8 @@ export default function EscalationsPage() {
         showResolved ? undefined : { is_resolved: false }
       );
       setEscalations(Array.isArray(data) ? data : data?.escalations || []);
-    } catch (e) {
-      console.error(e);
+    } catch (e: any) {
+      toast(e.message || "Failed to load escalations", "error");
     } finally {
       setLoading(false);
     }
@@ -63,8 +65,8 @@ export default function EscalationsPage() {
     try {
       const data = await getEscalationRules();
       setRules(Array.isArray(data) ? data : data?.rules || []);
-    } catch (e) {
-      console.error(e);
+    } catch (e: any) {
+      toast(e.message || "Failed to load escalation rules", "error");
     } finally {
       setRulesLoading(false);
     }
@@ -90,9 +92,10 @@ export default function EscalationsPage() {
         delete next[escalationId];
         return next;
       });
+      toast("Escalation resolved", "success");
       fetchEscalations();
-    } catch (e) {
-      console.error(e);
+    } catch (e: any) {
+      toast(e.message || "Failed to resolve escalation", "error");
     } finally {
       setResolvingId(null);
     }

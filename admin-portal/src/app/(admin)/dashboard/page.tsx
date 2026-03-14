@@ -133,7 +133,7 @@ export default function AdminDashboardPage() {
         <p className="text-sm text-gray-400">Real-time overview of all company incorporations and operations.</p>
       </div>
 
-      {/* ── Top Metrics Cards ── */}
+      {/* Top Metrics Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
         <div className="rounded-xl border border-gray-700 bg-gray-800/50 p-5">
           <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">Total Companies</p>
@@ -161,7 +161,7 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* ── Pipeline Kanban Board ── */}
+      {/* Pipeline Kanban Board */}
       <div className="mb-8">
         <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
           <svg className="w-5 h-5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -172,15 +172,12 @@ export default function AdminDashboardPage() {
         <div className="flex gap-3 overflow-x-auto pb-4" style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(139, 92, 246, 0.3) transparent" }}>
           {kanbanData.map((col) => (
             <div key={col.key} className="min-w-[220px] w-[220px] shrink-0">
-              {/* Column header */}
               <div className="rounded-t-lg px-3 py-2 border border-b-0 border-gray-700 bg-gray-800/80 flex items-center justify-between">
                 <span className="text-xs font-semibold text-gray-300 uppercase tracking-wider">{col.label}</span>
                 <span className="text-xs font-bold text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full">
                   {col.companies.length}
                 </span>
               </div>
-
-              {/* Column body */}
               <div className="rounded-b-lg border border-gray-700 bg-gray-900/50 p-2 min-h-[200px] max-h-[400px] overflow-y-auto space-y-2" style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(139, 92, 246, 0.3) transparent" }}>
                 {col.companies.length === 0 ? (
                   <div className="text-center py-8 text-gray-600 text-xs">No companies</div>
@@ -193,7 +190,7 @@ export default function AdminDashboardPage() {
                     return (
                       <Link
                         key={comp.id}
-                        href={`/admin/companies/${comp.id}`}
+                        href={`/companies/${comp.id}`}
                         className="block rounded-lg border border-gray-700 bg-gray-800/60 p-3 hover:border-purple-500/40 hover:bg-gray-800 transition-all cursor-pointer group"
                       >
                         <div className="flex items-start justify-between gap-1 mb-1.5">
@@ -231,7 +228,7 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* ── Bottom Section: Two Columns ── */}
+      {/* Bottom Section: Two Columns */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left: Recent Activity */}
         <div className="rounded-xl border border-gray-700 bg-gray-800/50 overflow-hidden">
@@ -248,7 +245,7 @@ export default function AdminDashboardPage() {
                 return (
                   <Link
                     key={comp.id}
-                    href={`/admin/companies/${comp.id}`}
+                    href={`/companies/${comp.id}`}
                     className="flex items-center gap-3 px-5 py-3 hover:bg-white/5 transition-colors"
                   >
                     <div className={`w-2 h-2 rounded-full shrink-0 ${getStatusColor(comp.status).replace("text-", "bg-")}`} />
@@ -277,7 +274,7 @@ export default function AdminDashboardPage() {
               </svg>
               SLA Breaches
             </h3>
-            <Link href="/admin/analytics" className="text-[10px] text-purple-400 hover:text-purple-300 font-medium transition-colors">
+            <Link href="/analytics" className="text-[10px] text-purple-400 hover:text-purple-300 font-medium transition-colors">
               View Details
             </Link>
           </div>
@@ -293,7 +290,7 @@ export default function AdminDashboardPage() {
               slaBreaches.map((breach, idx) => (
                 <Link
                   key={idx}
-                  href={`/admin/companies/${breach.company_id}`}
+                  href={`/companies/${breach.company_id}`}
                   className="flex items-center gap-3 px-5 py-3 hover:bg-white/5 transition-colors"
                 >
                   <div className="w-2 h-2 rounded-full bg-red-500 shrink-0 animate-pulse" />

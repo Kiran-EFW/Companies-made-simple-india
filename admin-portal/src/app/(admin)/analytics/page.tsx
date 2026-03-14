@@ -37,7 +37,6 @@ export default function AdminAnalyticsPage() {
         if (analyticsRes.status === "fulfilled") setAnalytics(analyticsRes.value);
         if (funnelRes.status === "fulfilled") {
           const funnelData = funnelRes.value;
-          // Handle both array and object responses
           if (Array.isArray(funnelData)) {
             setFunnel(funnelData);
           } else if (funnelData?.stages) {
@@ -65,34 +64,28 @@ export default function AdminAnalyticsPage() {
     );
   }
 
-  // Extract entity distribution from analytics
   const entityDistribution = analytics?.entity_distribution || analytics?.entity_types || {};
   const entityEntries = Object.entries(entityDistribution).sort(
     (a, b) => (b[1] as number) - (a[1] as number)
   );
   const maxEntityCount = entityEntries.length > 0 ? Math.max(...entityEntries.map(([, v]) => v as number)) : 1;
 
-  // Extract state distribution
   const stateDistribution = analytics?.state_distribution || analytics?.states || {};
   const stateEntries = Object.entries(stateDistribution).sort(
     (a, b) => (b[1] as number) - (a[1] as number)
   );
 
-  // Revenue data
   const monthlyRevenue = revenue?.monthly || revenue?.payments_by_month || [];
-
-  // Funnel max for width calculation
   const funnelMax = funnel.length > 0 ? Math.max(...funnel.map((f) => f.count)) : 1;
 
   return (
     <div className="p-6 lg:p-8 max-w-6xl">
-      {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2" style={{ fontFamily: "var(--font-display)" }}>Analytics</h1>
         <p className="text-sm text-gray-400">Performance metrics, funnel analysis, and revenue insights.</p>
       </div>
 
-      {/* ── Summary Cards ── */}
+      {/* Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
         <div className="rounded-xl border border-gray-700 bg-gray-800/50 p-5">
           <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">Total Companies</p>
@@ -129,7 +122,7 @@ export default function AdminAnalyticsPage() {
         </div>
       </div>
 
-      {/* ── Funnel Chart ── */}
+      {/* Funnel Chart */}
       <div className="rounded-xl border border-gray-700 bg-gray-800/50 p-6 mb-8">
         <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
           <svg className="w-5 h-5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -176,9 +169,8 @@ export default function AdminAnalyticsPage() {
         )}
       </div>
 
-      {/* ── Revenue & Entity Distribution ── */}
+      {/* Revenue & Entity Distribution */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Revenue Breakdown */}
         <div className="rounded-xl border border-gray-700 bg-gray-800/50 overflow-hidden">
           <div className="px-5 py-4 border-b border-gray-700">
             <h3 className="text-sm font-semibold">Revenue by Month</h3>
@@ -207,7 +199,6 @@ export default function AdminAnalyticsPage() {
           )}
         </div>
 
-        {/* Entity Type Distribution */}
         <div className="rounded-xl border border-gray-700 bg-gray-800/50 p-5">
           <h3 className="text-sm font-semibold mb-4">Entity Type Distribution</h3>
           {entityEntries.length > 0 ? (
@@ -244,9 +235,8 @@ export default function AdminAnalyticsPage() {
         </div>
       </div>
 
-      {/* ── State Distribution & SLA ── */}
+      {/* State Distribution & SLA */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* State-wise Distribution */}
         <div className="rounded-xl border border-gray-700 bg-gray-800/50 overflow-hidden">
           <div className="px-5 py-4 border-b border-gray-700">
             <h3 className="text-sm font-semibold">State-wise Distribution</h3>
@@ -281,7 +271,6 @@ export default function AdminAnalyticsPage() {
           )}
         </div>
 
-        {/* SLA Overview */}
         <div className="rounded-xl border border-gray-700 bg-gray-800/50 overflow-hidden">
           <div className="px-5 py-4 border-b border-gray-700">
             <h3 className="text-sm font-semibold flex items-center gap-2">

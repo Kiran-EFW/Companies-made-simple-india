@@ -254,7 +254,7 @@ class EscalationService:
         resolved_by: int,
         notes: Optional[str] = None,
     ) -> Optional[EscalationLog]:
-        """Mark an escalation as resolved."""
+        """Mark an escalation as resolved and reset the target's escalation level."""
         log = db.query(EscalationLog).filter(EscalationLog.id == escalation_id).first()
         if not log:
             return None
@@ -262,6 +262,27 @@ class EscalationService:
         log.resolved_by = resolved_by
         log.resolved_at = datetime.now(timezone.utc)
         log.resolution_notes = notes
+
+        # Reset the target's escalation state if it was a filing task
+        if log.target_type == "filing_task":
+            task = db.query(FilingTask).filter(FilingTask.id == log.target_id).first()
+            if task:
+                # Check if there are still other unresolved escalations for this task
+                other_open = (
+                    db.query(EscalationLog)
+                    .filter(
+                        EscalationLog.target_type == "filing_task",
+                        EscalationLog.target_id == log.target_id,
+                        EscalationLog.id != escalation_id,
+                        EscalationLog.is_resolved == False,
+                    )
+                    .count()
+                )
+                if other_open == 0:
+                    task.escalation_level = 0
+                    task.escalated_at = None
+                    task.escalated_to = None
+
         db.commit()
         db.refresh(log)
         return log

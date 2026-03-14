@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { getMyQueue, updateFilingTaskStatus, claimFilingTask } from "@/lib/api";
 import Link from "next/link";
+import { useToast } from "@/components/toast";
 
 const STATUS_COLORS: Record<string, string> = {
   assigned: "text-blue-400",
@@ -35,6 +36,7 @@ function timeUntil(dateStr: string): string {
 }
 
 export default function MyQueuePage() {
+  const { toast } = useToast();
   const [queue, setQueue] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -42,8 +44,8 @@ export default function MyQueuePage() {
     try {
       const data = await getMyQueue();
       setQueue(data);
-    } catch (e) {
-      console.error(e);
+    } catch (e: any) {
+      toast(e.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }
@@ -54,9 +56,10 @@ export default function MyQueuePage() {
   const handleStatusUpdate = async (taskId: number, newStatus: string) => {
     try {
       await updateFilingTaskStatus(taskId, { status: newStatus });
+      toast("Task status updated", "success");
       fetchQueue();
-    } catch (e) {
-      console.error(e);
+    } catch (e: any) {
+      toast(e.message || "Something went wrong", "error");
     }
   };
 
@@ -118,7 +121,7 @@ export default function MyQueuePage() {
         <h2 className="text-sm font-semibold text-gray-300 uppercase tracking-wider">Active Tasks ({tasks.length})</h2>
         {tasks.length === 0 ? (
           <div className="glass-card p-8 text-center text-gray-500">
-            <p>No tasks in your queue. Check the <Link href="/admin/ops/tasks" className="text-purple-400 hover:underline">task board</Link> for unassigned work.</p>
+            <p>No tasks in your queue. Check the <Link href="/ops/tasks" className="text-purple-400 hover:underline">task board</Link> for unassigned work.</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -166,7 +169,7 @@ export default function MyQueuePage() {
                         </button>
                       )}
                       <Link
-                        href={`/admin/ops/tasks?task=${task.id}`}
+                        href={`/ops/tasks?task=${task.id}`}
                         className="text-xs px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:bg-white/10 transition-colors"
                       >
                         Details
@@ -182,16 +185,16 @@ export default function MyQueuePage() {
 
       {/* Quick Links */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-4">
-        <Link href="/admin/ops/tasks" className="glass-card p-4 text-center hover:bg-white/5 transition-colors">
+        <Link href="/ops/tasks" className="glass-card p-4 text-center hover:bg-white/5 transition-colors">
           <p className="text-sm text-gray-300">All Tasks</p>
         </Link>
-        <Link href="/admin/ops/documents" className="glass-card p-4 text-center hover:bg-white/5 transition-colors">
+        <Link href="/ops/documents" className="glass-card p-4 text-center hover:bg-white/5 transition-colors">
           <p className="text-sm text-gray-300">Doc Reviews</p>
         </Link>
-        <Link href="/admin/ops/escalations" className="glass-card p-4 text-center hover:bg-white/5 transition-colors">
+        <Link href="/ops/escalations" className="glass-card p-4 text-center hover:bg-white/5 transition-colors">
           <p className="text-sm text-gray-300">Escalations</p>
         </Link>
-        <Link href="/admin/ops/workload" className="glass-card p-4 text-center hover:bg-white/5 transition-colors">
+        <Link href="/ops/workload" className="glass-card p-4 text-center hover:bg-white/5 transition-colors">
           <p className="text-sm text-gray-300">Team Workload</p>
         </Link>
       </div>

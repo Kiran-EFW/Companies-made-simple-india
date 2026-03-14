@@ -214,7 +214,7 @@ export default function AdminCompanyDetailPage() {
       <div className="p-12 text-center">
         <h2 className="text-xl font-bold text-gray-300 mb-2">Company Not Found</h2>
         <p className="text-gray-500 mb-4">The company with ID #{companyId} could not be found.</p>
-        <Link href="/admin/dashboard" className="text-purple-400 hover:text-purple-300 text-sm font-medium">
+        <Link href="/dashboard" className="text-purple-400 hover:text-purple-300 text-sm font-medium">
           Back to Dashboard
         </Link>
       </div>
@@ -227,14 +227,14 @@ export default function AdminCompanyDetailPage() {
     <div className="p-6 lg:p-8 max-w-6xl">
       {/* Breadcrumb */}
       <div className="mb-6">
-        <Link href="/admin/dashboard" className="text-xs text-gray-500 hover:text-purple-400 transition-colors">
+        <Link href="/dashboard" className="text-xs text-gray-500 hover:text-purple-400 transition-colors">
           Dashboard
         </Link>
         <span className="text-xs text-gray-600 mx-2">/</span>
         <span className="text-xs text-gray-400">{displayName}</span>
       </div>
 
-      {/* ── Header ── */}
+      {/* Header */}
       <div className="rounded-xl border border-gray-700 bg-gray-800/50 p-6 mb-6">
         <div className="flex flex-col lg:flex-row justify-between gap-4">
           <div>
@@ -283,7 +283,7 @@ export default function AdminCompanyDetailPage() {
         </div>
       </div>
 
-      {/* ── Tabs ── */}
+      {/* Tabs */}
       <div className="flex gap-1 mb-6 overflow-x-auto border-b border-gray-700 pb-px">
         {TABS.map((tab) => (
           <button
@@ -303,7 +303,7 @@ export default function AdminCompanyDetailPage() {
         ))}
       </div>
 
-      {/* ── Tab Content ── */}
+      {/* Tab Content */}
 
       {/* Overview Tab */}
       {activeTab === "overview" && (
@@ -414,7 +414,6 @@ export default function AdminCompanyDetailPage() {
               return (
                 <div key={doc.id} className="rounded-xl border border-gray-700 bg-gray-800/50 overflow-hidden">
                   <div className="flex flex-col lg:flex-row">
-                    {/* Document info */}
                     <div className="flex-1 p-5">
                       <div className="flex items-center gap-3 mb-3">
                         <span className="text-xs uppercase tracking-wider text-purple-400 font-bold">
@@ -432,8 +431,6 @@ export default function AdminCompanyDetailPage() {
                       <p className="text-sm text-gray-300 mb-1">{doc.original_filename}</p>
                       <p className="text-[10px] text-gray-500">Uploaded {new Date(doc.uploaded_at || doc.created_at).toLocaleString()}</p>
                     </div>
-
-                    {/* Extracted data */}
                     {extracted && (
                       <div className="flex-1 p-5 border-t lg:border-t-0 lg:border-l border-gray-700 bg-gray-900/30">
                         <p className="text-xs font-semibold text-gray-400 mb-3">Extracted Data</p>
@@ -496,7 +493,6 @@ export default function AdminCompanyDetailPage() {
       {/* Notes Tab */}
       {activeTab === "notes" && (
         <div>
-          {/* Add Note Form */}
           <div className="rounded-xl border border-gray-700 bg-gray-800/50 p-5 mb-6">
             <h3 className="text-sm font-semibold mb-3">Add Internal Note</h3>
             <textarea
@@ -516,8 +512,6 @@ export default function AdminCompanyDetailPage() {
               </button>
             </div>
           </div>
-
-          {/* Notes List */}
           <div className="space-y-3">
             {company.notes && company.notes.length > 0 ? (
               company.notes.map((note: any, idx: number) => (
@@ -541,7 +535,6 @@ export default function AdminCompanyDetailPage() {
       {/* Communication Tab */}
       {activeTab === "communication" && (
         <div>
-          {/* Send Message Form */}
           <div className="rounded-xl border border-gray-700 bg-gray-800/50 p-5 mb-6">
             <h3 className="text-sm font-semibold mb-3">Send Message to Customer</h3>
             <textarea
@@ -561,8 +554,6 @@ export default function AdminCompanyDetailPage() {
               </button>
             </div>
           </div>
-
-          {/* Messages List */}
           <div className="space-y-3">
             {company.messages && company.messages.length > 0 ? (
               company.messages.map((msg: any, idx: number) => (
@@ -633,7 +624,7 @@ export default function AdminCompanyDetailPage() {
         </div>
       )}
 
-      {/* ── Modals ── */}
+      {/* Modals */}
 
       {/* Status Change Modal */}
       {showStatusModal && (

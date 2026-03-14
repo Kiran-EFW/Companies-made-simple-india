@@ -15,8 +15,9 @@ import {
 
 interface WorkloadEntry {
   user_id: number;
-  full_name: string;
-  email: string;
+  user_name: string;
+  full_name?: string;
+  email?: string;
   department: string;
   seniority: string;
   active_tasks: number;
@@ -27,10 +28,12 @@ interface WorkloadEntry {
 
 interface PerformanceEntry {
   user_id: number;
-  full_name: string;
+  user_name: string;
+  full_name?: string;
   tasks_completed: number;
   avg_turnaround_hours: number;
-  sla_compliance: number;
+  sla_compliance_pct: number;
+  sla_compliance?: number;
   documents_reviewed: number;
   escalations_received: number;
   escalations_resolved: number;
@@ -109,6 +112,9 @@ export default function WorkloadPage() {
         if (!cancelled) {
           const items = Array.isArray(data) ? data : data?.workload || data?.team || [];
           setWorkload(items);
+          if (data?.unassigned_tasks !== undefined) {
+            setUnassignedCount(data.unassigned_tasks);
+          }
         }
       } catch (e) {
         console.error("Failed to load workload:", e);
@@ -131,7 +137,7 @@ export default function WorkloadPage() {
       try {
         const data = await getAllPerformance(perfPeriod);
         if (!cancelled) {
-          const items = Array.isArray(data) ? data : data?.performance || data?.team || [];
+          const items = Array.isArray(data) ? data : data?.metrics || data?.performance || data?.team || [];
           setPerformance(items);
         }
       } catch (e) {
@@ -219,12 +225,9 @@ export default function WorkloadPage() {
   };
 
   // ── Workload summary ──
+  const [unassignedCount, setUnassignedCount] = useState(0);
   const totalActive = workload.reduce((s, w) => s + (w.active_tasks || 0), 0);
   const totalOverdue = workload.reduce((s, w) => s + (w.overdue_tasks || 0), 0);
-  const totalUnassigned = workload.reduce((s, w) => {
-    // unassigned is typically items with no user or a special marker
-    return s;
-  }, 0);
   // We compute max active for bar width
   const maxActive = Math.max(1, ...workload.map((w) => w.active_tasks || 0));
 
@@ -318,7 +321,7 @@ export default function WorkloadPage() {
                     className="text-3xl font-bold text-amber-400 mt-1"
                     style={{ fontFamily: "var(--font-display)" }}
                   >
-                    {totalUnassigned}
+                    {unassignedCount}
                   </p>
                 </div>
               </div>
@@ -373,7 +376,7 @@ export default function WorkloadPage() {
                             className="hover:bg-white/[0.03] transition-colors"
                           >
                             <td className="px-5 py-3 text-gray-200 font-medium whitespace-nowrap">
-                              {w.full_name}
+                              {w.user_name || w.full_name}
                             </td>
                             <td className="px-5 py-3 text-gray-400 whitespace-nowrap">
                               <span className="px-2 py-0.5 rounded text-xs bg-purple-500/10 text-purple-400 border border-purple-500/20">
@@ -508,7 +511,7 @@ export default function WorkloadPage() {
                             {idx + 1}
                           </td>
                           <td className="px-5 py-3 text-gray-200 font-medium whitespace-nowrap">
-                            {p.full_name}
+                            {p.user_name || p.full_name}
                           </td>
                           <td className="px-5 py-3 text-center">
                             <span className="font-bold text-emerald-400">
@@ -523,11 +526,11 @@ export default function WorkloadPage() {
                           <td className="px-5 py-3 text-center">
                             <span
                               className={`font-bold ${slaColor(
-                                p.sla_compliance ?? 0
+                                p.sla_compliance_pct ?? p.sla_compliance ?? 0
                               )}`}
                             >
-                              {p.sla_compliance != null
-                                ? `${p.sla_compliance.toFixed(1)}%`
+                              {(p.sla_compliance_pct ?? p.sla_compliance) != null
+                                ? `${(p.sla_compliance_pct ?? p.sla_compliance ?? 0).toFixed(1)}%`
                                 : "--"}
                             </span>
                           </td>

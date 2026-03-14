@@ -241,6 +241,17 @@ def update_filing_task_status(
         raise HTTPException(status_code=404, detail="Filing task not found")
 
     old_status = task.status.value if hasattr(task.status, "value") else task.status
+
+    # Dependency enforcement: can't start a task if its parent isn't completed
+    if body.status in (FilingTaskStatus.IN_PROGRESS.value, FilingTaskStatus.ASSIGNED.value) and task.parent_task_id:
+        parent = db.query(FilingTask).filter(FilingTask.id == task.parent_task_id).first()
+        if parent and parent.status != FilingTaskStatus.COMPLETED:
+            parent_title = parent.title or f"Task #{parent.id}"
+            raise HTTPException(
+                status_code=400,
+                detail=f"Cannot start this task — prerequisite \"{parent_title}\" is not yet completed.",
+            )
+
     task.status = body.status
 
     if body.notes:
