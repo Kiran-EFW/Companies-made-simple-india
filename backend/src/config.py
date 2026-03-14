@@ -13,9 +13,6 @@ class Settings(BaseSettings):
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 1440  # 24 hours
 
-    # CORS — comma-separated origins, e.g. "https://app.companiesmade.in,https://admin.companiesmade.in"
-    cors_origins: str = ""
-
     # AI / LLM
     openai_api_key: str = ""
     google_ai_api_key: str = ""
