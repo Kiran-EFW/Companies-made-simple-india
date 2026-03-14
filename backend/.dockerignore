@@ -1,0 +1,16 @@
+__pycache__
+*.pyc
+*.pyo
+*.egg-info
+.env
+.venv
+venv
+.git
+.gitignore
+.pytest_cache
+*.db
+*.sqlite3
+tests/
+alembic/versions/__pycache__
+.mypy_cache
+.ruff_cache
