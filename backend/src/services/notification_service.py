@@ -197,6 +197,10 @@ class NotificationService:
             NotificationType.DOCUMENT_REQUEST: True,
             NotificationType.SYSTEM: True,
             NotificationType.ADMIN_MESSAGE: True,
+            NotificationType.TASK_ASSIGNED: True,
+            NotificationType.ESCALATION: True,
+            NotificationType.DOCUMENT_VERIFIED: True,
+            NotificationType.DOCUMENT_REJECTED: True,
         }
         return mapping.get(notif_type, True)
 

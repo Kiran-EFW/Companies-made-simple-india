@@ -12,6 +12,10 @@ class NotificationType(str, enum.Enum):
     COMPLIANCE = "compliance"
     SYSTEM = "system"
     ADMIN_MESSAGE = "admin_message"
+    TASK_ASSIGNED = "task_assigned"
+    ESCALATION = "escalation"
+    DOCUMENT_VERIFIED = "document_verified"
+    DOCUMENT_REJECTED = "document_rejected"
 
 
 class NotificationChannel(str, enum.Enum):

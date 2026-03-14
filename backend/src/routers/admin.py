@@ -203,6 +203,19 @@ def assign_company(
         ip_address=request.client.host if request.client else None,
     )
 
+    # Auto-generate filing tasks for the company when first assigned
+    if old_assigned is None:
+        try:
+            from src.services.assignment_service import assignment_service
+            assignment_service.create_filing_tasks_for_company(
+                db, company_id, auto_assign=True, assigned_by=admin_user.id
+            )
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning(
+                "Auto-generate filing tasks failed for company %d: %s", company_id, str(e)
+            )
+
     return company
 
 

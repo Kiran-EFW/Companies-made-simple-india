@@ -1,4 +1,6 @@
 import logging
+import asyncio
+import threading
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
@@ -9,6 +11,7 @@ from src.database import init_db
 from src.routers import health, pricing, wizard, auth, companies, documents, payments, chatbot, notifications, admin
 from src.routers import post_incorporation, compliance
 from src.routers import entity_comparison, cap_table
+from src.routers import ops
 from src.utils.exceptions import APIError
 from src.middleware.security import (
     RateLimitMiddleware,
@@ -22,11 +25,33 @@ logger = logging.getLogger(__name__)
 settings = get_settings()
 
 
+def _run_escalation_loop(stop_event: threading.Event):
+    """Background thread that runs escalation checks every 15 minutes."""
+    from src.database import SessionLocal
+    from src.services.escalation_service import escalation_service
+
+    while not stop_event.is_set():
+        try:
+            db = SessionLocal()
+            escalation_service.run_escalation_check(db)
+            db.close()
+        except Exception:
+            logger.exception("Escalation check failed")
+        stop_event.wait(900)  # 15 minutes
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifecycle: startup and shutdown."""
     init_db()
+    # Start background escalation checker
+    stop_event = threading.Event()
+    escalation_thread = threading.Thread(
+        target=_run_escalation_loop, args=(stop_event,), daemon=True
+    )
+    escalation_thread.start()
     yield
+    stop_event.set()
 
 
 app = FastAPI(
@@ -103,6 +128,7 @@ app.include_router(post_incorporation.router, prefix=settings.api_v1_prefix)
 app.include_router(compliance.router, prefix=settings.api_v1_prefix)
 app.include_router(entity_comparison.router, prefix=settings.api_v1_prefix)
 app.include_router(cap_table.router, prefix=settings.api_v1_prefix)
+app.include_router(ops.router, prefix=settings.api_v1_prefix)
 
 
 @app.get("/")

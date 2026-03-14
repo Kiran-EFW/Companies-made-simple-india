@@ -104,3 +104,5 @@ class Company(Base):
     payments = relationship("Payment", back_populates="company")
     tasks = relationship("Task", back_populates="company")
     logs = relationship("AgentLog", back_populates="company")
+    filing_tasks = relationship("FilingTask", foreign_keys="FilingTask.company_id")
+    verification_queue_items = relationship("VerificationQueue", foreign_keys="VerificationQueue.company_id")

@@ -99,11 +99,71 @@ class ProcessOrchestrator:
     def trigger_document_parsing(document_id: int):
         """
         Trigger the AI Document Parser for a specific document.
+        After AI verification, auto-queue the document for human review.
         """
         from src.agents.document_parser import DocumentParserAgent
-        agent = DocumentParserAgent(document_id=document_id)
-        thread = threading.Thread(target=agent.run)
+
+        def _parse_and_queue(doc_id: int):
+            agent = DocumentParserAgent(document_id=doc_id)
+            agent.run()
+            # After AI parsing, queue the document for human verification
+            ProcessOrchestrator._auto_queue_for_review(doc_id)
+
+        thread = threading.Thread(target=_parse_and_queue, args=(document_id,))
         thread.start()
+
+    @staticmethod
+    def _auto_queue_for_review(document_id: int):
+        """Queue a document for human verification after AI processing."""
+        from src.database import SessionLocal
+        from src.models.document import Document
+        from src.models.verification_queue import VerificationQueue, VerificationDecision
+
+        db = SessionLocal()
+        try:
+            doc = db.query(Document).filter(Document.id == document_id).first()
+            if not doc:
+                return
+
+            # Only queue if AI has verified it
+            doc_status = doc.verification_status
+            if hasattr(doc_status, "value"):
+                doc_status = doc_status.value
+            if doc_status != "ai_verified":
+                return
+
+            # Check if already queued
+            existing = db.query(VerificationQueue).filter(
+                VerificationQueue.document_id == document_id
+            ).first()
+            if existing:
+                return
+
+            # Parse AI confidence from extracted_data if available
+            ai_score = None
+            ai_flags = None
+            if doc.extracted_data:
+                import json
+                try:
+                    data = json.loads(doc.extracted_data) if isinstance(doc.extracted_data, str) else doc.extracted_data
+                    ai_score = data.get("confidence_score")
+                    ai_flags = data.get("flags")
+                except (json.JSONDecodeError, AttributeError):
+                    pass
+
+            item = VerificationQueue(
+                document_id=document_id,
+                company_id=doc.company_id,
+                decision=VerificationDecision.PENDING,
+                ai_confidence_score=ai_score,
+                ai_flags=ai_flags,
+            )
+            db.add(item)
+            db.commit()
+        except Exception as e:
+            print(f"Auto-queue for review failed for document {document_id}: {str(e)}")
+        finally:
+            db.close()
 
     @staticmethod
     def _check_for_drafting_readiness(db: Session, comp: Company):
