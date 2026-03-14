@@ -1,9 +1,0 @@
-node_modules
-.next
-.env
-.env.local
-.git
-.gitignore
-npm-debug.log*
-README.md
-.vscode
