@@ -20,6 +20,7 @@ def init_db():
     from src.models import compliance_task  # noqa
     from src.models import shareholder  # noqa
     from src.models import filing_task, verification_queue, escalation_rule  # noqa
+    from src.models import legal_template  # noqa
     Base.metadata.create_all(bind=engine)
 
 

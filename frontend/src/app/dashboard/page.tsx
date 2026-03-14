@@ -139,6 +139,13 @@ export default function DashboardPage() {
                 <div className="flex items-center gap-4">
                   <NotificationBell />
                   <Link
+                    href="/documents"
+                    className="text-xs font-medium transition-colors hover:text-purple-400"
+                    style={{ color: "var(--color-text-secondary)" }}
+                  >
+                    Legal Docs
+                  </Link>
+                  <Link
                     href="/profile"
                     className="text-xs font-medium transition-colors hover:text-purple-400"
                     style={{ color: "var(--color-text-secondary)" }}

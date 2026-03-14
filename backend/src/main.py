@@ -12,6 +12,7 @@ from src.routers import health, pricing, wizard, auth, companies, documents, pay
 from src.routers import post_incorporation, compliance
 from src.routers import entity_comparison, cap_table
 from src.routers import ops
+from src.routers import legal_docs
 from src.utils.exceptions import APIError
 from src.middleware.security import (
     RateLimitMiddleware,
@@ -129,6 +130,7 @@ app.include_router(compliance.router, prefix=settings.api_v1_prefix)
 app.include_router(entity_comparison.router, prefix=settings.api_v1_prefix)
 app.include_router(cap_table.router, prefix=settings.api_v1_prefix)
 app.include_router(ops.router, prefix=settings.api_v1_prefix)
+app.include_router(legal_docs.router, prefix=settings.api_v1_prefix)
 
 
 @app.get("/")
