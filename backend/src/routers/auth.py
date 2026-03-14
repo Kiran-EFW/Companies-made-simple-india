@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from src.database import get_db
-from src.models.user import User
+from src.models.user import User, UserRole, StaffDepartment, StaffSeniority
 from src.schemas.auth import UserCreate, UserLogin, UserOut, UserUpdate, PasswordChange, Token
 from src.utils.security import get_password_hash, verify_password, create_access_token, get_current_user
 from src.utils.validators import validate_phone
@@ -57,24 +57,70 @@ def login(user_data: UserLogin, db: Session = Depends(get_db)):
 
 @router.post("/dev-login", response_model=Token)
 def dev_login(db: Session = Depends(get_db)):
-    """ONLY FOR DEVELOPMENT — disabled in production."""
+    """ONLY FOR DEVELOPMENT — disabled in production. Logs in as a regular user."""
     from src.config import get_settings
     if get_settings().environment != "development":
         raise HTTPException(status_code=403, detail="Only allowed in development")
-    
-    user = db.query(User).first()
+
+    user = db.query(User).filter(User.role == "user").first()
     if not user:
-        # Create a default dev user if none exists
         user = User(
             email="dev@example.com",
-            full_name="Software Developer",
-            hashed_password=get_password_hash("password")
+            full_name="Dev User",
+            hashed_password=get_password_hash("password"),
         )
         db.add(user)
         db.commit()
         db.refresh(user)
-    
+
     access_token = create_access_token(data={"sub": str(user.id)})
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
+@router.post("/dev-admin-login", response_model=Token)
+def dev_admin_login(db: Session = Depends(get_db)):
+    """ONLY FOR DEVELOPMENT — disabled in production. Logs in as SUPER_ADMIN."""
+    from src.config import get_settings
+    if get_settings().environment != "development":
+        raise HTTPException(status_code=403, detail="Only allowed in development")
+
+    # Find or create super admin
+    admin = db.query(User).filter(User.role == UserRole.SUPER_ADMIN).first()
+    if not admin:
+        admin = User(
+            email="admin@cmsindia.co",
+            full_name="Admin (Dev)",
+            hashed_password=get_password_hash("admin123"),
+            role=UserRole.SUPER_ADMIN,
+            department=StaffDepartment.ADMIN,
+            seniority=StaffSeniority.HEAD,
+        )
+        db.add(admin)
+        db.commit()
+        db.refresh(admin)
+
+        # Also seed a few team members for testing
+        team_roles = [
+            ("cs_lead@cmsindia.co", "Priya Sharma (CS Lead)", UserRole.CS_LEAD, StaffDepartment.CS, StaffSeniority.LEAD),
+            ("ca_lead@cmsindia.co", "Rajesh Gupta (CA Lead)", UserRole.CA_LEAD, StaffDepartment.CA, StaffSeniority.LEAD),
+            ("filing@cmsindia.co", "Anita Verma (Filing)", UserRole.FILING_COORDINATOR, StaffDepartment.FILING, StaffSeniority.MID),
+            ("cs@cmsindia.co", "Vikram Singh (CS)", UserRole.CUSTOMER_SUCCESS, StaffDepartment.SUPPORT, StaffSeniority.JUNIOR),
+        ]
+        for email, name, role, dept, sen in team_roles:
+            if not db.query(User).filter(User.email == email).first():
+                member = User(
+                    email=email,
+                    full_name=name,
+                    hashed_password=get_password_hash("password"),
+                    role=role,
+                    department=dept,
+                    seniority=sen,
+                    reports_to=admin.id,
+                )
+                db.add(member)
+        db.commit()
+
+    access_token = create_access_token(data={"sub": str(admin.id)})
     return {"access_token": access_token, "token_type": "bearer"}
 
 
