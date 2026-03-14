@@ -18,6 +18,7 @@ from src.models.notification import (
 from src.models.user import User
 from src.services.email_service import email_service
 from src.services.email_template_service import email_template_service
+from src.services.sms_service import sms_service
 from src.config import get_settings
 
 logger = logging.getLogger(__name__)
@@ -217,15 +218,21 @@ class NotificationService:
 
     @staticmethod
     def _send_sms(user: User, message: str) -> None:
-        """Placeholder SMS dispatch for development."""
-        phone = user.phone or "N/A"
-        logger.info("[SMS_DEV] To: %s, Message: %s", phone, message[:160])
+        """Send SMS via Twilio (falls back to dev-mode logging)."""
+        phone = user.phone
+        if not phone:
+            logger.info("[SMS] No phone number for user %s, skipping.", user.id)
+            return
+        sms_service.send_sms(phone, message)
 
     @staticmethod
     def _send_whatsapp(user: User, message: str) -> None:
-        """Placeholder WhatsApp dispatch for development."""
-        phone = user.phone or "N/A"
-        logger.info("[WHATSAPP_DEV] To: %s, Message: %s", phone, message[:500])
+        """Send WhatsApp via Twilio (falls back to dev-mode logging)."""
+        phone = user.phone
+        if not phone:
+            logger.info("[WhatsApp] No phone number for user %s, skipping.", user.id)
+            return
+        sms_service.send_whatsapp(phone, message)
 
 
 # Module-level singleton

@@ -10,6 +10,8 @@ from typing import List
 
 from src.database import get_db
 from src.models.user import User
+from src.models.esign import SignatureRequest
+from src.services.pdf_service import pdf_service
 from src.schemas.esign import (
     AuditLogOut,
     CompletedDocumentOut,
@@ -183,6 +185,38 @@ def download_certificate(
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+# ---------------------------------------------------------------------------
+# Public endpoints (no auth — accessed via unique token from email)
+# ---------------------------------------------------------------------------
+
+
+@router.get("/requests/{request_id}/signed-document-pdf")
+def download_signed_pdf(
+    request_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Download signed document as PDF."""
+    req = db.query(SignatureRequest).filter(
+        SignatureRequest.id == request_id,
+        SignatureRequest.created_by == current_user.id,
+    ).first()
+    if not req:
+        raise HTTPException(status_code=404, detail="Not found")
+    if not req.signed_document_html:
+        raise HTTPException(status_code=400, detail="Document not yet fully signed")
+
+    pdf_bytes = pdf_service.html_to_pdf(req.signed_document_html, req.title)
+    if not pdf_bytes:
+        raise HTTPException(status_code=503, detail="PDF generation not available")
+
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="signed_{request_id}.pdf"'},
+    )
 
 
 # ---------------------------------------------------------------------------

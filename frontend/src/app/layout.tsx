@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
 import { ErrorBoundary } from "@/components/error-boundary";
+import ToastContainer from "@/components/toast";
 
 export const metadata: Metadata = {
   title: "Companies Made Simple India — Incorporate Your Company in Days",
@@ -41,6 +42,7 @@ export default function RootLayout({
           <ErrorBoundary>
             {children}
           </ErrorBoundary>
+          <ToastContainer />
         </AuthProvider>
       </body>
     </html>

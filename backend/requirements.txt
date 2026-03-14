@@ -67,6 +67,7 @@ tomli==2.4.0
 tqdm==4.67.3
 typer==0.23.2
 typing-inspection==0.4.2
+twilio==9.4.2
 typing_extensions==4.15.0
 ujson==5.11.0
 urllib3==2.6.3
@@ -74,4 +75,12 @@ uvicorn==0.39.0
 uvloop==0.22.1
 watchfiles==1.1.1
 websockets==15.0.1
+xhtml2pdf==0.2.16
 yarl==1.22.0
+# --- Production infrastructure ---
+celery==5.4.0
+redis==5.2.1
+# weasyprint requires system deps: cairo, pango, gdk-pixbuf, libffi
+# On Debian/Ubuntu: apt-get install libcairo2 libpango-1.0-0 libgdk-pixbuf2.0-0 libffi-dev
+weasyprint==62.3
+flower==2.0.1

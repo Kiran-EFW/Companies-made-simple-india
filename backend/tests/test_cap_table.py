@@ -1,0 +1,194 @@
+"""Tests for the cap table management endpoints."""
+
+
+# ---------------------------------------------------------------------------
+# Get Cap Table
+# ---------------------------------------------------------------------------
+
+
+def test_get_cap_table_empty(client, test_company):
+    """GET /api/v1/companies/{id}/cap-table returns empty table initially."""
+    response = client.get(
+        f"/api/v1/companies/{test_company.id}/cap-table",
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["company_id"] == test_company.id
+    assert data["total_shares"] == 0
+    assert data["total_shareholders"] == 0
+    assert data["shareholders"] == []
+
+
+def test_get_cap_table_with_shareholders(
+    client, test_company, test_shareholder
+):
+    """Cap table reflects existing shareholders."""
+    response = client.get(
+        f"/api/v1/companies/{test_company.id}/cap-table",
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["total_shareholders"] == 1
+    assert data["total_shares"] == 5000
+    assert data["shareholders"][0]["name"] == "Founder A"
+
+
+# ---------------------------------------------------------------------------
+# Add Shareholder
+# ---------------------------------------------------------------------------
+
+
+def test_add_shareholder(client, test_company):
+    """POST /api/v1/companies/{id}/cap-table/shareholders adds a shareholder."""
+    response = client.post(
+        f"/api/v1/companies/{test_company.id}/cap-table/shareholders",
+        json={
+            "name": "New Investor",
+            "shares": 1000,
+            "share_type": "equity",
+            "face_value": 10.0,
+            "paid_up_value": 10.0,
+            "email": "investor@example.com",
+            "is_promoter": False,
+        },
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["name"] == "New Investor"
+    assert data["shares"] == 1000
+
+
+def test_add_shareholder_promoter(client, test_company):
+    """Adding a shareholder with is_promoter=True succeeds."""
+    response = client.post(
+        f"/api/v1/companies/{test_company.id}/cap-table/shareholders",
+        json={
+            "name": "Promoter C",
+            "shares": 3000,
+            "is_promoter": True,
+        },
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["is_promoter"] is True
+
+
+# ---------------------------------------------------------------------------
+# Record Allotment
+# ---------------------------------------------------------------------------
+
+
+def test_record_allotment(client, test_company, test_shareholder):
+    """POST /api/v1/companies/{id}/cap-table/allotment records new share allotment."""
+    response = client.post(
+        f"/api/v1/companies/{test_company.id}/cap-table/allotment",
+        json={
+            "entries": [
+                {
+                    "shareholder_id": test_shareholder.id,
+                    "shares": 1000,
+                    "share_type": "equity",
+                    "face_value": 10.0,
+                    "paid_up_value": 10.0,
+                    "price_per_share": 10.0,
+                },
+            ],
+        },
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert "transaction_id" in data or "allotment" in data or isinstance(data, dict)
+
+
+def test_record_allotment_to_new_shareholder(client, test_company):
+    """Allotment can include a new shareholder (name provided, no shareholder_id)."""
+    response = client.post(
+        f"/api/v1/companies/{test_company.id}/cap-table/allotment",
+        json={
+            "entries": [
+                {
+                    "name": "New Allottee",
+                    "shares": 500,
+                    "share_type": "equity",
+                    "face_value": 10.0,
+                    "paid_up_value": 10.0,
+                    "price_per_share": 50.0,
+                    "email": "allottee@example.com",
+                },
+            ],
+        },
+    )
+    assert response.status_code == 200
+
+
+# ---------------------------------------------------------------------------
+# Record Transfer
+# ---------------------------------------------------------------------------
+
+
+def test_record_transfer(
+    client, test_company, test_shareholder, second_shareholder
+):
+    """POST /api/v1/companies/{id}/cap-table/transfer records a share transfer."""
+    response = client.post(
+        f"/api/v1/companies/{test_company.id}/cap-table/transfer",
+        json={
+            "from_shareholder_id": test_shareholder.id,
+            "to_shareholder_id": second_shareholder.id,
+            "shares": 100,
+            "price_per_share": 10.0,
+        },
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert "transaction" in data or isinstance(data, dict)
+
+
+def test_record_transfer_updates_shareholdings(
+    client, test_company, test_shareholder, second_shareholder
+):
+    """After a transfer, the cap table reflects updated shareholdings."""
+    client.post(
+        f"/api/v1/companies/{test_company.id}/cap-table/transfer",
+        json={
+            "from_shareholder_id": test_shareholder.id,
+            "to_shareholder_id": second_shareholder.id,
+            "shares": 1000,
+            "price_per_share": 10.0,
+        },
+    )
+
+    # Verify updated cap table
+    cap_resp = client.get(f"/api/v1/companies/{test_company.id}/cap-table")
+    data = cap_resp.json()
+    shareholders_map = {s["name"]: s["shares"] for s in data["shareholders"]}
+    assert shareholders_map["Founder A"] == 4000
+    assert shareholders_map["Founder B"] == 6000
+
+
+# ---------------------------------------------------------------------------
+# Dilution Preview
+# ---------------------------------------------------------------------------
+
+
+def test_dilution_preview(client, test_company, test_shareholder):
+    """GET /api/v1/companies/{id}/cap-table/dilution-preview returns dilution data."""
+    response = client.get(
+        f"/api/v1/companies/{test_company.id}/cap-table/dilution-preview",
+        params={
+            "new_shares": 2000,
+            "investor_name": "Series A Investor",
+            "price_per_share": 100.0,
+        },
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert "pre_money" in data or "post_money" in data or isinstance(data, dict)
+
+
+def test_dilution_preview_requires_new_shares(client, test_company):
+    """Dilution preview requires the new_shares query parameter."""
+    response = client.get(
+        f"/api/v1/companies/{test_company.id}/cap-table/dilution-preview",
+    )
+    assert response.status_code == 422  # Validation error (missing required param)

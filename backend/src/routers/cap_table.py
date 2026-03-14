@@ -21,6 +21,7 @@ from src.services.cap_table_service import (
     ShareholderEntry,
     AllotmentEntry,
 )
+from src.utils.cache import cache_get, cache_set, cache_delete
 
 router = APIRouter(prefix="/companies", tags=["Cap Table"])
 
@@ -47,7 +48,13 @@ class AllotmentRequest(BaseModel):
 @router.get("/{company_id}/cap-table")
 def get_cap_table(company_id: int, db: Session = Depends(get_db)):
     """Get current cap table for a company."""
-    return cap_table_service.get_cap_table(db, company_id)
+    cache_key = f"captable:{company_id}"
+    cached = cache_get(cache_key)
+    if cached is not None:
+        return cached
+    result = cap_table_service.get_cap_table(db, company_id)
+    cache_set(cache_key, result, ttl=60)
+    return result
 
 
 @router.post("/{company_id}/cap-table/shareholders")
@@ -57,7 +64,9 @@ def add_shareholder(
     db: Session = Depends(get_db),
 ):
     """Add a shareholder to the cap table."""
-    return cap_table_service.add_shareholder(db, company_id, entry)
+    result = cap_table_service.add_shareholder(db, company_id, entry)
+    cache_delete(f"captable:{company_id}")
+    return result
 
 
 @router.post("/{company_id}/cap-table/transfer")
@@ -67,7 +76,7 @@ def record_transfer(
     db: Session = Depends(get_db),
 ):
     """Record a share transfer between shareholders."""
-    return cap_table_service.record_transfer(
+    result = cap_table_service.record_transfer(
         db,
         company_id,
         from_holder_id=request.from_shareholder_id,
@@ -75,6 +84,8 @@ def record_transfer(
         shares=request.shares,
         price_per_share=request.price_per_share,
     )
+    cache_delete(f"captable:{company_id}")
+    return result
 
 
 @router.post("/{company_id}/cap-table/allotment")
@@ -84,7 +95,9 @@ def record_allotment(
     db: Session = Depends(get_db),
 ):
     """Record new share allotment."""
-    return cap_table_service.record_allotment(db, company_id, request.entries)
+    result = cap_table_service.record_allotment(db, company_id, request.entries)
+    cache_delete(f"captable:{company_id}")
+    return result
 
 
 @router.get("/{company_id}/cap-table/dilution-preview")

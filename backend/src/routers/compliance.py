@@ -14,6 +14,7 @@ from src.utils.security import get_current_user
 from src.services.compliance_engine import compliance_engine
 from src.services.annual_filing_service import annual_filing_service
 from src.services.tds_service import tds_service
+from src.utils.cache import cache_get, cache_set, cache_delete_pattern
 
 router = APIRouter(prefix="/companies/{company_id}/compliance", tags=["Compliance"])
 
@@ -103,8 +104,18 @@ def get_compliance_calendar(
 ):
     """Full compliance calendar for a given financial year."""
     company = _get_user_company(company_id, db, current_user)
+
+    # Check cache
+    fy = financial_year or "current"
+    cache_key = f"compliance:calendar:{company_id}:{fy}"
+    cached = cache_get(cache_key)
+    if cached is not None:
+        return cached
+
     calendar = compliance_engine.generate_calendar(company, financial_year)
-    return {"company_id": company_id, "calendar": calendar}
+    result = {"company_id": company_id, "calendar": calendar}
+    cache_set(cache_key, result, ttl=300)
+    return result
 
 
 @router.get("/upcoming")
@@ -224,6 +235,10 @@ def update_compliance_task(
 
     db.commit()
     db.refresh(task)
+
+    # Invalidate compliance calendar cache for this company
+    cache_delete_pattern(f"compliance:calendar:{company_id}:*")
+
     return _task_to_dict(task)
 
 

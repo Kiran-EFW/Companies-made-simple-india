@@ -15,6 +15,7 @@ from src.routers import ops
 from src.routers import legal_docs
 from src.routers import statutory_registers, meetings, data_room
 from src.routers import esign
+from src.routers import invoices
 from src.utils.exceptions import APIError
 from src.middleware.security import (
     RateLimitMiddleware,
@@ -22,6 +23,7 @@ from src.middleware.security import (
     PIIMaskingMiddleware,
 )
 from src.middleware.logging import RequestLoggingMiddleware
+from src.utils.structured_logging import setup_structured_logging
 
 
 logger = logging.getLogger(__name__)
@@ -47,6 +49,8 @@ def _run_escalation_loop(stop_event: threading.Event):
 async def lifespan(app: FastAPI):
     """Application lifecycle: startup and shutdown."""
     init_db()
+    # Initialize structured JSON logging
+    setup_structured_logging(settings.log_level if hasattr(settings, 'log_level') else "INFO")
     # Start background escalation checker
     stop_event = threading.Event()
     escalation_thread = threading.Thread(
@@ -137,6 +141,7 @@ app.include_router(statutory_registers.router, prefix=settings.api_v1_prefix)
 app.include_router(meetings.router, prefix=settings.api_v1_prefix)
 app.include_router(data_room.router, prefix=settings.api_v1_prefix)
 app.include_router(esign.router, prefix=settings.api_v1_prefix)
+app.include_router(invoices.router, prefix=settings.api_v1_prefix)
 
 
 @app.get("/")

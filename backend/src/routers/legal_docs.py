@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from src.services.pdf_service import pdf_service
 from sqlalchemy.orm import Session
 from typing import Any, List
 from src.database import get_db
@@ -199,5 +200,28 @@ def download_draft(
     return Response(
         content=doc.generated_html,
         media_type="text/html",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@router.get("/drafts/{draft_id}/download-pdf")
+def download_pdf(
+    draft_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Download the document as PDF."""
+    doc = _get_user_draft(db, draft_id, current_user.id)
+    if not doc.generated_html:
+        raise HTTPException(status_code=400, detail="No generated document to download")
+
+    pdf_bytes = pdf_service.html_to_pdf(doc.generated_html, doc.title)
+    if pdf_bytes is None:
+        raise HTTPException(status_code=503, detail="PDF generation not available. Install weasyprint or xhtml2pdf.")
+
+    filename = f"{doc.template_type}_{doc.id}.pdf"
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )

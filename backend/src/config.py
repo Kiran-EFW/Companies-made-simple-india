@@ -24,6 +24,13 @@ class Settings(BaseSettings):
     razorpay_key_secret: str = ""
     razorpay_webhook_secret: str = ""
 
+    # Redis
+    redis_url: str = "redis://localhost:6379/0"
+    celery_broker_url: str = ""  # Falls back to redis_url
+
+    # Logging
+    log_level: str = "INFO"
+
     # CORS
     cors_origins: str = ""
 
@@ -31,6 +38,12 @@ class Settings(BaseSettings):
     sendgrid_api_key: str = ""
     from_email: str = "hello@companiesmade.in"
     from_name: str = "Companies Made Simple India"
+
+    # Twilio (SMS / WhatsApp)
+    twilio_account_sid: str = ""
+    twilio_auth_token: str = ""
+    twilio_phone_number: str = ""
+    twilio_whatsapp_number: str = ""
 
     class Config:
         env_file = ".env"
