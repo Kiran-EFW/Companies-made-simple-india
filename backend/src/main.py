@@ -37,10 +37,11 @@ app = FastAPI(
 )
 
 # CORS — defaults to localhost for dev; override CORS_ORIGINS env var for production
-cors_origins = settings.cors_origins.split(",") if hasattr(settings, "cors_origins") and settings.cors_origins else [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-]
+cors_origins = (
+    [o.strip() for o in settings.cors_origins.split(",") if o.strip()]
+    if settings.cors_origins
+    else ["http://localhost:3000", "http://127.0.0.1:3000"]
+)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,

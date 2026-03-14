@@ -7,7 +7,6 @@ Endpoints:
 """
 
 from fastapi import APIRouter, Query
-from typing import List
 from src.services.entity_comparison_service import entity_comparison_service
 
 router = APIRouter(prefix="/entities", tags=["Entity Comparison"])
