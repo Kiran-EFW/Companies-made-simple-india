@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getLegalTemplates, getLegalDrafts } from "@/lib/api";
+import { getLegalTemplates, getLegalDrafts, getSignatureRequests } from "@/lib/api";
 import { type ReactNode } from "react";
 
 // Category-based icons using Heroicons patterns
@@ -109,20 +109,25 @@ export default function DocumentsPage() {
   const router = useRouter();
   const [templates, setTemplates] = useState<any[]>([]);
   const [drafts, setDrafts] = useState<any[]>([]);
+  const [signatureReqs, setSignatureReqs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [templatesRes, draftsRes] = await Promise.allSettled([
+        const [templatesRes, draftsRes, sigReqsRes] = await Promise.allSettled([
           getLegalTemplates(),
           getLegalDrafts(),
+          getSignatureRequests(),
         ]);
         if (templatesRes.status === "fulfilled") {
           setTemplates(Array.isArray(templatesRes.value) ? templatesRes.value : []);
         }
         if (draftsRes.status === "fulfilled") {
           setDrafts(Array.isArray(draftsRes.value) ? draftsRes.value : []);
+        }
+        if (sigReqsRes.status === "fulfilled") {
+          setSignatureReqs(Array.isArray(sigReqsRes.value) ? sigReqsRes.value : []);
         }
       } catch (err) {
         console.error("Failed to load documents:", err);
@@ -227,6 +232,83 @@ export default function DocumentsPage() {
         ));
       })()}
 
+      {/* E-Signature Requests */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+            <svg className="w-4 h-4 text-purple-400/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+            </svg>
+            Signature Requests
+            {signatureReqs.filter((r) => ["draft", "sent", "partially_signed"].includes(r.status)).length > 0 && (
+              <span className="inline-flex text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-amber-500/15 border-amber-500/30 text-amber-400">
+                {signatureReqs.filter((r) => ["draft", "sent", "partially_signed"].includes(r.status)).length} pending
+              </span>
+            )}
+          </h2>
+          <button
+            onClick={() => router.push("/documents/signatures")}
+            className="text-xs text-purple-400 hover:text-purple-300 font-medium transition-colors flex items-center gap-1"
+          >
+            View All
+            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+            </svg>
+          </button>
+        </div>
+
+        {signatureReqs.length === 0 ? (
+          <div className="rounded-xl border border-gray-700 bg-gray-800/50 p-8 text-center">
+            <svg className="w-10 h-10 text-gray-600 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+            </svg>
+            <p className="text-xs text-gray-400">No signature requests yet</p>
+            <p className="text-[10px] text-gray-500 mt-0.5">Finalize a document, then send it for signing</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {signatureReqs.slice(0, 4).map((req) => {
+              const statusMap: Record<string, { bg: string; text: string; label: string }> = {
+                draft: { bg: "bg-gray-500/15 border-gray-500/30", text: "text-gray-400", label: "Draft" },
+                sent: { bg: "bg-blue-500/15 border-blue-500/30", text: "text-blue-400", label: "Sent" },
+                partially_signed: { bg: "bg-amber-500/15 border-amber-500/30", text: "text-amber-400", label: "Partially Signed" },
+                completed: { bg: "bg-emerald-500/15 border-emerald-500/30", text: "text-emerald-400", label: "Completed" },
+                cancelled: { bg: "bg-red-500/15 border-red-500/30", text: "text-red-400", label: "Cancelled" },
+                expired: { bg: "bg-gray-500/15 border-gray-500/30", text: "text-gray-400", label: "Expired" },
+              };
+              const badge = statusMap[req.status] || statusMap.draft;
+              const signatories = Array.isArray(req.signatories) ? req.signatories : [];
+              const signedCount = signatories.filter((s: any) => s.status === "signed").length;
+
+              return (
+                <button
+                  key={req.id}
+                  onClick={() => router.push("/documents/signatures")}
+                  className="rounded-xl border border-gray-700 bg-gray-800/50 p-4 text-left hover:bg-gray-800/80 hover:border-purple-500/30 transition-all"
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <h4 className="text-sm font-medium text-white truncate flex-1 mr-2">
+                      {req.document_title || req.title || "Untitled"}
+                    </h4>
+                    <span className={`inline-flex text-[10px] font-semibold px-2 py-0.5 rounded-full border ${badge.bg} ${badge.text} shrink-0`}>
+                      {badge.label}
+                    </span>
+                  </div>
+                  {signatories.length > 0 && (
+                    <div className="flex items-center gap-1.5 text-[10px] text-gray-500">
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                      </svg>
+                      {signedCount} of {signatories.length} signed
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
       {/* User's Documents */}
       {drafts.length > 0 && (
         <div>
@@ -263,7 +345,18 @@ export default function DocumentsPage() {
                       <td className="px-5 py-3 text-xs text-gray-400">
                         {draft.created_at ? new Date(draft.created_at).toLocaleDateString() : "--"}
                       </td>
-                      <td className="px-5 py-3 text-right">
+                      <td className="px-5 py-3 text-right flex items-center justify-end gap-3">
+                        {(draft.status === "finalized" || draft.status === "downloaded") && (
+                          <button
+                            onClick={() => router.push(`/documents/send-for-signing?documentId=${draft.id}`)}
+                            className="text-xs text-emerald-400 hover:text-emerald-300 font-medium transition-colors flex items-center gap-1"
+                          >
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                            </svg>
+                            Send for Signing
+                          </button>
+                        )}
                         <button
                           onClick={() => router.push(`/documents/create/${draft.template_type}?draft=${draft.id}`)}
                           className="text-xs text-purple-400 hover:text-purple-300 font-medium transition-colors"

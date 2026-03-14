@@ -21,6 +21,8 @@ def init_db():
     from src.models import shareholder  # noqa
     from src.models import filing_task, verification_queue, escalation_rule  # noqa
     from src.models import legal_template  # noqa
+    from src.models import statutory_register, meeting, data_room  # noqa
+    from src.models import esign  # noqa
     Base.metadata.create_all(bind=engine)
 
 

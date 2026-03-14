@@ -15,6 +15,7 @@ from jinja2 import Template
 from src.services.contract_templates_tier2 import TIER2_TEMPLATES, TIER2_RENDERERS
 from src.services.contract_templates_tier3a import TIER3A_TEMPLATES, TIER3A_RENDERERS
 from src.services.contract_templates_tier3b import TIER3B_TEMPLATES, TIER3B_RENDERERS
+from src.services.contract_templates_tier4 import TIER4_TEMPLATES, TIER4_RENDERERS
 
 
 # ---------------------------------------------------------------------------
@@ -264,6 +265,7 @@ class ContractTemplateService:
         self._renderers.update(TIER2_RENDERERS)
         self._renderers.update(TIER3A_RENDERERS)
         self._renderers.update(TIER3B_RENDERERS)
+        self._renderers.update(TIER4_RENDERERS)
 
         templates = {
             "founder_agreement": self._founder_agreement(),
@@ -279,6 +281,7 @@ class ContractTemplateService:
         templates.update(TIER2_TEMPLATES)
         templates.update(TIER3A_TEMPLATES)
         templates.update(TIER3B_TEMPLATES)
+        templates.update(TIER4_TEMPLATES)
         return templates
 
     # -- private helpers ----------------------------------------------------

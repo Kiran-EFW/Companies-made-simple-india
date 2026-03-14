@@ -344,7 +344,7 @@ export default function DashboardPage() {
                                  <h4 className="text-sm font-semibold">Business Bank Account</h4>
                                  <p className="text-[10px] text-gray-500">Partnered with Mercury, ICICI & HDFC</p>
                               </div>
-                              <Link href="/dashboard/compliance" className="text-xs font-bold text-purple-400 group-hover:underline">Get Started →</Link>
+                              <Link href="/dashboard/compliance" className="text-xs font-bold text-purple-400 group-hover:underline">Get Started &#8594;</Link>
                            </div>
                            <div className="p-4 rounded-lg bg-black/40 border border-gray-800 flex justify-between items-center group hover:border-purple-500/30 transition-colors">
                               <div>
@@ -352,6 +352,27 @@ export default function DashboardPage() {
                                  <p className="text-[10px] text-gray-500">Mandatory filing within 180 days</p>
                               </div>
                               <button className="text-xs font-bold text-gray-500 cursor-not-allowed">Coming Soon</button>
+                           </div>
+                           <div className="p-4 rounded-lg bg-black/40 border border-gray-800 flex justify-between items-center group hover:border-purple-500/30 transition-colors">
+                              <div>
+                                 <h4 className="text-sm font-semibold">Statutory Registers</h4>
+                                 <p className="text-[10px] text-gray-500">Mandatory registers under Companies Act 2013</p>
+                              </div>
+                              <Link href="/dashboard/registers" className="text-xs font-bold text-purple-400 group-hover:underline">Manage &#8594;</Link>
+                           </div>
+                           <div className="p-4 rounded-lg bg-black/40 border border-gray-800 flex justify-between items-center group hover:border-purple-500/30 transition-colors">
+                              <div>
+                                 <h4 className="text-sm font-semibold">Meeting Management</h4>
+                                 <p className="text-[10px] text-gray-500">Board &amp; Shareholder meetings, minutes &amp; notices</p>
+                              </div>
+                              <Link href="/dashboard/meetings" className="text-xs font-bold text-purple-400 group-hover:underline">Manage &#8594;</Link>
+                           </div>
+                           <div className="p-4 rounded-lg bg-black/40 border border-gray-800 flex justify-between items-center group hover:border-purple-500/30 transition-colors md:col-span-2">
+                              <div>
+                                 <h4 className="text-sm font-semibold">Data Room</h4>
+                                 <p className="text-[10px] text-gray-500">Secure document vault with investor sharing</p>
+                              </div>
+                              <Link href="/dashboard/data-room" className="text-xs font-bold text-purple-400 group-hover:underline">Open &#8594;</Link>
                            </div>
                         </div>
                      </div>
