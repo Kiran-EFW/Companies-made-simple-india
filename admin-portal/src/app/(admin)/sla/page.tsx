@@ -106,9 +106,9 @@ export default function SLATrackingPage() {
           const o = raw?.overview ?? raw?.data?.overview ?? raw?.data ?? raw;
           setOverview({
             total_companies: o?.total_companies ?? o?.total ?? 0,
-            compliance_rate: o?.compliance_rate ?? o?.compliance_percentage ?? 0,
+            compliance_rate: o?.on_time_percentage ?? o?.compliance_rate ?? o?.compliance_percentage ?? 0,
             avg_processing_time:
-              o?.avg_processing_time ?? o?.average_processing_time ?? 0,
+              o?.avg_processing_hours ?? o?.avg_processing_time ?? o?.average_processing_time ?? 0,
             active_breaches: o?.active_breaches ?? o?.breaches_count ?? 0,
           });
         } else {

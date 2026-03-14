@@ -5,16 +5,21 @@ import { getAdminTeam, apiCall } from "@/lib/api";
 
 const ROLE_OPTIONS = [
   { value: "admin", label: "Admin", description: "Full access to all features" },
-  { value: "manager", label: "Manager", description: "Manage companies and team" },
-  { value: "agent", label: "Agent", description: "Process and verify documents" },
-  { value: "viewer", label: "Viewer", description: "Read-only access" },
+  { value: "super_admin", label: "Super Admin", description: "Full platform control" },
+  { value: "cs_lead", label: "CS Lead", description: "Company Secretary lead" },
+  { value: "ca_lead", label: "CA Lead", description: "Chartered Accountant lead" },
+  { value: "filing_coordinator", label: "Filing Coordinator", description: "Handle MCA filings" },
+  { value: "customer_success", label: "Customer Success", description: "Customer support" },
 ];
 
 function getRoleBadgeClasses(role: string): string {
   switch (role) {
+    case "super_admin": return "bg-red-500/15 text-red-400 border-red-500/30";
     case "admin": return "bg-purple-500/15 text-purple-400 border-purple-500/30";
-    case "manager": return "bg-blue-500/15 text-blue-400 border-blue-500/30";
-    case "agent": return "bg-emerald-500/15 text-emerald-400 border-emerald-500/30";
+    case "cs_lead":
+    case "ca_lead": return "bg-blue-500/15 text-blue-400 border-blue-500/30";
+    case "filing_coordinator": return "bg-emerald-500/15 text-emerald-400 border-emerald-500/30";
+    case "customer_success": return "bg-cyan-500/15 text-cyan-400 border-cyan-500/30";
     default: return "bg-gray-500/15 text-gray-400 border-gray-500/30";
   }
 }
@@ -24,7 +29,8 @@ export default function AdminTeamPage() {
   const [loading, setLoading] = useState(true);
   const [showInviteForm, setShowInviteForm] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteRole, setInviteRole] = useState("agent");
+  const [inviteName, setInviteName] = useState("");
+  const [inviteRole, setInviteRole] = useState("customer_success");
   const [inviting, setInviting] = useState(false);
   const [changingRole, setChangingRole] = useState<number | null>(null);
 
@@ -44,15 +50,16 @@ export default function AdminTeamPage() {
   };
 
   const handleInvite = async () => {
-    if (!inviteEmail.trim()) return;
+    if (!inviteEmail.trim() || !inviteName.trim()) return;
     setInviting(true);
     try {
       await apiCall("/admin/users/invite", {
         method: "POST",
-        body: JSON.stringify({ email: inviteEmail, role: inviteRole }),
+        body: JSON.stringify({ email: inviteEmail, full_name: inviteName, role: inviteRole }),
       });
       setInviteEmail("");
-      setInviteRole("agent");
+      setInviteName("");
+      setInviteRole("customer_success");
       setShowInviteForm(false);
       await fetchTeam();
     } catch (err) {
@@ -126,10 +133,17 @@ export default function AdminTeamPage() {
           <h3 className="text-sm font-semibold mb-4">Invite New Team Member</h3>
           <div className="flex flex-col sm:flex-row gap-3">
             <input
+              type="text"
+              value={inviteName}
+              onChange={(e) => setInviteName(e.target.value)}
+              placeholder="Full name..."
+              className="sm:w-48 bg-gray-900/50 border border-gray-700 rounded-lg p-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-purple-500/50"
+            />
+            <input
               type="email"
               value={inviteEmail}
               onChange={(e) => setInviteEmail(e.target.value)}
-              placeholder="Enter email address..."
+              placeholder="Email address..."
               className="flex-1 bg-gray-900/50 border border-gray-700 rounded-lg p-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-purple-500/50"
             />
             <select
@@ -143,7 +157,7 @@ export default function AdminTeamPage() {
             </select>
             <button
               onClick={handleInvite}
-              disabled={!inviteEmail.trim() || inviting}
+              disabled={!inviteEmail.trim() || !inviteName.trim() || inviting}
               className="px-6 py-3 rounded-lg text-sm font-medium bg-purple-600 hover:bg-purple-500 text-white transition-colors disabled:opacity-50 whitespace-nowrap"
             >
               {inviting ? "Sending..." : "Send Invite"}

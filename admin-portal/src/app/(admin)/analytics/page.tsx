@@ -12,7 +12,7 @@ import {
 interface FunnelStage {
   stage: string;
   count: number;
-  conversion: number;
+  percentage: number;
 }
 
 export default function AdminAnalyticsPage() {
@@ -96,28 +96,28 @@ export default function AdminAnalyticsPage() {
         <div className="rounded-xl border border-gray-700 bg-gray-800/50 p-5">
           <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">Active</p>
           <p className="text-3xl font-bold text-blue-400" style={{ fontFamily: "var(--font-display)" }}>
-            {analytics?.active_incorporations ?? "--"}
+            {analytics?.filed_count ?? "--"}
           </p>
         </div>
         <div className="rounded-xl border border-gray-700 bg-gray-800/50 p-5">
           <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">Completed</p>
           <p className="text-3xl font-bold text-emerald-400" style={{ fontFamily: "var(--font-display)" }}>
-            {analytics?.completed ?? analytics?.completed_this_month ?? "--"}
+            {analytics?.approved_count ?? "--"}
           </p>
         </div>
         <div className="rounded-xl border border-gray-700 bg-gray-800/50 p-5">
           <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">Revenue</p>
           <p className="text-3xl font-bold text-amber-400" style={{ fontFamily: "var(--font-display)" }}>
-            {analytics?.total_revenue != null ? `₹${(analytics.total_revenue / 1000).toFixed(0)}K` : "--"}
+            {analytics?.revenue_total != null ? `₹${(analytics.revenue_total / 1000).toFixed(0)}K` : "--"}
           </p>
         </div>
         <div className="rounded-xl border border-gray-700 bg-gray-800/50 p-5">
           <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">SLA Rate</p>
           <p className={`text-3xl font-bold ${
-            slaOverview?.compliance_rate >= 90 ? "text-emerald-400" :
-            slaOverview?.compliance_rate >= 70 ? "text-amber-400" : "text-red-400"
+            slaOverview?.on_time_percentage >= 90 ? "text-emerald-400" :
+            slaOverview?.on_time_percentage >= 70 ? "text-amber-400" : "text-red-400"
           }`} style={{ fontFamily: "var(--font-display)" }}>
-            {slaOverview?.compliance_rate != null ? `${slaOverview.compliance_rate}%` : "--"}
+            {slaOverview?.on_time_percentage != null ? `${slaOverview.on_time_percentage}%` : "--"}
           </p>
         </div>
       </div>
@@ -154,10 +154,10 @@ export default function AdminAnalyticsPage() {
                   </div>
                   <div className="w-16 text-right shrink-0">
                     <span className={`text-xs font-semibold ${
-                      stage.conversion >= 80 ? "text-emerald-400" :
-                      stage.conversion >= 50 ? "text-amber-400" : "text-red-400"
+                      stage.percentage >= 80 ? "text-emerald-400" :
+                      stage.percentage >= 50 ? "text-amber-400" : "text-red-400"
                     }`}>
-                      {stage.conversion}%
+                      {stage.percentage}%
                     </span>
                   </div>
                 </div>
@@ -286,16 +286,16 @@ export default function AdminAnalyticsPage() {
                 <div className="flex items-center justify-between p-4 rounded-lg border border-gray-700 bg-gray-900/30">
                   <span className="text-sm text-gray-400">Compliance Rate</span>
                   <span className={`text-2xl font-bold ${
-                    slaOverview.compliance_rate >= 90 ? "text-emerald-400" :
-                    slaOverview.compliance_rate >= 70 ? "text-amber-400" : "text-red-400"
+                    slaOverview.on_time_percentage >= 90 ? "text-emerald-400" :
+                    slaOverview.on_time_percentage >= 70 ? "text-amber-400" : "text-red-400"
                   }`}>
-                    {slaOverview.compliance_rate}%
+                    {slaOverview.on_time_percentage}%
                   </span>
                 </div>
-                {slaOverview.avg_processing_time != null && (
+                {slaOverview.avg_processing_hours != null && (
                   <div className="flex items-center justify-between p-4 rounded-lg border border-gray-700 bg-gray-900/30">
                     <span className="text-sm text-gray-400">Avg Processing Time</span>
-                    <span className="text-lg font-bold text-white">{slaOverview.avg_processing_time} days</span>
+                    <span className="text-lg font-bold text-white">{slaOverview.avg_processing_hours} days</span>
                   </div>
                 )}
                 {slaBreaches.length > 0 && (

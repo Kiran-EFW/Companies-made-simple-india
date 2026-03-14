@@ -150,13 +150,13 @@ export default function AdminDashboardPage() {
         <div className="rounded-xl border border-gray-700 bg-gray-800/50 p-5">
           <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">Revenue This Month</p>
           <p className="text-3xl font-bold text-amber-400" style={{ fontFamily: "var(--font-display)" }}>
-            {analytics?.revenue_this_month != null ? `₹${(analytics.revenue_this_month / 1000).toFixed(0)}K` : "--"}
+            {analytics?.revenue_total != null ? `₹${(analytics.revenue_total / 1000).toFixed(0)}K` : "--"}
           </p>
         </div>
         <div className="rounded-xl border border-gray-700 bg-gray-800/50 p-5">
           <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">SLA Compliance</p>
-          <p className={`text-3xl font-bold ${slaOverview?.compliance_rate >= 90 ? "text-emerald-400" : slaOverview?.compliance_rate >= 70 ? "text-amber-400" : "text-red-400"}`} style={{ fontFamily: "var(--font-display)" }}>
-            {slaOverview?.compliance_rate != null ? `${slaOverview.compliance_rate}%` : "--"}
+          <p className={`text-3xl font-bold ${slaOverview?.on_time_percentage >= 90 ? "text-emerald-400" : slaOverview?.on_time_percentage >= 70 ? "text-amber-400" : "text-red-400"}`} style={{ fontFamily: "var(--font-display)" }}>
+            {slaOverview?.on_time_percentage != null ? `${slaOverview.on_time_percentage}%` : "--"}
           </p>
         </div>
       </div>
