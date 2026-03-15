@@ -3,7 +3,7 @@ from typing import Optional
 
 
 class PricingRequest(BaseModel):
-    entity_type: str  # private_limited, opc, llp, section_8, sole_proprietorship
+    entity_type: str  # private_limited, opc, llp, section_8, sole_proprietorship, partnership, public_limited
     plan_tier: str = "launch"  # launch, grow, scale
     state: str  # e.g., "delhi", "maharashtra"
     authorized_capital: int = 100000
@@ -13,8 +13,9 @@ class PricingRequest(BaseModel):
 
 
 class StampDutyBreakdown(BaseModel):
-    moa_stamp_duty: int
-    aoa_stamp_duty: int
+    moa_stamp_duty: int = 0
+    aoa_stamp_duty: int = 0
+    deed_stamp_duty: int = 0  # Partnership deeds
     total_stamp_duty: int
 
 
@@ -41,6 +42,18 @@ class OptimizationTip(BaseModel):
     potential_saving: int
 
 
+class PartnershipFees(BaseModel):
+    rof_registration_fee: int
+    deed_stamp_duty: int
+    pan_application_fee: int
+
+
+class PublicLimitedRecurring(BaseModel):
+    secretarial_audit_annual: int
+    cs_compliance_annual: int
+    note: str
+
+
 class PricingResponse(BaseModel):
     entity_type: str
     plan_tier: str
@@ -53,6 +66,8 @@ class PricingResponse(BaseModel):
     dsc: DSCBreakdown
     grand_total: int
     optimization_tip: Optional[OptimizationTip] = None
+    partnership_fees: Optional[PartnershipFees] = None
+    public_limited_recurring: Optional[PublicLimitedRecurring] = None
 
 
 class StateOption(BaseModel):

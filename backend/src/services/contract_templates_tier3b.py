@@ -81,27 +81,8 @@ def _clause(
 # ---------------------------------------------------------------------------
 
 def _base_html_wrap(title: str, body: str, date: str = "") -> str:
-    return f'''<!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>{title}</title>
-<style>
-body{{font-family:'Georgia','Times New Roman',serif;line-height:1.8;color:#1a1a1a;max-width:800px;margin:0 auto;padding:40px;}}
-h1{{font-family:'Helvetica Neue',Arial,sans-serif;font-size:24px;text-align:center;border-bottom:2px solid #333;padding-bottom:15px;margin-bottom:30px;}}
-h2{{font-family:'Helvetica Neue',Arial,sans-serif;font-size:16px;margin-top:30px;color:#222;text-transform:uppercase;letter-spacing:1px;}}
-.clause{{margin:15px 0;padding:10px 0;border-bottom:1px solid #eee;}}
-.clause-number{{font-weight:bold;margin-right:8px;}}
-.parties{{background:#f8f8f8;padding:20px;border-radius:8px;margin:20px 0;}}
-.signature-block{{margin-top:60px;}}
-.signature-line{{margin:30px 0;}}
-.signature-line .line{{border-bottom:1px solid #333;width:300px;margin-bottom:5px;}}
-.meta{{text-align:center;color:#666;font-size:13px;margin-bottom:30px;}}
-@media print{{body{{padding:20px;}}@page{{margin:2cm;size:A4;}}}}
-</style>
-</head><body>
-<h1>{title}</h1>
-<p class="meta">Date: {date or "________________________"}</p>
-{body}
-</body></html>'''
+    from src.services.document_html_utils import base_html_wrap
+    return base_html_wrap(title, body, date)
 
 
 # ---------------------------------------------------------------------------

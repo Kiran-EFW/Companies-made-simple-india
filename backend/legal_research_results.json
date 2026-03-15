@@ -1,0 +1,248 @@
+{
+  "metadata": {
+    "scraped_at": "2026-03-15T15:12:42.538942",
+    "purpose": "Legal compliance verification for CMS India document templates"
+  },
+  "sources": {
+    "table_f_aoa": {
+      "title": "Companies Act 2013 - Table F (Articles of Association)",
+      "pages": [
+        {
+          "url": "https://www.indiacode.nic.in/show-data?actid=AC_CEN_2_29_00037_201318_1517807324077&sectionId=41825&sectionno=5&ordession=1",
+          "status": "http_403",
+          "content": "",
+          "title": ""
+        },
+        {
+          "url": "https://blog.ipleaders.in/table-f-companies-act-2013/",
+          "status": "http_404",
+          "content": "",
+          "title": ""
+        },
+        {
+          "url": "https://byjus.com/free-ias-prep/companies-act-2013/",
+          "status": "http_404",
+          "content": "",
+          "title": ""
+        }
+      ],
+      "search_snippets": []
+    },
+    "moa_requirements": {
+      "title": "Companies Act 2013 - MOA Requirements (Section 4, Schedule I)",
+      "pages": [
+        {
+          "url": "https://blog.ipleaders.in/memorandum-of-association-under-companies-act-2013/",
+          "status": "http_404",
+          "content": "",
+          "title": ""
+        },
+        {
+          "url": "https://www.toppr.com/guides/business-laws-cs/companies-act-2013/memorandum-of-association/",
+          "status": "error: Page.goto: net::ERR_CERT_DATE_INVALID at https://www.toppr.com/guides/business-laws-cs/companies-act",
+          "content": "",
+          "title": ""
+        },
+        {
+          "url": "https://byjus.com/commerce/memorandum-of-association/",
+          "status": "error: Page.goto: Navigation to \"https://byjus.com/commerce/memorandum-of-association/\" is interrupted by a",
+          "content": "",
+          "title": ""
+        }
+      ],
+      "search_snippets": [
+        "Search error: Page.goto: Navigation to \"https://www.google.com/search?q=site:ipleaders.in+OR+site:byjus.com+memora"
+      ]
+    },
+    "llp_agreement": {
+      "title": "LLP Act 2008 - Section 23 (LLP Agreement)",
+      "pages": [
+        {
+          "url": "https://blog.ipleaders.in/llp-agreement/",
+          "status": "error: Page.goto: Navigation to \"https://blog.ipleaders.in/llp-agreement/\" is interrupted by another naviga",
+          "content": "",
+          "title": ""
+        },
+        {
+          "url": "https://www.toppr.com/guides/business-laws-cs/llp-act-2008/llp-agreement/",
+          "status": "error: Page.goto: net::ERR_CERT_DATE_INVALID at https://www.toppr.com/guides/business-laws-cs/llp-act-2008/",
+          "content": "",
+          "title": ""
+        },
+        {
+          "url": "https://vakilsearch.com/blog/llp-agreement/",
+          "status": "error: Page.goto: Navigation to \"https://vakilsearch.com/blog/llp-agreement/\" is interrupted by another nav",
+          "content": "",
+          "title": ""
+        }
+      ],
+      "search_snippets": [
+        "Search error: Page.goto: Navigation to \"https://www.google.com/search?q=site:ipleaders.in+OR+site:vakilsearch.com+"
+      ]
+    },
+    "stamp_duty": {
+      "title": "Indian Stamp Act - Stamp Duty on Company Documents",
+      "pages": [
+        {
+          "url": "https://blog.ipleaders.in/stamp-duty-on-company-documents/",
+          "status": "error: Page.goto: Navigation to \"https://blog.ipleaders.in/stamp-duty-on-company-documents/\" is interrupted",
+          "content": "",
+          "title": ""
+        },
+        {
+          "url": "https://vakilsearch.com/blog/stamp-duty/",
+          "status": "error: Page.goto: Navigation to \"https://vakilsearch.com/blog/stamp-duty/\" is interrupted by another naviga",
+          "content": "",
+          "title": ""
+        },
+        {
+          "url": "https://www.legalraasta.com/stamp-duty/",
+          "status": "error: Page.goto: Navigation to \"https://www.legalraasta.com/stamp-duty/\" is interrupted by another navigat",
+          "content": "",
+          "title": ""
+        }
+      ],
+      "search_snippets": [
+        "Search error: Page.goto: Navigation to \"https://www.google.com/search?q=stamp+duty+MOA+AOA+company+incorporation+I"
+      ]
+    },
+    "esign_validity": {
+      "title": "IT Act 2000 - E-Signature Legal Validity (Section 3A, 5)",
+      "pages": [
+        {
+          "url": "https://blog.ipleaders.in/electronic-signature-india/",
+          "status": "error: Page.goto: Navigation to \"https://blog.ipleaders.in/electronic-signature-india/\" is interrupted by a",
+          "content": "",
+          "title": ""
+        },
+        {
+          "url": "https://vakilsearch.com/blog/digital-signature-certificate/",
+          "status": "error: Page.goto: Navigation to \"https://vakilsearch.com/blog/digital-signature-certificate/\" is interrupte",
+          "content": "",
+          "title": ""
+        },
+        {
+          "url": "https://www.cca.gov.in/about-e-sign.html",
+          "status": "error: Page.goto: Navigation to \"https://www.cca.gov.in/about-e-sign.html\" is interrupted by another naviga",
+          "content": "",
+          "title": ""
+        }
+      ],
+      "search_snippets": [
+        "Search error: Page.goto: Navigation to \"https://www.google.com/search?q=electronic+signature+digital+signature+cer"
+      ]
+    },
+    "dpdp_act": {
+      "title": "Digital Personal Data Protection Act 2023 - Privacy Policy Requirements",
+      "pages": [
+        {
+          "url": "https://blog.ipleaders.in/dpdp-act-2023/",
+          "status": "error: Page.goto: Navigation to \"https://blog.ipleaders.in/dpdp-act-2023/\" is interrupted by another naviga",
+          "content": "",
+          "title": ""
+        },
+        {
+          "url": "https://taxguru.in/corporate-law/digital-personal-data-protection-act-2023.html",
+          "status": "error: Page.goto: Navigation to \"https://taxguru.in/corporate-law/digital-personal-data-protection-act-2023",
+          "content": "",
+          "title": ""
+        },
+        {
+          "url": "https://prsindia.org/billtrack/digital-personal-data-protection-bill-2023",
+          "status": "error: Page.goto: Navigation to \"https://prsindia.org/billtrack/digital-personal-data-protection-bill-2023\"",
+          "content": "",
+          "title": ""
+        }
+      ],
+      "search_snippets": [
+        "Search error: Page.goto: Navigation to \"https://www.google.com/search?q=DPDP+Act+2023+privacy+policy+requirements+"
+      ]
+    },
+    "posh_act": {
+      "title": "POSH Act 2013 - Workplace Harassment Policy Requirements",
+      "pages": [
+        {
+          "url": "https://blog.ipleaders.in/posh-act-2013/",
+          "status": "error: Page.goto: Navigation to \"https://blog.ipleaders.in/posh-act-2013/\" is interrupted by another naviga",
+          "content": "",
+          "title": ""
+        },
+        {
+          "url": "https://taxguru.in/corporate-law/posh-act-2013-compliance.html",
+          "status": "error: Page.goto: Navigation to \"https://taxguru.in/corporate-law/posh-act-2013-compliance.html\" is interru",
+          "content": "",
+          "title": ""
+        },
+        {
+          "url": "https://vakilsearch.com/blog/posh-act/",
+          "status": "error: Page.goto: Navigation to \"https://vakilsearch.com/blog/posh-act/\" is interrupted by another navigati",
+          "content": "",
+          "title": ""
+        }
+      ],
+      "search_snippets": [
+        "Search error: Page.goto: Navigation to \"https://www.google.com/search?q=POSH+Act+2013+internal+committee+mandatory"
+      ]
+    },
+    "board_minutes": {
+      "title": "Companies Act 2013 - Section 118 (Board Meeting Minutes)",
+      "pages": [
+        {
+          "url": "https://blog.ipleaders.in/section-118-companies-act-2013/",
+          "status": "error: Page.goto: Navigation to \"https://blog.ipleaders.in/section-118-companies-act-2013/\" is interrupted ",
+          "content": "",
+          "title": ""
+        },
+        {
+          "url": "https://www.toppr.com/guides/business-laws-cs/companies-act-2013/minutes-of-meetings/",
+          "status": "error: Page.goto: net::ERR_CERT_DATE_INVALID at https://www.toppr.com/guides/business-laws-cs/companies-act",
+          "content": "",
+          "title": ""
+        }
+      ],
+      "search_snippets": [
+        "Search error: Page.goto: Navigation to \"https://www.google.com/search?q=Companies+Act+2013+Section+118+board+meeti"
+      ]
+    },
+    "incorporation_rules": {
+      "title": "Companies (Incorporation) Rules 2014",
+      "pages": [
+        {
+          "url": "https://blog.ipleaders.in/companies-incorporation-rules-2014/",
+          "status": "error: Page.goto: Navigation to \"https://blog.ipleaders.in/companies-incorporation-rules-2014/\" is interrup",
+          "content": "",
+          "title": ""
+        },
+        {
+          "url": "https://vakilsearch.com/blog/company-incorporation-india/",
+          "status": "error: Page.goto: Navigation to \"https://vakilsearch.com/blog/company-incorporation-india/\" is interrupted ",
+          "content": "",
+          "title": ""
+        }
+      ],
+      "search_snippets": [
+        "Search error: Page.goto: Navigation to \"https://www.google.com/search?q=Companies+Incorporation+Rules+2014+SPICe+I"
+      ]
+    },
+    "agm_egm_requirements": {
+      "title": "Companies Act 2013 - AGM/EGM Requirements (Section 96, 100, 101)",
+      "pages": [
+        {
+          "url": "https://blog.ipleaders.in/annual-general-meeting-companies-act-2013/",
+          "status": "error: Page.goto: Navigation to \"https://blog.ipleaders.in/annual-general-meeting-companies-act-2013/\" is i",
+          "content": "",
+          "title": ""
+        },
+        {
+          "url": "https://www.toppr.com/guides/business-laws-cs/companies-act-2013/annual-general-meeting/",
+          "status": "error: Page.goto: net::ERR_CERT_DATE_INVALID at https://www.toppr.com/guides/business-laws-cs/companies-act",
+          "content": "",
+          "title": ""
+        }
+      ],
+      "search_snippets": [
+        "Search error: Page.goto: Navigation to \"https://www.google.com/search?q=Companies+Act+2013+AGM+EGM+Section+96+101+"
+      ]
+    }
+  }
+}

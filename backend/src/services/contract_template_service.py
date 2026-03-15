@@ -2304,15 +2304,60 @@ class ContractTemplateService:
     # ======================================================================
 
     @staticmethod
-    def _base_html_wrap(title: str, body_html: str, date_str: str = "") -> str:
+    def _format_date_indian(date_str: str) -> str:
+        """Convert date string to Indian DD/MM/YYYY format."""
+        if not date_str:
+            return ""
+        # Try parsing common formats
+        for fmt in ("%Y-%m-%d", "%Y/%m/%d", "%d-%m-%Y", "%d/%m/%Y"):
+            try:
+                from datetime import datetime as _dt
+                parsed = _dt.strptime(date_str, fmt)
+                return parsed.strftime("%d/%m/%Y")
+            except ValueError:
+                continue
+        return date_str
+
+    @staticmethod
+    def _base_html_wrap(
+        title: str,
+        body_html: str,
+        date_str: str = "",
+        *,
+        is_draft: bool = True,
+    ) -> str:
         """Wrap body content in the base legal document HTML shell."""
+        # Convert date to Indian format
+        display_date = ContractTemplateService._format_date_indian(date_str)
+
         tpl = Template("""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>{{ title }}</title>
 <style>
-@page { size: A4; margin: 25mm 20mm; }
+@page {
+    size: A4;
+    margin: 25mm 20mm 30mm 20mm;
+    @top-center {
+        content: "{{ title }}";
+        font-family: "Helvetica Neue", Arial, sans-serif;
+        font-size: 8pt;
+        color: #999;
+    }
+    @bottom-center {
+        content: "Page " counter(page) " of " counter(pages);
+        font-family: "Helvetica Neue", Arial, sans-serif;
+        font-size: 8pt;
+        color: #999;
+    }
+    @bottom-right {
+        content: "CMS India";
+        font-family: "Helvetica Neue", Arial, sans-serif;
+        font-size: 8pt;
+        color: #bbb;
+    }
+}
 body {
     font-family: "Georgia", "Times New Roman", serif;
     font-size: 12pt;
@@ -2321,7 +2366,24 @@ body {
     max-width: 210mm;
     margin: 0 auto;
     padding: 20mm;
+    position: relative;
 }
+{% if is_draft %}
+body::before {
+    content: "DRAFT";
+    position: fixed;
+    top: 45%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-45deg);
+    font-size: 100pt;
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    font-weight: bold;
+    color: rgba(200, 200, 200, 0.15);
+    z-index: -1;
+    pointer-events: none;
+    letter-spacing: 20px;
+}
+{% endif %}
 h1 {
     font-family: "Helvetica Neue", Arial, sans-serif;
     text-align: center;
@@ -2379,6 +2441,24 @@ h3 {
     font-size: 10pt;
     color: #444;
 }
+.witness-block {
+    margin-top: 36px;
+    page-break-inside: avoid;
+}
+.witness-line {
+    margin-top: 24px;
+}
+.witness-line .line {
+    border-bottom: 1px solid #555;
+    height: 1px;
+    margin-bottom: 6px;
+    width: 60%;
+}
+.witness-line p {
+    margin: 2px 0;
+    font-size: 10pt;
+    color: #444;
+}
 ol { padding-left: 24px; }
 ol li { margin-bottom: 6px; }
 .disclaimer {
@@ -2389,20 +2469,82 @@ ol li { margin-bottom: 6px; }
     font-size: 9pt;
     color: #666;
 }
+.stamp-duty-notice {
+    margin-top: 16px;
+    padding: 10px 12px;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    font-size: 8pt;
+    color: #92400e;
+}
+.esign-notice {
+    margin-top: 8px;
+    padding: 10px 12px;
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    font-size: 8pt;
+    color: #0c4a6e;
+}
 </style>
 </head>
 <body>
 <h1>{{ title }}</h1>
-{% if date_str %}<p class="doc-date">Date: {{ date_str }}</p>{% endif %}
+{% if display_date %}<p class="doc-date">Date: {{ display_date }}</p>{% endif %}
 {{ body_html }}
 <div class="disclaimer">
 <strong>Disclaimer:</strong> This document is generated as a template and does not
 constitute legal advice. Please have this document reviewed by a qualified legal
 professional before execution.
 </div>
+<div class="stamp-duty-notice">
+<strong>Stamp Duty Notice:</strong> This document may require stamping under the
+Indian Stamp Act, 1899 (as amended by the Indian Stamp (Amendment) Act, 2023) or
+applicable state stamp legislation. An unstamped or insufficiently stamped document
+is inadmissible as evidence in court proceedings (Section 35, Indian Stamp Act).
+<br><br>
+<strong>Indicative Stamp Duty Rates (2024/2025):</strong><br>
+<em>Maharashtra:</em> MOA &#8377;200; AOA 0.3% of capital (max &#8377;1 Cr);
+LLP 1% of capital (max &#8377;50,000).<br>
+<em>Karnataka:</em> MOA &#8377;5,000; AOA &#8377;5,000 + &#8377;1,000/&#8377;5L
+&gt;&#8377;10L (max &#8377;25L); LLP &#8377;1,000 + &#8377;500/&#8377;5L
+&gt;&#8377;10L (max &#8377;10L).<br>
+<em>Delhi:</em> MOA &#8377;200; AOA 0.15% of capital (max &#8377;25L);
+LLP 1% of capital (max &#8377;5,000).<br>
+<em>Tamil Nadu:</em> MOA &#8377;200; AOA 0.05% of capital (max &#8377;5L);
+LLP &#8377;300.<br>
+<em>Gujarat:</em> MOA &#8377;100; AOA varies (max &#8377;15L);
+LLP &#8377;1,000&ndash;&#8377;10,000.<br>
+<br>
+<em>Section 8 (not-for-profit) companies: stamp duty on MOA/AOA is typically NIL
+in most jurisdictions.</em><br>
+<em>Companies (MOA/AOA): stamp duty is paid online via MCA SPICe+ portal.
+LLPs (Form 3): agreement must be on state-specific stamp paper (e-stamping where
+available via SHCIL), notarized, and uploaded to MCA portal.</em><br>
+<em>Rates are indicative and subject to change. Verify via MCA portal or state
+IGR website before filing. Surcharges or cess may apply.</em>
+</div>
+<div class="esign-notice">
+<strong>Electronic Signatures:</strong> If this document is signed electronically,
+electronic signatures are legally valid under the Information Technology Act, 2000
+(Section 3A). Note: For filings with MCA (Ministry of Corporate Affairs), only
+Digital Signature Certificates (DSC) issued by Certifying Authorities licensed under
+the IT Act are accepted. Aadhaar-based e-Sign is <strong>not</strong> accepted for
+MCA filings.<br>
+<strong>MCA forms requiring DSC:</strong> SPICe+ (INC-32), e-MOA, e-AOA, Form 3
+(LLP Agreement), DIR-12, INC-22, AOC-4, MGT-7.<br>
+<em>As per CCA guidelines effective 1 July 2024, stricter eKYC, telephonic, and
+video verification is mandatory for new DSC issuance.</em><br>
+E-signatures on this platform are valid for private agreements between parties
+but are not a substitute for DSC-based signing required for regulatory filings.
+</div>
 </body>
 </html>""")
-        return tpl.render(title=title, body_html=body_html, date_str=date_str)
+        return tpl.render(
+            title=title,
+            body_html=body_html,
+            display_date=display_date,
+            is_draft=is_draft,
+        )
 
     # -- Founder Agreement renderer -----------------------------------------
 

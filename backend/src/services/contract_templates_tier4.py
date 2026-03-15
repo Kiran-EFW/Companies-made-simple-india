@@ -80,33 +80,8 @@ def _clause(
 # ---------------------------------------------------------------------------
 
 def _base_html_wrap(title: str, body: str, date: str = "") -> str:
-    return f'''<!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>{title}</title>
-<style>
-body{{font-family:'Georgia','Times New Roman',serif;line-height:1.8;color:#1a1a1a;max-width:800px;margin:0 auto;padding:40px;}}
-h1{{font-family:'Helvetica Neue',Arial,sans-serif;font-size:24px;text-align:center;border-bottom:2px solid #333;padding-bottom:15px;margin-bottom:30px;}}
-h2{{font-family:'Helvetica Neue',Arial,sans-serif;font-size:16px;margin-top:30px;color:#222;text-transform:uppercase;letter-spacing:1px;}}
-.clause{{margin:15px 0;padding:10px 0;border-bottom:1px solid #eee;}}
-.clause-number{{font-weight:bold;margin-right:8px;}}
-.parties{{background:#f8f8f8;padding:20px;border-radius:8px;margin:20px 0;}}
-.signature-block{{margin-top:60px;}}
-.signature-line{{margin:30px 0;}}
-.signature-line .line{{border-bottom:1px solid #333;width:300px;margin-bottom:5px;}}
-.meta{{text-align:center;color:#666;font-size:13px;margin-bottom:30px;}}
-table{{width:100%;border-collapse:collapse;margin:20px 0;}}
-th,td{{border:1px solid #ccc;padding:10px;text-align:left;}}
-th{{background:#f0f0f0;font-weight:bold;}}
-.status-ok{{color:#27ae60;font-weight:bold;}}
-.status-fail{{color:#e74c3c;font-weight:bold;}}
-.score{{font-size:20px;font-weight:bold;text-align:center;margin:20px 0;}}
-@media print{{body{{padding:20px;}}@page{{margin:2cm;size:A4;}}}}
-</style>
-</head><body>
-<h1>{title}</h1>
-<p class="meta">Date: {date or "________________________"}</p>
-{body}
-</body></html>'''
+    from src.services.document_html_utils import base_html_wrap
+    return base_html_wrap(title, body, date)
 
 
 # ---------------------------------------------------------------------------
@@ -2241,16 +2216,23 @@ def annual_compliance_checklist_template() -> dict:
                         depends_on="acc_num_employees >= 10",
                         learn_more=(
                             "Under Section 4 of the POSH Act 2013, every employer with 10 or "
-                            "more employees must constitute an Internal Complaints Committee "
-                            "(ICC). The ICC must have a presiding officer who is a senior woman "
-                            "employee, at least 2 employee members committed to the cause of "
-                            "women, and 1 external member from an NGO or association. The ICC "
-                            "receives and investigates complaints of sexual harassment at the "
-                            "workplace. Not constituting an ICC attracts a fine up to INR 50,000."
+                            "more employees at any workplace must constitute an Internal "
+                            "Complaints Committee (ICC) with a minimum of 4 members: "
+                            "(1) Presiding Officer — a senior woman employee; "
+                            "(2) At least 2 employee members committed to the cause of women "
+                            "or with experience in social work/legal knowledge; "
+                            "(3) 1 external member — mandatory, typically from an NGO or "
+                            "association committed to women's causes, or a person familiar with "
+                            "issues relating to sexual harassment. "
+                            "At least 50% of the total ICC members must be women. "
+                            "The ICC receives and investigates complaints within 90 days. "
+                            "Not constituting an ICC attracts a fine up to INR 50,000, and "
+                            "repeat offence can lead to cancellation of business licence."
                         ),
                         india_note=(
                             "Section 4 of POSH Act 2013 mandates ICC for employers "
-                            "with 10+ employees. Must include external member."
+                            "with 10+ employees. Minimum 4 members, at least 50% women, "
+                            "external member mandatory."
                         ),
                     ),
                     _clause(

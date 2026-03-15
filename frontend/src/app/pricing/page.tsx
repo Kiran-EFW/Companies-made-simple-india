@@ -8,10 +8,12 @@ import Footer from "@/components/footer";
 
 const ENTITY_TYPES = [
   { value: "private_limited", label: "Private Limited", emoji: "🏢" },
+  { value: "public_limited", label: "Public Limited", emoji: "🏛️" },
   { value: "opc", label: "OPC", emoji: "👤" },
   { value: "llp", label: "LLP", emoji: "🤝" },
+  { value: "partnership", label: "Partnership", emoji: "👥" },
   { value: "section_8", label: "Section 8", emoji: "💚" },
-  { value: "sole_proprietorship", label: "Sole Proprietorship", emoji: "📋" },
+  { value: "sole_proprietorship", label: "Sole Prop", emoji: "📋" },
 ];
 
 const PLAN_TIERS = [
@@ -19,16 +21,27 @@ const PLAN_TIERS = [
     value: "launch",
     label: "Launch",
     desc: "AI-guided incorporation + CS review",
+    descByEntity: {
+      sole_proprietorship: "GST + Udyam + Shop & Establishment registration",
+      partnership: "Deed drafting + ROF registration + PAN",
+    },
   },
   {
     value: "grow",
     label: "Grow",
     desc: "Launch + GST + DPIIT + 90-day compliance",
+    descByEntity: {
+      sole_proprietorship: "Launch + FSSAI/trade license + 90-day support",
+      partnership: "Launch + GST + 90-day compliance",
+    },
   },
   {
     value: "scale",
     label: "Scale",
     desc: "Grow + 1-year compliance + dedicated RM",
+    descByEntity: {
+      partnership: "Grow + 1-year compliance + dedicated RM",
+    },
   },
 ];
 
@@ -74,6 +87,145 @@ const CAPITAL_OPTIONS = [
   { value: 5000000, label: "₹50,00,000" },
 ];
 
+// Entity-type-specific configuration
+const ENTITY_CONFIG: Record<string, {
+  capitalLabel: string;
+  personLabel: string;
+  personLabelPlural: string;
+  minPersons: number;
+  maxPersons: number;
+  showCapital: boolean;
+  showPersonCount: boolean;
+  showDSC: boolean;
+  hasScale: boolean;
+  filingLabel: string;
+  rocLabel: string;
+  nameResLabel: string;
+  stampDutyLabel: string;
+  panTanLabel: string;
+  ctaLabel: string;
+}> = {
+  private_limited: {
+    capitalLabel: "Authorized Capital",
+    personLabel: "Director",
+    personLabelPlural: "Directors",
+    minPersons: 2,
+    maxPersons: 15,
+    showCapital: true,
+    showPersonCount: true,
+    showDSC: true,
+    hasScale: true,
+    filingLabel: "SPICe+ Filing",
+    rocLabel: "ROC Registration",
+    nameResLabel: "MCA Name Reservation",
+    stampDutyLabel: "Stamp Duty (MOA + AOA)",
+    panTanLabel: "PAN + TAN Application",
+    ctaLabel: "Proceed to Incorporate",
+  },
+  public_limited: {
+    capitalLabel: "Authorized Capital",
+    personLabel: "Director",
+    personLabelPlural: "Directors",
+    minPersons: 3,
+    maxPersons: 15,
+    showCapital: true,
+    showPersonCount: true,
+    showDSC: true,
+    hasScale: true,
+    filingLabel: "SPICe+ Filing",
+    rocLabel: "ROC Registration",
+    nameResLabel: "MCA Name Reservation",
+    stampDutyLabel: "Stamp Duty (MOA + AOA)",
+    panTanLabel: "PAN + TAN Application",
+    ctaLabel: "Proceed to Incorporate",
+  },
+  opc: {
+    capitalLabel: "Authorized Capital",
+    personLabel: "Director",
+    personLabelPlural: "Director",
+    minPersons: 1,
+    maxPersons: 1,
+    showCapital: true,
+    showPersonCount: false,
+    showDSC: true,
+    hasScale: true,
+    filingLabel: "SPICe+ Filing",
+    rocLabel: "ROC Registration",
+    nameResLabel: "MCA Name Reservation",
+    stampDutyLabel: "Stamp Duty (MOA + AOA)",
+    panTanLabel: "PAN + TAN Application",
+    ctaLabel: "Proceed to Incorporate",
+  },
+  llp: {
+    capitalLabel: "Capital Contribution",
+    personLabel: "Partner",
+    personLabelPlural: "Partners",
+    minPersons: 2,
+    maxPersons: 10,
+    showCapital: true,
+    showPersonCount: true,
+    showDSC: true,
+    hasScale: true,
+    filingLabel: "FiLLiP Filing",
+    rocLabel: "",
+    nameResLabel: "RUN-LLP Name Reservation",
+    stampDutyLabel: "Stamp Duty (LLP Agreement)",
+    panTanLabel: "PAN + TAN Application",
+    ctaLabel: "Proceed to Register",
+  },
+  partnership: {
+    capitalLabel: "Capital Contribution",
+    personLabel: "Partner",
+    personLabelPlural: "Partners",
+    minPersons: 2,
+    maxPersons: 20,
+    showCapital: true,
+    showPersonCount: true,
+    showDSC: false,
+    hasScale: true,
+    filingLabel: "",
+    rocLabel: "Registrar of Firms Fee",
+    nameResLabel: "",
+    stampDutyLabel: "Stamp Duty (Partnership Deed)",
+    panTanLabel: "PAN Application",
+    ctaLabel: "Proceed to Register",
+  },
+  section_8: {
+    capitalLabel: "Authorized Capital",
+    personLabel: "Director",
+    personLabelPlural: "Directors",
+    minPersons: 2,
+    maxPersons: 15,
+    showCapital: true,
+    showPersonCount: true,
+    showDSC: true,
+    hasScale: true,
+    filingLabel: "SPICe+ Filing",
+    rocLabel: "ROC Registration",
+    nameResLabel: "MCA Name Reservation",
+    stampDutyLabel: "Stamp Duty (MOA + AOA)",
+    panTanLabel: "PAN + TAN Application",
+    ctaLabel: "Proceed to Incorporate",
+  },
+  sole_proprietorship: {
+    capitalLabel: "",
+    personLabel: "Proprietor",
+    personLabelPlural: "Proprietor",
+    minPersons: 1,
+    maxPersons: 1,
+    showCapital: false,
+    showPersonCount: false,
+    showDSC: false,
+    hasScale: false,
+    filingLabel: "",
+    rocLabel: "",
+    nameResLabel: "",
+    stampDutyLabel: "",
+    panTanLabel: "PAN Application",
+    ctaLabel: "Proceed to Register",
+  },
+};
+
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("en-IN", {
     style: "currency",
@@ -91,14 +243,36 @@ export default function PricingPage() {
   const [numDirectors, setNumDirectors] = useState(2);
   const [hasDSC, setHasDSC] = useState(false);
   const [pricing, setPricing] = useState<PricingResponse | null>(null);
-  const [loading, setLoading] = useState(false);
+
+  const config = ENTITY_CONFIG[entityType] || ENTITY_CONFIG.private_limited;
+
+  // Reset dependent fields when entity type changes
+  useEffect(() => {
+    const cfg = ENTITY_CONFIG[entityType] || ENTITY_CONFIG.private_limited;
+    // Clamp director count to valid range
+    setNumDirectors((prev) => Math.max(cfg.minPersons, Math.min(prev, cfg.maxPersons)));
+    // Reset DSC for entity types that don't use it
+    if (!cfg.showDSC) setHasDSC(false);
+    // Reset to Launch if currently on Scale for sole_prop
+    if (!cfg.hasScale && planTier === "scale") setPlanTier("launch");
+    // Reset capital for sole_prop
+    if (!cfg.showCapital) setCapital(100000);
+  }, [entityType]);
 
   useEffect(() => {
     calculatePricing();
   }, [entityType, planTier, state, capital, numDirectors, hasDSC]);
 
+  const availablePlans = PLAN_TIERS.filter(
+    (p) => config.hasScale || p.value !== "scale"
+  );
+
+  const personOptions: number[] = [];
+  for (let i = config.minPersons; i <= config.maxPersons; i++) {
+    personOptions.push(i);
+  }
+
   async function calculatePricing() {
-    setLoading(true);
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
       const res = await fetch(`${baseUrl}/pricing/calculate`, {
@@ -121,7 +295,6 @@ export default function PricingPage() {
     } catch {
       // Silently fail if backend is not running — show UI anyway
     }
-    setLoading(false);
   }
 
   return (
@@ -189,32 +362,35 @@ export default function PricingPage() {
                 Plan
               </label>
               <div className="space-y-2">
-                {PLAN_TIERS.map((p) => (
-                  <button
-                    key={p.value}
-                    onClick={() => setPlanTier(p.value)}
-                    className="w-full p-3 rounded-xl text-left transition-all"
-                    style={{
-                      background:
-                        planTier === p.value
-                          ? "rgba(139, 92, 246, 0.2)"
-                          : "var(--color-hover-overlay)",
-                      border: `1px solid ${planTier === p.value ? "rgba(139, 92, 246, 0.5)" : "var(--color-border)"}`,
-                    }}
-                  >
-                    <div className="font-semibold text-sm">{p.label}</div>
-                    <div className="text-xs mt-0.5" style={{ color: "var(--color-text-muted)" }}>
-                      {p.desc}
-                    </div>
-                  </button>
-                ))}
+                {availablePlans.map((p) => {
+                  const desc = (p.descByEntity as Record<string, string>)?.[entityType] || p.desc;
+                  return (
+                    <button
+                      key={p.value}
+                      onClick={() => setPlanTier(p.value)}
+                      className="w-full p-3 rounded-xl text-left transition-all"
+                      style={{
+                        background:
+                          planTier === p.value
+                            ? "rgba(139, 92, 246, 0.2)"
+                            : "var(--color-hover-overlay)",
+                        border: `1px solid ${planTier === p.value ? "rgba(139, 92, 246, 0.5)" : "var(--color-border)"}`,
+                      }}
+                    >
+                      <div className="font-semibold text-sm">{p.label}</div>
+                      <div className="text-xs mt-0.5" style={{ color: "var(--color-text-muted)" }}>
+                        {desc}
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
             {/* State */}
             <div className="glass-card p-6" style={{ cursor: "default" }}>
               <label className="text-sm font-semibold mb-3 block" style={{ color: "var(--color-text-secondary)" }}>
-                State of Registration
+                {entityType === "partnership" ? "State (Principal Place of Business)" : "State of Registration"}
               </label>
               <select
                 value={state}
@@ -232,69 +408,79 @@ export default function PricingPage() {
               </select>
             </div>
 
-            {/* Capital & Directors */}
-            <div className="glass-card p-6" style={{ cursor: "default" }}>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-semibold mb-2 block" style={{ color: "var(--color-text-secondary)" }}>
-                    {entityType === "llp" ? "Contribution" : "Authorized Capital"}
-                  </label>
-                  <select
-                    value={capital}
-                    onChange={(e) => setCapital(Number(e.target.value))}
-                    className="w-full p-3 rounded-xl text-sm"
-                    style={{
-                      background: "var(--color-bg-card)",
-                      border: "1px solid var(--color-border)",
-                      color: "var(--color-text-primary)",
-                    }}
-                  >
-                    {CAPITAL_OPTIONS.map((c) => (
-                      <option key={c.value} value={c.value}>{c.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="text-sm font-semibold mb-2 block" style={{ color: "var(--color-text-secondary)" }}>
-                    {entityType === "llp" ? "Partners" : "Directors"}
-                  </label>
-                  <select
-                    value={numDirectors}
-                    onChange={(e) => setNumDirectors(Number(e.target.value))}
-                    className="w-full p-3 rounded-xl text-sm"
-                    style={{
-                      background: "var(--color-bg-card)",
-                      border: "1px solid var(--color-border)",
-                      color: "var(--color-text-primary)",
-                    }}
-                  >
-                    {[1, 2, 3, 4, 5].map((n) => (
-                      <option key={n} value={n}>{n}</option>
-                    ))}
-                  </select>
-                </div>
+            {/* Capital & Person Count — only show if relevant */}
+            {(config.showCapital || config.showPersonCount || config.showDSC) && (
+              <div className="glass-card p-6" style={{ cursor: "default" }}>
+                {(config.showCapital || config.showPersonCount) && (
+                  <div className={`grid ${config.showCapital && config.showPersonCount ? "grid-cols-2" : "grid-cols-1"} gap-4`}>
+                    {config.showCapital && (
+                      <div>
+                        <label className="text-sm font-semibold mb-2 block" style={{ color: "var(--color-text-secondary)" }}>
+                          {config.capitalLabel}
+                        </label>
+                        <select
+                          value={capital}
+                          onChange={(e) => setCapital(Number(e.target.value))}
+                          className="w-full p-3 rounded-xl text-sm"
+                          style={{
+                            background: "var(--color-bg-card)",
+                            border: "1px solid var(--color-border)",
+                            color: "var(--color-text-primary)",
+                          }}
+                        >
+                          {CAPITAL_OPTIONS.map((c) => (
+                            <option key={c.value} value={c.value}>{c.label}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                    {config.showPersonCount && (
+                      <div>
+                        <label className="text-sm font-semibold mb-2 block" style={{ color: "var(--color-text-secondary)" }}>
+                          {config.personLabelPlural}
+                        </label>
+                        <select
+                          value={numDirectors}
+                          onChange={(e) => setNumDirectors(Number(e.target.value))}
+                          className="w-full p-3 rounded-xl text-sm"
+                          style={{
+                            background: "var(--color-bg-card)",
+                            border: "1px solid var(--color-border)",
+                            color: "var(--color-text-primary)",
+                          }}
+                        >
+                          {personOptions.map((n) => (
+                            <option key={n} value={n}>{n}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                  </div>
+                )}
+                {config.showDSC && (
+                  <div className={config.showCapital || config.showPersonCount ? "mt-4" : ""}>
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={hasDSC}
+                        onChange={(e) => setHasDSC(e.target.checked)}
+                        className="w-4 h-4 rounded accent-[var(--color-accent-purple)]"
+                      />
+                      <span className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+                        {config.personLabelPlural} already have valid DSC
+                      </span>
+                    </label>
+                  </div>
+                )}
               </div>
-              <div className="mt-4">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={hasDSC}
-                    onChange={(e) => setHasDSC(e.target.checked)}
-                    className="w-4 h-4 rounded accent-[var(--color-accent-purple)]"
-                  />
-                  <span className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
-                    Directors already have valid DSC
-                  </span>
-                </label>
-              </div>
-            </div>
+            )}
           </div>
 
           {/* ─── Right: Cost Breakdown ─── */}
           <div className="lg:col-span-3">
             <div className="glass-card p-8 sticky top-8" style={{ cursor: "default" }}>
               <h2 className="text-xl font-bold mb-6" style={{ fontFamily: "var(--font-display)" }}>
-                💰 Your Incorporation Cost Breakdown
+                💰 Your {entityType === "sole_proprietorship" ? "Registration" : entityType === "partnership" ? "Registration" : "Incorporation"} Cost Breakdown
               </h2>
 
               {pricing ? (
@@ -332,42 +518,57 @@ export default function PricingPage() {
                       </span>
                     </div>
                     <div className="space-y-1">
+                      {/* Name Reservation — only for MCA-registered entities */}
                       {pricing.government_fees.name_reservation > 0 && (
                         <div className="flex justify-between p-2 rounded" style={{ background: "var(--color-stripe-alt)" }}>
-                          <span style={{ color: "var(--color-text-secondary)" }}>MCA Name Reservation</span>
+                          <span style={{ color: "var(--color-text-secondary)" }}>{config.nameResLabel}</span>
                           <span>{formatCurrency(pricing.government_fees.name_reservation)}</span>
                         </div>
                       )}
+
+                      {/* Filing Fee — SPICe+ or FiLLiP */}
                       {pricing.government_fees.filing_fee > 0 && (
                         <div className="flex justify-between p-2 rounded" style={{ background: "var(--color-stripe-alt)" }}>
-                          <span style={{ color: "var(--color-text-secondary)" }}>
-                            {entityType === "llp" ? "FiLLiP Filing" : "SPICe+ Filing"}
-                          </span>
+                          <span style={{ color: "var(--color-text-secondary)" }}>{config.filingLabel}</span>
                           <span>{formatCurrency(pricing.government_fees.filing_fee)}</span>
                         </div>
                       )}
+
+                      {/* ROC / ROF Registration */}
                       {pricing.government_fees.roc_registration > 0 && (
                         <div className="flex justify-between p-2 rounded" style={{ background: "var(--color-stripe-alt)" }}>
-                          <span style={{ color: "var(--color-text-secondary)" }}>ROC Registration</span>
+                          <span style={{ color: "var(--color-text-secondary)" }}>{config.rocLabel || "ROC Registration"}</span>
                           <span>{formatCurrency(pricing.government_fees.roc_registration)}</span>
                         </div>
                       )}
+
+                      {/* Section 8 License */}
                       {pricing.government_fees.section8_license > 0 && (
                         <div className="flex justify-between p-2 rounded" style={{ background: "var(--color-stripe-alt)" }}>
                           <span style={{ color: "var(--color-text-secondary)" }}>INC-12 License Fee</span>
                           <span>{formatCurrency(pricing.government_fees.section8_license)}</span>
                         </div>
                       )}
-                      <div className="flex justify-between p-2 rounded" style={{ background: "var(--color-stripe-alt)" }}>
-                        <span style={{ color: "var(--color-text-secondary)" }}>
-                          Stamp Duty ({pricing.state_display})
-                        </span>
-                        <span>{formatCurrency(pricing.government_fees.stamp_duty.total_stamp_duty)}</span>
-                      </div>
-                      <div className="flex justify-between p-2 rounded" style={{ background: "var(--color-stripe-alt)" }}>
-                        <span style={{ color: "var(--color-text-secondary)" }}>PAN + TAN Application</span>
-                        <span>{formatCurrency(pricing.government_fees.pan_tan)}</span>
-                      </div>
+
+                      {/* Stamp Duty — only show if > 0 */}
+                      {pricing.government_fees.stamp_duty.total_stamp_duty > 0 && (
+                        <div className="flex justify-between p-2 rounded" style={{ background: "var(--color-stripe-alt)" }}>
+                          <span style={{ color: "var(--color-text-secondary)" }}>
+                            {config.stampDutyLabel} ({pricing.state_display})
+                          </span>
+                          <span>{formatCurrency(pricing.government_fees.stamp_duty.total_stamp_duty)}</span>
+                        </div>
+                      )}
+
+                      {/* PAN / PAN+TAN */}
+                      {pricing.government_fees.pan_tan > 0 && (
+                        <div className="flex justify-between p-2 rounded" style={{ background: "var(--color-stripe-alt)" }}>
+                          <span style={{ color: "var(--color-text-secondary)" }}>{config.panTanLabel}</span>
+                          <span>{formatCurrency(pricing.government_fees.pan_tan)}</span>
+                        </div>
+                      )}
+
+                      {/* Government Subtotal */}
                       <div
                         className="flex justify-between p-2 rounded-lg font-medium mt-1"
                         style={{ background: "rgba(16, 185, 129, 0.1)" }}
@@ -378,8 +579,8 @@ export default function PricingPage() {
                     </div>
                   </div>
 
-                  {/* DSC */}
-                  {!hasDSC && pricing.dsc.total_dsc > 0 && (
+                  {/* DSC — only for MCA-registered entities that need DSC */}
+                  {config.showDSC && !hasDSC && pricing.dsc.total_dsc > 0 && (
                     <div>
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-sm font-semibold" style={{ color: "var(--color-accent-blue)" }}>
@@ -414,6 +615,33 @@ export default function PricingPage() {
                     </div>
                   )}
 
+                  {/* Public Limited — recurring costs info */}
+                  {entityType === "public_limited" && pricing.public_limited_recurring && (
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm font-semibold" style={{ color: "var(--color-accent-amber)" }}>
+                          ANNUAL RECURRING COSTS
+                        </span>
+                        <span className="text-sm" style={{ color: "var(--color-text-muted)" }}>
+                          estimated
+                        </span>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex justify-between p-2 rounded" style={{ background: "var(--color-stripe-alt)" }}>
+                          <span style={{ color: "var(--color-text-secondary)" }}>Secretarial Audit (annual)</span>
+                          <span>{formatCurrency(pricing.public_limited_recurring.secretarial_audit_annual)}</span>
+                        </div>
+                        <div className="flex justify-between p-2 rounded" style={{ background: "var(--color-stripe-alt)" }}>
+                          <span style={{ color: "var(--color-text-secondary)" }}>CS Compliance (annual)</span>
+                          <span>{formatCurrency(pricing.public_limited_recurring.cs_compliance_annual)}</span>
+                        </div>
+                        <div className="text-xs mt-1 px-1" style={{ color: "var(--color-text-muted)" }}>
+                          {pricing.public_limited_recurring.note}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Grand Total */}
                   <div
                     className="flex justify-between items-center p-4 rounded-xl mt-4"
@@ -435,13 +663,15 @@ export default function PricingPage() {
                     <div className="flex items-center gap-2 text-sm" style={{ color: "var(--color-accent-emerald-light)" }}>
                       <span>✅</span> Government fees at exact cost (₹0 markup)
                     </div>
-                    <div className="flex items-center gap-2 text-sm" style={{ color: "var(--color-accent-emerald-light)" }}>
-                      <span>✅</span> DSC at wholesale rate
-                    </div>
+                    {config.showDSC && (
+                      <div className="flex items-center gap-2 text-sm" style={{ color: "var(--color-accent-emerald-light)" }}>
+                        <span>✅</span> DSC at wholesale rate
+                      </div>
+                    )}
                   </div>
 
-                  {/* Optimization Tip */}
-                  {pricing.optimization_tip && pricing.optimization_tip.potential_saving > 0 && (
+                  {/* Optimization Tip — only for entities with stamp duty variance */}
+                  {pricing.optimization_tip && pricing.optimization_tip.potential_saving > 0 && entityType !== "sole_proprietorship" && (
                     <div
                       className="p-4 rounded-xl mt-2"
                       style={{
@@ -470,7 +700,7 @@ export default function PricingPage() {
                     </div>
                   )}
 
-                  <button 
+                  <button
                     onClick={() => {
                       if (!pricing) return;
                       const draftConfig = {
@@ -483,10 +713,10 @@ export default function PricingPage() {
                       };
                       localStorage.setItem("pending_company_draft", JSON.stringify(draftConfig));
                       router.push("/signup");
-                    }} 
+                    }}
                     className="btn-primary w-full text-center justify-center mt-4 text-lg !py-4"
                   >
-                    Proceed to Incorporate →
+                    {config.ctaLabel} →
                   </button>
                 </div>
               ) : (

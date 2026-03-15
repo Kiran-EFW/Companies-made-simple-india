@@ -82,27 +82,8 @@ def _clause(
 # ---------------------------------------------------------------------------
 
 def _base_html_wrap(title: str, body: str, date: str = "") -> str:
-    return f'''<!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>{title}</title>
-<style>
-body{{font-family:'Georgia','Times New Roman',serif;line-height:1.8;color:#1a1a1a;max-width:800px;margin:0 auto;padding:40px;}}
-h1{{font-family:'Helvetica Neue',Arial,sans-serif;font-size:24px;text-align:center;border-bottom:2px solid #333;padding-bottom:15px;margin-bottom:30px;}}
-h2{{font-family:'Helvetica Neue',Arial,sans-serif;font-size:16px;margin-top:30px;color:#222;text-transform:uppercase;letter-spacing:1px;}}
-.clause{{margin:15px 0;padding:10px 0;border-bottom:1px solid #eee;}}
-.clause-number{{font-weight:bold;margin-right:8px;}}
-.parties{{background:#f8f8f8;padding:20px;border-radius:8px;margin:20px 0;}}
-.signature-block{{margin-top:60px;}}
-.signature-line{{margin:30px 0;}}
-.signature-line .line{{border-bottom:1px solid #333;width:300px;margin-bottom:5px;}}
-.meta{{text-align:center;color:#666;font-size:13px;margin-bottom:30px;}}
-@media print{{body{{padding:20px;}}@page{{margin:2cm;size:A4;}}}}
-</style>
-</head><body>
-<h1>{title}</h1>
-<p class="meta">Date: {date or "________________________"}</p>
-{body}
-</body></html>'''
+    from src.services.document_html_utils import base_html_wrap
+    return base_html_wrap(title, body, date)
 
 
 # ======================================================================
@@ -554,13 +535,13 @@ def render_board_resolution(tpl: dict, config: dict, parties: dict) -> str:
 # ======================================================================
 
 def privacy_policy_template() -> dict:
-    """Template 10 — Privacy Policy compliant with DPDP Act 2023."""
+    """Template 10 — Privacy Policy compliant with DPDP Act 2023 & DPDP Rules 2025."""
     return {
-        "name": "Privacy Policy (DPDP Act 2023)",
+        "name": "Privacy Policy (DPDP Act 2023 & Rules 2025)",
         "description": (
             "Privacy policy compliant with India's Digital Personal Data Protection "
-            "Act 2023 (DPDP Act) and IT Act 2000. Essential for any business collecting "
-            "user data in India."
+            "Act 2023 (DPDP Act), DPDP Rules 2025 (notified 14 November 2025), and "
+            "IT Act 2000. Essential for any business collecting user data in India."
         ),
         "category": "Compliance",
         "steps": [
@@ -954,6 +935,108 @@ def privacy_policy_template() -> dict:
                     ),
                 ],
             },
+            # Step 5: DPDP Act Advanced Compliance
+            {
+                "step_number": 5,
+                "title": "DPDP Act Advanced Compliance",
+                "description": "Additional compliance settings required under the DPDP Act 2023.",
+                "clauses": [
+                    _clause(
+                        "pp_cross_border_transfers",
+                        "Cross-Border Data Transfers",
+                        "toggle",
+                        "Whether data is transferred outside India",
+                        learn_more=(
+                            "Enable this if you use any cloud services, SaaS tools, or third-party "
+                            "processors that store or process data outside India. This includes "
+                            "services like AWS (US regions), Google Workspace, Stripe, Mailchimp, "
+                            "etc. Under the DPDP Act 2023, cross-border transfers are allowed "
+                            "to all countries EXCEPT those specifically restricted by the Central "
+                            "Government via notification. Your privacy policy must disclose these "
+                            "transfers and name the destination countries."
+                        ),
+                        india_note=(
+                            "DPDP Act 2023, Section 16: Transfer of personal data outside "
+                            "India is permitted unless the Central Government restricts "
+                            "transfer to a specific country. Unlike GDPR, no adequacy "
+                            "assessment is required, but you must disclose the transfer."
+                        ),
+                    ),
+                    _clause(
+                        "pp_transfer_countries",
+                        "Transfer Destination Countries",
+                        "multi_select",
+                        "Countries where data may be transferred",
+                        options=[
+                            "United States",
+                            "European Union",
+                            "Singapore",
+                            "United Kingdom",
+                            "Australia",
+                            "Japan",
+                        ],
+                        learn_more=(
+                            "Select all countries where your data may be stored or processed. "
+                            "Check your cloud hosting regions, third-party tool data centers, and "
+                            "any offshore team locations. Under the DPDP Act, the Central Government "
+                            "may restrict transfers to specific countries at any time, so keeping "
+                            "this list accurate helps you respond quickly to regulatory changes."
+                        ),
+                    ),
+                    _clause(
+                        "pp_breach_notification",
+                        "Data Breach Notification Process",
+                        "dropdown",
+                        "How data breach notifications are handled",
+                        options=[
+                            "Notify Data Protection Board + affected users within 72 hours",
+                            "Notify Data Protection Board + affected users as soon as practicable",
+                            "Notify per DPDP Rules 2025 prescribed timelines",
+                        ],
+                        learn_more=(
+                            "Under the DPDP Act 2023 and DPDP Rules 2025 (notified 14 Nov 2025), "
+                            "Data Fiduciaries must report personal data breaches to the Data "
+                            "Protection Board of India and to each affected Data Principal in the "
+                            "prescribed manner. The detailed timelines for breach notification are "
+                            "part of the phased rollout under the DPDP Rules (operational rules "
+                            "expected within 18 months of notification). Industry best practice is "
+                            "to notify within 72 hours (aligned with GDPR standards). Failure to "
+                            "report a breach can attract penalties of up to Rs. 200 crore."
+                        ),
+                        india_note=(
+                            "DPDP Act 2023, Section 8(6): In the event of a personal data "
+                            "breach, the Data Fiduciary shall notify the Data Protection "
+                            "Board and each affected Data Principal in the prescribed manner. "
+                            "DPDP Rules 2025 provide the detailed procedural framework."
+                        ),
+                    ),
+                    _clause(
+                        "pp_significant_data_fiduciary",
+                        "Significant Data Fiduciary",
+                        "toggle",
+                        "Whether your company may be classified as a Significant Data Fiduciary",
+                        learn_more=(
+                            "The Central Government may designate certain Data Fiduciaries as "
+                            "'Significant Data Fiduciaries' based on volume/sensitivity of data "
+                            "processed, risk to data principals, impact on sovereignty/public order, "
+                            "etc. Significant Data Fiduciaries must: (1) appoint a Data Protection "
+                            "Officer (DPO) based in India, (2) appoint an independent data auditor, "
+                            "(3) conduct Data Protection Impact Assessments (DPIA), and (4) perform "
+                            "periodic audits. Most early-stage startups are NOT Significant Data "
+                            "Fiduciaries, but large platforms handling millions of users' data may be. "
+                            "The DPDP Rules 2025 (notified Nov 2025) provide the detailed framework "
+                            "for SDF obligations, with operational rules expected within 18 months."
+                        ),
+                        india_note=(
+                            "DPDP Act 2023, Section 10: The Central Government may notify "
+                            "any Data Fiduciary as a Significant Data Fiduciary. Additional "
+                            "obligations include appointing a DPO in India, conducting DPIAs, "
+                            "and periodic data audits by independent auditors. DPDP Rules 2025 "
+                            "provide the implementation framework."
+                        ),
+                    ),
+                ],
+            },
         ],
     }
 
@@ -976,6 +1059,13 @@ def render_privacy_policy(tpl: dict, config: dict, parties: dict) -> str:
     grievance_officer = config.get("pp_grievance_officer", "[Grievance Officer]")
     consent = config.get("pp_consent_mechanism", "Opt-in checkbox")
     children = config.get("pp_children_data", False)
+    cross_border = config.get("pp_cross_border_transfers", False)
+    transfer_countries = config.get("pp_transfer_countries", [])
+    breach_notification = config.get(
+        "pp_breach_notification",
+        "Notify Data Protection Board + affected users as soon as practicable",
+    )
+    is_sdf = config.get("pp_significant_data_fiduciary", False)
 
     def _list_html(items: Any) -> str:
         if isinstance(items, list) and items:
@@ -993,7 +1083,9 @@ def render_privacy_policy(tpl: dict, config: dict, parties: dict) -> str:
         f'This Privacy Policy explains how <strong>{company}</strong> '
         f'("we", "us", "our"), operating {website}, collects, uses, stores, and '
         f'protects your personal data in accordance with the Digital Personal Data '
-        f'Protection Act, 2023 ("DPDP Act") and the Information Technology Act, 2000.</p>'
+        f'Protection Act, 2023 ("DPDP Act"), the Digital Personal Data Protection '
+        f'Rules, 2025 ("DPDP Rules", notified 14 November 2025), and the '
+        f'Information Technology Act, 2000.</p>'
         f'<p class="clause"><span class="clause-number">{cn}.2</span> '
         f'For the purposes of the DPDP Act, we are the "Data Fiduciary" and you '
         f'are the "Data Principal".</p>'
@@ -1090,7 +1182,63 @@ def render_privacy_policy(tpl: dict, config: dict, parties: dict) -> str:
         f'DPDP Act.</p>'
     )
 
-    # Section 9 — Children's data
+    # Section 9 — Legitimate Uses Without Consent
+    cn += 1
+    sections.append(
+        f'<h2>{cn}. Processing Without Consent (Legitimate Uses)</h2>'
+        f'<p class="clause"><span class="clause-number">{cn}.1</span> '
+        f'Under Section 7 of the DPDP Act 2023, we may process your personal data '
+        f'without explicit consent for certain legitimate uses, including:</p>'
+        f'<ul>'
+        f'<li>Where you have voluntarily provided data and have not indicated that '
+        f'you do not consent to its use;</li>'
+        f'<li>For compliance with any law, court order, or government directive;</li>'
+        f'<li>For responding to a medical emergency involving a threat to your life '
+        f'or health;</li>'
+        f'<li>For employment-related purposes (existing employees only);</li>'
+        f'<li>For purposes related to public interest such as mergers, insolvency, '
+        f'or fraud prevention as specified by the Central Government.</li>'
+        f'</ul>'
+    )
+
+    # Section 10 — Cross-Border Data Transfers
+    if cross_border:
+        cn += 1
+        countries_text = ", ".join(transfer_countries) if transfer_countries else "various jurisdictions"
+        sections.append(
+            f'<h2>{cn}. Cross-Border Data Transfers</h2>'
+            f'<p class="clause"><span class="clause-number">{cn}.1</span> '
+            f'Your personal data may be transferred to and processed in the following '
+            f'countries/regions: <strong>{countries_text}</strong>.</p>'
+            f'<p class="clause"><span class="clause-number">{cn}.2</span> '
+            f'Under Section 16 of the DPDP Act 2023, transfer of personal data outside '
+            f'India is permitted to all countries except those specifically restricted '
+            f'by the Central Government through notification. As of the date of this '
+            f'policy, no such restriction applies to the countries listed above.</p>'
+            f'<p class="clause"><span class="clause-number">{cn}.3</span> '
+            f'We ensure that adequate contractual safeguards are in place with all '
+            f'international data processors to protect your personal data to a standard '
+            f'no less than what is required under Indian law.</p>'
+        )
+
+    # Section 11 — Data Breach Notification
+    cn += 1
+    sections.append(
+        f'<h2>{cn}. Data Breach Notification</h2>'
+        f'<p class="clause"><span class="clause-number">{cn}.1</span> '
+        f'In the event of a personal data breach, we will notify the Data Protection '
+        f'Board of India and each affected Data Principal in the prescribed manner, '
+        f'in accordance with Section 8(6) of the DPDP Act 2023 and the DPDP Rules 2025.</p>'
+        f'<p class="clause"><span class="clause-number">{cn}.2</span> '
+        f'Our breach notification process: <strong>{breach_notification}</strong>.</p>'
+        f'<p class="clause"><span class="clause-number">{cn}.3</span> '
+        f'The notification will include: (a) the nature of the breach, (b) the '
+        f'categories of personal data affected, (c) the measures taken or proposed '
+        f'to address the breach, and (d) the contact details of our Grievance Officer '
+        f'for further information.</p>'
+    )
+
+    # Section 12 — Children's data
     if children:
         cn += 1
         sections.append(
@@ -1098,13 +1246,59 @@ def render_privacy_policy(tpl: dict, config: dict, parties: dict) -> str:
             f'<p class="clause"><span class="clause-number">{cn}.1</span> '
             f'We may process personal data of children (persons under 18 years of '
             f'age) only after obtaining verifiable consent from a parent or lawful '
-            f'guardian.</p>'
+            f'guardian, as required under Section 9 of the DPDP Act 2023.</p>'
             f'<p class="clause"><span class="clause-number">{cn}.2</span> '
             f'We do not engage in tracking, behavioral monitoring, or targeted '
             f'advertising directed at children, as prohibited under the DPDP Act 2023.</p>'
+            f'<p class="clause"><span class="clause-number">{cn}.3</span> '
+            f'If we become aware that we have collected personal data from a child '
+            f'without verifiable parental consent, we will take steps to delete such '
+            f'data promptly.</p>'
         )
 
-    # Section 10 — Grievance Officer
+    # Section 13 — Significant Data Fiduciary (if applicable)
+    if is_sdf:
+        cn += 1
+        sections.append(
+            f'<h2>{cn}. Significant Data Fiduciary Obligations</h2>'
+            f'<p class="clause"><span class="clause-number">{cn}.1</span> '
+            f'As a Significant Data Fiduciary under Section 10 of the DPDP Act 2023, '
+            f'we have implemented the following additional measures:</p>'
+            f'<ul>'
+            f'<li>Appointed a <strong>Data Protection Officer (DPO)</strong> based in '
+            f'India who serves as the point of contact for data protection matters;</li>'
+            f'<li>Appointed an <strong>independent data auditor</strong> to conduct '
+            f'periodic compliance audits;</li>'
+            f'<li>Conduct <strong>Data Protection Impact Assessments (DPIA)</strong> '
+            f'before undertaking any processing that involves significant risk to data '
+            f'principals;</li>'
+            f'<li>Undergo <strong>periodic data audits</strong> as prescribed by the '
+            f'Central Government.</li>'
+            f'</ul>'
+        )
+
+    # Section 14 — Your Duties as Data Principal
+    cn += 1
+    sections.append(
+        f'<h2>{cn}. Your Duties as Data Principal</h2>'
+        f'<p class="clause"><span class="clause-number">{cn}.1</span> '
+        f'Under Section 15 of the DPDP Act 2023, as a Data Principal you have '
+        f'certain duties, including:</p>'
+        f'<ul>'
+        f'<li>To comply with all applicable laws while exercising your rights;</li>'
+        f'<li>Not to register a false or frivolous complaint with the Data Protection '
+        f'Board;</li>'
+        f'<li>Not to furnish any false particulars, suppress material information, or '
+        f'impersonate another person when providing personal data;</li>'
+        f'<li>To provide only authentic and verifiable information when exercising '
+        f'your right to correction or erasure.</li>'
+        f'</ul>'
+        f'<p class="clause"><span class="clause-number">{cn}.2</span> '
+        f'Breach of these duties may attract a penalty of up to Rs. 10,000 as '
+        f'prescribed under the DPDP Act 2023.</p>'
+    )
+
+    # Section 15 — Grievance Officer
     cn += 1
     sections.append(
         f'<h2>{cn}. Grievance Officer</h2>'
@@ -1117,9 +1311,28 @@ def render_privacy_policy(tpl: dict, config: dict, parties: dict) -> str:
         f'You may contact the Grievance Officer for any concerns related to the '
         f'processing of your personal data. We will acknowledge your grievance '
         f'within 48 hours and resolve it within the prescribed time limit.</p>'
+        f'<p class="clause"><span class="clause-number">{cn}.3</span> '
+        f'If you are not satisfied with our response, you may file a complaint '
+        f'with the Data Protection Board of India established under the DPDP Act 2023.</p>'
     )
 
-    # Section 11 — Updates
+    # Section 16 — Governing Law & Jurisdiction
+    cn += 1
+    sections.append(
+        f'<h2>{cn}. Governing Law & Dispute Resolution</h2>'
+        f'<p class="clause"><span class="clause-number">{cn}.1</span> '
+        f'This Privacy Policy shall be governed by and construed in accordance with '
+        f'the laws of India, including the Digital Personal Data Protection Act, 2023, '
+        f'the Digital Personal Data Protection Rules, 2025, the Information Technology '
+        f'Act, 2000, and rules framed thereunder.</p>'
+        f'<p class="clause"><span class="clause-number">{cn}.2</span> '
+        f'Any disputes arising under this policy shall be subject to the exclusive '
+        f'jurisdiction of the Data Protection Board of India for matters under the '
+        f'DPDP Act, and the courts of competent jurisdiction in India for all other '
+        f'matters.</p>'
+    )
+
+    # Section 17 — Updates
     cn += 1
     sections.append(
         f'<h2>{cn}. Changes to This Policy</h2>'
@@ -1129,6 +1342,8 @@ def render_privacy_policy(tpl: dict, config: dict, parties: dict) -> str:
         f'<p class="clause"><span class="clause-number">{cn}.2</span> '
         f'Continued use of our services after changes constitutes acceptance of the '
         f'updated policy.</p>'
+        f'<p class="clause"><span class="clause-number">{cn}.3</span> '
+        f'This policy was last updated on: {config.get("effective_date", "[Date]")}.</p>'
     )
 
     body = "\n".join(sections)

@@ -141,6 +141,11 @@ def update_clauses(
 ):
     """Update clause selections for a draft."""
     doc = _get_user_draft(db, draft_id, current_user.id)
+    if doc.status in ("finalized", "downloaded"):
+        raise HTTPException(
+            status_code=403,
+            detail="Cannot edit a finalized document. Create a new draft instead.",
+        )
     doc.clauses_config = body.clauses_config
     doc.status = "in_progress"
     db.commit()

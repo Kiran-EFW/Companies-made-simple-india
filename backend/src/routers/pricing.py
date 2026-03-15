@@ -11,7 +11,10 @@ router = APIRouter(prefix="/pricing", tags=["Pricing"])
 def calculate_pricing(request: PricingRequest):
     """Calculate itemized incorporation cost based on entity type, state, capital, and directors."""
     # Check cache
-    cache_key = f"pricing:{request.entity_type}:{request.state}:{request.plan_tier}"
+    cache_key = (
+        f"pricing:{request.entity_type}:{request.state}:{request.plan_tier}"
+        f":{request.authorized_capital}:{request.num_directors}:{request.has_existing_dsc}"
+    )
     cached = cache_get(cache_key)
     if cached is not None:
         return cached

@@ -1401,6 +1401,25 @@ class ESignService:
                 </p>
             </div>
 
+            <!-- DSC Distinction Notice -->
+            <div style="background: #f0f9ff; border: 1px solid #bae6fd;
+                        border-radius: 8px; padding: 16px; margin-top: 12px;">
+                <p style="margin: 0; font-size: 11px; line-height: 1.5; color: #0c4a6e;">
+                    <strong>Important Distinction:</strong> This electronic signature is
+                    valid for private agreements between parties under Section 3A of the
+                    IT Act, 2000. For filings with MCA (Ministry of Corporate Affairs),
+                    RoC, or other regulatory bodies, a Digital Signature Certificate (DSC)
+                    issued by a Certifying Authority licensed under the IT Act is required.
+                    Aadhaar-based e-Sign is <strong>not</strong> accepted for MCA filings.
+                </p>
+                <p style="margin: 8px 0 0; font-size: 10px; line-height: 1.4; color: #0c4a6e;">
+                    <strong>MCA forms requiring DSC:</strong> SPICe+ (INC-32), e-MOA,
+                    e-AOA, Form 3 (LLP), DIR-12, INC-22, AOC-4, MGT-7.<br>
+                    <em>Per CCA guidelines effective 1 July 2024, stricter eKYC and
+                    video verification is mandatory for new DSC issuance.</em>
+                </p>
+            </div>
+
             <!-- Generated timestamp -->
             <p style="margin: 24px 0 0; text-align: center; font-size: 11px; color: #94a3b8;">
                 Certificate generated on {generated_at}

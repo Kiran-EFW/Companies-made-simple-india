@@ -1,7 +1,9 @@
 """
-Legal Document Service — generates MOA, AOA, and LLP Agreement templates.
+Legal Document Service — generates MOA, AOA, LLP Agreement, Partnership
+Deed, and Sole Proprietorship Declaration templates.
 
-Supports Private Limited, OPC, LLP, and Section 8 entity types.
+Supports Private Limited, OPC, LLP, Section 8, Partnership,
+Sole Proprietorship, and Public Limited entity types.
 Uses LLM to generate custom business objects clauses when available.
 Output is JSON/dict for now (PDF generation deferred to Phase 9).
 """
@@ -129,11 +131,43 @@ def _generate_moa_private_limited(
                 "subscribers": [
                     {
                         "name": d.get("full_name", ""),
+                        "father_name": d.get("father_name", ""),
+                        "pan": d.get("pan", ""),
                         "address": d.get("address", ""),
+                        "occupation": d.get("occupation", ""),
+                        "nationality": d.get("nationality", "Indian"),
                         "shares_subscribed": max(1, (authorized_capital // 10) // max(len(directors), 1)),
                     }
                     for d in directors
                 ],
+                "witnesses": [
+                    {
+                        "witness_number": 1,
+                        "name": "",
+                        "address": "",
+                        "occupation": "",
+                        "note": (
+                            "Witness to the above signatures "
+                            "(as required under Schedule I, Companies Act, 2013)"
+                        ),
+                    },
+                    {
+                        "witness_number": 2,
+                        "name": "",
+                        "address": "",
+                        "occupation": "",
+                        "note": (
+                            "Witness to the above signatures "
+                            "(as required under Schedule I, Companies Act, 2013)"
+                        ),
+                    },
+                ],
+                "filing_note": (
+                    "This subscription clause must be filed as part of Form SPICe+ "
+                    "(INC-32) with the Registrar of Companies. All subscribers must "
+                    "sign in the presence of at least one witness who shall attest the "
+                    "signatures (Schedule I, Companies Act, 2013)."
+                ),
             },
         },
         "metadata": {
@@ -241,9 +275,35 @@ def _generate_moa_section_8(
                 "subscribers": [
                     {
                         "name": d.get("full_name", ""),
+                        "father_name": d.get("father_name", ""),
+                        "pan": d.get("pan", ""),
                         "address": d.get("address", ""),
+                        "occupation": d.get("occupation", ""),
+                        "nationality": d.get("nationality", "Indian"),
                     }
                     for d in directors
+                ],
+                "witnesses": [
+                    {
+                        "witness_number": 1,
+                        "name": "",
+                        "address": "",
+                        "occupation": "",
+                        "note": (
+                            "Witness to the above signatures "
+                            "(as required under Schedule I, Companies Act, 2013)"
+                        ),
+                    },
+                    {
+                        "witness_number": 2,
+                        "name": "",
+                        "address": "",
+                        "occupation": "",
+                        "note": (
+                            "Witness to the above signatures "
+                            "(as required under Schedule I, Companies Act, 2013)"
+                        ),
+                    },
                 ],
             },
         },
@@ -365,13 +425,84 @@ def _generate_llp_agreement(
                     "shall be applied in satisfaction of its debts and liabilities."
                 ),
             },
-            "10_dispute_resolution": {
+            "10_rights_duties": {
                 "section_number": "10",
+                "title": "Rights and Duties of Partners",
+                "content": (
+                    "Each Partner shall have the right to: (a) participate in the management "
+                    "of the LLP; (b) access the books of account and records of the LLP; "
+                    "(c) receive a share of profits as per Section 5 above. "
+                    "Each Partner shall have the duty to: (a) act in good faith and in the "
+                    "best interest of the LLP; (b) render true accounts and full information "
+                    "of all things affecting the LLP; (c) indemnify the LLP for any loss "
+                    "caused by fraud or wilful neglect; (d) not carry on any business of "
+                    "the same nature as and competing with the LLP without the consent of "
+                    "the other Partners."
+                ),
+            },
+            "11_mutual_agency": {
+                "section_number": "11",
+                "title": "Mutual Agency",
+                "content": (
+                    "Every Partner is an agent of the LLP for the purposes of the business "
+                    "of the LLP (Section 26, LLP Act, 2008). The acts of a Partner in the "
+                    "ordinary course of business shall bind the LLP. However, no Partner "
+                    "shall have the authority to: (a) submit a claim or dispute relating to "
+                    "the LLP to arbitration; (b) open a banking account on behalf of the LLP "
+                    "in his own name; (c) compromise or relinquish any claim of the LLP; "
+                    "(d) acquire immovable property on behalf of the LLP; (e) transfer any "
+                    "property of the LLP — without prior written consent of all Partners."
+                ),
+            },
+            "12_accounts_and_audit": {
+                "section_number": "12",
+                "title": "Accounts, Audit, and Annual Filings",
+                "content": (
+                    "The LLP shall maintain proper books of account. The accounts shall be "
+                    "audited annually if the turnover exceeds Rs. 40 lakhs or the capital "
+                    "contribution exceeds Rs. 25 lakhs (LLP Act, 2008). The Designated "
+                    "Partners shall ensure timely filing of: (a) Form 8 — Statement of "
+                    "Account and Solvency (within 30 days of 6 months from FY end); "
+                    "(b) Form 11 — Annual Return (within 60 days of FY end). Late filing "
+                    "attracts a penalty of Rs. 100 per day."
+                ),
+            },
+            "13_dispute_resolution": {
+                "section_number": "13",
                 "title": "Dispute Resolution",
                 "content": (
                     "Any dispute arising out of or in connection with this Agreement shall first "
                     "be referred to mediation. If mediation fails, the dispute shall be referred "
-                    "to arbitration in accordance with the Arbitration and Conciliation Act, 1996."
+                    "to arbitration in accordance with the Arbitration and Conciliation Act, 1996. "
+                    "The seat of arbitration shall be in the State of " + state + "."
+                ),
+            },
+            "14_governing_law": {
+                "section_number": "14",
+                "title": "Governing Law",
+                "content": (
+                    "This Agreement shall be governed by and construed in accordance with the "
+                    "Limited Liability Partnership Act, 2008 and the rules made thereunder, "
+                    "and the laws of India. In the event any provision of this Agreement is "
+                    "not covered or is silent, the First Schedule of the LLP Act, 2008 shall "
+                    "apply by default."
+                ),
+            },
+            "15_form3_filing": {
+                "section_number": "15",
+                "title": "Filing and Registration",
+                "content": (
+                    "This Agreement, or any subsequent amendment thereto, shall be filed "
+                    "with the Registrar of Companies in Form 3 (LLP Rules, 2009) within "
+                    "30 days of incorporation or amendment, as applicable. The Agreement "
+                    "must be: (a) printed on state-specific non-judicial stamp paper of "
+                    "the value prescribed under the applicable State Stamp Act; "
+                    "(b) notarized by a Notary Public; (c) digitally signed by a "
+                    "Designated Partner using a valid Digital Signature Certificate (DSC) "
+                    "issued by a Certifying Authority licensed under the IT Act, 2000, "
+                    "before upload to the MCA portal. Aadhaar-based e-Sign is not "
+                    "accepted for Form 3 filing. Failure to file within 30 days "
+                    "attracts a penalty of Rs. 100 per day of default."
                 ),
             },
         },
@@ -381,6 +512,550 @@ def _generate_llp_agreement(
             "state": state,
             "total_partners": num_partners,
             "total_capital": capital_contribution,
+        },
+    }
+
+
+# ---------------------------------------------------------------------------
+# Partnership Deed Template (Indian Partnership Act, 1932)
+# ---------------------------------------------------------------------------
+
+def _generate_partnership_deed(
+    firm_name: str,
+    state: str,
+    business_objects: List[str],
+    partners: List[Dict[str, Any]],
+    capital_contribution: int,
+) -> Dict[str, Any]:
+    """
+    Generate Partnership Deed under the Indian Partnership Act, 1932.
+
+    Covers all mandatory and recommended clauses: Sections 4-69.
+    Registration is optional but strongly recommended (Section 69
+    consequences — unregistered firms cannot sue third parties).
+    """
+    num_partners = max(len(partners), 2)
+    per_partner_share = round(100.0 / num_partners, 2)
+    per_partner_capital = capital_contribution // num_partners
+
+    return {
+        "document_type": "Partnership Deed",
+        "format": "Partnership Deed (under Indian Partnership Act, 1932)",
+        "entity_type": "partnership",
+        "sections": {
+            "1_definitions": {
+                "section_number": "1",
+                "title": "Definitions and Interpretation",
+                "content": (
+                    f"In this Deed, unless the context otherwise requires: "
+                    f"\"Firm\" means the partnership firm carrying on business under "
+                    f"the name and style of \"{firm_name}\"; \"Partners\" means the "
+                    f"partners named herein; \"Act\" means the Indian Partnership "
+                    f"Act, 1932."
+                ),
+            },
+            "2_name_and_office": {
+                "section_number": "2",
+                "title": "Name and Principal Place of Business",
+                "content": (
+                    f"The name of the Firm shall be \"{firm_name}\". The principal "
+                    f"place of business shall be situated in the State of {state}. "
+                    f"The Firm may establish branch offices at such other places "
+                    f"as the Partners may decide by mutual consent."
+                ),
+            },
+            "3_nature_of_business": {
+                "section_number": "3",
+                "title": "Nature of Business (Section 4)",
+                "objects": business_objects,
+                "content": (
+                    "The Firm shall carry on the business as described above and "
+                    "such other allied or incidental activities as the Partners "
+                    "may mutually agree upon from time to time."
+                ),
+            },
+            "4_commencement_and_duration": {
+                "section_number": "4",
+                "title": "Commencement and Duration",
+                "content": (
+                    "The partnership shall be deemed to have commenced on the date "
+                    "of execution of this Deed and shall continue as a partnership "
+                    "at will unless dissolved by mutual agreement of all Partners, "
+                    "by notice under Section 43 of the Act, or by operation of law "
+                    "(Section 42)."
+                ),
+            },
+            "5_capital_contribution": {
+                "section_number": "5",
+                "title": "Capital Contribution (Section 13(c))",
+                "content": (
+                    f"The total capital of the Firm shall be Rs. {capital_contribution:,}/- "
+                    f"(Rupees {_number_to_words(capital_contribution)} only), contributed "
+                    f"by the Partners as set out below. Additional capital may be "
+                    f"introduced with the consent of all Partners."
+                ),
+                "total_capital": capital_contribution,
+                "partner_contributions": [
+                    {
+                        "name": p.get("full_name", ""),
+                        "father_name": p.get("father_name", ""),
+                        "address": p.get("address", ""),
+                        "pan": p.get("pan", ""),
+                        "contribution": per_partner_capital,
+                        "percentage": per_partner_share,
+                    }
+                    for p in partners
+                ],
+            },
+            "6_profit_loss_sharing": {
+                "section_number": "6",
+                "title": "Profit and Loss Sharing (Section 13(b))",
+                "content": (
+                    "The net profits or losses of the Firm, after deducting all "
+                    "expenses, salaries, interest on capital and other outgoings, "
+                    "shall be divided among the Partners in the following ratio. "
+                    "Profits shall be distributed quarterly or at such intervals "
+                    "as the Partners may decide."
+                ),
+                "profit_ratios": [
+                    {"name": p.get("full_name", ""), "share_percent": per_partner_share}
+                    for p in partners
+                ],
+            },
+            "7_interest_on_capital": {
+                "section_number": "7",
+                "title": "Interest on Capital (Section 13(d))",
+                "content": (
+                    "Each Partner shall be entitled to interest on their capital "
+                    "contribution at the rate of 12% per annum (or such other rate "
+                    "as the Partners may agree). Interest on capital shall be "
+                    "payable only out of the profits of the Firm. No interest "
+                    "shall be charged on drawings unless agreed otherwise."
+                ),
+            },
+            "8_drawings_and_salary": {
+                "section_number": "8",
+                "title": "Drawings and Salary",
+                "content": (
+                    "Each Partner shall be entitled to draw a monthly salary "
+                    "as mutually agreed and recorded in a supplementary agreement. "
+                    "Drawings against anticipated profit shall not exceed "
+                    "50% of the estimated share of the Partner for the current "
+                    "accounting period. Interest on excess drawings shall be "
+                    "charged at the rate of 12% per annum."
+                ),
+            },
+            "9_management_and_duties": {
+                "section_number": "9",
+                "title": "Management and Duties (Sections 9, 12, 13(a))",
+                "content": (
+                    "All Partners shall participate in the management of the Firm. "
+                    "Each Partner shall: (a) attend to the business diligently and "
+                    "devote adequate time; (b) act in good faith and in the best "
+                    "interest of the Firm; (c) render true accounts and full "
+                    "information of all things affecting the Firm to any Partner "
+                    "(Section 9); (d) indemnify the Firm for any loss caused by "
+                    "fraud or wilful neglect (Section 10); (e) not carry on any "
+                    "competing business without the consent of all Partners "
+                    "(Section 16)."
+                ),
+            },
+            "10_mutual_agency": {
+                "section_number": "10",
+                "title": "Mutual Agency (Sections 18-22, 25-27)",
+                "content": (
+                    "Each Partner is an agent of the Firm and of the other Partners "
+                    "for the purpose of the business of the Firm (Section 18). "
+                    "Acts done in the ordinary course of business shall bind the "
+                    "Firm (Section 19). Notwithstanding the above, no Partner "
+                    "shall, without the prior written consent of all Partners: "
+                    "(a) submit any claim of the Firm to arbitration; "
+                    "(b) open a bank account in their own name on behalf of the Firm; "
+                    "(c) compromise or relinquish any claim of the Firm; "
+                    "(d) acquire immovable property on behalf of the Firm; "
+                    "(e) transfer any property of the Firm; "
+                    "(f) admit any liability in a suit against the Firm (Section 22)."
+                ),
+            },
+            "11_banking_and_accounts": {
+                "section_number": "11",
+                "title": "Banking and Books of Account",
+                "content": (
+                    "The Firm shall maintain a bank account in the name of the Firm. "
+                    "The account shall be operated jointly by at least two Partners "
+                    "or as the Partners may decide. The Firm shall maintain proper "
+                    "books of account including a cash book, ledger, and journal. "
+                    "The accounts shall be closed on 31st March of each year and "
+                    "a balance sheet and profit and loss account shall be prepared. "
+                    "Each Partner shall have access to and may inspect and copy "
+                    "the books of account of the Firm (Section 12)."
+                ),
+            },
+            "12_admission_of_new_partner": {
+                "section_number": "12",
+                "title": "Admission of New Partner (Section 31)",
+                "content": (
+                    "No person shall be admitted as a partner into the Firm without "
+                    "the consent of all existing Partners (Section 31(1)). A new "
+                    "partner shall not be liable for any act of the Firm done before "
+                    "they became a partner (Section 31(2)). An amended Deed shall "
+                    "be executed upon admission of any new Partner."
+                ),
+            },
+            "13_retirement_and_expulsion": {
+                "section_number": "13",
+                "title": "Retirement, Expulsion, and Death (Sections 32-35)",
+                "content": (
+                    "A Partner may retire from the Firm: (a) with the consent of "
+                    "all Partners; (b) by giving not less than 90 days written "
+                    "notice to all other Partners (in a partnership at will). "
+                    "A retiring Partner shall be entitled to their share of the "
+                    "capital and accumulated profits as on the date of retirement. "
+                    "A Partner may be expelled by a majority of the Partners if "
+                    "such power is conferred by a contract between the Partners, "
+                    "and only if the expulsion is in good faith (Section 33). "
+                    "On the death of a Partner, the Firm shall not be dissolved "
+                    "unless so provided herein; the legal heirs of the deceased "
+                    "Partner shall be entitled to the deceased Partner's share "
+                    "as on the date of death (Section 35)."
+                ),
+            },
+            "14_non_compete_and_confidentiality": {
+                "section_number": "14",
+                "title": "Non-Compete and Confidentiality (Section 16)",
+                "content": (
+                    "No Partner shall, during the subsistence of the partnership, "
+                    "carry on any business of the same nature as and competing with "
+                    "that of the Firm without the consent of all other Partners "
+                    "(Section 16(a)). If a Partner derives any profit for themselves "
+                    "from any transaction of the Firm, they shall account for that "
+                    "profit and pay it to the Firm (Section 16(b)). All Partners "
+                    "shall keep confidential the affairs and trade secrets of the "
+                    "Firm during the partnership and for a period of 2 years "
+                    "after retirement or dissolution."
+                ),
+            },
+            "15_goodwill": {
+                "section_number": "15",
+                "title": "Goodwill (Section 14)",
+                "content": (
+                    "The goodwill of the Firm is the property of the Firm. "
+                    "Unless otherwise agreed, on dissolution each Partner's share "
+                    "of the goodwill shall be in proportion to their profit-sharing "
+                    "ratio. The valuation of goodwill on retirement or admission "
+                    "shall be determined by mutual agreement or, failing that, "
+                    "on the basis of the average of the profits of the last "
+                    "three completed financial years."
+                ),
+            },
+            "16_dissolution": {
+                "section_number": "16",
+                "title": "Dissolution (Sections 40-44)",
+                "content": (
+                    "The Firm may be dissolved: (a) by agreement of all Partners; "
+                    "(b) compulsorily, when all Partners or all but one become "
+                    "insolvent (Section 41); (c) by notice in writing by any "
+                    "Partner to all other Partners in a partnership at will "
+                    "(Section 43); (d) by order of the Court under Section 44. "
+                    "Upon dissolution, the assets of the Firm shall be applied "
+                    "in the following order: (i) payment of debts to third parties; "
+                    "(ii) repayment of advances made by Partners; (iii) return of "
+                    "capital to Partners; (iv) distribution of surplus, if any, "
+                    "in the profit-sharing ratio (Section 48)."
+                ),
+            },
+            "17_indemnity": {
+                "section_number": "17",
+                "title": "Indemnity (Section 13(f))",
+                "content": (
+                    "Each Partner shall indemnify the Firm and the other Partners "
+                    "for any loss caused by their fraud or wilful neglect in the "
+                    "conduct of the business of the Firm (Section 13(f)). A "
+                    "Partner acting within the scope of their authority shall be "
+                    "indemnified by the Firm for liabilities incurred in the "
+                    "ordinary course of business (Section 13(e))."
+                ),
+            },
+            "18_dispute_resolution": {
+                "section_number": "18",
+                "title": "Dispute Resolution (Section 46)",
+                "content": (
+                    "Any dispute arising out of or in connection with this Deed "
+                    "shall first be referred to mediation between the Partners. "
+                    "If mediation fails within 30 days, the dispute shall be "
+                    "referred to arbitration under the Arbitration and Conciliation "
+                    f"Act, 1996. The seat of arbitration shall be in {state}. "
+                    "Until a dispute is resolved, the Partners shall continue "
+                    "to perform their obligations under this Deed."
+                ),
+            },
+            "19_registration": {
+                "section_number": "19",
+                "title": "Registration with Registrar of Firms (Sections 56-59, 69)",
+                "content": (
+                    "The Partners agree to register this Firm with the Registrar "
+                    "of Firms for the State in which the principal place of business "
+                    "is situated, by filing an application in Form C "
+                    "(Section 58, Indian Partnership Act, 1932). Registration is "
+                    "optional but strongly recommended. An unregistered firm "
+                    "cannot: (a) file a suit against any third party in any court; "
+                    "(b) claim a set-off in any proceeding (Section 69). "
+                    "The application shall be signed by all Partners or their "
+                    "authorised agents and accompanied by the prescribed fee. "
+                    "Any change in the Firm — admission, retirement, change of "
+                    "name or business — must be notified to the Registrar."
+                ),
+            },
+            "20_stamp_duty": {
+                "section_number": "20",
+                "title": "Stamp Duty and Execution",
+                "content": (
+                    "This Deed shall be printed on non-judicial stamp paper of the "
+                    "value prescribed under the applicable State Stamp Act. "
+                    "Partnership deeds are NOT filed through the MCA portal; they "
+                    "are filed physically with the Registrar of Firms. Each Partner "
+                    "shall sign this Deed in the presence of at least two witnesses."
+                ),
+            },
+            "21_governing_law": {
+                "section_number": "21",
+                "title": "Governing Law",
+                "content": (
+                    "This Deed shall be governed by and construed in accordance with "
+                    "the Indian Partnership Act, 1932 and the rules made thereunder, "
+                    "and the laws of India. In the event any provision of this Deed "
+                    "is silent, the provisions of the Indian Partnership Act, 1932 "
+                    "shall apply."
+                ),
+            },
+        },
+        "schedules": {
+            "schedule_I_partners": {
+                "title": "Schedule I — Partners",
+                "partners": [
+                    {
+                        "name": p.get("full_name", ""),
+                        "father_name": p.get("father_name", ""),
+                        "address": p.get("address", ""),
+                        "pan": p.get("pan", ""),
+                        "aadhar_last_four": p.get("aadhar_last_four", ""),
+                        "occupation": p.get("occupation", ""),
+                        "nationality": p.get("nationality", "Indian"),
+                    }
+                    for p in partners
+                ],
+            },
+            "schedule_II_capital": {
+                "title": "Schedule II — Capital Contributions",
+                "contributions": [
+                    {
+                        "name": p.get("full_name", ""),
+                        "contribution": per_partner_capital,
+                        "percentage": per_partner_share,
+                    }
+                    for p in partners
+                ],
+            },
+        },
+        "metadata": {
+            "generated_date": date.today().isoformat(),
+            "firm_name": firm_name,
+            "state": state,
+            "total_partners": num_partners,
+            "total_capital": capital_contribution,
+            "registration_note": (
+                "Registration with Registrar of Firms is optional but strongly "
+                "recommended. Without registration, the firm cannot enforce its "
+                "rights against third parties in court (Section 69)."
+            ),
+        },
+    }
+
+
+# ---------------------------------------------------------------------------
+# Sole Proprietorship Declaration / Affidavit Template
+# ---------------------------------------------------------------------------
+
+def _generate_sole_prop_declaration(
+    business_name: str,
+    state: str,
+    business_objects: List[str],
+    proprietor: Dict[str, Any],
+) -> Dict[str, Any]:
+    """
+    Generate Sole Proprietorship Declaration / Affidavit.
+
+    A sole proprietorship has no separate legal entity; this generates the
+    standard declaration/affidavit format used for bank account opening,
+    GST registration, MSME Udyam registration, and Shop & Establishment
+    Act registration.
+    """
+    return {
+        "document_type": "Sole Proprietorship Declaration",
+        "format": "Affidavit / Declaration",
+        "entity_type": "sole_proprietorship",
+        "sections": {
+            "1_declaration": {
+                "section_number": "1",
+                "title": "Declaration",
+                "content": (
+                    f"I, {proprietor.get('full_name', '_______________')}, "
+                    f"S/o / D/o / W/o {proprietor.get('father_name', '_______________')}, "
+                    f"aged {proprietor.get('age', '____')} years, residing at "
+                    f"{proprietor.get('address', '_______________')}, do hereby "
+                    f"solemnly declare and affirm as follows:"
+                ),
+            },
+            "2_business_details": {
+                "section_number": "2",
+                "title": "Business Details",
+                "items": [
+                    {
+                        "item_number": "i",
+                        "content": (
+                            f"That I am the sole proprietor of the business carried on "
+                            f"under the name and style of \"{business_name}\"."
+                        ),
+                    },
+                    {
+                        "item_number": "ii",
+                        "content": (
+                            f"That the principal place of business is situated at "
+                            f"{proprietor.get('business_address', proprietor.get('address', '_______________'))}, "
+                            f"in the State of {state}."
+                        ),
+                    },
+                    {
+                        "item_number": "iii",
+                        "content": "That the nature of business activities is as follows:",
+                        "business_objects": business_objects,
+                    },
+                    {
+                        "item_number": "iv",
+                        "content": (
+                            "That the business is owned and managed solely by me and "
+                            "no other person has any share, interest or claim in the "
+                            "said business."
+                        ),
+                    },
+                    {
+                        "item_number": "v",
+                        "content": (
+                            f"That my Permanent Account Number (PAN) is "
+                            f"{proprietor.get('pan', '_______________')} and my "
+                            f"Aadhaar number is {proprietor.get('aadhaar', 'XXXX-XXXX-____')}."
+                        ),
+                    },
+                    {
+                        "item_number": "vi",
+                        "content": (
+                            "That the business was commenced / will commence on "
+                            f"{proprietor.get('commencement_date', '_______________')}."
+                        ),
+                    },
+                    {
+                        "item_number": "vii",
+                        "content": (
+                            "That I have not been adjudicated as an insolvent and "
+                            "there are no legal proceedings pending against me that "
+                            "would affect the conduct of this business."
+                        ),
+                    },
+                    {
+                        "item_number": "viii",
+                        "content": (
+                            "That the above statements are true and correct to the best "
+                            "of my knowledge and belief. I understand that making a false "
+                            "declaration is punishable under the Indian Penal Code."
+                        ),
+                    },
+                ],
+            },
+            "3_proprietor_details": {
+                "section_number": "3",
+                "title": "Proprietor Details",
+                "proprietor": {
+                    "name": proprietor.get("full_name", ""),
+                    "father_name": proprietor.get("father_name", ""),
+                    "address": proprietor.get("address", ""),
+                    "pan": proprietor.get("pan", ""),
+                    "aadhaar": proprietor.get("aadhaar", ""),
+                    "occupation": proprietor.get("occupation", ""),
+                    "nationality": proprietor.get("nationality", "Indian"),
+                    "date_of_birth": proprietor.get("date_of_birth", ""),
+                    "email": proprietor.get("email", ""),
+                    "phone": proprietor.get("phone", ""),
+                },
+            },
+            "4_stamp_duty_and_notarization": {
+                "section_number": "4",
+                "title": "Stamp Duty and Notarization",
+                "content": (
+                    "This declaration/affidavit must be executed on non-judicial "
+                    "stamp paper of the value prescribed under the applicable State "
+                    "Stamp Act (typically Rs. 10 to Rs. 100 for affidavits, varying "
+                    "by state). It must be notarized by a Notary Public or sworn "
+                    "before a Magistrate/Executive Magistrate."
+                ),
+            },
+        },
+        "registration_guidance": {
+            "gst_registration": {
+                "title": "GST Registration",
+                "content": (
+                    "GST registration is mandatory if annual turnover exceeds "
+                    "Rs. 20,00,000 (Rs. 10,00,000 for special category states). "
+                    "Voluntary registration is available below the threshold. "
+                    "Apply online at www.gst.gov.in using PAN and Aadhaar."
+                ),
+                "threshold": 2000000,
+                "documents_required": [
+                    "PAN Card of Proprietor",
+                    "Aadhaar Card of Proprietor",
+                    "Bank account statement / cancelled cheque",
+                    "Address proof of business premises",
+                    "Photograph of Proprietor",
+                    "Electricity bill / rent agreement for business address",
+                ],
+            },
+            "msme_udyam_registration": {
+                "title": "MSME Udyam Registration",
+                "content": (
+                    "Udyam registration is free of cost and done online at "
+                    "udyamregistration.gov.in. Aadhaar number of the proprietor "
+                    "is mandatory. The registration provides benefits including "
+                    "priority sector lending, collateral-free loans, and "
+                    "government tender preferences."
+                ),
+                "mandatory_documents": [
+                    "Aadhaar Number of Proprietor (mandatory)",
+                    "PAN and GST details (if available)",
+                    "Bank account details",
+                    "Business activity details (NIC code)",
+                ],
+            },
+            "shop_and_establishment": {
+                "title": "Shop & Establishment Act Registration",
+                "content": (
+                    "Registration under the applicable State Shop and "
+                    "Establishment Act must be obtained within 30 days of "
+                    "commencement of business. This is a state-level registration "
+                    "with the local municipal body or labour department. "
+                    "Requirements vary by state."
+                ),
+            },
+        },
+        "metadata": {
+            "generated_date": date.today().isoformat(),
+            "business_name": business_name,
+            "state": state,
+            "proprietor_name": proprietor.get("full_name", ""),
+            "registration_note": (
+                "A sole proprietorship is not a separate legal entity. The "
+                "proprietor and the business are legally the same. This declaration "
+                "serves as the foundational document for obtaining GST, bank "
+                "account, Udyam, and other registrations."
+            ),
         },
     }
 
@@ -762,7 +1437,13 @@ class LegalDocumentService:
         business_description: str = "",
         directors: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Generate Memorandum of Association based on entity type."""
+        """
+        Generate the primary formation document based on entity type.
+
+        Returns MOA for companies, LLP Agreement for LLPs, Partnership
+        Deed for partnerships, and Sole Proprietorship Declaration for
+        sole proprietorships.
+        """
         if directors is None:
             directors = []
 
@@ -774,7 +1455,7 @@ class LegalDocumentService:
         else:
             business_objects = _default_business_objects("general business activities")
 
-        if entity_type == "private_limited" or entity_type == "public_limited":
+        if entity_type in ("private_limited", "public_limited"):
             return _generate_moa_private_limited(
                 company_name, state, authorized_capital, business_objects, directors
             )
@@ -790,8 +1471,17 @@ class LegalDocumentService:
             return _generate_llp_agreement(
                 company_name, state, business_objects, directors, authorized_capital
             )
+        elif entity_type == "partnership":
+            return _generate_partnership_deed(
+                company_name, state, business_objects, directors, authorized_capital
+            )
+        elif entity_type == "sole_proprietorship":
+            proprietor = directors[0] if directors else {}
+            return _generate_sole_prop_declaration(
+                company_name, state, business_objects, proprietor
+            )
         else:
-            # Default to private limited
+            logger.warning("Unknown entity_type %r, defaulting to private_limited", entity_type)
             return _generate_moa_private_limited(
                 company_name, state, authorized_capital, business_objects, directors
             )
@@ -803,16 +1493,35 @@ class LegalDocumentService:
         authorized_capital: int = 100000,
         directors: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Generate Articles of Association."""
+        """Generate Articles of Association (companies only)."""
         if directors is None:
             directors = []
 
         if entity_type == "llp":
-            # LLPs don't have AOA, they have LLP Agreement (generated via MOA)
             return {
                 "document_type": "Not Applicable",
                 "entity_type": "llp",
                 "message": "LLPs use an LLP Agreement instead of AOA. Use generate_moa() for LLP.",
+            }
+
+        if entity_type == "partnership":
+            return {
+                "document_type": "Not Applicable",
+                "entity_type": "partnership",
+                "message": (
+                    "Partnership firms use a Partnership Deed instead of AOA. "
+                    "Use generate_moa() to generate the Partnership Deed."
+                ),
+            }
+
+        if entity_type == "sole_proprietorship":
+            return {
+                "document_type": "Not Applicable",
+                "entity_type": "sole_proprietorship",
+                "message": (
+                    "Sole proprietorships use a Declaration/Affidavit instead of AOA. "
+                    "Use generate_moa() to generate the Sole Proprietorship Declaration."
+                ),
             }
 
         return _generate_aoa(company_name, entity_type, authorized_capital, directors)
@@ -853,29 +1562,51 @@ class LegalDocumentService:
         business_description: str = "",
         directors: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Generate both MOA and AOA (or LLP Agreement) as a complete set."""
-        moa = await self.generate_moa(
+        """Generate the full document set for any entity type."""
+        primary_doc = await self.generate_moa(
             company_name, entity_type, state, authorized_capital,
             business_description, directors
         )
-        aoa = await self.generate_aoa(
+        secondary_doc = await self.generate_aoa(
             company_name, entity_type, authorized_capital, directors
         )
+
+        # Label documents appropriately per entity type
+        doc_labels = {
+            "llp": ("llp_agreement", "aoa"),
+            "partnership": ("partnership_deed", "aoa"),
+            "sole_proprietorship": ("declaration", "aoa"),
+        }
+        primary_key, secondary_key = doc_labels.get(entity_type, ("moa", "aoa"))
+
+        review_notes = {
+            "partnership": (
+                "This is a draft Partnership Deed. It should be reviewed by a "
+                "qualified lawyer, printed on stamp paper, notarized, and filed "
+                "with the Registrar of Firms (Form C)."
+            ),
+            "sole_proprietorship": (
+                "This is a draft declaration/affidavit. It should be reviewed, "
+                "printed on stamp paper, and notarized. Use it for GST, bank "
+                "account, Udyam, and Shop & Establishment registrations."
+            ),
+        }
+        notes = review_notes.get(entity_type, (
+            "These are draft documents generated based on templates. "
+            "They should be reviewed by a qualified Company Secretary or "
+            "legal professional before filing with MCA."
+        ))
 
         return {
             "company_name": company_name,
             "entity_type": entity_type,
             "documents": {
-                "moa": moa,
-                "aoa": aoa,
+                primary_key: primary_doc,
+                secondary_key: secondary_doc,
             },
             "generated_date": date.today().isoformat(),
             "status": "draft",
-            "notes": (
-                "These are draft documents generated based on templates. "
-                "They should be reviewed by a qualified Company Secretary or "
-                "legal professional before filing with MCA."
-            ),
+            "notes": notes,
         }
 
 
