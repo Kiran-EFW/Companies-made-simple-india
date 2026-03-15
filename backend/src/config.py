@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     # AI / LLM
     openai_api_key: str = ""
     google_ai_api_key: str = ""
-    llm_provider: str = "auto"  # "auto", "openai", "gemini", or "mock"
+    llm_provider: str = "auto"  # "auto", "openai", or "gemini"
     llm_rate_limit: int = 60  # max calls per minute
 
     # Razorpay

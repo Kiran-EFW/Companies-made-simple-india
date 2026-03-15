@@ -1,5 +1,5 @@
 """
-LLM Service Abstraction Layer — supports OpenAI, Google Gemini, and mock fallback.
+LLM Service Abstraction Layer — supports OpenAI and Google Gemini.
 
 Provides a unified interface for chat, structured output, and vision extraction.
 Includes token usage tracking and simple in-memory rate limiting.
@@ -50,7 +50,7 @@ class UsageTracker:
         self.total_prompt_tokens: int = 0
         self.total_completion_tokens: int = 0
         self.total_calls: int = 0
-        self.calls_by_provider: Dict[str, int] = {"openai": 0, "gemini": 0, "mock": 0}
+        self.calls_by_provider: Dict[str, int] = {"openai": 0, "gemini": 0}
         self._call_log: List[Dict[str, Any]] = []
 
     def record(self, provider: str, prompt_tokens: int, completion_tokens: int):
@@ -76,7 +76,7 @@ class UsageTracker:
 
 
 class LLMService:
-    """Unified LLM service supporting OpenAI and Google Gemini with fallback."""
+    """Unified LLM service supporting OpenAI and Google Gemini."""
 
     def __init__(self):
         self.provider = self._detect_provider()
@@ -98,15 +98,25 @@ class LLMService:
                 return "openai"
             if forced == "gemini" and settings.google_ai_api_key:
                 return "gemini"
-            if forced == "mock":
-                return "mock"
             # Forced provider but no key -> fall through to auto
         # Auto-detect
         if settings.openai_api_key:
             return "openai"
         if settings.google_ai_api_key:
             return "gemini"
-        return "mock"
+        logger.warning(
+            "No LLM API keys configured. Set OPENAI_API_KEY or GOOGLE_AI_API_KEY. "
+            "LLM-dependent features will be unavailable."
+        )
+        return "none"
+
+    def _ensure_provider(self):
+        """Raise if no LLM provider is available."""
+        if self.provider == "none":
+            raise RuntimeError(
+                "No LLM provider configured. Set OPENAI_API_KEY or GOOGLE_AI_API_KEY "
+                "environment variable to enable AI features."
+            )
 
     # ------------------------------------------------------------------
     # Client factories (lazy init)
@@ -138,6 +148,7 @@ class LLMService:
         max_tokens: int = 1024,
     ) -> str:
         """Send a single chat message and return the response text."""
+        self._ensure_provider()
         providers = self._provider_order()
         last_error: Optional[Exception] = None
 
@@ -148,16 +159,12 @@ class LLMService:
                     return self._chat_openai(system_prompt, user_message, temperature, max_tokens)
                 elif prov == "gemini":
                     return self._chat_gemini(system_prompt, user_message, temperature, max_tokens)
-                else:
-                    return self._chat_mock(system_prompt, user_message)
             except Exception as exc:
                 last_error = exc
                 logger.warning("LLM provider %s failed: %s. Trying next.", prov, exc)
                 continue
 
-        # Should not happen because mock never fails, but just in case
-        logger.error("All LLM providers failed. Last error: %s", last_error)
-        return self._chat_mock(system_prompt, user_message)
+        raise RuntimeError(f"All LLM providers failed. Last error: {last_error}")
 
     async def chat_with_history(
         self,
@@ -167,6 +174,7 @@ class LLMService:
         max_tokens: int = 1024,
     ) -> str:
         """Chat with conversation history. Messages are [{role, content}, ...]."""
+        self._ensure_provider()
         providers = self._provider_order()
         last_error: Optional[Exception] = None
 
@@ -177,16 +185,12 @@ class LLMService:
                     return self._chat_history_openai(system_prompt, messages, temperature, max_tokens)
                 elif prov == "gemini":
                     return self._chat_history_gemini(system_prompt, messages, temperature, max_tokens)
-                else:
-                    user_msg = messages[-1]["content"] if messages else ""
-                    return self._chat_mock(system_prompt, user_msg)
             except Exception as exc:
                 last_error = exc
                 logger.warning("LLM provider %s failed (history): %s. Trying next.", prov, exc)
                 continue
 
-        user_msg = messages[-1]["content"] if messages else ""
-        return self._chat_mock(system_prompt, user_msg)
+        raise RuntimeError(f"All LLM providers failed. Last error: {last_error}")
 
     # ------------------------------------------------------------------
     # Structured output (instructor)
@@ -200,6 +204,7 @@ class LLMService:
         temperature: float = 0.2,
     ) -> Any:
         """Get structured output using the instructor library (Pydantic model)."""
+        self._ensure_provider()
         providers = self._provider_order()
         last_error: Optional[Exception] = None
 
@@ -210,15 +215,12 @@ class LLMService:
                     return self._structured_openai(system_prompt, user_message, response_model, temperature)
                 elif prov == "gemini":
                     return self._structured_gemini(system_prompt, user_message, response_model, temperature)
-                else:
-                    return self._structured_mock(response_model)
             except Exception as exc:
                 last_error = exc
                 logger.warning("LLM structured output via %s failed: %s", prov, exc)
                 continue
 
-        # Fallback to mock
-        return self._structured_mock(response_model)
+        raise RuntimeError(f"Structured output failed for all providers. Last error: {last_error}")
 
     # ------------------------------------------------------------------
     # Vision extraction
@@ -226,6 +228,7 @@ class LLMService:
 
     async def vision_extract(self, image_path: str, prompt: str) -> str:
         """Extract text/data from an image using a vision model."""
+        self._ensure_provider()
         providers = self._provider_order()
         last_error: Optional[Exception] = None
 
@@ -236,14 +239,12 @@ class LLMService:
                     return self._vision_openai(image_path, prompt)
                 elif prov == "gemini":
                     return self._vision_gemini(image_path, prompt)
-                else:
-                    return self._vision_mock(prompt)
             except Exception as exc:
                 last_error = exc
                 logger.warning("Vision extraction via %s failed: %s", prov, exc)
                 continue
 
-        return self._vision_mock(prompt)
+        raise RuntimeError(f"Vision extraction failed for all providers. Last error: {last_error}")
 
     # ------------------------------------------------------------------
     # Usage stats
@@ -256,20 +257,19 @@ class LLMService:
         return stats
 
     # ------------------------------------------------------------------
-    # Provider ordering (primary -> secondary -> mock)
+    # Provider ordering (primary -> secondary)
     # ------------------------------------------------------------------
 
     def _provider_order(self) -> List[str]:
         """Return the list of providers to try in order."""
         order: List[str] = []
-        if self.provider != "mock":
+        if self.provider != "none":
             order.append(self.provider)
         # Add secondary
         if self.provider == "openai" and settings.google_ai_api_key:
             order.append("gemini")
         elif self.provider == "gemini" and settings.openai_api_key:
             order.append("openai")
-        order.append("mock")
         return order
 
     # ==================================================================
@@ -439,123 +439,6 @@ class LLMService:
         completion_tokens = len(response.text.split()) * 2 if response.text else 0
         self._usage.record("gemini", prompt_tokens, completion_tokens)
         return response.text
-
-    # ==================================================================
-    # Mock implementations (no API key required)
-    # ==================================================================
-
-    def _chat_mock(self, system_prompt: str, user_message: str) -> str:
-        """Return a reasonable mock response for development."""
-        self._usage.record("mock", 0, 0)
-        msg_lower = user_message.lower()
-
-        if any(word in msg_lower for word in ["company", "incorporate", "register"]):
-            return (
-                "Based on Indian company law, I can help you with incorporation. "
-                "The process typically involves: 1) Obtaining DSC and DIN, "
-                "2) Name reservation via RUN, 3) Filing SPICe+ (INC-32), "
-                "4) Receiving Certificate of Incorporation. "
-                "The timeline is usually 7-15 business days."
-            )
-        if any(word in msg_lower for word in ["document", "pan", "aadhaar", "passport"]):
-            return (
-                "For company incorporation, you typically need: PAN card, Aadhaar card, "
-                "passport-size photograph, address proof, and bank statement for each director. "
-                "For the registered office, you need a utility bill and NOC from the owner."
-            )
-        if any(word in msg_lower for word in ["name", "suggest", "naming"]):
-            return (
-                "Company names must follow MCA naming guidelines. The name should be unique, "
-                "not identical or similar to existing companies, and must end with "
-                "'Private Limited' for Pvt Ltd companies. Avoid prohibited words like "
-                "'President', 'Republic', 'Government', etc."
-            )
-        if any(word in msg_lower for word in ["cost", "price", "fee"]):
-            return (
-                "The total cost of incorporation depends on the entity type and authorized capital. "
-                "Government fees include: RUN fee (~Rs 1,000), SPICe+ filing fee (varies by capital), "
-                "stamp duty (varies by state), and DSC (~Rs 1,500 per director)."
-            )
-        return (
-            "I'm an AI assistant for Companies Made Simple India. I can help you with "
-            "company incorporation, compliance requirements, entity selection, and "
-            "MCA filing guidance. How can I assist you today?"
-        )
-
-    def _structured_mock(self, response_model: Any) -> Any:
-        """Return a mock instance of the response model with default values."""
-        self._usage.record("mock", 0, 0)
-        # Build default values based on field types
-        if hasattr(response_model, "model_fields"):
-            defaults: Dict[str, Any] = {}
-            for field_name, field_info in response_model.model_fields.items():
-                annotation = field_info.annotation
-                if annotation is str or (hasattr(annotation, "__origin__") and annotation.__origin__ is str):
-                    defaults[field_name] = f"mock_{field_name}"
-                elif annotation is int:
-                    defaults[field_name] = 0
-                elif annotation is float:
-                    defaults[field_name] = 0.85
-                elif annotation is bool:
-                    defaults[field_name] = True
-                elif annotation is list or (hasattr(annotation, "__origin__") and annotation.__origin__ is list):
-                    defaults[field_name] = []
-                elif annotation is dict or (hasattr(annotation, "__origin__") and annotation.__origin__ is dict):
-                    defaults[field_name] = {}
-                else:
-                    # Try None for Optional fields
-                    defaults[field_name] = None
-            try:
-                return response_model(**defaults)
-            except Exception:
-                pass
-        # If we can't construct, raise so the fallback chain continues
-        raise ValueError("Cannot construct mock for response model")
-
-    def _vision_mock(self, prompt: str) -> str:
-        """Return mock vision extraction results."""
-        self._usage.record("mock", 0, 0)
-        prompt_lower = prompt.lower()
-        if "pan" in prompt_lower:
-            return json.dumps({
-                "document_type": "PAN Card",
-                "name": "RAJESH KUMAR SHARMA",
-                "pan_number": "ABCPS1234K",
-                "date_of_birth": "15/05/1990",
-                "fathers_name": "SURESH KUMAR SHARMA",
-                "confidence": 0.92,
-            })
-        if "aadhaar" in prompt_lower or "aadhar" in prompt_lower:
-            return json.dumps({
-                "document_type": "Aadhaar Card",
-                "name": "RAJESH KUMAR SHARMA",
-                "aadhaar_number": "XXXX XXXX 1234",
-                "address": "123, MG Road, Bengaluru, Karnataka 560001",
-                "date_of_birth": "15/05/1990",
-                "confidence": 0.90,
-            })
-        if "passport" in prompt_lower:
-            return json.dumps({
-                "document_type": "Passport",
-                "name": "RAJESH KUMAR SHARMA",
-                "passport_number": "J8765432",
-                "nationality": "INDIAN",
-                "date_of_birth": "15/05/1990",
-                "confidence": 0.93,
-            })
-        if "utility" in prompt_lower or "bill" in prompt_lower:
-            return json.dumps({
-                "document_type": "Utility Bill",
-                "name": "RAJESH KUMAR SHARMA",
-                "address": "123, MG Road, Bengaluru, Karnataka 560001",
-                "date": "01/01/2024",
-                "confidence": 0.88,
-            })
-        return json.dumps({
-            "document_type": "Unknown",
-            "raw_text": "Mock OCR extraction - document content would appear here.",
-            "confidence": 0.75,
-        })
 
 
 # ---------------------------------------------------------------------------

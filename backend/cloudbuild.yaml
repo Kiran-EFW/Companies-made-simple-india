@@ -9,9 +9,9 @@ substitutions:
   _REPO: cms-india
   _DB_USER: cms_india
   _DB_NAME: cms_india
-  _REDIS_HOST: "10.0.0.3"
+  _REDIS_HOST: "10.57.165.243"
   _VPC_CONNECTOR: cms-india-connector
-  _CLOUD_SQL_CONNECTION: ""
+  _CLOUD_SQL_CONNECTION: "sub-projects-483107:asia-south1:cms-india"
   _DB_PASSWORD_SECRET: cms-india-db-password
   _SECRET_KEY_SECRET: cms-india-secret-key
 

@@ -74,26 +74,6 @@ def update_company_onboarding(
     return comp
 
 
-@router.post("/{company_id}/mock-payment", response_model=CompanyOut)
-def mock_payment(
-    company_id: int, 
-    db: Session = Depends(get_db), 
-    current_user: User = Depends(get_current_user)
-):
-    """Mock the checkout completion and progress the state pipeline."""
-    comp = db.query(Company).filter(Company.id == company_id, Company.user_id == current_user.id).first()
-    if not comp:
-        raise HTTPException(status_code=404, detail="Company not found")
-        
-    if comp.status != CompanyStatus.ENTITY_SELECTED:
-        raise HTTPException(status_code=400, detail=f"Cannot process payment from status: {comp.status}")
-        
-    comp.status = CompanyStatus.PAYMENT_COMPLETED
-    db.commit()
-    db.refresh(comp)
-    return comp
-
-
 @router.get("", response_model=List[CompanyOut])
 def list_my_companies(
     db: Session = Depends(get_db), 

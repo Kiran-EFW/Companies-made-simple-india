@@ -142,7 +142,7 @@ async def _llm_chat(
     system_prompt: str,
     conversation_history: Optional[List[ChatMessage]] = None,
 ) -> str:
-    """Use the unified LLM service for chat (supports OpenAI, Gemini, and mock)."""
+    """Use the unified LLM service for chat (supports OpenAI and Gemini)."""
     from src.services.llm_service import llm_service
 
     if conversation_history:

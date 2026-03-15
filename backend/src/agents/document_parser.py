@@ -1,5 +1,5 @@
 """
-Document Parser Agent — uses LLM vision-based extraction with mock fallback.
+Document Parser Agent — uses LLM vision-based extraction.
 
 Extracts structured data from identity documents (PAN, Aadhaar, Passport, Utility Bill).
 Includes confidence scoring and cross-document validation.
@@ -8,16 +8,17 @@ Includes confidence scoring and cross-document validation.
 import time
 import json
 import asyncio
-import random
 import os
+import logging
 from typing import Optional, Dict, Any, List
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from src.models.company import Company, CompanyStatus
 from src.models.document import Document, VerificationStatus
 from src.utils.retry_utils import with_retry
-from src.utils.logging_utils import logger
 from src.models.task import Task, AgentLog, TaskStatus
+
+logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
@@ -213,125 +214,64 @@ class DocumentParserAgent:
 
     def _extract_with_vision(self, file_path: str, doc_type_value: str) -> Dict[str, Any]:
         """
-        Attempt real LLM vision extraction. Falls back to mock if unavailable.
+        Perform LLM vision extraction on the document file.
+        Raises if the file is missing or LLM provider is unavailable.
         """
         from src.services.llm_service import llm_service
 
-        # Check if the file actually exists
         if not os.path.exists(file_path):
-            logger.info(f"File not found at {file_path}, using mock extraction")
-            return self._mock_extraction(doc_type_value)
+            raise FileNotFoundError(f"Document file not found at {file_path}")
 
         prompt = EXTRACTION_PROMPTS.get(doc_type_value, (
             "Extract all text and key information from this document image. "
             "Return as JSON with keys: document_type, key_entities, raw_text, confidence."
         ))
 
-        if llm_service.provider == "mock":
-            return self._mock_extraction(doc_type_value)
-
+        # Run the async vision_extract in a sync context
+        loop = None
         try:
-            # Run the async vision_extract in a sync context
-            loop = None
-            try:
-                loop = asyncio.get_event_loop()
-                if loop.is_closed():
-                    loop = None
-            except RuntimeError:
+            loop = asyncio.get_event_loop()
+            if loop.is_closed():
                 loop = None
+        except RuntimeError:
+            loop = None
 
-            if loop and loop.is_running():
-                # We're inside an event loop (shouldn't happen in thread, but be safe)
-                import concurrent.futures
-                with concurrent.futures.ThreadPoolExecutor() as pool:
-                    new_loop = asyncio.new_event_loop()
-                    future = pool.submit(
-                        new_loop.run_until_complete,
-                        llm_service.vision_extract(file_path, prompt)
-                    )
-                    raw_result = future.result(timeout=30)
-                    new_loop.close()
-            else:
+        if loop and loop.is_running():
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor() as pool:
                 new_loop = asyncio.new_event_loop()
-                try:
-                    raw_result = new_loop.run_until_complete(
-                        llm_service.vision_extract(file_path, prompt)
-                    )
-                finally:
-                    new_loop.close()
-
-            # Parse JSON from the response
-            try:
-                extracted = json.loads(raw_result)
-            except json.JSONDecodeError:
-                # Try to find JSON in the response
-                start = raw_result.find("{")
-                end = raw_result.rfind("}") + 1
-                if start >= 0 and end > start:
-                    extracted = json.loads(raw_result[start:end])
-                else:
-                    extracted = {"raw_text": raw_result, "confidence": 0.6}
-
-            # Add document_type if not present
-            if "document_type" not in extracted:
-                extracted["document_type"] = doc_type_value.replace("_", " ").title()
-
-            return extracted
-
-        except Exception as exc:
-            logger.error(f"Vision extraction failed: {exc}. Falling back to mock.")
-            return self._mock_extraction(doc_type_value)
-
-    def _mock_extraction(self, doc_type_value: str) -> Dict[str, Any]:
-        """Generate realistic mock extraction data based on document type."""
-        if doc_type_value == "pan_card":
-            letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-            pan_num = (
-                "".join(random.choices(letters, k=5))
-                + str(random.randint(1000, 9999))
-                + random.choice(letters)
-            )
-            return {
-                "document_type": "PAN Card",
-                "name": "RAJESH KUMAR SHARMA",
-                "pan_number": pan_num,
-                "date_of_birth": "15/05/1990",
-                "fathers_name": "SURESH KUMAR SHARMA",
-                "confidence": round(random.uniform(0.85, 0.99), 2),
-                "is_fraud_detected": False,
-            }
-        elif doc_type_value == "aadhaar":
-            return {
-                "document_type": "Aadhaar Card",
-                "name": "RAJESH KUMAR SHARMA",
-                "aadhaar_number": "XXXX XXXX " + str(random.randint(1000, 9999)),
-                "address": "123, MG Road, Bengaluru, Karnataka 560001",
-                "date_of_birth": "15/05/1990",
-                "confidence": round(random.uniform(0.82, 0.97), 2),
-            }
-        elif doc_type_value == "passport":
-            return {
-                "document_type": "Passport",
-                "name": "RAJESH KUMAR SHARMA",
-                "passport_number": "J" + str(random.randint(1000000, 9999999)),
-                "nationality": "INDIAN",
-                "date_of_birth": "15/05/1990",
-                "confidence": round(random.uniform(0.88, 0.99), 2),
-            }
-        elif doc_type_value == "utility_bill":
-            return {
-                "document_type": "Utility Bill",
-                "name": "RAJESH KUMAR SHARMA",
-                "address": "123, MG Road, Bengaluru, Karnataka 560001",
-                "date": "01/01/2024",
-                "confidence": round(random.uniform(0.80, 0.95), 2),
-            }
+                future = pool.submit(
+                    new_loop.run_until_complete,
+                    llm_service.vision_extract(file_path, prompt)
+                )
+                raw_result = future.result(timeout=30)
+                new_loop.close()
         else:
-            return {
-                "document_type": doc_type_value.replace("_", " ").title(),
-                "key_entities": ["address_line", "pincode", "name_match"],
-                "confidence": round(random.uniform(0.70, 0.95), 2),
-            }
+            new_loop = asyncio.new_event_loop()
+            try:
+                raw_result = new_loop.run_until_complete(
+                    llm_service.vision_extract(file_path, prompt)
+                )
+            finally:
+                new_loop.close()
+
+        # Parse JSON from the response
+        try:
+            extracted = json.loads(raw_result)
+        except json.JSONDecodeError:
+            # Try to find JSON in the response
+            start = raw_result.find("{")
+            end = raw_result.rfind("}") + 1
+            if start >= 0 and end > start:
+                extracted = json.loads(raw_result[start:end])
+            else:
+                extracted = {"raw_text": raw_result, "confidence": 0.6}
+
+        # Add document_type if not present
+        if "document_type" not in extracted:
+            extracted["document_type"] = doc_type_value.replace("_", " ").title()
+
+        return extracted
 
     @with_retry(max_retries=3, delay=2.0)
     def run(self):
@@ -339,12 +279,11 @@ class DocumentParserAgent:
         try:
             doc = db.query(Document).filter(Document.id == self.document_id).first()
             if not doc:
-                print(f"[{self.agent_name}] Document {self.document_id} not found.")
+                logger.error("Document %s not found.", self.document_id)
                 return
 
             company_id = doc.company_id
 
-            # Only log to UI if it's tied to an active company pipeline step
             self.log(company_id, f"Initializing Vision Model. Loading {doc.doc_type} from {doc.file_path}...", "INFO")
 
             task = Task(
@@ -357,7 +296,7 @@ class DocumentParserAgent:
 
             self.log(company_id, "Applying OCR and extracting structured entities...", "INFO")
 
-            # Perform extraction (real vision or mock)
+            # Perform extraction
             doc_type_value = doc.doc_type.value if hasattr(doc.doc_type, "value") else str(doc.doc_type)
             extracted_data = self._extract_with_vision(doc.file_path, doc_type_value)
 

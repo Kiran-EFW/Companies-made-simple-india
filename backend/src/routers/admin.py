@@ -335,8 +335,12 @@ def invite_admin_user(
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
 
-    # Generate a default password if not provided
-    password = payload.password or "CMS_India_2024!"
+    # Generate a secure random password if not provided
+    if not payload.password:
+        import secrets
+        password = secrets.token_urlsafe(16)
+    else:
+        password = payload.password
     new_user = User(
         email=payload.email,
         full_name=payload.full_name,

@@ -1,19 +1,20 @@
 """
-Name Validator Agent — uses LLM-based name validation with mock fallback.
+Name Validator Agent — uses LLM-based name validation.
 
 Validates proposed company names against MCA naming guidelines, checks for
 prohibited words, phonetic similarity, and generates alternative suggestions.
 """
 
 import time
-import random
 import asyncio
+import logging
 from typing import Optional, List, Dict, Any
 from sqlalchemy.orm import Session
 from src.models.company import Company, CompanyStatus
 from src.utils.retry_utils import with_retry
-from src.utils.logging_utils import logger
 from src.models.task import Task, AgentLog, TaskStatus
+
+logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
@@ -159,10 +160,10 @@ def _check_basic_rules(name: str) -> List[str]:
 
 
 # ---------------------------------------------------------------------------
-# Mock existing company database for similarity check
+# Well-known company names for similarity check
 # ---------------------------------------------------------------------------
 
-MOCK_EXISTING_COMPANIES = [
+WELL_KNOWN_COMPANIES = [
     "Tata Consultancy Services Private Limited",
     "Infosys Technologies Private Limited",
     "Reliance Industries Private Limited",
@@ -187,11 +188,11 @@ MOCK_EXISTING_COMPANIES = [
 
 
 def _check_similarity(name: str) -> List[str]:
-    """Check if the name is too similar to existing companies (mock)."""
+    """Check if the name is too similar to well-known companies."""
     issues: List[str] = []
     name_lower = name.lower()
 
-    for existing in MOCK_EXISTING_COMPANIES:
+    for existing in WELL_KNOWN_COMPANIES:
         existing_lower = existing.lower()
 
         # Exact match
@@ -217,11 +218,9 @@ async def _validate_with_llm(
 ) -> Dict[str, Any]:
     """
     Use LLM to perform deeper name validation and generate alternatives.
+    Falls back to rule-based result if LLM is unavailable.
     """
     from src.services.llm_service import llm_service
-
-    if llm_service.provider == "mock":
-        return _mock_llm_validation(name, entity_type, all_issues)
 
     system_prompt = (
         "You are an expert on India's Ministry of Corporate Affairs (MCA) company naming guidelines. "
@@ -272,43 +271,18 @@ async def _validate_with_llm(
                 }
         return result
     except Exception as exc:
-        logger.error(f"LLM name validation failed: {exc}")
-        return _mock_llm_validation(name, entity_type, all_issues)
-
-
-def _mock_llm_validation(name: str, entity_type: str, issues: List[str]) -> Dict[str, Any]:
-    """Mock LLM validation response."""
-    is_ok = len(issues) == 0
-
-    # Generate mock alternative suggestions
-    base_words = [w for w in name.split() if w.lower() not in {"private", "limited", "pvt", "ltd", "llp"}]
-    base = base_words[0] if base_words else "Innovate"
-
-    suffix_map = {
-        "private_limited": "Private Limited",
-        "opc": "(OPC) Private Limited",
-        "llp": "LLP",
-        "section_8": "Foundation",
-        "public_limited": "Limited",
-    }
-    suffix = suffix_map.get(entity_type, "Private Limited")
-
-    alternatives = [
-        f"{base} Solutions {suffix}",
-        f"{base} Ventures {suffix}",
-        f"{base} Enterprises {suffix}",
-    ]
-
-    return {
-        "is_acceptable": is_ok,
-        "mca_approval_likelihood": "high" if is_ok else "low",
-        "concerns": issues if issues else [],
-        "suggested_alternatives": alternatives if not is_ok else [],
-        "reasoning": (
-            f"The name '{name}' {'appears to comply' if is_ok else 'has issues'} "
-            f"with MCA naming guidelines."
-        ),
-    }
+        logger.warning("LLM name validation unavailable: %s. Using rule-based result.", exc)
+        is_ok = len(all_issues) == 0
+        return {
+            "is_acceptable": is_ok,
+            "mca_approval_likelihood": "high" if is_ok else "low",
+            "concerns": all_issues,
+            "suggested_alternatives": [],
+            "reasoning": (
+                f"The name '{name}' {'passes' if is_ok else 'fails'} "
+                f"rule-based MCA compliance checks."
+            ),
+        }
 
 
 async def _generate_alternatives_with_llm(
@@ -317,21 +291,6 @@ async def _generate_alternatives_with_llm(
 ) -> List[str]:
     """Use LLM to generate alternative name suggestions."""
     from src.services.llm_service import llm_service
-
-    if llm_service.provider == "mock":
-        base = rejected_names[0].split()[0] if rejected_names else "Innovate"
-        suffix_map = {
-            "private_limited": "Private Limited",
-            "opc": "(OPC) Private Limited",
-            "llp": "LLP",
-            "section_8": "Foundation",
-        }
-        suffix = suffix_map.get(entity_type, "Private Limited")
-        return [
-            f"{base} Digital {suffix}",
-            f"{base} Tech Solutions {suffix}",
-            f"Neo {base} {suffix}",
-        ]
 
     system_prompt = (
         "You are an expert on Indian company naming. Generate 5 unique, creative, "
@@ -363,15 +322,24 @@ async def _generate_alternatives_with_llm(
                 return suggestions[:5]
         except json.JSONDecodeError:
             pass
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.warning("LLM alternative generation unavailable: %s", exc)
 
-    # Fallback
-    base = rejected_names[0].split()[0] if rejected_names else "Innovate"
+    # Rule-based alternative generation
+    base_words = [w for w in rejected_names[0].split() if w.lower() not in {"private", "limited", "pvt", "ltd", "llp"}] if rejected_names else ["Innovate"]
+    base = base_words[0] if base_words else "Innovate"
+    suffix_map = {
+        "private_limited": "Private Limited",
+        "opc": "(OPC) Private Limited",
+        "llp": "LLP",
+        "section_8": "Foundation",
+        "public_limited": "Limited",
+    }
+    suffix = suffix_map.get(entity_type, "Private Limited")
     return [
-        f"{base} Digital Private Limited",
-        f"{base} Technologies Private Limited",
-        f"Neo {base} Private Limited",
+        f"{base} Digital {suffix}",
+        f"{base} Tech Solutions {suffix}",
+        f"Neo {base} {suffix}",
     ]
 
 
@@ -403,15 +371,10 @@ class NameValidatorAgent:
             db.add(log_entry)
             db.commit()
 
-            # Additional structured logging
-            if level == "INFO":
-                logger.info(message, company_id=company_id, agent=self.agent_name)
-            elif level == "SUCCESS":
-                logger.success(message, company_id=company_id, agent=self.agent_name)
-            elif level == "ERROR":
-                logger.error(message, company_id=company_id, agent=self.agent_name)
-            elif level == "WARN":
-                logger.info(message, company_id=company_id, agent=self.agent_name)
+            if level == "ERROR":
+                logger.error(message, extra={"company_id": company_id, "agent": self.agent_name})
+            else:
+                logger.info(message, extra={"company_id": company_id, "agent": self.agent_name})
         finally:
             if not self.db_session:
                 db.close()
@@ -444,7 +407,7 @@ class NameValidatorAgent:
             comp = db.query(Company).filter(Company.id == self.company_id).first()
             if not comp:
                 self.log(self.company_id, "Target company not found. Aborting.", "ERROR")
-                print(f"[{self.agent_name}] Company {self.company_id} not found.")
+                logger.error("Company %s not found.", self.company_id)
                 return
 
             self.log(comp.id, "Name Validator initialized. Acquiring company context...", "INFO")

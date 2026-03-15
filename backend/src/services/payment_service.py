@@ -1,15 +1,12 @@
-import uuid
+import logging
 from src.config import get_settings
 
 settings = get_settings()
+logger = logging.getLogger(__name__)
 
 
 class PaymentService:
-    """Razorpay payment integration service.
-
-    In dev mode (empty razorpay keys), provides mock responses
-    that simulate Razorpay behavior for local development.
-    """
+    """Razorpay payment integration service."""
 
     def __init__(self):
         self.key_id = settings.razorpay_key_id
@@ -19,13 +16,18 @@ class PaymentService:
         if self.key_id and self.key_secret:
             import razorpay
             self._client = razorpay.Client(auth=(self.key_id, self.key_secret))
+        else:
+            logger.warning(
+                "Razorpay credentials not configured. Payment operations will fail "
+                "until RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET are set."
+            )
 
     @property
     def is_live(self) -> bool:
         return self._client is not None
 
     def create_order(self, amount_paise: int, company_id: int, receipt: str) -> dict:
-        """Create a Razorpay order (or mock in dev mode).
+        """Create a Razorpay order.
 
         Args:
             amount_paise: Amount in paise (e.g. 999900 for Rs 9,999)
@@ -36,15 +38,10 @@ class PaymentService:
             dict with id, amount, currency keys
         """
         if not self.is_live:
-            mock_order_id = f"order_mock_{uuid.uuid4().hex[:12]}"
-            print(f"[PAYMENT DEV] Mock order created: {mock_order_id}, amount: {amount_paise} paise, company: {company_id}")
-            return {
-                "id": mock_order_id,
-                "amount": amount_paise,
-                "currency": "INR",
-                "receipt": receipt,
-                "status": "created",
-            }
+            raise RuntimeError(
+                "Payment service unavailable: Razorpay credentials not configured. "
+                "Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET environment variables."
+            )
 
         order_data = {
             "amount": amount_paise,
@@ -67,7 +64,7 @@ class PaymentService:
         razorpay_payment_id: str,
         razorpay_signature: str,
     ) -> bool:
-        """Verify Razorpay payment signature (or auto-approve in dev mode).
+        """Verify Razorpay payment signature.
 
         Args:
             razorpay_order_id: The Razorpay order ID
@@ -78,8 +75,9 @@ class PaymentService:
             True if signature is valid, False otherwise
         """
         if not self.is_live:
-            print(f"[PAYMENT DEV] Mock verification: order={razorpay_order_id}, payment={razorpay_payment_id}")
-            return True
+            raise RuntimeError(
+                "Payment service unavailable: Razorpay credentials not configured."
+            )
 
         try:
             self._client.utility.verify_payment_signature({

@@ -31,20 +31,6 @@ export default function AdminLoginPage() {
     }
   };
 
-  const handleDevLogin = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const res = await apiCall("/auth/dev-admin-login", { method: "POST" });
-      await login(res.access_token);
-      router.push("/dashboard");
-    } catch (err: any) {
-      setError("Dev login failed. Ensure backend is running.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="w-full max-w-sm mx-4">
@@ -57,23 +43,6 @@ export default function AdminLoginPage() {
           </h1>
           <p className="text-sm mt-2" style={{ color: "var(--color-text-muted)" }}>Admin Portal</p>
         </div>
-
-        {process.env.NODE_ENV === "development" && (
-          <button
-            onClick={handleDevLogin}
-            disabled={loading}
-            className="w-full mb-4 py-2.5 px-4 rounded-lg text-xs font-mono transition-colors disabled:opacity-50"
-            style={{
-              background: "var(--color-bg-secondary)",
-              borderWidth: "1px",
-              borderStyle: "solid",
-              borderColor: "rgba(139, 92, 246, 0.3)",
-              color: "var(--color-accent-purple-light)",
-            }}
-          >
-            DEV SKIP — Auto Login as Super Admin
-          </button>
-        )}
 
         <form onSubmit={handleSubmit} className="glass-card p-6 space-y-4">
           {error && (

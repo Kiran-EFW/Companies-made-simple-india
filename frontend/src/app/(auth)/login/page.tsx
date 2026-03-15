@@ -41,22 +41,6 @@ export default function LoginPage() {
     }
   };
 
-  const handleDevSkip = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const res = await apiCall("/auth/dev-login", {
-        method: "POST"
-      });
-      await login(res.access_token);
-      router.push("/dashboard");
-    } catch (err: any) {
-      setError("Dev login failed. Ensure database is running.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="glass-card p-8 min-w-[360px]">
       <div className="text-center mb-6">
@@ -66,16 +50,6 @@ export default function LoginPage() {
           Log in to track your company incorporation.
         </p>
       </div>
-
-      {process.env.NODE_ENV === "development" && (
-        <button
-          onClick={handleDevSkip}
-          className="w-full mb-6 py-2 px-4 rounded-lg border text-xs font-mono transition-colors flex items-center justify-center gap-2"
-          style={{ background: "var(--color-bg-card)", borderColor: "rgba(139, 92, 246, 0.3)", color: "var(--color-accent-purple-light)" }}
-        >
-          <span>🛠️</span> DEV SKIP (AUTO LOGIN)
-        </button>
-      )}
 
       {error && (
         <div className="p-3 rounded-lg mb-6 text-sm" style={{ background: "rgba(244, 63, 94, 0.1)", color: "var(--color-accent-rose)" }}>

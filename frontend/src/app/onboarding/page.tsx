@@ -106,16 +106,8 @@ export default function OnboardingPage() {
     try {
       const orderData = await createPaymentOrder(companyId);
 
-      // Dev mode fallback: if key_id is empty, simulate payment
       if (!orderData.key_id) {
-        await verifyPayment({
-          razorpay_order_id: orderData.order_id || "mock_order",
-          razorpay_payment_id: "mock_payment_" + Date.now(),
-          razorpay_signature: "mock_signature",
-        });
-        localStorage.removeItem("pending_company_draft");
-        router.push("/dashboard");
-        return;
+        throw new Error("Payment service is not configured. Please contact support.");
       }
 
       const options = {
