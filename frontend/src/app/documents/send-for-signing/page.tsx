@@ -8,6 +8,7 @@ import {
   createSignatureRequest,
   sendSigningEmails,
 } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
 
 interface Signatory {
   name: string;
@@ -19,6 +20,7 @@ interface Signatory {
 function SendForSigningContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user, loading: authLoading } = useAuth();
   const documentIdParam = searchParams.get("documentId");
 
   const [currentStep, setCurrentStep] = useState(0);
@@ -45,8 +47,17 @@ function SendForSigningContent() {
   const [expiryDays, setExpiryDays] = useState(30);
   const [reminderDays, setReminderDays] = useState(3);
 
+  // Auth guard
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push("/login");
+    }
+  }, [user, authLoading, router]);
+
   // Fetch finalized documents
   useEffect(() => {
+    if (authLoading || !user) return;
+
     const fetchDocs = async () => {
       try {
         const drafts = await getLegalDrafts();
@@ -78,7 +89,7 @@ function SendForSigningContent() {
       }
     };
     fetchDocs();
-  }, [documentIdParam]);
+  }, [documentIdParam, user, authLoading]);
 
   const handleDocSelect = async (docId: number) => {
     setSelectedDocId(docId);

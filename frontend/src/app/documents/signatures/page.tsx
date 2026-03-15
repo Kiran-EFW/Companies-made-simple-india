@@ -11,6 +11,7 @@ import {
   getSignedDocument,
   getSignatureCertificate,
 } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
 
 const STATUS_BADGES: Record<string, { bg: string; text: string; label: string }> = {
   draft: { bg: "bg-gray-500/15 border-gray-500/30", text: "text-gray-400", label: "Draft" },
@@ -33,6 +34,7 @@ type TabFilter = "all" | "pending" | "completed" | "expired";
 
 export default function SignaturesPage() {
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabFilter>("all");
@@ -55,8 +57,13 @@ export default function SignaturesPage() {
   };
 
   useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      router.push("/login");
+      return;
+    }
     fetchRequests();
-  }, []);
+  }, [user, authLoading, router]);
 
   // Clear success message after 4 seconds
   useEffect(() => {

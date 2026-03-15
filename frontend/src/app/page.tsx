@@ -94,9 +94,9 @@ export default function HomePage() {
           >
             Entity Wizard
           </Link>
-          <button className="btn-primary text-sm !py-2 !px-5">
+          <Link href="/pricing" className="btn-primary text-sm !py-2 !px-5">
             Get Started
-          </button>
+          </Link>
         </div>
       </nav>
 

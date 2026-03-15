@@ -11,6 +11,7 @@ import {
   finalizeLegalDocument,
   getLegalDownloadUrl,
 } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
 import ClauseCard from "@/components/legal/clause-card";
 import WizardProgress from "@/components/legal/wizard-progress";
 import DocumentPreview from "@/components/legal/document-preview";
@@ -19,6 +20,7 @@ export default function DocumentWizardPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const templateType = params.type as string;
   const existingDraftId = searchParams.get("draft");
 
@@ -32,8 +34,17 @@ export default function DocumentWizardPage() {
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Auth guard
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push("/login");
+    }
+  }, [user, authLoading, router]);
+
   // Load template definition and create/load draft
   useEffect(() => {
+    if (authLoading || !user) return;
+
     const init = async () => {
       try {
         const def = await getLegalTemplateDefinition(templateType);
@@ -79,7 +90,7 @@ export default function DocumentWizardPage() {
       }
     };
     init();
-  }, [templateType, existingDraftId]);
+  }, [templateType, existingDraftId, user, authLoading]);
 
   // Save current clause values
   const saveProgress = useCallback(async () => {

@@ -6,6 +6,7 @@ Generates form data for SH-4 (share transfer) and PAS-3 (allotment return).
 """
 
 import logging
+import uuid
 from typing import Optional, List, Dict, Any
 from datetime import datetime, timezone
 from pydantic import BaseModel
@@ -51,6 +52,35 @@ class AllotmentEntry(BaseModel):
     email: Optional[str] = None
     pan_number: Optional[str] = None
     is_promoter: bool = False
+
+
+# ---------------------------------------------------------------------------
+# Pydantic schemas for round / exit simulation
+# ---------------------------------------------------------------------------
+
+class InvestorInput(BaseModel):
+    name: str
+    amount: float
+
+
+class SimulateRoundRequest(BaseModel):
+    pre_money_valuation: float
+    investment_amount: float
+    esop_pool_pct: float = 0.0
+    investors: List[InvestorInput] = []
+    round_name: str = "Seed Round"
+
+
+class SimulateExitRequest(BaseModel):
+    exit_valuation: float
+    liquidation_preference: float = 1.0
+    participating_preferred: bool = False
+
+
+class SaveScenarioRequest(BaseModel):
+    scenario_name: str
+    scenario_type: str  # "round" or "exit"
+    scenario_data: Dict[str, Any]
 
 
 # ---------------------------------------------------------------------------
@@ -456,6 +486,202 @@ class CapTableService:
             })
 
         return result
+
+    # ------------------------------------------------------------------
+    # Round simulation & exit scenarios
+    # ------------------------------------------------------------------
+
+    def simulate_round(
+        self,
+        db: Session,
+        company_id: int,
+        pre_money_valuation: float,
+        investment_amount: float,
+        esop_pool_pct: float = 0.0,
+        investors: Optional[List[Dict[str, Any]]] = None,
+        round_name: str = "Seed Round",
+    ) -> Dict[str, Any]:
+        """
+        Simulate a funding round showing dilution, ESOP pool expansion,
+        and post-money cap table without persisting anything.
+        """
+        if investors is None:
+            investors = []
+
+        # 1. Fetch current shareholders
+        shareholders = (
+            db.query(Shareholder)
+            .filter(Shareholder.company_id == company_id)
+            .all()
+        )
+        current_total_shares = sum(s.shares for s in shareholders)
+
+        if current_total_shares == 0:
+            return {"error": "No existing shareholders found for this company"}
+
+        # 2. Price per share from pre-money valuation
+        price_per_share = pre_money_valuation / current_total_shares
+
+        # 3. ESOP pool expansion (pre-round)
+        esop_shares = 0
+        if esop_pool_pct > 0:
+            esop_shares = int(
+                current_total_shares * esop_pool_pct / (100 - esop_pool_pct)
+            )
+        total_after_esop = current_total_shares + esop_shares
+
+        # 4. Before-round snapshot
+        before_round = []
+        for s in shareholders:
+            pct = round(s.shares / current_total_shares * 100, 2)
+            before_round.append({
+                "name": s.name,
+                "shares": s.shares,
+                "percentage": pct,
+            })
+
+        # 5. Investor shares
+        investor_details = []
+        total_investor_shares = 0
+        for inv in investors:
+            inv_shares = int(inv["amount"] / price_per_share)
+            total_investor_shares += inv_shares
+            investor_details.append({
+                "name": inv["name"],
+                "investment": inv["amount"],
+                "shares": inv_shares,
+                "percentage": 0.0,  # filled below
+            })
+
+        # 6. Post-money totals
+        post_total_shares = total_after_esop + total_investor_shares
+        post_money_valuation = pre_money_valuation + investment_amount
+
+        # 7. After-round table
+        after_round = []
+        for s in shareholders:
+            pre_pct = round(s.shares / current_total_shares * 100, 2)
+            post_pct = round(s.shares / post_total_shares * 100, 2) if post_total_shares > 0 else 0.0
+            dilution_pct = round(pre_pct - post_pct, 2)
+            after_round.append({
+                "name": s.name,
+                "shares": s.shares,
+                "percentage": post_pct,
+                "dilution_pct": dilution_pct,
+            })
+
+        # ESOP row
+        if esop_shares > 0:
+            esop_post_pct = round(esop_shares / post_total_shares * 100, 2) if post_total_shares > 0 else 0.0
+            after_round.append({
+                "name": "ESOP Pool",
+                "shares": esop_shares,
+                "percentage": esop_post_pct,
+                "dilution_pct": 0.0,
+            })
+
+        # Investor rows
+        for inv_detail in investor_details:
+            inv_pct = round(inv_detail["shares"] / post_total_shares * 100, 2) if post_total_shares > 0 else 0.0
+            inv_detail["percentage"] = inv_pct
+            after_round.append({
+                "name": inv_detail["name"],
+                "shares": inv_detail["shares"],
+                "percentage": inv_pct,
+                "dilution_pct": 0.0,
+            })
+
+        # ESOP pool summary
+        esop_pool_info = {
+            "shares": esop_shares,
+            "percentage_post": round(esop_shares / post_total_shares * 100, 2) if post_total_shares > 0 and esop_shares > 0 else 0.0,
+        }
+
+        return {
+            "round_name": round_name,
+            "pre_money_valuation": pre_money_valuation,
+            "post_money_valuation": post_money_valuation,
+            "investment_amount": investment_amount,
+            "price_per_share": round(price_per_share, 4),
+            "esop_pool": esop_pool_info,
+            "before_round": before_round,
+            "after_round": after_round,
+            "investors": investor_details,
+            "summary": {
+                "total_shares_before": current_total_shares,
+                "total_shares_after": post_total_shares,
+                "new_shares_issued": esop_shares + total_investor_shares,
+            },
+        }
+
+    def simulate_exit(
+        self,
+        db: Session,
+        company_id: int,
+        exit_valuation: float,
+        liquidation_preference: float = 1.0,
+        participating_preferred: bool = False,
+    ) -> Dict[str, Any]:
+        """
+        Simulate an exit / liquidity event and compute per-shareholder payouts.
+        """
+        shareholders = (
+            db.query(Shareholder)
+            .filter(Shareholder.company_id == company_id)
+            .all()
+        )
+        total_shares = sum(s.shares for s in shareholders)
+
+        if total_shares == 0:
+            return {"error": "No existing shareholders found for this company"}
+
+        value_per_share = exit_valuation / total_shares
+
+        payouts = []
+        total_distributed = 0.0
+        for s in shareholders:
+            payout_amount = round(s.shares * value_per_share, 2)
+            cost_basis = s.face_value * s.shares
+            roi_multiple = round(payout_amount / cost_basis, 2) if cost_basis > 0 else 0.0
+            pct = round(s.shares / total_shares * 100, 2)
+
+            payouts.append({
+                "name": s.name,
+                "shares": s.shares,
+                "percentage": pct,
+                "payout_amount": payout_amount,
+                "roi_multiple": roi_multiple,
+                "is_promoter": s.is_promoter,
+            })
+            total_distributed += payout_amount
+
+        return {
+            "exit_valuation": exit_valuation,
+            "value_per_share": round(value_per_share, 4),
+            "payouts": payouts,
+            "summary": {
+                "total_distributed": round(total_distributed, 2),
+                "remaining": round(exit_valuation - total_distributed, 2),
+            },
+        }
+
+    def save_scenario(
+        self,
+        scenario_name: str,
+        scenario_type: str,
+        scenario_data: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        Wrap scenario data with a generated UUID and timestamp.
+        Pure in-memory — nothing persisted to the database.
+        """
+        return {
+            "id": str(uuid.uuid4()),
+            "scenario_name": scenario_name,
+            "scenario_type": scenario_type,
+            "scenario_data": scenario_data,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
 
     # ------------------------------------------------------------------
     # Private helpers

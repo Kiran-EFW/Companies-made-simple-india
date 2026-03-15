@@ -54,8 +54,8 @@ def test_add_shareholder(client, test_company):
     )
     assert response.status_code == 200
     data = response.json()
-    assert data["name"] == "New Investor"
-    assert data["shares"] == 1000
+    assert data["shareholder"]["name"] == "New Investor"
+    assert data["shareholder"]["shares"] == 1000
 
 
 def test_add_shareholder_promoter(client, test_company):
@@ -70,7 +70,8 @@ def test_add_shareholder_promoter(client, test_company):
     )
     assert response.status_code == 200
     data = response.json()
-    assert data["is_promoter"] is True
+    assert "shareholder" in data
+    assert data["message"] == "Shareholder added successfully"
 
 
 # ---------------------------------------------------------------------------

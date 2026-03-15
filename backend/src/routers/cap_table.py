@@ -8,6 +8,10 @@ Endpoints:
 - POST /companies/{id}/cap-table/allotment
 - GET /companies/{id}/cap-table/dilution-preview
 - GET /companies/{id}/cap-table/export
+- GET /companies/{id}/cap-table/transactions
+- POST /companies/{id}/cap-table/simulate-round
+- POST /companies/{id}/cap-table/simulate-exit
+- POST /companies/{id}/cap-table/scenarios
 """
 
 from fastapi import APIRouter, Depends, Query
@@ -20,6 +24,9 @@ from src.services.cap_table_service import (
     cap_table_service,
     ShareholderEntry,
     AllotmentEntry,
+    SimulateRoundRequest,
+    SimulateExitRequest,
+    SaveScenarioRequest,
 )
 from src.utils.cache import cache_get, cache_set, cache_delete
 
@@ -124,3 +131,56 @@ def export_cap_table(company_id: int, db: Session = Depends(get_db)):
 def get_transactions(company_id: int, db: Session = Depends(get_db)):
     """Get transaction history for a company."""
     return cap_table_service.get_transactions(db, company_id)
+
+
+# ---------------------------------------------------------------------------
+# Round simulation & exit scenario endpoints
+# ---------------------------------------------------------------------------
+
+@router.post("/{company_id}/cap-table/simulate-round")
+def simulate_round(
+    company_id: int,
+    request: SimulateRoundRequest,
+    db: Session = Depends(get_db),
+):
+    """Simulate a funding round with dilution, ESOP pool, and new investors."""
+    investors = [{"name": inv.name, "amount": inv.amount} for inv in request.investors]
+    return cap_table_service.simulate_round(
+        db,
+        company_id,
+        pre_money_valuation=request.pre_money_valuation,
+        investment_amount=request.investment_amount,
+        esop_pool_pct=request.esop_pool_pct,
+        investors=investors,
+        round_name=request.round_name,
+    )
+
+
+@router.post("/{company_id}/cap-table/simulate-exit")
+def simulate_exit(
+    company_id: int,
+    request: SimulateExitRequest,
+    db: Session = Depends(get_db),
+):
+    """Simulate an exit / liquidity event and compute per-shareholder payouts."""
+    return cap_table_service.simulate_exit(
+        db,
+        company_id,
+        exit_valuation=request.exit_valuation,
+        liquidation_preference=request.liquidation_preference,
+        participating_preferred=request.participating_preferred,
+    )
+
+
+@router.post("/{company_id}/cap-table/scenarios")
+def save_scenario(
+    company_id: int,
+    request: SaveScenarioRequest,
+    db: Session = Depends(get_db),
+):
+    """Save a simulation scenario (in-memory, returns data with generated ID)."""
+    return cap_table_service.save_scenario(
+        scenario_name=request.scenario_name,
+        scenario_type=request.scenario_type,
+        scenario_data=request.scenario_data,
+    )

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { apiCall } from "@/lib/api";
+import { apiCall, simulateRound, simulateExit } from "@/lib/api";
 
 interface ShareholderData {
   id: number;
@@ -112,7 +112,7 @@ export default function CapTablePage() {
   const [capTable, setCapTable] = useState<CapTableData | null>(null);
   const [transactions, setTransactions] = useState<TransactionData[]>([]);
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<"overview" | "add" | "transfer" | "history">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "add" | "transfer" | "history" | "simulator" | "exit">("overview");
 
   // Add shareholder form
   const [newName, setNewName] = useState("");
@@ -130,6 +130,23 @@ export default function CapTablePage() {
   const [transferPrice, setTransferPrice] = useState("10");
 
   const [message, setMessage] = useState("");
+
+  // Round simulator state
+  const [simPreMoney, setSimPreMoney] = useState("10000000");
+  const [simInvestment, setSimInvestment] = useState("2500000");
+  const [simEsopPct, setSimEsopPct] = useState("10");
+  const [simRoundName, setSimRoundName] = useState("Seed Round");
+  const [simInvestors, setSimInvestors] = useState<{ name: string; amount: string }[]>([
+    { name: "Investor 1", amount: "2500000" },
+  ]);
+  const [simResult, setSimResult] = useState<any>(null);
+  const [simLoading, setSimLoading] = useState(false);
+
+  // Exit scenario state
+  const [exitValuation, setExitValuation] = useState("50000000");
+  const [exitLiqPref, setExitLiqPref] = useState("1");
+  const [exitResult, setExitResult] = useState<any>(null);
+  const [exitLoading, setExitLoading] = useState(false);
 
   useEffect(() => {
     fetchCapTable();
@@ -214,6 +231,60 @@ export default function CapTablePage() {
     }
   }
 
+  async function handleSimulateRound() {
+    setSimLoading(true);
+    setSimResult(null);
+    try {
+      const totalInvestment = simInvestors.reduce((s, i) => s + (parseFloat(i.amount) || 0), 0);
+      const result = await simulateRound(companyId, {
+        pre_money_valuation: parseFloat(simPreMoney) || 0,
+        investment_amount: totalInvestment,
+        esop_pool_pct: parseFloat(simEsopPct) || 0,
+        investors: simInvestors.map(i => ({ name: i.name, amount: parseFloat(i.amount) || 0 })),
+        round_name: simRoundName,
+      });
+      setSimResult(result);
+    } catch (err: any) {
+      setMessage(`Error: ${err.message}`);
+    }
+    setSimLoading(false);
+  }
+
+  async function handleSimulateExit() {
+    setExitLoading(true);
+    setExitResult(null);
+    try {
+      const result = await simulateExit(companyId, {
+        exit_valuation: parseFloat(exitValuation) || 0,
+        liquidation_preference: parseFloat(exitLiqPref) || 1,
+      });
+      setExitResult(result);
+    } catch (err: any) {
+      setMessage(`Error: ${err.message}`);
+    }
+    setExitLoading(false);
+  }
+
+  function addInvestor() {
+    setSimInvestors([...simInvestors, { name: `Investor ${simInvestors.length + 1}`, amount: "" }]);
+  }
+
+  function removeInvestor(idx: number) {
+    setSimInvestors(simInvestors.filter((_, i) => i !== idx));
+  }
+
+  function updateInvestor(idx: number, field: "name" | "amount", value: string) {
+    const updated = [...simInvestors];
+    updated[idx] = { ...updated[idx], [field]: value };
+    setSimInvestors(updated);
+  }
+
+  function formatCurrency(val: number): string {
+    if (val >= 10000000) return `Rs ${(val / 10000000).toFixed(2)} Cr`;
+    if (val >= 100000) return `Rs ${(val / 100000).toFixed(2)} L`;
+    return `Rs ${val.toLocaleString()}`;
+  }
+
   return (
     <div className="glow-bg min-h-screen">
       {/* Nav */}
@@ -289,7 +360,7 @@ export default function CapTablePage() {
 
         {/* Tabs */}
         <div className="flex gap-2 mb-8 justify-center flex-wrap">
-          {(["overview", "add", "transfer", "history"] as const).map((tab) => (
+          {(["overview", "add", "transfer", "history", "simulator", "exit"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -303,6 +374,8 @@ export default function CapTablePage() {
               {tab === "add" && "Add Shareholder"}
               {tab === "transfer" && "Record Transfer"}
               {tab === "history" && "Transaction History"}
+              {tab === "simulator" && "Round Simulator"}
+              {tab === "exit" && "Exit Scenarios"}
             </button>
           ))}
         </div>
@@ -736,6 +809,446 @@ export default function CapTablePage() {
                 </table>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Round Simulator Tab */}
+        {activeTab === "simulator" && (
+          <div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Input Panel */}
+              <div className="glass-card p-6" style={{ cursor: "default" }}>
+                <h3 className="font-semibold mb-4">Round Parameters</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm mb-1" style={{ color: "var(--color-text-muted)" }}>
+                      Round Name
+                    </label>
+                    <input
+                      type="text"
+                      value={simRoundName}
+                      onChange={(e) => setSimRoundName(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg text-sm"
+                      style={{
+                        background: "var(--color-bg-card)",
+                        border: "1px solid var(--color-border)",
+                        color: "var(--color-text-primary)",
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm mb-1" style={{ color: "var(--color-text-muted)" }}>
+                      Pre-Money Valuation (Rs)
+                    </label>
+                    <input
+                      type="number"
+                      value={simPreMoney}
+                      onChange={(e) => setSimPreMoney(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg text-sm"
+                      style={{
+                        background: "var(--color-bg-card)",
+                        border: "1px solid var(--color-border)",
+                        color: "var(--color-text-primary)",
+                      }}
+                    />
+                    <div className="text-xs mt-1" style={{ color: "var(--color-text-muted)" }}>
+                      {formatCurrency(parseFloat(simPreMoney) || 0)}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm mb-1" style={{ color: "var(--color-text-muted)" }}>
+                      ESOP Pool (% pre-round)
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="range"
+                        min="0"
+                        max="25"
+                        step="0.5"
+                        value={simEsopPct}
+                        onChange={(e) => setSimEsopPct(e.target.value)}
+                        className="flex-1"
+                        style={{ accentColor: "rgb(139, 92, 246)" }}
+                      />
+                      <span className="text-sm font-mono w-12 text-right">{simEsopPct}%</span>
+                    </div>
+                  </div>
+
+                  {/* Investors */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="text-sm" style={{ color: "var(--color-text-muted)" }}>Investors</label>
+                      <button
+                        onClick={addInvestor}
+                        className="text-xs px-2 py-1 rounded"
+                        style={{ background: "rgba(139, 92, 246, 0.15)", color: "rgb(139, 92, 246)" }}
+                      >
+                        + Add Investor
+                      </button>
+                    </div>
+                    <div className="space-y-2">
+                      {simInvestors.map((inv, idx) => (
+                        <div key={idx} className="flex gap-2 items-center">
+                          <input
+                            type="text"
+                            value={inv.name}
+                            onChange={(e) => updateInvestor(idx, "name", e.target.value)}
+                            placeholder="Name"
+                            className="flex-1 px-3 py-2 rounded-lg text-sm"
+                            style={{
+                              background: "var(--color-bg-card)",
+                              border: "1px solid var(--color-border)",
+                              color: "var(--color-text-primary)",
+                            }}
+                          />
+                          <input
+                            type="number"
+                            value={inv.amount}
+                            onChange={(e) => updateInvestor(idx, "amount", e.target.value)}
+                            placeholder="Amount (Rs)"
+                            className="w-36 px-3 py-2 rounded-lg text-sm"
+                            style={{
+                              background: "var(--color-bg-card)",
+                              border: "1px solid var(--color-border)",
+                              color: "var(--color-text-primary)",
+                            }}
+                          />
+                          {simInvestors.length > 1 && (
+                            <button
+                              onClick={() => removeInvestor(idx)}
+                              className="text-xs px-2 py-2 rounded"
+                              style={{ color: "rgb(244, 63, 94)" }}
+                            >
+                              X
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="text-xs mt-2" style={{ color: "var(--color-text-muted)" }}>
+                      Total Investment: {formatCurrency(simInvestors.reduce((s, i) => s + (parseFloat(i.amount) || 0), 0))}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handleSimulateRound}
+                    disabled={simLoading}
+                    className="btn-primary w-full text-center justify-center"
+                  >
+                    {simLoading ? "Simulating..." : "Run Simulation"}
+                  </button>
+                </div>
+              </div>
+
+              {/* Results Panel */}
+              <div>
+                {!simResult && !simLoading && (
+                  <div className="glass-card p-8 text-center" style={{ cursor: "default" }}>
+                    <div className="text-4xl mb-4">&#x1F4CA;</div>
+                    <h3 className="text-lg font-semibold mb-2">Round Simulator</h3>
+                    <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
+                      Configure your round parameters and click &quot;Run Simulation&quot; to see how
+                      the new investment will affect ownership.
+                    </p>
+                  </div>
+                )}
+
+                {simLoading && (
+                  <div className="glass-card p-8 text-center" style={{ cursor: "default" }}>
+                    <div className="text-sm" style={{ color: "var(--color-text-muted)" }}>Calculating...</div>
+                  </div>
+                )}
+
+                {simResult && (
+                  <div className="space-y-4">
+                    {/* Valuation Summary */}
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="glass-card p-3 text-center" style={{ cursor: "default" }}>
+                        <div className="text-xs" style={{ color: "var(--color-text-muted)" }}>Pre-Money</div>
+                        <div className="text-sm font-bold">{formatCurrency(simResult.pre_money_valuation)}</div>
+                      </div>
+                      <div className="glass-card p-3 text-center" style={{ cursor: "default" }}>
+                        <div className="text-xs" style={{ color: "var(--color-text-muted)" }}>Investment</div>
+                        <div className="text-sm font-bold" style={{ color: "rgb(16, 185, 129)" }}>
+                          {formatCurrency(simResult.investment_amount)}
+                        </div>
+                      </div>
+                      <div className="glass-card p-3 text-center" style={{ cursor: "default" }}>
+                        <div className="text-xs" style={{ color: "var(--color-text-muted)" }}>Post-Money</div>
+                        <div className="text-sm font-bold">{formatCurrency(simResult.post_money_valuation)}</div>
+                      </div>
+                    </div>
+
+                    <div className="glass-card p-3 text-center" style={{ cursor: "default" }}>
+                      <div className="text-xs" style={{ color: "var(--color-text-muted)" }}>Price Per Share</div>
+                      <div className="text-sm font-bold">Rs {simResult.price_per_share?.toFixed(2)}</div>
+                    </div>
+
+                    {/* Before/After Comparison */}
+                    <div className="glass-card overflow-hidden" style={{ cursor: "default" }}>
+                      <div className="p-4" style={{ borderBottom: "1px solid var(--color-border)" }}>
+                        <h3 className="font-semibold text-sm">Ownership Comparison</h3>
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr style={{ borderBottom: "1px solid var(--color-border)" }}>
+                              <th className="text-left p-3" style={{ color: "var(--color-text-muted)" }}>Shareholder</th>
+                              <th className="text-right p-3" style={{ color: "var(--color-text-muted)" }}>Before</th>
+                              <th className="text-right p-3" style={{ color: "var(--color-text-muted)" }}>After</th>
+                              <th className="text-right p-3" style={{ color: "var(--color-text-muted)" }}>Dilution</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {simResult.after_round?.map((holder: any, idx: number) => {
+                              const before = simResult.before_round?.find((b: any) => b.name === holder.name);
+                              return (
+                                <tr key={idx} style={{ borderBottom: "1px solid var(--color-border)" }}>
+                                  <td className="p-3 font-medium">{holder.name}</td>
+                                  <td className="p-3 text-right font-mono">
+                                    {before ? `${before.percentage.toFixed(1)}%` : "-"}
+                                  </td>
+                                  <td className="p-3 text-right font-mono">{holder.percentage.toFixed(1)}%</td>
+                                  <td className="p-3 text-right font-mono" style={{
+                                    color: holder.dilution_pct > 0 ? "rgb(244, 63, 94)" : "rgb(16, 185, 129)"
+                                  }}>
+                                    {holder.dilution_pct > 0 ? `-${holder.dilution_pct.toFixed(1)}%` : holder.dilution_pct === 0 ? "New" : `+${Math.abs(holder.dilution_pct).toFixed(1)}%`}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* Post-Round Pie Chart */}
+                    {simResult.after_round && simResult.after_round.length > 0 && (
+                      <div className="glass-card p-6" style={{ cursor: "default" }}>
+                        <h3 className="text-center font-semibold mb-4 text-sm">Post-Round Ownership</h3>
+                        <div className="flex flex-col items-center gap-4">
+                          <div
+                            style={{
+                              width: "180px",
+                              height: "180px",
+                              borderRadius: "50%",
+                              background: `conic-gradient(${simResult.after_round.map((h: any, i: number) => {
+                                const colors = [
+                                  "rgb(139, 92, 246)", "rgb(59, 130, 246)", "rgb(16, 185, 129)",
+                                  "rgb(245, 158, 11)", "rgb(244, 63, 94)", "rgb(99, 102, 241)",
+                                  "rgb(236, 72, 153)", "rgb(34, 211, 238)", "rgb(251, 146, 60)", "rgb(163, 230, 53)"
+                                ];
+                                const cumBefore = simResult.after_round.slice(0, i).reduce((s: number, x: any) => s + x.percentage, 0);
+                                return `${colors[i % colors.length]} ${cumBefore}% ${cumBefore + h.percentage}%`;
+                              }).join(", ")})`,
+                              boxShadow: "0 0 30px rgba(139, 92, 246, 0.2)",
+                            }}
+                          />
+                          <div className="flex flex-wrap gap-3 justify-center max-w-md">
+                            {simResult.after_round.map((h: any, i: number) => {
+                              const colors = [
+                                "rgb(139, 92, 246)", "rgb(59, 130, 246)", "rgb(16, 185, 129)",
+                                "rgb(245, 158, 11)", "rgb(244, 63, 94)", "rgb(99, 102, 241)",
+                                "rgb(236, 72, 153)", "rgb(34, 211, 238)", "rgb(251, 146, 60)", "rgb(163, 230, 53)"
+                              ];
+                              return (
+                                <div key={i} className="flex items-center gap-2 text-xs">
+                                  <span
+                                    className="inline-block w-3 h-3 rounded-sm"
+                                    style={{ background: colors[i % colors.length] }}
+                                  />
+                                  <span style={{ color: "var(--color-text-secondary)" }}>
+                                    {h.name} ({h.percentage.toFixed(1)}%)
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Exit Scenarios Tab */}
+        {activeTab === "exit" && (
+          <div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Input Panel */}
+              <div className="glass-card p-6" style={{ cursor: "default" }}>
+                <h3 className="font-semibold mb-4">Exit Parameters</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm mb-1" style={{ color: "var(--color-text-muted)" }}>
+                      Exit Valuation (Rs)
+                    </label>
+                    <input
+                      type="number"
+                      value={exitValuation}
+                      onChange={(e) => setExitValuation(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg text-sm"
+                      style={{
+                        background: "var(--color-bg-card)",
+                        border: "1px solid var(--color-border)",
+                        color: "var(--color-text-primary)",
+                      }}
+                    />
+                    <div className="text-xs mt-1" style={{ color: "var(--color-text-muted)" }}>
+                      {formatCurrency(parseFloat(exitValuation) || 0)}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm mb-1" style={{ color: "var(--color-text-muted)" }}>
+                      Liquidation Preference
+                    </label>
+                    <select
+                      value={exitLiqPref}
+                      onChange={(e) => setExitLiqPref(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg text-sm"
+                      style={{
+                        background: "var(--color-bg-card)",
+                        border: "1px solid var(--color-border)",
+                        color: "var(--color-text-primary)",
+                      }}
+                    >
+                      <option value="0">None (Common)</option>
+                      <option value="1">1x</option>
+                      <option value="1.5">1.5x</option>
+                      <option value="2">2x</option>
+                    </select>
+                  </div>
+
+                  {/* Quick scenario buttons */}
+                  <div>
+                    <label className="block text-sm mb-2" style={{ color: "var(--color-text-muted)" }}>
+                      Quick Scenarios
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {[10000000, 25000000, 50000000, 100000000, 500000000].map((val) => (
+                        <button
+                          key={val}
+                          onClick={() => setExitValuation(String(val))}
+                          className="text-xs px-3 py-1.5 rounded-lg transition-all"
+                          style={{
+                            background: exitValuation === String(val)
+                              ? "rgba(139, 92, 246, 0.2)"
+                              : "rgba(255,255,255,0.05)",
+                            border: `1px solid ${exitValuation === String(val) ? "rgba(139, 92, 246, 0.5)" : "var(--color-border)"}`,
+                            color: "var(--color-text-secondary)",
+                          }}
+                        >
+                          {formatCurrency(val)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handleSimulateExit}
+                    disabled={exitLoading}
+                    className="btn-primary w-full text-center justify-center"
+                  >
+                    {exitLoading ? "Calculating..." : "Calculate Payouts"}
+                  </button>
+                </div>
+              </div>
+
+              {/* Results Panel */}
+              <div>
+                {!exitResult && !exitLoading && (
+                  <div className="glass-card p-8 text-center" style={{ cursor: "default" }}>
+                    <div className="text-4xl mb-4">&#x1F4B0;</div>
+                    <h3 className="text-lg font-semibold mb-2">Exit Scenarios</h3>
+                    <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
+                      Model different exit valuations to see how proceeds would be
+                      distributed among shareholders.
+                    </p>
+                  </div>
+                )}
+
+                {exitLoading && (
+                  <div className="glass-card p-8 text-center" style={{ cursor: "default" }}>
+                    <div className="text-sm" style={{ color: "var(--color-text-muted)" }}>Calculating payouts...</div>
+                  </div>
+                )}
+
+                {exitResult && (
+                  <div className="space-y-4">
+                    {/* Summary */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="glass-card p-3 text-center" style={{ cursor: "default" }}>
+                        <div className="text-xs" style={{ color: "var(--color-text-muted)" }}>Exit Valuation</div>
+                        <div className="text-sm font-bold">{formatCurrency(exitResult.exit_valuation)}</div>
+                      </div>
+                      <div className="glass-card p-3 text-center" style={{ cursor: "default" }}>
+                        <div className="text-xs" style={{ color: "var(--color-text-muted)" }}>Value / Share</div>
+                        <div className="text-sm font-bold">Rs {exitResult.value_per_share?.toFixed(2)}</div>
+                      </div>
+                    </div>
+
+                    {/* Payout Table */}
+                    <div className="glass-card overflow-hidden" style={{ cursor: "default" }}>
+                      <div className="p-4" style={{ borderBottom: "1px solid var(--color-border)" }}>
+                        <h3 className="font-semibold text-sm">Shareholder Payouts</h3>
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr style={{ borderBottom: "1px solid var(--color-border)" }}>
+                              <th className="text-left p-3" style={{ color: "var(--color-text-muted)" }}>Shareholder</th>
+                              <th className="text-right p-3" style={{ color: "var(--color-text-muted)" }}>Shares</th>
+                              <th className="text-right p-3" style={{ color: "var(--color-text-muted)" }}>Ownership</th>
+                              <th className="text-right p-3" style={{ color: "var(--color-text-muted)" }}>Payout</th>
+                              <th className="text-right p-3" style={{ color: "var(--color-text-muted)" }}>ROI</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {exitResult.payouts?.map((p: any, idx: number) => (
+                              <tr key={idx} style={{ borderBottom: "1px solid var(--color-border)" }}>
+                                <td className="p-3 font-medium">
+                                  {p.name}
+                                  {p.is_promoter && (
+                                    <span
+                                      className="ml-2 text-xs px-1.5 py-0.5 rounded-full"
+                                      style={{ background: "rgba(139, 92, 246, 0.15)", color: "rgb(139, 92, 246)" }}
+                                    >
+                                      Promoter
+                                    </span>
+                                  )}
+                                </td>
+                                <td className="p-3 text-right font-mono">{p.shares?.toLocaleString()}</td>
+                                <td className="p-3 text-right font-mono">{p.percentage?.toFixed(1)}%</td>
+                                <td className="p-3 text-right font-mono font-bold" style={{ color: "rgb(16, 185, 129)" }}>
+                                  {formatCurrency(p.payout_amount)}
+                                </td>
+                                <td className="p-3 text-right font-mono" style={{
+                                  color: p.roi_multiple >= 10 ? "rgb(16, 185, 129)" :
+                                         p.roi_multiple >= 2 ? "rgb(245, 158, 11)" : "var(--color-text-secondary)"
+                                }}>
+                                  {p.roi_multiple?.toFixed(1)}x
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* Total Summary */}
+                    <div className="glass-card p-4" style={{ cursor: "default" }}>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm" style={{ color: "var(--color-text-muted)" }}>Total Distributed</span>
+                        <span className="font-bold">{formatCurrency(exitResult.summary?.total_distributed || 0)}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
 

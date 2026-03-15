@@ -1,10 +1,14 @@
 """Tests for the meetings management endpoints."""
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
+from unittest.mock import patch
 
 
-FUTURE_DATE = (datetime.now(timezone.utc) + timedelta(days=30)).isoformat()
-PAST_DATE = (datetime.now(timezone.utc) - timedelta(days=5)).isoformat()
+# Use naive datetimes to avoid SQLite timezone mismatch (SQLite does not store
+# timezone info, so datetime comparisons in the app code would fail with
+# "can't subtract offset-naive and offset-aware datetimes" if we passed TZ-aware dates).
+FUTURE_DATE = (datetime.utcnow() + timedelta(days=30)).isoformat()
+PAST_DATE = (datetime.utcnow() - timedelta(days=5)).isoformat()
 
 
 # ---------------------------------------------------------------------------
@@ -272,11 +276,20 @@ def test_sign_minutes(client, test_user, auth_headers, test_company):
         headers=auth_headers,
     )
 
-    response = client.put(
-        f"/api/v1/companies/{test_company.id}/meetings/{meeting_id}/minutes/sign",
-        json={"signed_by": "Director A"},
-        headers=auth_headers,
-    )
+    # Patch datetime.now in the meetings router to return a naive datetime,
+    # because SQLite strips timezone info from stored datetimes. The router
+    # computes (now - meeting.meeting_date).days which fails when one is
+    # tz-aware and the other is naive.
+    naive_now = datetime.utcnow()
+    with patch("src.routers.meetings.datetime") as mock_dt:
+        mock_dt.now.return_value = naive_now
+        mock_dt.fromisoformat = datetime.fromisoformat
+        mock_dt.side_effect = lambda *a, **kw: datetime(*a, **kw)
+        response = client.put(
+            f"/api/v1/companies/{test_company.id}/meetings/{meeting_id}/minutes/sign",
+            json={"signed_by": "Director A"},
+            headers=auth_headers,
+        )
     assert response.status_code == 200
     data = response.json()
     assert data["minutes_signed"] is True
@@ -353,10 +366,17 @@ def test_list_minutes_pending(client, test_user, auth_headers, test_company):
         headers=auth_headers,
     )
 
-    response = client.get(
-        f"/api/v1/companies/{test_company.id}/meetings/minutes-pending",
-        headers=auth_headers,
-    )
+    # Patch datetime.now in the meetings router to return a naive datetime,
+    # because SQLite strips timezone info from stored datetimes.
+    naive_now = datetime.utcnow()
+    with patch("src.routers.meetings.datetime") as mock_dt:
+        mock_dt.now.return_value = naive_now
+        mock_dt.fromisoformat = datetime.fromisoformat
+        mock_dt.side_effect = lambda *a, **kw: datetime(*a, **kw)
+        response = client.get(
+            f"/api/v1/companies/{test_company.id}/meetings/minutes-pending",
+            headers=auth_headers,
+        )
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, list)

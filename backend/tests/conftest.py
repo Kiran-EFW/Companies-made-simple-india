@@ -30,15 +30,31 @@ def db_session():
     Base.metadata.drop_all(bind=engine)
 
 
+def _clear_rate_limiter():
+    """Walk app.middleware_stack to find the RateLimitMiddleware and clear its
+    in-memory request log so tests are not throttled by prior test calls."""
+    stack = getattr(app, "middleware_stack", None)
+    if stack is None:
+        return
+    obj = stack
+    while obj is not None:
+        if hasattr(obj, "requests") and type(obj).__name__ == "RateLimitMiddleware":
+            obj.requests.clear()
+            return
+        obj = getattr(obj, "app", None)
+
+
 @pytest.fixture
 def client(db_session):
-    """TestClient with overridden DB dependency."""
+    """TestClient with overridden DB dependency and cleared rate limiter."""
 
     def override_get_db():
         yield db_session
 
     app.dependency_overrides[get_db] = override_get_db
+
     with TestClient(app) as c:
+        _clear_rate_limiter()
         yield c
     app.dependency_overrides.clear()
 

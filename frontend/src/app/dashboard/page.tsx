@@ -146,6 +146,13 @@ export default function DashboardPage() {
                     Legal Docs
                   </Link>
                   <Link
+                    href="/compare"
+                    className="text-xs font-medium transition-colors hover:text-purple-400"
+                    style={{ color: "var(--color-text-secondary)" }}
+                  >
+                    Compare
+                  </Link>
+                  <Link
                     href="/profile"
                     className="text-xs font-medium transition-colors hover:text-purple-400"
                     style={{ color: "var(--color-text-secondary)" }}
@@ -367,7 +374,14 @@ export default function DashboardPage() {
                               </div>
                               <Link href="/dashboard/meetings" className="text-xs font-bold text-purple-400 group-hover:underline">Manage &#8594;</Link>
                            </div>
-                           <div className="p-4 rounded-lg bg-black/40 border border-gray-800 flex justify-between items-center group hover:border-purple-500/30 transition-colors md:col-span-2">
+                           <div className="p-4 rounded-lg bg-black/40 border border-gray-800 flex justify-between items-center group hover:border-purple-500/30 transition-colors">
+                              <div>
+                                 <h4 className="text-sm font-semibold">Cap Table</h4>
+                                 <p className="text-[10px] text-gray-500">Track equity, shareholders &amp; ownership</p>
+                              </div>
+                              <Link href="/dashboard/cap-table" className="text-xs font-bold text-purple-400 group-hover:underline">Manage &#8594;</Link>
+                           </div>
+                           <div className="p-4 rounded-lg bg-black/40 border border-gray-800 flex justify-between items-center group hover:border-purple-500/30 transition-colors">
                               <div>
                                  <h4 className="text-sm font-semibold">Data Room</h4>
                                  <p className="text-[10px] text-gray-500">Secure document vault with investor sharing</p>
