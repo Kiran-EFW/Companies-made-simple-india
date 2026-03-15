@@ -57,7 +57,7 @@ steps:
       - --max-instances=10
       - --add-cloudsql-instances=${_CLOUD_SQL_CONNECTION}
       - --vpc-connector=projects/${PROJECT_ID}/locations/${_REGION}/connectors/${_VPC_CONNECTOR}
-      - --set-env-vars=ENVIRONMENT=production,DB_USER=${_DB_USER},DB_NAME=${_DB_NAME},REDIS_URL=redis://${_REDIS_HOST}:6379/0,CELERY_BROKER_URL=redis://${_REDIS_HOST}:6379/1,CORS_ORIGINS=*
+      - --set-env-vars=^@^ENVIRONMENT=production@DB_USER=${_DB_USER}@DB_NAME=${_DB_NAME}@REDIS_URL=redis://${_REDIS_HOST}:6379/0@CELERY_BROKER_URL=redis://${_REDIS_HOST}:6379/1@CORS_ORIGINS=https://cms-india-frontend-979970479540.asia-south1.run.app,https://cms-india-admin-979970479540.asia-south1.run.app@FRONTEND_URL=https://cms-india-frontend-979970479540.asia-south1.run.app
       - --update-secrets=DATABASE_URL=${_DB_PASSWORD_SECRET}:latest,SECRET_KEY=${_SECRET_KEY_SECRET}:latest
     waitFor: [push-backend]
 
