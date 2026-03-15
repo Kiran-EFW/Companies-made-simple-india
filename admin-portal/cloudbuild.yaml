@@ -43,7 +43,7 @@ steps:
       - --image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/admin-portal:${SHORT_SHA}
       - --region=${_REGION}
       - --platform=managed
-      - --no-allow-unauthenticated
+      - --allow-unauthenticated
       - --port=3001
       - --cpu=1
       - --memory=512Mi
