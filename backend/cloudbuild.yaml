@@ -81,8 +81,8 @@ steps:
       - --vpc-connector=projects/${PROJECT_ID}/locations/${_REGION}/connectors/${_VPC_CONNECTOR}
       - --set-env-vars=ENVIRONMENT=production,DB_USER=${_DB_USER},DB_NAME=${_DB_NAME},REDIS_URL=redis://${_REDIS_HOST}:6379/0,CELERY_BROKER_URL=redis://${_REDIS_HOST}:6379/1
       - --update-secrets=DATABASE_URL=${_DB_PASSWORD_SECRET}:latest,SECRET_KEY=${_SECRET_KEY_SECRET}:latest
-      - --command=celery
-      - --args=-A,src.celery_app,worker,--loglevel=info,--concurrency=4
+      - --command=sh
+      - --args=start_celery.sh,celery,-A,src.celery_app,worker,--loglevel=info,--concurrency=4
     waitFor: [push-backend]
 
   # 3c. Deploy Celery beat (scheduler) — single instance
@@ -105,8 +105,8 @@ steps:
       - --vpc-connector=projects/${PROJECT_ID}/locations/${_REGION}/connectors/${_VPC_CONNECTOR}
       - --set-env-vars=ENVIRONMENT=production,DB_USER=${_DB_USER},DB_NAME=${_DB_NAME},REDIS_URL=redis://${_REDIS_HOST}:6379/0,CELERY_BROKER_URL=redis://${_REDIS_HOST}:6379/1
       - --update-secrets=DATABASE_URL=${_DB_PASSWORD_SECRET}:latest,SECRET_KEY=${_SECRET_KEY_SECRET}:latest
-      - --command=celery
-      - --args=-A,src.celery_app,beat,--loglevel=info
+      - --command=sh
+      - --args=start_celery.sh,celery,-A,src.celery_app,beat,--loglevel=info
     waitFor: [push-backend]
 
 images:
