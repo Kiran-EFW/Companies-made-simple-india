@@ -15,9 +15,10 @@ substitutions:
   _DB_PASSWORD_SECRET: cms-india-db-password
   _SECRET_KEY_SECRET: cms-india-secret-key
 
+logsBucket: gs://sub-projects-483107-cloudbuild-logs
+
 options:
   logging: GCS_ONLY
-  logsBucket: gs://sub-projects-483107-cloudbuild-logs
   machineType: E2_HIGHCPU_8
 
 steps:

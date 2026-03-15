@@ -8,9 +8,10 @@ substitutions:
   _REGION: asia-south1
   _REPO: cms-india
 
+logsBucket: gs://sub-projects-483107-cloudbuild-logs
+
 options:
   logging: GCS_ONLY
-  logsBucket: gs://sub-projects-483107-cloudbuild-logs
 
 steps:
   # 1. Build frontend image
