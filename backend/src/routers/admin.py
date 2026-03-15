@@ -20,6 +20,7 @@ from src.models.task import Task, AgentLog
 from src.models.admin_log import AdminLog
 from src.models.internal_note import InternalNote
 from src.models.notification import NotificationType
+from src.models.message import Message
 from src.utils.admin_auth import get_admin_user, require_role
 from src.utils.security import get_password_hash
 from src.services.notification_service import notification_service
@@ -169,6 +170,26 @@ def get_company_detail(
     result.internal_notes = [
         {"id": n.id, "content": n.content, "admin_user_id": n.admin_user_id, "created_at": n.created_at.isoformat() if n.created_at else None}
         for n in notes
+    ]
+
+    # Load conversation messages
+    msgs = (
+        db.query(Message)
+        .filter(Message.company_id == company_id)
+        .order_by(Message.created_at.asc())
+        .all()
+    )
+    result.messages = [
+        {
+            "id": m.id,
+            "sender_id": m.sender_id,
+            "sender_type": m.sender_type.value,
+            "sender_name": m.sender.full_name if m.sender else "Unknown",
+            "content": m.content,
+            "is_read": m.is_read,
+            "created_at": m.created_at.isoformat() if m.created_at else None,
+        }
+        for m in msgs
     ]
 
     return result

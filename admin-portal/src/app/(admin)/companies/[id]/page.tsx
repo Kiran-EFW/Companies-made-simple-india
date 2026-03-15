@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -13,6 +13,8 @@ import {
   getCompanyTasks,
   sendAdminMessage,
   addInternalNote,
+  getAdminCompanyMessages,
+  markAdminMessagesRead,
 } from "@/lib/api";
 
 const STATUS_OPTIONS = [
@@ -92,6 +94,9 @@ export default function AdminCompanyDetailPage() {
   // Messages
   const [messageContent, setMessageContent] = useState("");
   const [sendingMessage, setSendingMessage] = useState(false);
+  const [conversationMessages, setConversationMessages] = useState<any[]>([]);
+  const [messagesLoading, setMessagesLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -116,6 +121,32 @@ export default function AdminCompanyDetailPage() {
 
     if (companyId) fetchData();
   }, [companyId]);
+
+  // Load messages when communication tab is opened
+  useEffect(() => {
+    if (activeTab !== "communication" || !companyId) return;
+    const loadMessages = async () => {
+      setMessagesLoading(true);
+      try {
+        const data = await getAdminCompanyMessages(companyId);
+        setConversationMessages(data.messages || []);
+        // Mark founder messages as read
+        if (data.unread_count > 0) {
+          await markAdminMessagesRead(companyId);
+        }
+      } catch (err) {
+        console.error("Failed to load messages:", err);
+      } finally {
+        setMessagesLoading(false);
+      }
+    };
+    loadMessages();
+  }, [activeTab, companyId]);
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [conversationMessages]);
 
   const handleStatusChange = async () => {
     if (!selectedStatus) return;
@@ -188,11 +219,9 @@ export default function AdminCompanyDetailPage() {
     if (!messageContent.trim()) return;
     setSendingMessage(true);
     try {
-      await sendAdminMessage(companyId, messageContent);
+      const newMsg = await sendAdminMessage(companyId, messageContent);
       setMessageContent("");
-      // Refresh company to get updated messages
-      const updated = await getAdminCompanyDetail(companyId);
-      setCompany(updated);
+      setConversationMessages((prev) => [...prev, newMsg]);
     } catch (err) {
       console.error("Failed to send message:", err);
       alert("Failed to send message.");
@@ -536,50 +565,71 @@ export default function AdminCompanyDetailPage() {
 
       {/* Communication Tab */}
       {activeTab === "communication" && (
-        <div>
-          <div className="rounded-xl p-5 mb-6" style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
-            <h3 className="text-sm font-semibold mb-3">Send Message to Customer</h3>
+        <div className="rounded-xl overflow-hidden flex flex-col" style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-card)", height: "500px" }}>
+          {/* Message Thread */}
+          <div className="flex-1 overflow-y-auto p-5 space-y-4">
+            {messagesLoading ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="animate-pulse" style={{ color: "var(--color-text-muted)" }}>Loading conversation...</div>
+              </div>
+            ) : conversationMessages.length > 0 ? (
+              conversationMessages.map((msg: any) => {
+                const isAdmin = msg.sender_type === "admin";
+                return (
+                  <div key={msg.id} className={`flex ${isAdmin ? "justify-end" : "justify-start"}`}>
+                    <div
+                      className="max-w-[75%] rounded-xl px-4 py-3"
+                      style={isAdmin
+                        ? { background: "rgba(59, 130, 246, 0.1)", border: "1px solid rgba(59, 130, 246, 0.2)" }
+                        : { background: "var(--color-bg-secondary)", border: "1px solid var(--color-border)" }
+                      }
+                    >
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[10px] font-semibold" style={{ color: isAdmin ? "var(--color-info)" : "var(--color-accent-purple-light)" }}>
+                          {msg.sender_name || (isAdmin ? "Admin" : "Founder")}
+                        </span>
+                        <span className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>
+                          {msg.created_at ? new Date(msg.created_at).toLocaleString() : ""}
+                        </span>
+                        {!isAdmin && msg.is_read && (
+                          <span className="text-[10px]" style={{ color: "var(--color-success)" }}>Read</span>
+                        )}
+                      </div>
+                      <p className="text-sm leading-relaxed" style={{ color: "var(--color-text-primary)" }}>{msg.content}</p>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center">
+                  <p className="text-sm mb-1" style={{ color: "var(--color-text-muted)" }}>No messages yet</p>
+                  <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>Send a message to start a conversation with the founder.</p>
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Compose Area */}
+          <div className="p-4 flex gap-3 items-end" style={{ borderTop: "1px solid var(--color-border)", background: "var(--color-bg-secondary)" }}>
             <textarea
               value={messageContent}
               onChange={(e) => setMessageContent(e.target.value)}
-              placeholder="Type your message to the customer..."
-              className="w-full rounded-lg p-3 text-sm resize-none focus:outline-none"
-              style={{ background: "var(--color-bg-secondary)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
-              rows={3}
+              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
+              placeholder="Type a message..."
+              className="flex-1 rounded-lg p-3 text-sm resize-none focus:outline-none"
+              style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+              rows={2}
             />
-            <div className="flex justify-end mt-3">
-              <button
-                onClick={handleSendMessage}
-                disabled={!messageContent.trim() || sendingMessage}
-                className="px-4 py-2 rounded-lg text-xs font-medium transition-colors disabled:opacity-50"
-                style={{ background: "var(--color-info)", color: "var(--color-text-primary)" }}
-              >
-                {sendingMessage ? "Sending..." : "Send Message"}
-              </button>
-            </div>
-          </div>
-          <div className="space-y-3">
-            {company.messages && company.messages.length > 0 ? (
-              company.messages.map((msg: any, idx: number) => (
-                <div key={idx} className="rounded-xl p-4" style={
-                  msg.direction === "outgoing"
-                    ? { border: "1px solid rgba(59, 130, 246, 0.2)", background: "rgba(59, 130, 246, 0.05)" }
-                    : { border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }
-                }>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-medium" style={{ color: msg.direction === "outgoing" ? "var(--color-info)" : "var(--color-text-secondary)" }}>
-                      {msg.direction === "outgoing" ? "Sent to customer" : "From customer"}
-                    </span>
-                    <span className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>{msg.created_at ? new Date(msg.created_at).toLocaleString() : ""}</span>
-                  </div>
-                  <p className="text-sm" style={{ color: "var(--color-text-primary)" }}>{msg.message || msg.content}</p>
-                </div>
-              ))
-            ) : (
-              <div className="rounded-xl p-8 text-center" style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
-                <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>No messages yet.</p>
-              </div>
-            )}
+            <button
+              onClick={handleSendMessage}
+              disabled={!messageContent.trim() || sendingMessage}
+              className="px-5 py-3 rounded-lg text-xs font-medium transition-colors disabled:opacity-50 shrink-0"
+              style={{ background: "var(--color-info)", color: "#fff" }}
+            >
+              {sendingMessage ? "..." : "Send"}
+            </button>
           </div>
         </div>
       )}

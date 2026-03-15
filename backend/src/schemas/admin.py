@@ -52,6 +52,7 @@ class AdminCompanyDetailOut(AdminCompanyOut):
     logs: Optional[List[Dict[str, Any]]] = None
     payments: Optional[List[Dict[str, Any]]] = None
     internal_notes: Optional[List[Dict[str, Any]]] = None
+    messages: Optional[List[Dict[str, Any]]] = None
 
 
 class AdminCompanyListOut(BaseModel):

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/lib/auth-context";
-import { getCompanies, uploadDocument, getCompanyLogs } from "@/lib/api";
+import { getCompanies, uploadDocument, getCompanyLogs, getCompanyMessages, sendMessage, markMessagesRead } from "@/lib/api";
 import Link from "next/link";
 import ChatWidget from "@/components/chat-widget";
 import NotificationBell from "@/components/notification-bell";
@@ -24,6 +24,14 @@ export default function DashboardPage() {
   const [liveLogs, setLiveLogs] = useState<Record<number, any[]>>({});
   const [isRefreshing, setIsRefreshing] = useState(false);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Messages state
+  const [openMessageId, setOpenMessageId] = useState<number | null>(null);
+  const [companyMessages, setCompanyMessages] = useState<Record<number, any[]>>({});
+  const [msgContent, setMsgContent] = useState("");
+  const [sendingMsg, setSendingMsg] = useState(false);
+  const [msgUnread, setMsgUnread] = useState<Record<number, number>>({});
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (authLoading) return;
@@ -101,6 +109,63 @@ export default function DashboardPage() {
       document.removeEventListener("visibilitychange", handleVisibility);
     };
   }, [companies.length]); // Only reset if number of companies changes
+
+  // Load messages for a company when toggled open
+  const toggleMessages = async (companyId: number) => {
+    if (openMessageId === companyId) {
+      setOpenMessageId(null);
+      return;
+    }
+    setOpenMessageId(companyId);
+    try {
+      const data = await getCompanyMessages(companyId);
+      setCompanyMessages((prev) => ({ ...prev, [companyId]: data.messages || [] }));
+      setMsgUnread((prev) => ({ ...prev, [companyId]: 0 }));
+      if (data.unread_count > 0) {
+        await markMessagesRead(companyId);
+      }
+    } catch (err) {
+      console.error("Failed to load messages:", err);
+    }
+  };
+
+  const handleSendMsg = async (companyId: number) => {
+    if (!msgContent.trim()) return;
+    setSendingMsg(true);
+    try {
+      const newMsg = await sendMessage(companyId, msgContent);
+      setMsgContent("");
+      setCompanyMessages((prev) => ({
+        ...prev,
+        [companyId]: [...(prev[companyId] || []), newMsg],
+      }));
+    } catch (err) {
+      console.error("Failed to send message:", err);
+    } finally {
+      setSendingMsg(false);
+    }
+  };
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [companyMessages, openMessageId]);
+
+  // Check for unread messages on load
+  useEffect(() => {
+    if (companies.length === 0) return;
+    const checkUnread = async () => {
+      for (const comp of companies) {
+        try {
+          const data = await getCompanyMessages(comp.id);
+          if (data.unread_count > 0) {
+            setMsgUnread((prev) => ({ ...prev, [comp.id]: data.unread_count }));
+          }
+        } catch {}
+      }
+    };
+    checkUnread();
+  }, [companies.length]);
 
   // Determine which step group a status falls into to visually light up the pipeline
   const getStepIndex = (status: string) => {
@@ -437,6 +502,93 @@ export default function DashboardPage() {
                           ))}
                         </div>
                       </div>
+                    </div>
+                  )}
+
+                  {/* Messages Section */}
+                  {comp.status !== "draft" && (
+                    <div className="mt-6">
+                      <button
+                        onClick={() => toggleMessages(comp.id)}
+                        className="w-full flex items-center justify-between p-4 rounded-xl border transition-colors"
+                        style={{ background: openMessageId === comp.id ? "rgba(139, 92, 246, 0.05)" : "var(--color-overlay)", borderColor: openMessageId === comp.id ? "rgba(139, 92, 246, 0.2)" : "var(--color-border)" }}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-lg">💬</span>
+                          <div className="text-left">
+                            <h4 className="text-sm font-semibold" style={{ color: "var(--color-text-primary)" }}>Messages</h4>
+                            <p className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>Chat with your incorporation team</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {(msgUnread[comp.id] || 0) > 0 && (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: "rgba(239, 68, 68, 0.15)", color: "var(--color-error)" }}>
+                              {msgUnread[comp.id]} new
+                            </span>
+                          )}
+                          <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>{openMessageId === comp.id ? "▲" : "▼"}</span>
+                        </div>
+                      </button>
+
+                      {openMessageId === comp.id && (
+                        <div className="mt-2 rounded-xl overflow-hidden flex flex-col" style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-card)", height: "380px" }}>
+                          {/* Thread */}
+                          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                            {(companyMessages[comp.id] || []).length > 0 ? (
+                              (companyMessages[comp.id] || []).map((msg: any) => {
+                                const isMe = msg.sender_type === "founder";
+                                return (
+                                  <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
+                                    <div
+                                      className="max-w-[75%] rounded-xl px-4 py-3"
+                                      style={isMe
+                                        ? { background: "rgba(139, 92, 246, 0.1)", border: "1px solid rgba(139, 92, 246, 0.2)" }
+                                        : { background: "var(--color-bg-secondary)", border: "1px solid var(--color-border)" }
+                                      }
+                                    >
+                                      <div className="flex items-center gap-2 mb-1">
+                                        <span className="text-[10px] font-semibold" style={{ color: isMe ? "var(--color-accent-purple-light)" : "var(--color-info)" }}>
+                                          {isMe ? "You" : (msg.sender_name || "CMS Team")}
+                                        </span>
+                                        <span className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>
+                                          {msg.created_at ? new Date(msg.created_at).toLocaleString() : ""}
+                                        </span>
+                                      </div>
+                                      <p className="text-sm leading-relaxed" style={{ color: "var(--color-text-primary)" }}>{msg.content}</p>
+                                    </div>
+                                  </div>
+                                );
+                              })
+                            ) : (
+                              <div className="flex items-center justify-center h-full">
+                                <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>No messages yet. Ask your team anything about your incorporation.</p>
+                              </div>
+                            )}
+                            <div ref={messagesEndRef} />
+                          </div>
+
+                          {/* Compose */}
+                          <div className="p-3 flex gap-2 items-end" style={{ borderTop: "1px solid var(--color-border)", background: "var(--color-bg-secondary)" }}>
+                            <textarea
+                              value={msgContent}
+                              onChange={(e) => setMsgContent(e.target.value)}
+                              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendMsg(comp.id); } }}
+                              placeholder="Type a message..."
+                              className="flex-1 rounded-lg p-2.5 text-sm resize-none focus:outline-none"
+                              style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                              rows={1}
+                            />
+                            <button
+                              onClick={() => handleSendMsg(comp.id)}
+                              disabled={!msgContent.trim() || sendingMsg}
+                              className="px-4 py-2.5 rounded-lg text-xs font-medium transition-colors disabled:opacity-50 shrink-0"
+                              style={{ background: "var(--color-accent-purple)", color: "#fff" }}
+                            >
+                              {sendingMsg ? "..." : "Send"}
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
 
