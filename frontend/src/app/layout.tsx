@@ -5,7 +5,7 @@ import { ErrorBoundary } from "@/components/error-boundary";
 import ToastContainer from "@/components/toast";
 
 export const metadata: Metadata = {
-  title: "Companies Made Simple India — Incorporate Your Company in Days",
+  title: "Anvils — Companies Made Simple",
   description:
     "AI-powered company incorporation platform for Indian entrepreneurs. Private Limited, OPC, LLP, Section 8 — transparent pricing, zero hidden fees.",
   keywords: [
@@ -16,6 +16,11 @@ export const metadata: Metadata = {
     "startup India",
     "company incorporation",
   ],
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
+  manifest: "/site.webmanifest",
 };
 
 export default function RootLayout({
