@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/auth-context";
 import { updateProfile, changePassword } from "@/lib/api";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Footer from "@/components/footer";
 
 export default function ProfilePage() {
   const { user, loading: authLoading, logout, refreshUser } = useAuth();
@@ -82,7 +83,7 @@ export default function ProfilePage() {
     return (
       <div className="min-h-screen flex items-center justify-center glow-bg">
         <div className="animate-pulse-glow w-16 h-16 rounded-full bg-purple-500/20 flex items-center justify-center">
-          <span className="text-2xl">⚡</span>
+          <span className="text-2xl">&#9889;</span>
         </div>
       </div>
     );
@@ -96,7 +97,7 @@ export default function ProfilePage() {
       <nav className="glass-card sticky top-0 z-50 rounded-none border-t-0 border-x-0 border-b">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/dashboard" className="flex items-center gap-2">
-            <span className="text-xl">⚡</span>
+            <span className="text-xl">&#9889;</span>
             <span className="font-bold hidden md:block" style={{ fontFamily: "var(--font-display)" }}>CMS Prime</span>
           </Link>
 
@@ -112,9 +113,9 @@ export default function ProfilePage() {
               <div className="flex items-center gap-4">
                 <div className="text-right hidden sm:block">
                   <p className="text-sm font-medium leading-none">{user.full_name}</p>
-                  <p className="text-[10px] text-gray-400 mt-1">Founder Account</p>
+                  <p className="text-[10px] mt-1" style={{ color: "var(--color-text-secondary)" }}>Founder Account</p>
                 </div>
-                <button onClick={logout} className="text-xs p-2 rounded hover:bg-white/5 transition-colors" style={{ color: "var(--color-text-muted)" }}>
+                <button onClick={logout} className="text-xs p-2 rounded transition-colors" style={{ color: "var(--color-text-muted)" }}>
                   Log Out
                 </button>
               </div>
@@ -310,6 +311,8 @@ export default function ProfilePage() {
           </form>
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 }

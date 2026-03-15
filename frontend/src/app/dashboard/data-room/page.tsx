@@ -17,6 +17,7 @@ import {
   getRetentionSummary,
 } from "@/lib/api";
 import NotificationBell from "@/components/notification-bell";
+import Footer from "@/components/footer";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -75,7 +76,7 @@ const RETENTION_BADGES: Record<string, { bg: string; text: string; label: string
   "8_YEARS": { bg: "bg-blue-500/10 border-blue-500/30", text: "text-blue-400", label: "8 Years" },
   "6_YEARS": { bg: "bg-amber-500/10 border-amber-500/30", text: "text-amber-400", label: "6 Years" },
   "3_YEARS": { bg: "bg-emerald-500/10 border-emerald-500/30", text: "text-emerald-400", label: "3 Years" },
-  CUSTOM: { bg: "bg-gray-500/10 border-gray-500/30", text: "text-gray-400", label: "Custom" },
+  CUSTOM: { bg: "bg-gray-500/10 border-gray-500/30", text: "", label: "Custom" },
 };
 
 const TAG_OPTIONS = ["legal", "compliance", "financial", "tax", "ip", "hr", "corporate"];
@@ -338,7 +339,7 @@ export default function DataRoomPage() {
   if (authLoading || (loading && folders.length === 0 && files.length === 0)) {
     return (
       <div className="min-h-screen flex items-center justify-center glow-bg">
-        <div className="animate-pulse-glow w-16 h-16 rounded-full bg-purple-500/20 flex items-center justify-center">
+        <div className="animate-pulse-glow w-16 h-16 rounded-full flex items-center justify-center" style={{ background: "rgba(139, 92, 246, 0.2)" }}>
           <span className="text-2xl">&#9889;</span>
         </div>
       </div>
@@ -403,8 +404,8 @@ export default function DataRoomPage() {
             )}
             <button
               onClick={() => { setShowCreateFolder(true); setMessage(""); }}
-              className="text-sm font-medium border border-gray-700 px-4 py-2 rounded-lg hover:bg-white/5 transition-colors"
-              style={{ color: "var(--color-text-secondary)" }}
+              className="text-sm font-medium border px-4 py-2 rounded-lg transition-colors"
+              style={{ color: "var(--color-text-secondary)", borderColor: "var(--color-border)" }}
             >
               + Create Folder
             </button>
@@ -471,7 +472,7 @@ export default function DataRoomPage() {
                   <button onClick={handleCreateFolder} disabled={actionLoading || !newFolderName.trim()} className="btn-primary text-sm !py-2 !px-6">
                     {actionLoading ? "Creating..." : "Create Folder"}
                   </button>
-                  <button onClick={() => { setShowCreateFolder(false); setNewFolderName(""); setNewFolderDescription(""); }} className="text-sm px-4 py-2 rounded-lg border border-gray-700 hover:bg-white/5 transition-colors" style={{ color: "var(--color-text-secondary)" }}>
+                  <button onClick={() => { setShowCreateFolder(false); setNewFolderName(""); setNewFolderDescription(""); }} className="text-sm px-4 py-2 rounded-lg border transition-colors" style={{ color: "var(--color-text-secondary)", borderColor: "var(--color-border)" }}>
                     Cancel
                   </button>
                 </div>
@@ -531,7 +532,7 @@ export default function DataRoomPage() {
                   <button onClick={handleCreateShareLink} disabled={actionLoading || !shareName.trim()} className="btn-primary text-sm !py-2 !px-6">
                     {actionLoading ? "Creating..." : "Create Link"}
                   </button>
-                  <button onClick={() => { setShowShareForm(false); setShareName(""); setSharePassword(""); setShareExpiry(""); setShareMaxDownloads(""); }} className="text-sm px-4 py-2 rounded-lg border border-gray-700 hover:bg-white/5 transition-colors" style={{ color: "var(--color-text-secondary)" }}>
+                  <button onClick={() => { setShowShareForm(false); setShareName(""); setSharePassword(""); setShareExpiry(""); setShareMaxDownloads(""); }} className="text-sm px-4 py-2 rounded-lg border transition-colors" style={{ color: "var(--color-text-secondary)", borderColor: "var(--color-border)" }}>
                     Cancel
                   </button>
                 </div>
@@ -557,7 +558,7 @@ export default function DataRoomPage() {
                         className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 ${
                           selectedFolderId === null
                             ? "bg-purple-500/20 text-purple-400"
-                            : "hover:bg-white/5"
+                            : ""
                         }`}
                         style={selectedFolderId !== null ? { color: "var(--color-text-secondary)" } : {}}
                       >
@@ -574,7 +575,7 @@ export default function DataRoomPage() {
                           className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 ${
                             selectedFolderId === folder.id
                               ? "bg-purple-500/20 text-purple-400"
-                              : "hover:bg-white/5"
+                              : ""
                           }`}
                           style={selectedFolderId !== folder.id ? { color: "var(--color-text-secondary)" } : {}}
                         >
@@ -620,7 +621,8 @@ export default function DataRoomPage() {
                             ref={fileInputRef}
                             type="file"
                             onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
-                            className="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-500/20 file:text-purple-400 hover:file:bg-purple-500/30"
+                            className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-500/20 file:text-purple-400 hover:file:bg-purple-500/30"
+                            style={{ color: "var(--color-text-secondary)" }}
                           />
                         </div>
                         <div>
@@ -649,9 +651,9 @@ export default function DataRoomPage() {
                                 className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
                                   uploadTags.includes(tag)
                                     ? "bg-purple-500/20 text-purple-400 border-purple-500/30"
-                                    : "border-gray-700 hover:bg-white/5"
+                                    : ""
                                 }`}
-                                style={!uploadTags.includes(tag) ? { color: "var(--color-text-secondary)" } : {}}
+                                style={!uploadTags.includes(tag) ? { color: "var(--color-text-secondary)", borderColor: "var(--color-border)" } : {}}
                               >
                                 {tag}
                               </button>
@@ -689,7 +691,7 @@ export default function DataRoomPage() {
                           <button onClick={() => handleUpload()} disabled={actionLoading || !uploadFile} className="btn-primary text-sm !py-2 !px-6">
                             {actionLoading ? "Uploading..." : "Upload"}
                           </button>
-                          <button onClick={() => { setShowUpload(false); setUploadFile(null); }} className="text-sm px-4 py-2 rounded-lg border border-gray-700 hover:bg-white/5 transition-colors" style={{ color: "var(--color-text-secondary)" }}>
+                          <button onClick={() => { setShowUpload(false); setUploadFile(null); }} className="text-sm px-4 py-2 rounded-lg border transition-colors" style={{ color: "var(--color-text-secondary)", borderColor: "var(--color-border)" }}>
                             Cancel
                           </button>
                         </div>
@@ -706,10 +708,11 @@ export default function DataRoomPage() {
                       className={`mb-6 p-6 rounded-lg border-2 border-dashed text-center transition-colors ${
                         dragging
                           ? "border-purple-500/60 bg-purple-500/10"
-                          : "border-gray-700 hover:border-gray-600"
+                          : ""
                       }`}
+                      style={!dragging ? { borderColor: "var(--color-border)" } : {}}
                     >
-                      <svg className="w-8 h-8 mx-auto mb-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <svg className="w-8 h-8 mx-auto mb-2" style={{ color: "var(--color-text-muted)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
                       </svg>
                       <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
@@ -740,11 +743,12 @@ export default function DataRoomPage() {
                         return (
                           <div
                             key={file.id}
-                            className="p-4 rounded-lg border border-gray-800 bg-gray-900/30 hover:border-purple-500/30 transition-colors flex flex-col md:flex-row justify-between items-start md:items-center gap-3"
+                            className="p-4 rounded-lg border hover:border-purple-500/30 transition-colors flex flex-col md:flex-row justify-between items-start md:items-center gap-3"
+                            style={{ borderColor: "var(--color-border)", background: "var(--color-bg-secondary)" }}
                           >
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1">
-                                <svg className="w-4 h-4 text-gray-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                <svg className="w-4 h-4 shrink-0" style={{ color: "var(--color-text-muted)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                                   <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
                                 </svg>
                                 <h4 className="text-sm font-medium truncate">{file.original_filename || file.filename}</h4>
@@ -753,7 +757,7 @@ export default function DataRoomPage() {
                                 <span>{formatFileSize(file.size || 0)}</span>
                                 <span>{new Date(file.uploaded_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}</span>
                                 {retBadge && (
-                                  <span className={`font-semibold px-1.5 py-0.5 rounded-full border ${retBadge.bg} ${retBadge.text}`}>
+                                  <span className={`font-semibold px-1.5 py-0.5 rounded-full border ${retBadge.bg} ${retBadge.text}`} style={!retBadge.text ? { color: "var(--color-text-secondary)" } : {}}>
                                     {retBadge.label}
                                   </span>
                                 )}
@@ -761,7 +765,7 @@ export default function DataRoomPage() {
                               {file.tags && file.tags.length > 0 && (
                                 <div className="flex gap-1.5 mt-1.5">
                                   {file.tags.map((tag) => (
-                                    <span key={tag} className="text-[10px] px-1.5 py-0.5 rounded bg-gray-800 text-gray-400">
+                                    <span key={tag} className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: "var(--color-bg-card)", color: "var(--color-text-secondary)" }}>
                                       {tag}
                                     </span>
                                   ))}
@@ -793,9 +797,8 @@ export default function DataRoomPage() {
                   {shareLinks.map((link) => (
                     <div
                       key={link.id}
-                      className={`p-4 rounded-lg border flex flex-col md:flex-row justify-between items-start md:items-center gap-3 ${
-                        link.is_active ? "border-gray-800 bg-gray-900/30" : "border-gray-800/50 bg-gray-900/10 opacity-60"
-                      }`}
+                      className="p-4 rounded-lg border flex flex-col md:flex-row justify-between items-start md:items-center gap-3"
+                      style={link.is_active ? { borderColor: "var(--color-border)", background: "var(--color-bg-secondary)" } : { borderColor: "var(--color-border)", background: "var(--color-bg-secondary)", opacity: 0.6 }}
                     >
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
@@ -803,12 +806,12 @@ export default function DataRoomPage() {
                           <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full border ${
                             link.is_active
                               ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
-                              : "bg-gray-500/10 border-gray-500/30 text-gray-400"
-                          }`}>
+                              : ""
+                          }`} style={!link.is_active ? { background: "rgba(107, 114, 128, 0.1)", borderColor: "rgba(107, 114, 128, 0.3)", color: "var(--color-text-secondary)" } : {}}>
                             {link.is_active ? "ACTIVE" : "INACTIVE"}
                           </span>
                           {link.password_protected && (
-                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-800 text-gray-400">Password Protected</span>
+                            <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: "var(--color-bg-card)", color: "var(--color-text-secondary)" }}>Password Protected</span>
                           )}
                         </div>
                         <div className="flex items-center gap-3 text-[10px]" style={{ color: "var(--color-text-muted)" }}>
@@ -833,7 +836,7 @@ export default function DataRoomPage() {
             {/* Retention Alerts */}
             {retentionAlerts.length > 0 && (
               <div className="glass-card p-6 animate-fade-in-up" style={{ cursor: "default", animationDelay: "0.3s" }}>
-                <h3 className="text-sm font-semibold uppercase tracking-wider mb-4 text-amber-400">
+                <h3 className="text-sm font-semibold uppercase tracking-wider mb-4" style={{ color: "var(--color-warning)" }}>
                   Retention Alerts
                 </h3>
                 <div className="space-y-3">
@@ -847,15 +850,13 @@ export default function DataRoomPage() {
                         <div className="flex-1">
                           <h4 className="text-sm font-medium">{alert.filename}</h4>
                           <div className="flex items-center gap-3 mt-1 text-[10px]" style={{ color: "var(--color-text-muted)" }}>
-                            <span className={`font-semibold px-1.5 py-0.5 rounded-full border ${retBadge.bg} ${retBadge.text}`}>
+                            <span className={`font-semibold px-1.5 py-0.5 rounded-full border ${retBadge.bg} ${retBadge.text}`} style={!retBadge.text ? { color: "var(--color-text-secondary)" } : {}}>
                               {retBadge.label}
                             </span>
                             <span>Expires: {new Date(alert.expiry_date).toLocaleDateString("en-IN")}</span>
                           </div>
                         </div>
-                        <span className={`text-xs font-bold ${
-                          alert.days_remaining <= 30 ? "text-red-400" : "text-amber-400"
-                        }`}>
+                        <span className="text-xs font-bold" style={{ color: alert.days_remaining <= 30 ? "var(--color-error)" : "var(--color-warning)" }}>
                           {alert.days_remaining} days remaining
                         </span>
                       </div>
@@ -875,8 +876,8 @@ export default function DataRoomPage() {
                   {Object.entries(retentionSummary.categories as Record<string, number>).map(([cat, count]) => {
                     const badge = RETENTION_BADGES[cat] || RETENTION_BADGES.CUSTOM;
                     return (
-                      <div key={cat} className="text-center p-3 rounded-lg border border-gray-800 bg-gray-900/30">
-                        <p className={`text-lg font-bold ${badge.text}`}>{count as number}</p>
+                      <div key={cat} className="text-center p-3 rounded-lg border" style={{ borderColor: "var(--color-border)", background: "var(--color-bg-secondary)" }}>
+                        <p className={`text-lg font-bold ${badge.text}`} style={!badge.text ? { color: "var(--color-text-secondary)" } : {}}>{count as number}</p>
                         <p className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>{badge.label}</p>
                       </div>
                     );
@@ -887,6 +888,7 @@ export default function DataRoomPage() {
           </>
         )}
       </div>
+      <Footer />
     </div>
   );
 }

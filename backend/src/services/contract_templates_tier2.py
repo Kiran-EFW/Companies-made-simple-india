@@ -161,6 +161,12 @@ def board_resolution_template() -> dict:
                         "Company Name",
                         "text",
                         "Registered name of the company",
+                        learn_more=(
+                            "Use the exact registered name as it appears on your Certificate of "
+                            "Incorporation from the MCA. Any variation could make the resolution "
+                            "legally invalid. The name must match MCA records including the suffix "
+                            "(Private Limited, LLP, etc.)."
+                        ),
                     ),
                     _clause(
                         "br_cin",
@@ -168,24 +174,50 @@ def board_resolution_template() -> dict:
                         "text",
                         "Corporate Identification Number (CIN)",
                         required=False,
+                        learn_more=(
+                            "The CIN is a 21-character alphanumeric code assigned by the Ministry "
+                            "of Corporate Affairs (MCA) to every registered company. You can find it "
+                            "on your Certificate of Incorporation or by searching the MCA portal. "
+                            "Including the CIN adds authenticity and helps identify the company uniquely."
+                        ),
                     ),
                     _clause(
                         "br_meeting_date",
                         "Meeting Date",
                         "date",
                         "Date of the board meeting",
+                        learn_more=(
+                            "This is the actual date the board meeting was held. Under Section 173 "
+                            "of the Companies Act 2013, at least 7 days notice must be given before "
+                            "a board meeting. The first board meeting must be held within 30 days of "
+                            "incorporation, and subsequent meetings at least once every 120 days."
+                        ),
                     ),
                     _clause(
                         "br_meeting_place",
                         "Meeting Place",
                         "text",
                         "Place where the meeting was held",
+                        learn_more=(
+                            "Enter the city and address where the board meeting was physically held. "
+                            "Board meetings can be held at any place in India, but it is common "
+                            "practice to hold them at the registered office. Video conferencing is "
+                            "allowed under Section 173(2), but certain matters like approval of "
+                            "financial statements cannot be conducted via video conference."
+                        ),
                     ),
                     _clause(
                         "br_directors_present",
                         "Directors Present",
                         "textarea",
                         "Names and DINs of directors present (one per line)",
+                        learn_more=(
+                            "List each director who attended the meeting along with their DIN "
+                            "(Director Identification Number). Quorum is required for a valid board "
+                            "meeting \u2014 typically one-third of total directors or two directors, "
+                            "whichever is higher (Section 174). If quorum is not met, the resolution "
+                            "is invalid and cannot be enforced."
+                        ),
                     ),
                 ],
             },
@@ -201,6 +233,12 @@ def board_resolution_template() -> dict:
                         "text",
                         "Name of the person involved (director being appointed, auditor, etc.)",
                         required=False,
+                        learn_more=(
+                            "Enter the full legal name of the person this resolution concerns. For "
+                            "director appointments, this must match the name on their DIN application. "
+                            "For auditor appointments, use the full name of the individual or firm. "
+                            "Accuracy here is critical as the name will appear in MCA filings."
+                        ),
                     ),
                     _clause(
                         "br_person_din",
@@ -208,6 +246,12 @@ def board_resolution_template() -> dict:
                         "text",
                         "DIN (Director Identification Number) if applicable",
                         required=False,
+                        learn_more=(
+                            "A DIN is an 8-digit unique identification number assigned to every "
+                            "director by the MCA. A person must obtain a DIN before being appointed "
+                            "as a director. You can apply for a DIN using Form DIR-3 on the MCA "
+                            "portal, and it typically takes 3-5 business days to be approved."
+                        ),
                         india_note=(
                             "Every director must have a DIN obtained from MCA before "
                             "appointment. Apply using DIR-3 form."
@@ -219,6 +263,13 @@ def board_resolution_template() -> dict:
                         "number",
                         "Amount involved (authorized capital, loan amount, etc.) in INR",
                         required=False,
+                        learn_more=(
+                            "Enter the monetary value relevant to your resolution type. For share "
+                            "allotment, this is the total consideration. For authorized capital "
+                            "increase, it is the new proposed capital. For loan approvals, enter the "
+                            "borrowing limit. This amount will appear in the resolution text and any "
+                            "related MCA filings, so ensure it is accurate."
+                        ),
                     ),
                     _clause(
                         "br_bank_name",
@@ -226,6 +277,12 @@ def board_resolution_template() -> dict:
                         "text",
                         "Bank name (for bank account resolution)",
                         required=False,
+                        learn_more=(
+                            "Enter the full official name of the bank where you are opening the "
+                            "company's current account. Most startups open accounts with scheduled "
+                            "commercial banks. The bank will require a certified copy of this board "
+                            "resolution as part of the account opening documentation."
+                        ),
                     ),
                     _clause(
                         "br_address",
@@ -233,6 +290,18 @@ def board_resolution_template() -> dict:
                         "textarea",
                         "Address details (for registered office change)",
                         required=False,
+                        learn_more=(
+                            "Provide the complete new registered office address including building "
+                            "name, street, city, state, and PIN code. Changing the registered office "
+                            "within the same city requires a board resolution and Form INC-22 filing. "
+                            "A change across states requires shareholder approval by special resolution "
+                            "and Central Government confirmation."
+                        ),
+                        india_note=(
+                            "Under Section 12 of the Companies Act 2013, a company must have a "
+                            "registered office within 30 days of incorporation. Any change must be "
+                            "notified to the ROC via Form INC-22 within 30 days."
+                        ),
                     ),
                     _clause(
                         "br_additional_details",
@@ -240,6 +309,12 @@ def board_resolution_template() -> dict:
                         "textarea",
                         "Additional details specific to the resolution",
                         required=False,
+                        learn_more=(
+                            "Use this field to add any specifics not covered by the other fields. "
+                            "For example, for a related party transaction, describe the nature and "
+                            "terms of the transaction. For ESOP creation, mention the vesting schedule. "
+                            "Being detailed here helps create a complete and defensible corporate record."
+                        ),
                     ),
                 ],
             },
@@ -254,6 +329,13 @@ def board_resolution_template() -> dict:
                         "Authorized Signatory",
                         "text",
                         "Name of person authorized to execute related documents",
+                        learn_more=(
+                            "This is the person the board authorizes to sign documents, file forms "
+                            "with MCA, and execute any actions needed to implement the resolution. "
+                            "Typically this is a director or the company secretary. Banks, government "
+                            "agencies, and other third parties will rely on this authorization, so "
+                            "choose someone who is readily available to sign documents."
+                        ),
                     ),
                     _clause(
                         "br_filing_required",
@@ -493,18 +575,39 @@ def privacy_policy_template() -> dict:
                         "Company Name",
                         "text",
                         "Name of the company/data fiduciary",
+                        learn_more=(
+                            "Under the DPDP Act 2023, your company is the 'Data Fiduciary' \u2014 "
+                            "the entity that determines the purpose and means of processing personal "
+                            "data. Use your exact registered company name as it will appear at the top "
+                            "of your privacy policy and in any regulatory correspondence with the Data "
+                            "Protection Board of India."
+                        ),
                     ),
                     _clause(
                         "pp_website_url",
                         "Website URL",
                         "text",
                         "Website URL",
+                        learn_more=(
+                            "Enter the primary URL where your privacy policy will be published. "
+                            "Under the DPDP Act 2023, the privacy policy must be easily accessible "
+                            "to users before they provide their data. If you operate multiple websites "
+                            "or apps, use the main domain and consider linking the policy from all "
+                            "your digital properties."
+                        ),
                     ),
                     _clause(
                         "pp_contact_email",
                         "Contact Email",
                         "text",
                         "Contact email for privacy queries",
+                        learn_more=(
+                            "This email will be published in your privacy policy as the primary "
+                            "contact for data-related queries, consent withdrawal requests, and "
+                            "grievances. Use a dedicated email like privacy@yourcompany.com rather "
+                            "than a personal email, so the address remains valid even if team members "
+                            "change. This email must be monitored regularly to meet response deadlines."
+                        ),
                     ),
                     _clause(
                         "pp_business_type",
@@ -520,6 +623,14 @@ def privacy_policy_template() -> dict:
                             "General Services",
                             "Marketplace",
                         ],
+                        learn_more=(
+                            "Your business type determines what additional sector-specific "
+                            "regulations apply beyond the DPDP Act. For example, Fintech companies "
+                            "must also comply with RBI data localization guidelines, Healthcare "
+                            "companies handle sensitive health data with stricter obligations, and "
+                            "E-commerce platforms are subject to Consumer Protection (E-Commerce) "
+                            "Rules 2020. Select the option that best describes your primary business."
+                        ),
                     ),
                 ],
             },
@@ -549,6 +660,14 @@ def privacy_policy_template() -> dict:
                             "Biometric data",
                             "Health data",
                         ],
+                        learn_more=(
+                            "Select every type of personal data your product collects, even if "
+                            "collected indirectly through analytics or third-party SDKs. Under the "
+                            "DPDP Act, you must disclose all categories of data you process. "
+                            "Collecting more data than disclosed in your policy can lead to penalties "
+                            "of up to \u20b9250 crore. When in doubt, include the category \u2014 it is "
+                            "better to over-disclose than under-disclose."
+                        ),
                         india_note=(
                             "Under DPDP Act 2023, 'personal data' means any data about an "
                             "individual who is identifiable by or in relation to such data. "
@@ -566,6 +685,14 @@ def privacy_policy_template() -> dict:
                             "Third-party sources",
                             "Public sources",
                         ],
+                        learn_more=(
+                            "Be transparent about all the ways you gather user data. Direct "
+                            "collection includes signup forms and profile pages. Automatic collection "
+                            "covers cookies, server logs, and analytics SDKs like Google Analytics or "
+                            "Mixpanel. Third-party sources include social login providers or data "
+                            "enrichment services. The DPDP Act requires you to inform users of each "
+                            "collection method before or at the time of data collection."
+                        ),
                     ),
                     _clause(
                         "pp_purpose_of_collection",
@@ -582,6 +709,13 @@ def privacy_policy_template() -> dict:
                             "Fraud prevention",
                             "Personalization",
                         ],
+                        learn_more=(
+                            "Select every purpose for which you use personal data. Under the DPDP "
+                            "Act, purpose limitation is a fundamental principle \u2014 you cannot use "
+                            "data for a purpose you did not disclose. If you later want to use data "
+                            "for a new purpose (e.g., adding marketing emails), you must obtain fresh "
+                            "consent. Only select purposes you genuinely need to avoid over-collection."
+                        ),
                         india_note=(
                             "Under DPDP Act 2023, personal data can only be processed for "
                             "the purpose for which consent was given. Purpose limitation is "
@@ -606,6 +740,20 @@ def privacy_policy_template() -> dict:
                             "India + international (with safeguards)",
                             "Cloud (provider choice)",
                         ],
+                        learn_more=(
+                            "This determines where your users' personal data is physically stored. "
+                            "If you use AWS, GCP, or Azure, check which region your servers are in. "
+                            "Storing data in India only provides maximum regulatory safety but may "
+                            "limit your cloud provider options. International storage is allowed under "
+                            "DPDP Act unless the destination country is specifically restricted by "
+                            "the Central Government."
+                        ),
+                        pros=["India only: Maximum compliance, no cross-border risk",
+                              "International: Better performance for global users, more provider options",
+                              "Cloud provider choice: Flexibility and cost optimization"],
+                        cons=["India only: Higher costs, fewer provider options",
+                              "International: Risk if government restricts a country later",
+                              "Cloud provider choice: Less control over where data physically resides"],
                         india_note=(
                             "DPDP Act 2023 allows data transfer outside India to all "
                             "countries EXCEPT those specifically restricted by the Central "
@@ -625,6 +773,20 @@ def privacy_policy_template() -> dict:
                             "As required by law",
                             "Custom period",
                         ],
+                        learn_more=(
+                            "Data retention defines how long you keep user data after collection. "
+                            "Under the DPDP Act, you must erase personal data when it is no longer "
+                            "needed for the stated purpose or when the user withdraws consent. "
+                            "Keeping data indefinitely increases your compliance risk and breach "
+                            "liability. Choose the shortest retention period that works for your "
+                            "business needs."
+                        ),
+                        pros=["Until account deletion: Simple, user-controlled",
+                              "2 years after last activity: Balanced approach, auto-cleanup",
+                              "As required by law: Flexible, covers regulatory needs"],
+                        cons=["Until account deletion: Data may linger if users abandon accounts",
+                              "2 years: May lose useful data for analytics",
+                              "As required by law: Vague, harder to enforce consistently"],
                     ),
                     _clause(
                         "pp_third_party_sharing",
@@ -639,12 +801,28 @@ def privacy_policy_template() -> dict:
                             "Government/regulatory bodies (when required)",
                             "Business partners",
                         ],
+                        learn_more=(
+                            "List every category of third party you share user data with, even "
+                            "if the sharing is automated through integrations. Under the DPDP Act, "
+                            "third parties processing data on your behalf are 'Data Processors' and "
+                            "you remain responsible for how they handle the data. You must have "
+                            "contractual safeguards with each processor. Failing to disclose sharing "
+                            "relationships can result in significant penalties."
+                        ),
                     ),
                     _clause(
                         "pp_cookies_used",
                         "Cookies Used",
                         "toggle",
                         "Whether the website/app uses cookies",
+                        learn_more=(
+                            "Cookies are small text files stored on users' browsers that track "
+                            "behavior, remember preferences, and enable analytics. Even if you do not "
+                            "set cookies directly, third-party services like Google Analytics, "
+                            "Facebook Pixel, or Intercom may set cookies on your behalf. Check your "
+                            "website with a cookie scanner tool to find out. If you use any tracking "
+                            "scripts, enable this option."
+                        ),
                     ),
                 ],
             },
@@ -668,6 +846,14 @@ def privacy_policy_template() -> dict:
                             "Nominate another person",
                             "Lodge grievance",
                         ],
+                        learn_more=(
+                            "These are the rights you grant your users over their personal data. "
+                            "The DPDP Act 2023 mandates certain rights (access, correction, erasure, "
+                            "consent withdrawal, grievance redressal, and nomination), so it is "
+                            "recommended to include all of them. Selecting all rights ensures "
+                            "compliance and builds user trust. You must also build internal processes "
+                            "to actually fulfill these rights when users request them."
+                        ),
                         india_note=(
                             "Under DPDP Act 2023, Data Principals have: Right to access "
                             "information about processing, right to correction and erasure, "
@@ -682,6 +868,14 @@ def privacy_policy_template() -> dict:
                         "Grievance Officer",
                         "text",
                         "Name/designation of the Grievance Officer",
+                        learn_more=(
+                            "The Grievance Officer is the person users contact when they have "
+                            "concerns about how their data is handled. This is a mandatory "
+                            "appointment under the DPDP Act. For early-stage startups, a founder or "
+                            "senior team member typically takes this role. The Grievance Officer must "
+                            "acknowledge complaints within 48 hours and resolve them within the "
+                            "prescribed timeline."
+                        ),
                         india_note=(
                             "Under DPDP Act 2023, every Data Fiduciary must appoint a "
                             "Data Protection Officer or designate a person to handle data "
@@ -699,6 +893,29 @@ def privacy_policy_template() -> dict:
                             "Browse-wrap",
                             "Explicit consent form",
                         ],
+                        learn_more=(
+                            "This determines how users give permission for you to process their "
+                            "data. Opt-in checkbox requires users to actively check a box, which is "
+                            "the safest legally. Click-wrap means users click 'I Agree' to proceed. "
+                            "Browse-wrap (using the site implies consent) is the weakest and may not "
+                            "satisfy DPDP Act requirements. Explicit consent forms are best for "
+                            "sensitive data like health or financial information."
+                        ),
+                        pros=["Opt-in checkbox: Strongest legal protection, DPDP compliant",
+                              "Click-wrap: Good balance of compliance and user experience",
+                              "Explicit consent form: Best for sensitive data categories"],
+                        cons=["Opt-in checkbox: Higher friction, some users may not check the box",
+                              "Click-wrap: May not hold up for sensitive data processing",
+                              "Browse-wrap: Weakest legally, likely non-compliant with DPDP Act"],
+                        warning_condition={
+                            "value": "Browse-wrap",
+                            "message": (
+                                "Browse-wrap consent (where using the site implies agreement) is "
+                                "unlikely to satisfy the DPDP Act requirement for 'clear affirmative "
+                                "action'. This approach has been challenged in Indian courts and may "
+                                "expose you to penalties."
+                            ),
+                        },
                         india_note=(
                             "DPDP Act 2023 requires consent to be free, specific, informed, "
                             "unconditional, and unambiguous. Pre-ticked boxes or bundled "
@@ -712,6 +929,23 @@ def privacy_policy_template() -> dict:
                         "Children's Data",
                         "toggle",
                         "Whether the platform collects data from children (under 18)",
+                        learn_more=(
+                            "Enable this if your platform may be used by anyone under 18 years "
+                            "of age. The DPDP Act has strict requirements for children's data: you "
+                            "must obtain verifiable parental consent, you cannot track or "
+                            "behaviorally monitor children, and targeted advertising to children is "
+                            "completely prohibited. If your platform is not designed for children but "
+                            "they could still use it, it is safer to enable this option."
+                        ),
+                        warning_condition={
+                            "value": True,
+                            "message": (
+                                "Collecting children's data triggers strict compliance requirements "
+                                "under DPDP Act 2023 including verifiable parental consent mechanisms. "
+                                "Ensure you have processes in place to verify parental identity and "
+                                "consent before going live."
+                            ),
+                        },
                         india_note=(
                             "DPDP Act 2023 requires verifiable parental consent before "
                             "processing children's data. Tracking, behavioral monitoring, "
@@ -929,12 +1163,26 @@ def terms_of_service_template() -> dict:
                         "Company Name",
                         "text",
                         "Legal name of the company",
+                        learn_more=(
+                            "Use your exact legal registered company name as it appears on your "
+                            "Certificate of Incorporation. This name will appear throughout the Terms "
+                            "of Service and is the entity that users enter into a legal relationship "
+                            "with. If you operate through a subsidiary or parent company, use the "
+                            "entity that actually operates the platform."
+                        ),
                     ),
                     _clause(
                         "tos_platform_name",
                         "Platform Name",
                         "text",
                         "Name of the website/app/platform",
+                        learn_more=(
+                            "This is the consumer-facing name of your product or service, which may "
+                            "differ from your legal company name. For example, your company might be "
+                            "'XYZ Technologies Pvt Ltd' but your platform is called 'QuickPay'. The "
+                            "terms of service will reference this name so users know exactly which "
+                            "service is covered."
+                        ),
                     ),
                     _clause(
                         "tos_platform_type",
@@ -948,12 +1196,27 @@ def terms_of_service_template() -> dict:
                             "Marketplace",
                             "API Service",
                         ],
+                        learn_more=(
+                            "The platform type affects which legal provisions are included and how "
+                            "terms are structured. A Marketplace has additional obligations under the "
+                            "Consumer Protection (E-Commerce) Rules 2020, including seller "
+                            "verification and grievance handling. SaaS platforms need service level "
+                            "commitments. API services need usage limits and rate-limiting terms. "
+                            "Choose the type that best describes how users interact with your product."
+                        ),
                     ),
                     _clause(
                         "tos_effective_date",
                         "Effective Date",
                         "date",
                         "Date from which these terms are effective",
+                        learn_more=(
+                            "This is the date from which your Terms of Service become legally "
+                            "binding on users. Set this to the date you plan to publish the terms on "
+                            "your platform. If you are updating existing terms, set a future date and "
+                            "give users adequate notice (usually 30 days) before the new terms take "
+                            "effect. Always display the effective date prominently on your ToS page."
+                        ),
                     ),
                 ],
             },
@@ -974,6 +1237,24 @@ def terms_of_service_template() -> dict:
                             "Business users only",
                             "No age restriction",
                         ],
+                        learn_more=(
+                            "This sets who is legally allowed to use your platform. Under the Indian "
+                            "Contract Act 1872, a person must be 18 or older to enter a contract, so "
+                            "'18+ years only' is the safest default. If you choose to allow minors "
+                            "(13+), you must implement verifiable parental consent under the DPDP Act "
+                            "and your terms may not be enforceable against them. 'Business users only' "
+                            "is suitable for B2B SaaS products."
+                        ),
+                        warning_condition={
+                            "value": "No age restriction",
+                            "message": (
+                                "Having no age restriction means minors can use your platform, "
+                                "which triggers DPDP Act requirements for verifiable parental "
+                                "consent and prohibits tracking or targeted advertising to children. "
+                                "Your terms may also be unenforceable against minors under the "
+                                "Indian Contract Act 1872."
+                            ),
+                        },
                         india_note=(
                             "Under Indian Contract Act 1872, persons below 18 cannot enter "
                             "contracts. Under DPDP Act, processing children's data requires "
@@ -991,6 +1272,14 @@ def terms_of_service_template() -> dict:
                             "KYC/identity verification",
                             "Business registration proof",
                         ],
+                        learn_more=(
+                            "Select the verification steps users must complete to create an account. "
+                            "Email and phone verification are basic fraud prevention measures. KYC "
+                            "(Know Your Customer) is mandatory for fintech, lending, and certain "
+                            "regulated services under RBI guidelines. Business registration proof is "
+                            "relevant for B2B platforms. More verification steps reduce fraud but "
+                            "increase signup friction."
+                        ),
                     ),
                     _clause(
                         "tos_prohibited_activities",
@@ -1007,6 +1296,15 @@ def terms_of_service_template() -> dict:
                             "Impersonation",
                             "Distribution of malware",
                         ],
+                        learn_more=(
+                            "This defines what users are not allowed to do on your platform. Having "
+                            "a clear list of prohibited activities gives you legal grounds to suspend "
+                            "or terminate accounts and limits your liability for user misconduct. "
+                            "Select all items that apply. Under the IT Act 2000 (Sections 79 and "
+                            "79A), intermediaries must exercise due diligence, including having clear "
+                            "usage policies. A comprehensive prohibited activities list strengthens "
+                            "your 'safe harbour' protection as an intermediary."
+                        ),
                     ),
                     _clause(
                         "tos_user_content",
@@ -1018,6 +1316,30 @@ def terms_of_service_template() -> dict:
                             "Users retain ownership, grant license",
                             "All user content becomes company property",
                         ],
+                        learn_more=(
+                            "This determines who owns content that users create or upload on your "
+                            "platform (posts, photos, reviews, etc.). 'Users retain ownership, grant "
+                            "license' is the industry standard \u2014 users keep their IP but give you "
+                            "permission to display and use the content on your platform. 'All content "
+                            "becomes company property' is aggressive and may deter users. If your "
+                            "platform does not have user-generated content, select the first option."
+                        ),
+                        pros=["Users retain, grant license: User-friendly, industry standard, attracts creators",
+                              "All content becomes company property: Maximum company control over content",
+                              "Users cannot post content: Simplest, no content moderation needed"],
+                        cons=["Users retain, grant license: Users can request content removal",
+                              "All content becomes company property: May scare away users, harder to enforce",
+                              "Users cannot post content: Limits platform engagement and community building"],
+                        warning_condition={
+                            "value": "All user content becomes company property",
+                            "message": (
+                                "Claiming ownership of all user content is unusual and may deter "
+                                "users from joining your platform. Under Indian Copyright Act 1957, "
+                                "the original creator typically holds copyright. This clause may be "
+                                "challenged if it is considered unfair under the Consumer Protection "
+                                "Act 2019."
+                            ),
+                        },
                         common_choice_label="Standard: Users retain, grant license",
                     ),
                 ],
@@ -1043,8 +1365,24 @@ def terms_of_service_template() -> dict:
                             "Limitation of liability clauses cap the maximum damages you "
                             "could owe users. This protects the company from "
                             "disproportionate claims. Indian courts generally uphold "
-                            "reasonable liability caps in B2B agreements."
+                            "reasonable liability caps in B2B agreements. Tying the cap to "
+                            "fees paid in the last 12 months is the most balanced approach "
+                            "\u2014 it is proportional and widely accepted."
                         ),
+                        pros=["Limited to fees paid: Proportional and widely accepted",
+                              "Fixed cap of \u20b910,000: Simple and predictable exposure",
+                              "Maximum of fees or \u20b91,00,000: Provides a reasonable floor"],
+                        cons=["Limited to fees paid: Low cap for free-tier users means effectively zero",
+                              "Fixed cap: May seem unreasonably low for enterprise users",
+                              "No limitation: Exposes company to unlimited financial risk"],
+                        warning_condition={
+                            "value": "No limitation (not recommended)",
+                            "message": (
+                                "Having no liability cap exposes your company to potentially "
+                                "unlimited damages claims. Even a single lawsuit could threaten your "
+                                "company's survival. This is strongly discouraged for any startup."
+                            ),
+                        },
                         india_note=(
                             "Under Indian Consumer Protection Act 2019, liability "
                             "limitation clauses may be overridden for consumer disputes. "
@@ -1057,6 +1395,15 @@ def terms_of_service_template() -> dict:
                         "Warranty Disclaimer",
                         "toggle",
                         "Whether to include 'as-is' warranty disclaimer",
+                        learn_more=(
+                            "An 'as-is' warranty disclaimer means you do not guarantee the platform "
+                            "will be error-free, always available, or fit for any particular purpose. "
+                            "This is standard practice and protects you from claims if the platform "
+                            "has bugs or downtime. Without this disclaimer, users could potentially "
+                            "claim damages for any service interruption. Note that warranty "
+                            "disclaimers may be limited by the Consumer Protection Act 2019 for "
+                            "consumer-facing products."
+                        ),
                         common_choice_label="Recommended: Yes",
                     ),
                     _clause(
@@ -1064,6 +1411,14 @@ def terms_of_service_template() -> dict:
                         "User Indemnification",
                         "toggle",
                         "Whether users indemnify the company against third-party claims",
+                        learn_more=(
+                            "Indemnification means users agree to cover your legal costs and damages "
+                            "if a third party sues you because of something the user did on your "
+                            "platform. For example, if a user uploads copyrighted content and the "
+                            "copyright holder sues you, the user would be responsible for your legal "
+                            "expenses. This is a standard protection clause included in most Terms of "
+                            "Service worldwide."
+                        ),
                         common_choice_label="Standard: Yes",
                     ),
                     _clause(
@@ -1076,6 +1431,14 @@ def terms_of_service_template() -> dict:
                             "Open source components acknowledged",
                             "Mixed ownership",
                         ],
+                        learn_more=(
+                            "This clause clarifies that your platform's code, design, branding, "
+                            "and other intellectual property belong to the company. This prevents "
+                            "users from claiming ownership over any part of the platform. If your "
+                            "product uses open-source software, select 'Open source components "
+                            "acknowledged' to comply with open-source license requirements. Mixed "
+                            "ownership is rare and typically used for collaborative platforms."
+                        ),
                         common_choice_label="Standard: All IP belongs to company",
                     ),
                 ],
@@ -1098,6 +1461,21 @@ def terms_of_service_template() -> dict:
                             "Tamil Nadu",
                             "Telangana",
                         ],
+                        learn_more=(
+                            "Governing law determines which state's courts have jurisdiction and "
+                            "which state-specific laws apply in case of a dispute. Typically, you "
+                            "should choose the state where your company is registered or has its "
+                            "primary office. This gives you the home-court advantage of litigating "
+                            "disputes in a familiar jurisdiction. Note that for consumer disputes, "
+                            "consumers can file complaints wherever they reside regardless of this "
+                            "clause."
+                        ),
+                        india_note=(
+                            "While parties can choose governing law, consumer disputes under "
+                            "Consumer Protection Act 2019 can be filed where the consumer "
+                            "resides. State-specific stamp duty and registration laws may also "
+                            "apply."
+                        ),
                     ),
                     _clause(
                         "tos_dispute_resolution",
@@ -1110,6 +1488,22 @@ def terms_of_service_template() -> dict:
                             "Mediation then Arbitration",
                             "Consumer forum + Arbitration for B2B",
                         ],
+                        learn_more=(
+                            "This determines how disagreements between you and your users are "
+                            "resolved. Arbitration is private, faster, and usually cheaper than "
+                            "court, but the award is binding. 'Mediation then Arbitration' adds a "
+                            "negotiation step before formal arbitration, saving costs if parties can "
+                            "agree. For consumer-facing platforms, Indian law gives consumers the "
+                            "right to approach consumer forums regardless of any arbitration clause, "
+                            "so 'Consumer forum + Arbitration for B2B' is the most legally sound "
+                            "option."
+                        ),
+                        pros=["Arbitration: Faster, private, binding decisions",
+                              "Mediation then Arbitration: Cost-saving first step, preserves relationship",
+                              "Consumer forum + Arbitration for B2B: Most legally compliant for mixed user base"],
+                        cons=["Courts only: Slow and expensive, public proceedings",
+                              "Arbitration: Arbitrator fees can be high, limited appeal options",
+                              "Mediation then Arbitration: Adds time if mediation fails"],
                         india_note=(
                             "For consumer-facing platforms, users cannot be denied access "
                             "to consumer forums/courts regardless of arbitration clause. "
@@ -1129,6 +1523,24 @@ def terms_of_service_template() -> dict:
                             "Immediate effect with notification",
                             "Requires active consent",
                         ],
+                        learn_more=(
+                            "This defines how you must inform users when you change the Terms of "
+                            "Service. Giving users adequate notice (ideally 30 days) is both good "
+                            "practice and may be legally required. 'Email notification 30 days "
+                            "before' is the most user-friendly and defensible option. 'Immediate "
+                            "effect with notification' is convenient for the company but may be "
+                            "challenged if changes are material. 'Requires active consent' is the "
+                            "most protective for users but adds operational complexity."
+                        ),
+                        warning_condition={
+                            "value": "Immediate effect with notification",
+                            "message": (
+                                "Making changes effective immediately without a notice period may "
+                                "be considered unfair, especially for paid services. Courts may view "
+                                "this as a unilateral contract modification without reasonable "
+                                "opportunity for users to review and decide."
+                            ),
+                        },
                         common_choice_label="Best practice: Email 30 days before",
                     ),
                     _clause(
@@ -1141,6 +1553,14 @@ def terms_of_service_template() -> dict:
                             "Company can terminate immediately for violation",
                             "Both",
                         ],
+                        learn_more=(
+                            "Termination defines how either party can end the relationship. 'Both' "
+                            "is the most balanced option: users can leave with notice, and you can "
+                            "terminate accounts immediately if users violate the terms. This protects "
+                            "your platform from abusive users while being fair to legitimate ones. "
+                            "Key provisions like IP ownership, confidentiality, and indemnification "
+                            "typically survive termination."
+                        ),
                     ),
                 ],
             },
@@ -1375,36 +1795,77 @@ def offer_letter_template() -> dict:
                         "Candidate Name",
                         "text",
                         "Full name of the candidate",
+                        learn_more=(
+                            "Enter the candidate's full legal name as it appears on their "
+                            "government-issued identity documents. This name will appear on the offer "
+                            "letter and must match the name used for PF registration, Form 16, and "
+                            "other employment records. Using a nickname or shortened name can create "
+                            "compliance issues later."
+                        ),
                     ),
                     _clause(
                         "ol_designation",
                         "Designation",
                         "text",
                         "Job title/designation",
+                        learn_more=(
+                            "The designation is the official job title that will appear on the "
+                            "employee's records, experience letter, and LinkedIn profile. Be thoughtful "
+                            "about titles \u2014 overly senior titles for early employees can create "
+                            "hierarchy problems as the company grows. Common startup titles include "
+                            "Software Engineer, Product Manager, Head of Growth, etc."
+                        ),
                     ),
                     _clause(
                         "ol_department",
                         "Department",
                         "text",
                         "Department",
+                        learn_more=(
+                            "Enter the department or team the candidate will join (e.g., Engineering, "
+                            "Product, Marketing, Operations, Finance). Even if your startup does not "
+                            "have formal departments yet, assigning one helps with organizational "
+                            "clarity and is required for payroll and HR records."
+                        ),
                     ),
                     _clause(
                         "ol_reporting_to",
                         "Reporting To",
                         "text",
                         "Reporting manager name and title",
+                        learn_more=(
+                            "Specify the name and designation of the person this employee will "
+                            "report to (e.g., 'Priya Sharma, CTO'). Clear reporting lines set "
+                            "expectations from day one and prevent ambiguity. In early-stage startups, "
+                            "most employees report directly to a founder."
+                        ),
                     ),
                     _clause(
                         "ol_start_date",
                         "Start Date",
                         "date",
                         "Proposed date of joining",
+                        learn_more=(
+                            "This is the date the candidate is expected to begin working. Allow "
+                            "enough time for the candidate to serve their notice period at their "
+                            "current employer (typically 30-90 days in India). If the candidate does "
+                            "not join by this date without prior communication, the offer may be "
+                            "considered lapsed depending on your offer validity terms."
+                        ),
                     ),
                     _clause(
                         "ol_ctc",
                         "Annual CTC",
                         "number",
                         "Annual CTC (Cost to Company) in INR",
+                        learn_more=(
+                            "CTC (Cost to Company) is the total annual cost your company bears "
+                            "for this employee. It includes basic salary, HRA, special allowances, "
+                            "employer PF contribution (12% of basic), gratuity provision (4.81% of "
+                            "basic), and any insurance premiums. The employee's take-home salary will "
+                            "be lower than CTC after deducting employee PF, professional tax, and "
+                            "income tax (TDS). A detailed CTC breakup is typically shared separately."
+                        ),
                         india_note=(
                             "CTC includes all employer costs: basic salary, HRA, "
                             "allowances, employer PF contribution, gratuity provision, "
@@ -1416,6 +1877,14 @@ def offer_letter_template() -> dict:
                         "Work Location",
                         "text",
                         "Work location",
+                        learn_more=(
+                            "Specify the primary work location (city and office address). If the "
+                            "role is remote, state 'Remote' or 'Work from Home'. For hybrid roles, "
+                            "mention the office location and the expected in-office frequency. The "
+                            "work location affects professional tax applicability, which varies by "
+                            "state (e.g., Maharashtra charges up to \u20b92,500/year, Karnataka up to "
+                            "\u20b92,400/year)."
+                        ),
                     ),
                     _clause(
                         "ol_employment_type",
@@ -1428,6 +1897,21 @@ def offer_letter_template() -> dict:
                             "Part-time",
                             "Intern converting to full-time",
                         ],
+                        learn_more=(
+                            "The employment type determines benefits, notice periods, and legal "
+                            "obligations. Full-time permanent employees get PF, gratuity (after 5 "
+                            "years), and full labor law protections. Full-time contractual employees "
+                            "work for a fixed term and the contract ends on a specified date. "
+                            "Part-time arrangements need clear working hour definitions. Intern "
+                            "conversions should specify the internship end date and full-time start "
+                            "date."
+                        ),
+                        pros=["Full-time permanent: Attracts top talent, full commitment",
+                              "Full-time contractual: Flexibility to end without notice period complications",
+                              "Intern converting: Trial period before full commitment"],
+                        cons=["Full-time permanent: Harder to terminate, full statutory benefits required",
+                              "Full-time contractual: May not attract serious candidates",
+                              "Part-time: Limited commitment, may work for competitors"],
                     ),
                 ],
             },
@@ -1443,6 +1927,14 @@ def offer_letter_template() -> dict:
                         "dropdown",
                         "How long the offer remains valid",
                         options=["7 days", "14 days", "30 days"],
+                        learn_more=(
+                            "Offer validity is the deadline by which the candidate must accept or "
+                            "decline the offer. 14 days is standard and gives the candidate enough "
+                            "time to consider while keeping your hiring pipeline moving. 7 days "
+                            "creates urgency but may pressure candidates. 30 days is generous but "
+                            "could delay your hiring if the candidate declines late. After the "
+                            "validity period, the offer automatically lapses."
+                        ),
                         common_choice_label="Standard: 14 days",
                     ),
                     _clause(
@@ -1451,6 +1943,20 @@ def offer_letter_template() -> dict:
                         "dropdown",
                         "Probation period",
                         options=["No probation", "3 months", "6 months"],
+                        learn_more=(
+                            "The probation period is a trial phase during which either party can "
+                            "end the employment with a shorter notice period (typically 15 days "
+                            "instead of 30-90 days). This gives the company a chance to evaluate "
+                            "the employee's fit before confirming them. During probation, the "
+                            "employee may have fewer benefits. 6 months is standard in India, "
+                            "giving enough time for a fair evaluation."
+                        ),
+                        pros=["No probation: Attracts confident candidates, shows trust",
+                              "3 months: Quick evaluation, shorter uncertainty for employee",
+                              "6 months: Thorough evaluation, industry standard in India"],
+                        cons=["No probation: Harder to let go of poor performers quickly",
+                              "3 months: May not be enough time to fully evaluate",
+                              "6 months: Longer uncertainty may deter some candidates"],
                         common_choice_label="Standard: 6 months",
                     ),
                     _clause(
@@ -1458,6 +1964,14 @@ def offer_letter_template() -> dict:
                         "Background Check",
                         "toggle",
                         "Whether the offer is contingent on background verification",
+                        learn_more=(
+                            "A background check verifies the candidate's educational qualifications, "
+                            "previous employment history, criminal record, and identity. Making the "
+                            "offer contingent on a clean background check protects your company from "
+                            "fraud. If discrepancies are found after joining, the company can revoke "
+                            "the offer or terminate employment. Most background checks in India are "
+                            "done through third-party agencies and take 7-14 days."
+                        ),
                         common_choice_label="Standard: Yes",
                     ),
                     _clause(
@@ -1475,6 +1989,14 @@ def offer_letter_template() -> dict:
                             "Relieving letter from previous employer",
                             "Photos",
                         ],
+                        learn_more=(
+                            "These are the documents the candidate must submit on or before their "
+                            "joining date. PAN card and Aadhaar are mandatory for payroll setup \u2014 "
+                            "PAN for TDS deduction and Aadhaar for EPFO registration. A relieving "
+                            "letter from the previous employer confirms the candidate has been "
+                            "formally released and is not dual-employed. Bank account details are "
+                            "needed for salary credit. Select all documents relevant to the role."
+                        ),
                         india_note=(
                             "Under Payment of Wages Act, employers must collect PAN for "
                             "TDS deduction. Aadhaar is required for PF registration "
@@ -1720,6 +2242,13 @@ def ip_assignment_template() -> dict:
                         "Assignor Name",
                         "text",
                         "Name of the person/entity assigning IP",
+                        learn_more=(
+                            "This is the person or entity transferring their intellectual property "
+                            "rights to the company. For founders, this is critical before fundraising "
+                            "\u2014 investors will verify that all IP has been properly assigned to the "
+                            "company. Use the full legal name matching their government ID or business "
+                            "registration."
+                        ),
                     ),
                     _clause(
                         "ipa_assignor_type",
@@ -1733,18 +2262,42 @@ def ip_assignment_template() -> dict:
                             "Consultant",
                             "Third party",
                         ],
+                        learn_more=(
+                            "The assignor's relationship to the company affects the legal basis for "
+                            "the IP assignment. Founder IP assignments are essential before "
+                            "fundraising \u2014 VCs will insist on this. Employee-created IP typically "
+                            "belongs to the employer under Section 17 of the Copyright Act, but an "
+                            "explicit assignment is still recommended. For contractors and consultants, "
+                            "IP does NOT automatically belong to the company \u2014 an assignment "
+                            "agreement is legally required to transfer ownership."
+                        ),
                     ),
                     _clause(
                         "ipa_company_name",
                         "Company Name",
                         "text",
                         "Name of the company receiving IP",
+                        learn_more=(
+                            "This is the company that will own the IP after the assignment. Use the "
+                            "exact registered company name. If you have multiple entities (e.g., an "
+                            "Indian subsidiary and a holding company), ensure the IP is assigned to "
+                            "the correct entity \u2014 typically the operating entity that actually "
+                            "uses the IP for its business."
+                        ),
                     ),
                     _clause(
                         "ipa_ip_description",
                         "IP Description",
                         "textarea",
                         "Detailed description of the IP being assigned (software code, designs, inventions, trademarks, trade secrets, etc.)",
+                        learn_more=(
+                            "Be as specific and detailed as possible when describing the IP being "
+                            "assigned. Instead of 'software code', say 'source code for the XYZ "
+                            "mobile application built using React Native, including all associated "
+                            "libraries, configurations, and deployment scripts'. Vague descriptions "
+                            "can lead to disputes about what was actually assigned. Include version "
+                            "numbers, repository URLs, or design file names where applicable."
+                        ),
                     ),
                     _clause(
                         "ipa_ip_type",
@@ -1761,6 +2314,14 @@ def ip_assignment_template() -> dict:
                             "Domain names",
                             "Databases",
                         ],
+                        learn_more=(
+                            "Select all categories of intellectual property being transferred. Each "
+                            "type of IP is governed by different laws in India: software and content "
+                            "by the Copyright Act 1957, inventions by the Patents Act 1970, "
+                            "trademarks by the Trade Marks Act 1999, and designs by the Designs Act "
+                            "2000. Selecting the right categories ensures the assignment covers all "
+                            "relevant rights and can be registered with the appropriate authorities."
+                        ),
                     ),
                 ],
             },
@@ -1780,6 +2341,21 @@ def ip_assignment_template() -> dict:
                             "Specific IP only (as described)",
                             "All IP related to company's business",
                         ],
+                        learn_more=(
+                            "The scope defines how broadly the IP assignment reaches. 'All IP "
+                            "created during engagement' is the broadest and most protective for the "
+                            "company \u2014 anything the assignor creates while working for or with the "
+                            "company belongs to the company. 'Specific IP only' is narrower and "
+                            "limited to what you described above. 'All IP related to company's "
+                            "business' is a middle ground that only captures work relevant to your "
+                            "industry. For founders and employees, the broadest scope is recommended."
+                        ),
+                        pros=["All IP during engagement: Maximum protection, no gaps",
+                              "Specific IP only: Clear boundaries, easier to negotiate",
+                              "Related to business: Balanced, assignor keeps unrelated work"],
+                        cons=["All IP during engagement: May discourage side projects, harder to negotiate",
+                              "Specific IP only: Risk of missing future IP not described",
+                              "Related to business: Disputes over what is 'related' to the business"],
                         india_note=(
                             "Under Indian Copyright Act 1957 (Section 18), copyright can "
                             "be assigned wholly or partially. The assignment must be in "
@@ -1804,7 +2380,11 @@ def ip_assignment_template() -> dict:
                             "For the assignment to be legally valid, there must be "
                             "'consideration' (something of value given in return). This "
                             "can be as nominal as \u20b91, or included in existing "
-                            "compensation."
+                            "compensation. For employees and consultants, the most common "
+                            "approach is to include it in their existing fees/salary. For "
+                            "founders, \u20b91 consideration or equity is standard. Ensure the "
+                            "consideration is documented \u2014 without it, the assignment may "
+                            "be challenged as a gift and could be revocable."
                         ),
                         india_note=(
                             "Indian Contract Act requires consideration for a valid "
@@ -1823,6 +2403,16 @@ def ip_assignment_template() -> dict:
                             "Retained by assignor",
                             "Partially waived",
                         ],
+                        learn_more=(
+                            "Moral rights are personal rights of the creator that exist separately "
+                            "from economic rights. They include the right to be credited as the "
+                            "author (right of paternity) and the right to prevent distortion of the "
+                            "work. In India, moral rights under Section 57 of the Copyright Act "
+                            "cannot be fully waived \u2014 the author always retains the right to claim "
+                            "authorship. 'Waived to extent permitted by law' is the standard choice, "
+                            "meaning the assignor agrees not to assert moral rights against the "
+                            "company while retaining the rights the law does not allow them to give up."
+                        ),
                         india_note=(
                             "Under Section 57 of Indian Copyright Act, moral rights "
                             "(right of paternity and right against distortion) cannot be "
@@ -1844,6 +2434,16 @@ def ip_assignment_template() -> dict:
                             "Assignor has authority to assign",
                             "No open-source contamination (for code)",
                         ],
+                        learn_more=(
+                            "Warranties are legally binding promises from the assignor about the "
+                            "quality and ownership of the IP. Selecting 'IP is original work' "
+                            "confirms the assignor actually created it. 'No third-party claims' "
+                            "means nobody else has rights to this IP. 'No open-source contamination' "
+                            "is critical for software \u2014 it confirms the code does not include "
+                            "copyleft-licensed components (like GPL) that could force you to "
+                            "open-source your entire product. Select all that apply for maximum "
+                            "protection."
+                        ),
                     ),
                 ],
             },
@@ -1858,6 +2458,15 @@ def ip_assignment_template() -> dict:
                         "Future Assistance",
                         "toggle",
                         "Whether assignor will assist with patent filings, trademark registrations, etc.",
+                        learn_more=(
+                            "This clause obligates the assignor to help the company with future IP "
+                            "filings, such as signing patent applications or trademark registration "
+                            "documents. This is especially important because IP registrations often "
+                            "happen months or years after the initial assignment. Without this clause, "
+                            "if the assignor becomes unavailable or uncooperative, you may be unable "
+                            "to complete critical filings. The agreement also includes a power of "
+                            "attorney so the company can sign on the assignor's behalf if needed."
+                        ),
                         common_choice_label="Recommended: Yes",
                     ),
                     _clause(
@@ -1872,6 +2481,14 @@ def ip_assignment_template() -> dict:
                             "Tamil Nadu",
                             "Telangana",
                         ],
+                        learn_more=(
+                            "Choose the state whose courts will have jurisdiction over disputes "
+                            "arising from this agreement. This is typically the state where the "
+                            "company is incorporated or has its principal office. IP disputes are "
+                            "handled by District Courts or High Courts in India. Delhi and Mumbai "
+                            "High Courts are generally considered to have the most experience with "
+                            "IP litigation."
+                        ),
                     ),
                 ],
             },
@@ -2057,24 +2674,52 @@ def share_transfer_template() -> dict:
                         "Transferor Name",
                         "text",
                         "Name of the person/entity selling shares",
+                        learn_more=(
+                            "The transferor is the current shareholder who is selling or "
+                            "transferring their shares. Enter the full legal name as it appears "
+                            "on the company's register of members and share certificates. If the "
+                            "transferor is an entity (like an investment fund), use the full "
+                            "registered name of that entity."
+                        ),
                     ),
                     _clause(
                         "sta_transferee_name",
                         "Transferee Name",
                         "text",
                         "Name of the person/entity buying shares",
+                        learn_more=(
+                            "The transferee is the person or entity acquiring the shares. Enter "
+                            "their full legal name. If the transferee is a foreign national or "
+                            "foreign entity, additional FEMA (Foreign Exchange Management Act) "
+                            "compliance may be required, including RBI reporting within 60 days "
+                            "of the transfer."
+                        ),
                     ),
                     _clause(
                         "sta_company_name",
                         "Company Name",
                         "text",
                         "Name of the company whose shares are being transferred",
+                        learn_more=(
+                            "Enter the exact registered name of the company whose shares are being "
+                            "transferred. The company itself is not a party to this transaction "
+                            "but must register the transfer in its books. The company's Articles of "
+                            "Association may contain transfer restrictions that must be complied with "
+                            "before the transfer can be registered."
+                        ),
                     ),
                     _clause(
                         "sta_num_shares",
                         "Number of Shares",
                         "number",
                         "Number of shares being transferred",
+                        learn_more=(
+                            "Enter the exact number of shares being transferred. Verify this "
+                            "against the company's register of members and the transferor's share "
+                            "certificate. You cannot transfer more shares than the transferor holds. "
+                            "Partial transfers are allowed \u2014 the transferor can sell some shares "
+                            "and retain the rest."
+                        ),
                     ),
                     _clause(
                         "sta_share_class",
@@ -2086,12 +2731,38 @@ def share_transfer_template() -> dict:
                             "Preference shares",
                             "Compulsorily Convertible Preference Shares",
                         ],
+                        learn_more=(
+                            "Different classes of shares have different rights and transfer "
+                            "implications. Equity shares are the most common and carry voting rights. "
+                            "Preference shares have priority in dividend payments and liquidation but "
+                            "usually limited voting rights. Compulsorily Convertible Preference "
+                            "Shares (CCPS) are commonly used by investors \u2014 they convert to equity "
+                            "shares on a specified date or event. The transfer restrictions and "
+                            "pricing rules may differ by share class."
+                        ),
                     ),
                     _clause(
                         "sta_price_per_share",
                         "Price Per Share",
                         "number",
                         "Price per share in INR",
+                        learn_more=(
+                            "The price per share should be agreed upon by both parties and should "
+                            "reflect fair market value. For income tax purposes, if shares are "
+                            "transferred below fair market value, the difference may be taxed as "
+                            "income in the hands of the transferee under Section 56(2)(x) of the "
+                            "Income Tax Act. A registered valuer's report is recommended to "
+                            "establish fair value and avoid tax disputes."
+                        ),
+                        warning_condition={
+                            "value": 0,
+                            "message": (
+                                "Transferring shares at zero or nominal value may trigger income "
+                                "tax implications under Section 56(2)(x) of the Income Tax Act. "
+                                "The difference between fair market value and the transfer price "
+                                "can be treated as taxable income. Consult a CA before proceeding."
+                            ),
+                        },
                         india_note=(
                             "For Private Limited companies, share transfer price must "
                             "comply with Section 56 of Companies Act 2013. Stamp duty is "
@@ -2121,12 +2792,39 @@ def share_transfer_template() -> dict:
                             "Gift/inheritance",
                             "Inter-group transfer",
                         ],
+                        learn_more=(
+                            "The reason for transfer affects tax treatment and compliance "
+                            "requirements. Secondary sales between existing shareholders are "
+                            "straightforward. Founder exits may trigger tag-along or drag-along "
+                            "rights in the Shareholders' Agreement. ESOP exercise and sell requires "
+                            "two tax events \u2014 perquisite tax on exercise and capital gains on sale. "
+                            "Gift/inheritance transfers have different stamp duty and tax rules "
+                            "compared to sales."
+                        ),
+                        warning_condition={
+                            "value": "Founder exit",
+                            "message": (
+                                "A founder exit may trigger drag-along, tag-along, or other "
+                                "provisions in your Shareholders' Agreement. Review the SHA "
+                                "carefully and ensure all co-founders and investors are informed "
+                                "and have provided necessary consents."
+                            ),
+                        },
                     ),
                     _clause(
                         "sta_board_approval",
                         "Board Approval",
                         "toggle",
                         "Whether board approval has been obtained",
+                        learn_more=(
+                            "For Private Limited companies in India, share transfers must be "
+                            "approved by the board of directors. This is a legal requirement, not "
+                            "optional. The board has the right to refuse to register a transfer if "
+                            "the Articles of Association give them that power. Obtain board approval "
+                            "via a board resolution before executing the share transfer agreement. "
+                            "Without board approval, the company can legally refuse to register the "
+                            "transfer."
+                        ),
                         india_note=(
                             "For Private Limited companies, Articles of Association "
                             "typically require board approval for share transfers. This "
@@ -2141,10 +2839,13 @@ def share_transfer_template() -> dict:
                         "toggle",
                         "Whether Right of First Refusal (if any) has been complied with",
                         learn_more=(
-                            "If the Shareholders' Agreement has ROFR provisions, "
-                            "existing shareholders must be given the opportunity to buy "
-                            "shares at the proposed price before they can be sold to an "
-                            "outside party."
+                            "If the Shareholders' Agreement has ROFR (Right of First Refusal) "
+                            "provisions, existing shareholders must be given the opportunity to buy "
+                            "the shares at the proposed price before they can be sold to an outside "
+                            "party. ROFR is designed to prevent unwanted third parties from becoming "
+                            "shareholders. The process typically involves sending a written notice to "
+                            "all existing shareholders with the offer details and giving them 15-30 "
+                            "days to respond. Skipping ROFR compliance can make the transfer voidable."
                         ),
                         common_choice_label="If applicable: Yes",
                     ),
@@ -2160,6 +2861,15 @@ def share_transfer_template() -> dict:
                             "Transferor has full authority",
                             "No restriction on transfer violated",
                         ],
+                        learn_more=(
+                            "Representations are legally binding statements of fact made by the "
+                            "transferor. 'Free from encumbrances' means the shares are not pledged "
+                            "or used as collateral for any loan. 'No pending litigation' confirms "
+                            "there are no ongoing lawsuits that could affect ownership. 'All taxes "
+                            "paid' means no outstanding tax liabilities related to the shares. "
+                            "Selecting all representations gives the transferee maximum protection "
+                            "and legal recourse if any statement turns out to be false."
+                        ),
                     ),
                     _clause(
                         "sta_payment_terms",
@@ -2172,6 +2882,21 @@ def share_transfer_template() -> dict:
                             "Payment within 30 days",
                             "Installments",
                         ],
+                        learn_more=(
+                            "Payment terms define when the buyer pays for the shares. 'Full payment "
+                            "on execution' is the safest for the seller \u2014 shares are transferred "
+                            "only after full payment is received. Deferred payment options (7 or 30 "
+                            "days) carry the risk that the buyer may default after the agreement is "
+                            "signed. Installment payments are rare in share transfers and add "
+                            "complexity around when ownership actually transfers. Ensure the payment "
+                            "method is documented (bank transfer, cheque, etc.)."
+                        ),
+                        pros=["Full payment on execution: Zero risk for seller, clean transfer",
+                              "Payment within 7 days: Slight flexibility for buyer to arrange funds",
+                              "Payment within 30 days: More time for larger transactions"],
+                        cons=["Full payment on execution: Buyer must have funds ready immediately",
+                              "Deferred payment: Risk of buyer default after agreement signing",
+                              "Installments: Complex ownership transfer, escrow may be needed"],
                         common_choice_label="Standard: Full payment on execution",
                     ),
                 ],
@@ -2187,6 +2912,14 @@ def share_transfer_template() -> dict:
                         "Stamp Duty",
                         "toggle",
                         "Whether stamp duty will be paid by transferee",
+                        learn_more=(
+                            "Stamp duty is a government tax on the share transfer transaction. "
+                            "In India, it is 0.25% of the consideration amount or fair market value, "
+                            "whichever is higher. By convention, the buyer (transferee) pays the "
+                            "stamp duty. Stamp duty must be paid before or at the time of execution "
+                            "of the share transfer instrument. Unstamped or insufficiently stamped "
+                            "documents are not admissible as evidence in court."
+                        ),
                         india_note=(
                             "Share transfer stamp duty is 0.25% of the consideration "
                             "amount under Indian Stamp Act. This is typically paid by "
@@ -2207,6 +2940,14 @@ def share_transfer_template() -> dict:
                             "Tamil Nadu",
                             "Telangana",
                         ],
+                        learn_more=(
+                            "Choose the state whose laws and courts will govern this share transfer "
+                            "agreement. This should typically match the state where the company is "
+                            "registered. Disputes will be resolved through arbitration in this state "
+                            "under the Arbitration and Conciliation Act, 1996. Stamp duty rates are "
+                            "generally uniform for share transfers across states (0.25%), but it is "
+                            "good practice to align governing law with the company's registered state."
+                        ),
                     ),
                 ],
             },

@@ -19,6 +19,7 @@ import {
   getPendingMinutes,
 } from "@/lib/api";
 import NotificationBell from "@/components/notification-bell";
+import Footer from "@/components/footer";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -261,7 +262,7 @@ export default function MeetingsPage() {
   if (authLoading || (loading && meetings.length === 0)) {
     return (
       <div className="min-h-screen flex items-center justify-center glow-bg">
-        <div className="animate-pulse-glow w-16 h-16 rounded-full bg-purple-500/20 flex items-center justify-center">
+        <div className="animate-pulse-glow w-16 h-16 rounded-full flex items-center justify-center" style={{ background: "rgba(139, 92, 246, 0.2)" }}>
           <span className="text-2xl">&#9889;</span>
         </div>
       </div>
@@ -275,7 +276,8 @@ export default function MeetingsPage() {
     return (
       <div
         key={meeting.id}
-        className="p-4 rounded-lg border border-gray-800 bg-gray-900/30 hover:border-purple-500/30 transition-colors cursor-pointer"
+        className="p-4 rounded-lg border hover:border-purple-500/30 transition-colors cursor-pointer"
+        style={{ borderColor: "var(--color-border)", background: "var(--color-bg-secondary)" }}
         onClick={() => handleViewDetail(meeting)}
       >
         <div className="flex items-start justify-between mb-3">
@@ -293,7 +295,7 @@ export default function MeetingsPage() {
             </span>
           )}
         </div>
-        <h4 className="text-sm font-semibold text-white mb-1">{meeting.title}</h4>
+        <h4 className="text-sm font-semibold mb-1" style={{ color: "var(--color-text-primary)" }}>{meeting.title}</h4>
         <div className="flex items-center gap-3 text-xs" style={{ color: "var(--color-text-muted)" }}>
           <span>
             {new Date(meeting.date).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
@@ -425,18 +427,18 @@ export default function MeetingsPage() {
               </div>
               <div className="glass-card p-5" style={{ cursor: "default" }}>
                 <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Minutes Pending</p>
-                <p className="text-3xl font-bold mt-2 text-amber-400">{pendingCount}</p>
+                <p className="text-3xl font-bold mt-2" style={{ color: "var(--color-warning)" }}>{pendingCount}</p>
               </div>
               <div className="glass-card p-5" style={{ cursor: "default" }}>
                 <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Completed</p>
-                <p className="text-3xl font-bold mt-2 text-emerald-400">{completedCount}</p>
+                <p className="text-3xl font-bold mt-2" style={{ color: "var(--color-success)" }}>{completedCount}</p>
               </div>
             </div>
 
             {/* Compliance warnings */}
             {pendingCount > 0 && (
               <div className="p-4 rounded-lg border border-amber-500/30 bg-amber-500/5 mb-6 animate-fade-in-up" style={{ animationDelay: "0.15s" }}>
-                <p className="text-xs text-amber-400">
+                <p className="text-xs" style={{ color: "var(--color-warning)" }}>
                   <span className="font-semibold">Warning:</span> Minutes must be signed within 30 days of the meeting. You have {pendingCount} meeting(s) with unsigned minutes.
                 </p>
               </div>
@@ -625,8 +627,8 @@ export default function MeetingsPage() {
                   </button>
                   <button
                     onClick={() => { setShowScheduleForm(false); resetScheduleForm(); }}
-                    className="text-sm px-4 py-2 rounded-lg border border-gray-700 hover:bg-white/5 transition-colors"
-                    style={{ color: "var(--color-text-secondary)" }}
+                    className="text-sm px-4 py-2 rounded-lg border transition-colors"
+                    style={{ color: "var(--color-text-secondary)", borderColor: "var(--color-border)" }}
                   >
                     Cancel
                   </button>
@@ -643,7 +645,7 @@ export default function MeetingsPage() {
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     activeTab === tab
                       ? "bg-purple-500/20 text-purple-400 border border-purple-500/30"
-                      : "hover:bg-white/5"
+                      : ""
                   }`}
                   style={activeTab !== tab ? { color: "var(--color-text-secondary)" } : {}}
                 >
@@ -689,7 +691,7 @@ export default function MeetingsPage() {
                   {pendingMinutes.length === 0 ? (
                     <div className="glass-card p-12 text-center" style={{ cursor: "default" }}>
                       <div className="text-4xl mb-3">&#10003;</div>
-                      <p className="text-sm text-emerald-400 font-semibold">All minutes are signed. No pending items.</p>
+                      <p className="text-sm font-semibold" style={{ color: "var(--color-success)" }}>All minutes are signed. No pending items.</p>
                     </div>
                   ) : (
                     pendingMinutes.map(renderMeetingCard)
@@ -723,7 +725,7 @@ export default function MeetingsPage() {
                   </div>
                   <button
                     onClick={() => setSelectedMeeting(null)}
-                    className="text-xs text-gray-400 hover:text-white transition-colors"
+                    className="text-xs transition-colors" style={{ color: "var(--color-text-secondary)" }}
                   >
                     Close
                   </button>
@@ -735,7 +737,7 @@ export default function MeetingsPage() {
                     <h4 className="text-sm font-semibold mb-3">Agenda</h4>
                     <div className="space-y-2">
                       {selectedMeeting.agenda_items.map((item: any, i: number) => (
-                        <div key={i} className="flex gap-3 p-3 rounded-lg border border-gray-800 bg-gray-900/30">
+                        <div key={i} className="flex gap-3 p-3 rounded-lg border" style={{ borderColor: "var(--color-border)", background: "var(--color-bg-secondary)" }}>
                           <span className="text-xs font-mono text-purple-400 shrink-0">{item.order || i + 1}.</span>
                           <p className="text-sm">{item.text || item.description || item}</p>
                         </div>
@@ -750,9 +752,9 @@ export default function MeetingsPage() {
                     <h4 className="text-sm font-semibold mb-3">Attendees</h4>
                     <div className="flex flex-wrap gap-2">
                       {selectedMeeting.attendees.map((att: any, i: number) => (
-                        <span key={i} className="text-xs px-3 py-1.5 rounded-full border border-gray-700 bg-gray-800/50">
+                        <span key={i} className="text-xs px-3 py-1.5 rounded-full border" style={{ borderColor: "var(--color-border)", background: "var(--color-border-light)" }}>
                           {att.name || att}
-                          {att.din && <span className="text-gray-500 ml-1">(DIN: {att.din})</span>}
+                          {att.din && <span className="ml-1" style={{ color: "var(--color-text-muted)" }}>(DIN: {att.din})</span>}
                         </span>
                       ))}
                     </div>
@@ -786,7 +788,8 @@ export default function MeetingsPage() {
                       )}
                     </div>
                     <div
-                      className="p-4 rounded-lg border border-gray-800 bg-gray-900/30 prose prose-invert prose-sm max-w-none"
+                      className="p-4 rounded-lg border prose prose-invert prose-sm max-w-none"
+                      style={{ borderColor: "var(--color-border)", background: "var(--color-bg-secondary)" }}
                       dangerouslySetInnerHTML={{ __html: selectedMeeting.minutes_html }}
                     />
                   </div>
@@ -827,6 +830,7 @@ export default function MeetingsPage() {
           </>
         )}
       </div>
+      <Footer />
     </div>
   );
 }

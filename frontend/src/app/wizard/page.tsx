@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { WizardResponse } from "@/lib/api";
+import Footer from "@/components/footer";
 
 interface WizardStep {
   question: string;
@@ -331,6 +332,7 @@ export default function WizardPage() {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   );
 }

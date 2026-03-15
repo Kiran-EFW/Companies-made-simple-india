@@ -140,18 +140,37 @@ def freelancer_agreement_template() -> dict:
                         "Freelancer Name",
                         "text",
                         "Full legal name of the freelancer/independent contractor",
+                        learn_more=(
+                            "Enter the freelancer's full legal name as it appears on their PAN card or Aadhaar. "
+                            "This is important because TDS certificates (Form 16A) will be issued in this name. "
+                            "If the freelancer operates through a company or LLP, use the entity name instead — "
+                            "this changes the TDS rate and compliance requirements."
+                        ),
                     ),
                     _clause(
                         "fa_freelancer_address",
                         "Freelancer Address",
                         "textarea",
                         "Complete address of the freelancer",
+                        learn_more=(
+                            "The freelancer's address is used for formal notices and determining GST applicability. "
+                            "If the freelancer is based in a different state than your company, inter-state GST "
+                            "(IGST) applies instead of CGST+SGST. This address also helps establish that the "
+                            "freelancer works independently from their own premises, supporting the contractor "
+                            "(not employee) classification."
+                        ),
                     ),
                     _clause(
                         "fa_company_name",
                         "Company Name",
                         "text",
                         "Name of the engaging company",
+                        learn_more=(
+                            "This is the company hiring the freelancer. Use your exact legal name as registered "
+                            "with MCA. The company is responsible for deducting TDS on payments to the freelancer "
+                            "and issuing TDS certificates. The company is the 'client' in this agreement and "
+                            "typically receives the work product and IP upon completion."
+                        ),
                     ),
                     _clause(
                         "fa_scope_of_work",
@@ -181,6 +200,13 @@ def freelancer_agreement_template() -> dict:
                         "Start Date",
                         "date",
                         "Date when the engagement begins",
+                        learn_more=(
+                            "The start date is when the freelancer begins work and obligations under this "
+                            "agreement take effect. IP assignment, confidentiality, and payment terms all "
+                            "commence from this date. Ensure the agreement is signed before or on this date — "
+                            "work done before the agreement is signed may not be covered by IP assignment and "
+                            "confidentiality clauses."
+                        ),
                     ),
                     _clause(
                         "fa_end_date",
@@ -188,6 +214,15 @@ def freelancer_agreement_template() -> dict:
                         "date",
                         "Expected completion date of the engagement",
                         required=False,
+                        learn_more=(
+                            "Setting a clear end date is critical for freelancer engagements. Without it, the "
+                            "relationship may be treated as an ongoing employment relationship by Indian labour "
+                            "authorities, which exposes you to PF, ESI, and other statutory obligations. Even "
+                            "for ongoing work, set a project-based end date and renew the agreement for each "
+                            "new phase. A common founder mistake is leaving this open-ended."
+                        ),
+                        warning="Open-ended engagements may be reclassified as employment.",
+                        warning_condition={"fa_end_date": {"eq": ""}},
                         india_note=(
                             "An open-ended engagement without a defined end date may "
                             "be construed as an employer-employee relationship by "
@@ -200,6 +235,14 @@ def freelancer_agreement_template() -> dict:
                         "textarea",
                         "Key milestones and their deadlines (one per line)",
                         required=False,
+                        learn_more=(
+                            "Milestones break the project into measurable checkpoints with deadlines. They help "
+                            "track progress and are especially useful when payments are tied to deliverables. "
+                            "Each milestone should have a clear description, expected date, and acceptance "
+                            "criteria. For example: 'UI wireframes delivery - 15 days from start' or "
+                            "'Backend API integration - 30 days from start'. Milestones also help if you need "
+                            "to terminate for non-performance."
+                        ),
                     ),
                 ],
             },
@@ -234,6 +277,13 @@ def freelancer_agreement_template() -> dict:
                         "Fee Amount (INR)",
                         "number",
                         "Total fee or rate in INR (based on fee structure selected)",
+                        learn_more=(
+                            "Enter the total project fee, hourly rate, or monthly retainer amount depending "
+                            "on the fee structure selected. The freelancer will receive this amount minus TDS "
+                            "(typically 10% under Section 194J for professional fees exceeding INR 30,000/year). "
+                            "Make sure the freelancer understands the net payment after TDS. The company must "
+                            "issue a TDS certificate (Form 16A) quarterly."
+                        ),
                         india_note=(
                             "TDS at 10% is applicable under Section 194J of the "
                             "Income Tax Act for professional/technical fees exceeding "
@@ -253,6 +303,16 @@ def freelancer_agreement_template() -> dict:
                             "Monthly invoicing (Net 30)",
                             "Milestone-based (as agreed)",
                         ],
+                        learn_more=(
+                            "Payment terms define when the freelancer gets paid. '100% on completion' is "
+                            "riskiest for the freelancer and may deter good talent. '50% advance, 50% on "
+                            "completion' is the most common for project-based work — it protects both parties. "
+                            "Monthly invoicing suits ongoing retainer engagements. Milestone-based payments "
+                            "align with project progress and are ideal for longer projects. Freelancers "
+                            "commonly request some advance to cover their expenses."
+                        ),
+                        pros=["Advance payment: Attracts better freelancers", "Milestone-based: Aligned incentives"],
+                        cons=["100% advance: Risk if freelancer underdelivers", "100% on completion: May deter top talent"],
                         common_choice_label="Common: 50% advance, 50% on completion",
                     ),
                     _clause(
@@ -300,6 +360,14 @@ def freelancer_agreement_template() -> dict:
                         "Non-Compete Clause",
                         "toggle",
                         "Whether to include restrictions on working with competitors",
+                        learn_more=(
+                            "A non-compete clause prevents the freelancer from working with your competitors. "
+                            "In India, non-compete clauses are generally unenforceable under Section 27 of the "
+                            "Indian Contract Act, 1872, which voids agreements that restrain trade. Instead, "
+                            "consider using a non-solicitation clause (preventing the freelancer from soliciting "
+                            "your clients/employees) which is more enforceable. The toggle here will include "
+                            "a limited non-solicitation provision during the term of the agreement."
+                        ),
                         india_note=(
                             "Non-compete clauses are largely unenforceable in India "
                             "under Section 27 of the Indian Contract Act, 1872, "
@@ -321,6 +389,14 @@ def freelancer_agreement_template() -> dict:
                             "30 days written notice",
                             "Immediate termination for cause",
                         ],
+                        learn_more=(
+                            "The termination notice period defines how much advance notice is required to end "
+                            "the engagement. Fifteen days is standard and gives both parties time to wrap up. "
+                            "'Immediate termination for cause' should always be available as an additional "
+                            "right — it applies when there is a material breach, fraud, or misconduct. "
+                            "The freelancer should be paid for work completed up to the termination date "
+                            "regardless of who terminates."
+                        ),
                         common_choice_label="Standard: 15 days written notice",
                     ),
                     _clause(
@@ -328,6 +404,13 @@ def freelancer_agreement_template() -> dict:
                         "Governing Law (State)",
                         "text",
                         "Indian state whose courts will have jurisdiction",
+                        learn_more=(
+                            "Enter the Indian state whose laws and courts will govern this agreement. "
+                            "Typically, this is the state where your company is registered. If the freelancer "
+                            "is in a different state, there could be a dispute about jurisdiction — specifying "
+                            "it here resolves that upfront. Common choices are Karnataka, Maharashtra, Delhi, "
+                            "or Tamil Nadu depending on where the company operates."
+                        ),
                         india_note=(
                             "Freelancer agreements are governed by the Indian "
                             "Contract Act, 1872. GST registration is required for "
@@ -581,6 +664,12 @@ def internship_agreement_template() -> dict:
                         "Intern Name",
                         "text",
                         "Full name of the intern",
+                        learn_more=(
+                            "Enter the intern's full legal name. If the intern is a minor (under 18), the "
+                            "agreement should ideally be co-signed by a parent or guardian. For student interns, "
+                            "the name should match their institution's records to facilitate academic credit "
+                            "and certificate verification."
+                        ),
                     ),
                     _clause(
                         "ia_intern_institution",
@@ -599,18 +688,35 @@ def internship_agreement_template() -> dict:
                         "Company Name",
                         "text",
                         "Name of the company offering the internship",
+                        learn_more=(
+                            "Use your company's registered legal name. This name will appear on the internship "
+                            "certificate and any letter of recommendation. For campus recruiting, colleges may "
+                            "verify your company's existence through MCA records, so accuracy is important."
+                        ),
                     ),
                     _clause(
                         "ia_department",
                         "Department",
                         "text",
                         "Department where the intern will work",
+                        learn_more=(
+                            "Specifying the department helps define the internship scope and ensures the intern's "
+                            "work aligns with their learning objectives. It also helps if the institution requires "
+                            "proof that the internship is relevant to the student's field of study. Common examples: "
+                            "Engineering, Marketing, Product, Design, Finance, Operations."
+                        ),
                     ),
                     _clause(
                         "ia_mentor_name",
                         "Mentor/Supervisor Name",
                         "text",
                         "Name of the assigned mentor or supervisor",
+                        learn_more=(
+                            "The mentor or supervisor is responsible for guiding the intern, assigning tasks, "
+                            "and providing feedback. Colleges often require a supervisor's name for their records "
+                            "and may contact them for evaluation. Choose someone with bandwidth to mentor — "
+                            "a busy founder or CTO may not be the best choice for day-to-day guidance."
+                        ),
                     ),
                     _clause(
                         "ia_duration",
@@ -642,6 +748,12 @@ def internship_agreement_template() -> dict:
                         "Start Date",
                         "date",
                         "Date when the internship begins",
+                        learn_more=(
+                            "The start date is when the intern formally joins. The internship duration runs "
+                            "from this date. For student internships, align this with the institution's academic "
+                            "calendar to avoid conflicts. The stipend (if applicable) is calculated from this "
+                            "date. Ensure the agreement is signed before or on the start date."
+                        ),
                     ),
                     _clause(
                         "ia_stipend",
@@ -673,6 +785,13 @@ def internship_agreement_template() -> dict:
                             "8 hours/day (full-time)",
                             "Flexible hours",
                         ],
+                        learn_more=(
+                            "Working hours should be appropriate for the internship nature. Full-time (8 hours) "
+                            "is standard for dedicated internships. Part-time (4-6 hours) suits students who "
+                            "are attending classes simultaneously. Flexible hours work well for remote internships. "
+                            "If you set full-time hours, the distinction between intern and employee becomes "
+                            "thinner — ensure the role is genuinely educational, not just cheap labour."
+                        ),
                         common_choice_label="Standard: 8 hours/day (full-time)",
                     ),
                 ],
@@ -711,6 +830,14 @@ def internship_agreement_template() -> dict:
                         "Confidentiality",
                         "toggle",
                         "Whether the intern is bound by confidentiality obligations",
+                        learn_more=(
+                            "Confidentiality obligations prevent the intern from disclosing your proprietary "
+                            "information, code, business plans, and client data. This is especially important "
+                            "for startups sharing sensitive IP with interns. Even if the intern is from a "
+                            "trusted institution, always enable this — interns may unknowingly share information "
+                            "with peers or mention it in academic reports. The obligation typically survives "
+                            "the end of the internship."
+                        ),
                         common_choice_label="Recommended: Yes",
                     ),
                     _clause(
@@ -748,6 +875,15 @@ def internship_agreement_template() -> dict:
                             "Group health insurance",
                             "Both accident and health insurance",
                         ],
+                        learn_more=(
+                            "Since interns are not covered by ESI or workmen's compensation, they have no "
+                            "statutory safety net if they are injured at the workplace. Providing at least "
+                            "group personal accident insurance is recommended, especially for on-site or "
+                            "factory-based internships. Health insurance is a nice-to-have but adds cost. "
+                            "Some institutions require proof of insurance before approving the internship."
+                        ),
+                        pros=["Shows duty of care", "Covers liability for workplace accidents"],
+                        cons=["Additional cost for the company", "Administrative overhead"],
                         india_note=(
                             "Interns are typically not covered under ESI or workmen's "
                             "compensation. Providing basic accident insurance is "
@@ -765,6 +901,14 @@ def internship_agreement_template() -> dict:
                             "7 days written notice",
                             "15 days written notice",
                         ],
+                        learn_more=(
+                            "The termination notice period gives both parties time to prepare for the end of "
+                            "the internship. Seven days is standard for internships. Immediate termination "
+                            "should be reserved for cause (misconduct, breach of confidentiality). If a "
+                            "student intern leaves abruptly, it may affect their academic standing — a short "
+                            "notice period helps manage this. The company should always be able to terminate "
+                            "immediately for serious violations."
+                        ),
                         common_choice_label="Standard: 7 days written notice",
                     ),
                     _clause(
@@ -772,6 +916,13 @@ def internship_agreement_template() -> dict:
                         "Code of Conduct Applicable",
                         "toggle",
                         "Whether the company's code of conduct applies to the intern",
+                        learn_more=(
+                            "Applying the company's code of conduct to interns sets clear expectations about "
+                            "workplace behaviour, dress code, attendance, harassment policies, and data handling. "
+                            "This is especially important for POSH compliance, as the POSH Act applies to all "
+                            "persons at the workplace including interns. Enabling this protects both the company "
+                            "and the intern by establishing shared ground rules."
+                        ),
                         common_choice_label="Recommended: Yes",
                     ),
                     _clause(
@@ -779,6 +930,13 @@ def internship_agreement_template() -> dict:
                         "Governing Law (State)",
                         "text",
                         "Indian state whose courts will have jurisdiction",
+                        learn_more=(
+                            "Enter the Indian state where your company is registered. This determines which "
+                            "state's courts will handle any disputes arising from the internship. Since "
+                            "internship disputes rarely go to court, this is primarily a precautionary clause. "
+                            "However, it also determines which state's labour laws interpretations may apply "
+                            "if the internship is ever challenged as disguised employment."
+                        ),
                     ),
                 ],
             },
@@ -1020,12 +1178,24 @@ def letter_of_intent_template() -> dict:
                         "Party A (Proposer)",
                         "text",
                         "Name of the party proposing the transaction",
+                        learn_more=(
+                            "Party A is the entity initiating the transaction — the one making the offer or "
+                            "proposal. This could be an investor proposing a funding deal, a company proposing "
+                            "a merger, or a buyer proposing an acquisition. Use the exact legal name of the "
+                            "entity as the LOI may be referenced in the subsequent definitive agreement."
+                        ),
                     ),
                     _clause(
                         "loi_party_b_name",
                         "Party B (Recipient)",
                         "text",
                         "Name of the party receiving the proposal",
+                        learn_more=(
+                            "Party B is the entity receiving the proposal — the target company in an M&A deal, "
+                            "the startup receiving an investment offer, or the partner in a joint venture. "
+                            "Both parties should review the LOI carefully even though it may be non-binding, "
+                            "as it sets the framework for subsequent negotiations."
+                        ),
                     ),
                     _clause(
                         "loi_purpose",
@@ -1060,6 +1230,13 @@ def letter_of_intent_template() -> dict:
                         "Transaction Description",
                         "textarea",
                         "Brief description of the proposed transaction",
+                        learn_more=(
+                            "Describe the transaction at a high level — what is being proposed, why, and "
+                            "the expected outcome. For example: 'Series A equity investment of INR 5 Cr in "
+                            "exchange for 15% equity stake' or 'Acquisition of 100% shares of Company B by "
+                            "Company A'. This description sets expectations and helps both parties align on "
+                            "the fundamental nature of the deal before investing in detailed negotiations."
+                        ),
                     ),
                     _clause(
                         "loi_key_terms",
@@ -1083,6 +1260,14 @@ def letter_of_intent_template() -> dict:
                             "60 days exclusivity",
                             "90 days exclusivity",
                         ],
+                        learn_more=(
+                            "Exclusivity prevents the recipient from negotiating with other parties during "
+                            "the specified period. This is a binding clause even in an otherwise non-binding "
+                            "LOI. As a proposer (investor or buyer), exclusivity protects your time and money "
+                            "spent on due diligence. As a recipient (startup), granting exclusivity reduces "
+                            "your leverage, so negotiate a shorter period. If you choose 'No exclusivity', "
+                            "the recipient is free to entertain competing offers simultaneously."
+                        ),
                         pros=[
                             "Protects proposer's investment in due diligence",
                             "Shows serious commitment from both sides",
@@ -1099,6 +1284,13 @@ def letter_of_intent_template() -> dict:
                         "number",
                         "Estimated value of the proposed transaction in INR",
                         required=False,
+                        learn_more=(
+                            "The proposed transaction value gives a ballpark figure for the deal size. It is "
+                            "typically subject to adjustment after due diligence. For investment deals, this "
+                            "is the proposed investment amount. For M&A, this is the enterprise value or "
+                            "purchase price. Including a value helps set expectations but remember — since "
+                            "the LOI is usually non-binding, this value can change during negotiations."
+                        ),
                     ),
                 ],
             },
@@ -1141,6 +1333,14 @@ def letter_of_intent_template() -> dict:
                             "60 days",
                             "90 days",
                         ],
+                        learn_more=(
+                            "The due diligence period is the time the proposer gets to investigate the target's "
+                            "financials, legal compliance, contracts, IP, and operations. Thirty days is standard "
+                            "for smaller deals. Complex M&A transactions may need 60-90 days. For the recipient, "
+                            "prepare a virtual data room with organized documents before this period begins "
+                            "to speed things up. A common mistake is underestimating the time needed, leading "
+                            "to extensions and deal fatigue."
+                        ),
                         common_choice_label="Common: 30 days",
                     ),
                     _clause(
@@ -1174,6 +1374,15 @@ def letter_of_intent_template() -> dict:
                         "Confidentiality (Binding)",
                         "toggle",
                         "Whether the confidentiality clause is binding regardless of the LOI's overall binding nature",
+                        learn_more=(
+                            "Confidentiality in an LOI protects sensitive information exchanged during "
+                            "negotiations and due diligence. Even if the LOI is otherwise non-binding, the "
+                            "confidentiality clause should always be binding. Without it, the recipient could "
+                            "share your financial data, business plans, or proprietary information with "
+                            "competitors or other potential partners. This should almost always be enabled."
+                        ),
+                        warning="Disabling confidentiality means shared information has no protection.",
+                        warning_condition={"loi_confidentiality": {"eq": False}},
                         common_choice_label="Recommended: Yes",
                     ),
                     _clause(
@@ -1181,6 +1390,13 @@ def letter_of_intent_template() -> dict:
                         "LOI Expiry Date",
                         "date",
                         "Date by which the definitive agreement must be signed, or the LOI lapses",
+                        learn_more=(
+                            "The expiry date creates urgency and prevents the LOI from hanging indefinitely. "
+                            "After this date, the LOI lapses and neither party has any obligation to proceed "
+                            "(except surviving clauses like confidentiality). Set a realistic date that allows "
+                            "sufficient time for due diligence and negotiation of the definitive agreement. "
+                            "Typically 60-90 days from signing the LOI. Extensions can be agreed mutually."
+                        ),
                     ),
                     _clause(
                         "loi_costs",
@@ -1192,6 +1408,14 @@ def letter_of_intent_template() -> dict:
                             "Costs shared equally",
                             "Proposer bears all costs",
                         ],
+                        learn_more=(
+                            "Transaction costs include legal fees, accounting/audit fees, due diligence "
+                            "expenses, and valuation costs. 'Each party bears its own costs' is the standard "
+                            "approach and is fairest. 'Costs shared equally' works when both parties equally "
+                            "benefit from the transaction. 'Proposer bears all costs' may apply when the "
+                            "proposer is eager and the recipient is being courted. If the deal falls through, "
+                            "each party typically absorbs their own costs regardless."
+                        ),
                         common_choice_label="Standard: Each party bears its own costs",
                     ),
                     _clause(
@@ -1204,6 +1428,14 @@ def letter_of_intent_template() -> dict:
                             "Mediation followed by arbitration",
                             "Courts only",
                         ],
+                        learn_more=(
+                            "Dispute resolution for an LOI is particularly relevant for the binding clauses "
+                            "(confidentiality, exclusivity). Arbitration is faster and more private than "
+                            "Indian courts. Mediation followed by arbitration encourages settlement first. "
+                            "Courts should be a last resort due to the Indian judicial system's backlog. "
+                            "This clause also survives the LOI's expiry for any disputes that arise from "
+                            "the binding sections."
+                        ),
                         common_choice_label="Standard: Arbitration",
                     ),
                     _clause(
@@ -1211,6 +1443,13 @@ def letter_of_intent_template() -> dict:
                         "Governing Law (State)",
                         "text",
                         "Indian state whose laws will govern this LOI",
+                        learn_more=(
+                            "The governing law state determines which state's laws interpret the LOI and where "
+                            "disputes are resolved. This is a binding clause that survives even in an otherwise "
+                            "non-binding LOI. Choose the state where the proposer or the transaction's primary "
+                            "activity is located. For cross-border deals, Indian law typically governs if the "
+                            "target company is Indian."
+                        ),
                     ),
                 ],
             },
@@ -1425,6 +1664,12 @@ def power_of_attorney_template() -> dict:
                         "Principal Address",
                         "textarea",
                         "Complete address of the principal",
+                        learn_more=(
+                            "The principal's address is important for identification and is required for stamp "
+                            "duty calculation and registration. If the POA involves immovable property, this "
+                            "address helps determine the applicable sub-registrar's office. Enter the complete "
+                            "address including city, state, and PIN code."
+                        ),
                     ),
                     _clause(
                         "poa_agent_name",
@@ -1443,6 +1688,13 @@ def power_of_attorney_template() -> dict:
                         "Agent Address",
                         "textarea",
                         "Complete address of the agent",
+                        learn_more=(
+                            "The agent's complete address is needed for identification and to serve any "
+                            "notices related to the POA. Third parties dealing with the agent may verify "
+                            "this address. If the agent is in a different city from the principal, consider "
+                            "the practical implications of the agent executing documents or appearing at "
+                            "offices in the principal's location."
+                        ),
                     ),
                     _clause(
                         "poa_type",
@@ -1487,6 +1739,15 @@ def power_of_attorney_template() -> dict:
                             "Appear before tax authorities",
                             "Handle regulatory compliance and filings",
                         ],
+                        learn_more=(
+                            "Select only the specific powers the agent needs. Granting too many powers creates "
+                            "risk of misuse. For a Special POA, select only what is necessary for the specific "
+                            "task. For example, if the POA is only for filing GST returns, select 'Appear before "
+                            "tax authorities' and 'File applications with government authorities' only. Bank "
+                            "account operation and property powers carry the highest risk and should only be "
+                            "granted to highly trusted individuals. Property transactions through POA require "
+                            "registration under the Registration Act, 1908."
+                        ),
                         india_note=(
                             "For immovable property transactions, the POA must be "
                             "registered under Section 33 of the Registration Act, "
@@ -1503,6 +1764,13 @@ def power_of_attorney_template() -> dict:
                         "Detailed description of the specific purpose or transaction for which the POA is granted",
                         required=False,
                         depends_on="poa_type",
+                        learn_more=(
+                            "For a Special POA, clearly describe the specific transaction or purpose. Be as "
+                            "detailed as possible — for example: 'To execute the sale deed for property at "
+                            "Survey No. 123, Village X, District Y on behalf of the principal' or 'To represent "
+                            "the principal before the GST authorities in Appeal No. XYZ'. A vague purpose "
+                            "defeats the security advantage of a Special POA."
+                        ),
                     ),
                 ],
             },
@@ -1539,6 +1807,13 @@ def power_of_attorney_template() -> dict:
                         "Specific date on which the POA expires",
                         required=False,
                         depends_on="poa_duration",
+                        learn_more=(
+                            "Setting a specific expiry date is safer than open-ended or 'until revoked' POAs. "
+                            "After this date, the POA automatically becomes invalid and the agent can no longer "
+                            "act. This prevents the POA from being used indefinitely if the principal forgets "
+                            "to revoke it. Banks and government offices may check the expiry date before "
+                            "accepting actions under the POA."
+                        ),
                     ),
                     _clause(
                         "poa_revocation",
@@ -1588,6 +1863,14 @@ def power_of_attorney_template() -> dict:
                             "Reasonable expenses reimbursed",
                             "Fee plus expenses",
                         ],
+                        learn_more=(
+                            "Gratuitous (no compensation) POAs are common when the agent is a family member "
+                            "or trusted associate. Professional agents or lawyers typically charge a fixed fee "
+                            "or fee plus expenses. Even in a gratuitous POA, the principal should reimburse "
+                            "reasonable expenses (travel, filing fees, notarization costs) incurred by the "
+                            "agent while performing duties. Under Section 222 of the Indian Contract Act, the "
+                            "principal is bound to indemnify the agent for expenses properly incurred."
+                        ),
                         common_choice_label="Common: Reasonable expenses reimbursed",
                     ),
                     _clause(
@@ -1608,6 +1891,13 @@ def power_of_attorney_template() -> dict:
                         "Registration Required",
                         "toggle",
                         "Whether this POA needs to be registered with the Sub-Registrar",
+                        learn_more=(
+                            "Registration is the process of recording the POA with the Sub-Registrar of "
+                            "Assurances in the relevant district. This is MANDATORY for POAs involving "
+                            "immovable property (buying, selling, or leasing land/buildings). For other POAs, "
+                            "notarization is usually sufficient but registration adds an extra layer of "
+                            "authenticity. Registration involves stamp duty costs that vary by state."
+                        ),
                         india_note=(
                             "Registration is mandatory for POAs relating to immovable "
                             "property (Section 33, Registration Act, 1908). For other "
@@ -1622,6 +1912,14 @@ def power_of_attorney_template() -> dict:
                         "Governing Law (State)",
                         "text",
                         "Indian state whose laws and stamp duty rates apply",
+                        learn_more=(
+                            "The governing law state is crucial for POAs because stamp duty rates vary "
+                            "significantly between Indian states. For example, stamp duty for a General POA "
+                            "in Maharashtra is different from Karnataka or Delhi. The POA should be stamped "
+                            "and notarized/registered in the state where it will be primarily used. If the "
+                            "principal and agent are in different states, use the state where the agent will "
+                            "exercise the powers."
+                        ),
                     ),
                 ],
             },
@@ -1868,24 +2166,50 @@ def legal_notice_template() -> dict:
                         "Sender (Complainant)",
                         "text",
                         "Full name of the sender/complainant",
+                        learn_more=(
+                            "The sender is the person or entity with the grievance. Use your full legal name "
+                            "or your company's registered name. If sending through an advocate, the advocate "
+                            "sends 'on behalf of' the sender. The sender's identity establishes standing "
+                            "(locus standi) — only the aggrieved party or their authorized representative can "
+                            "send a legal notice."
+                        ),
                     ),
                     _clause(
                         "ln_sender_address",
                         "Sender Address",
                         "textarea",
                         "Complete address of the sender",
+                        learn_more=(
+                            "The sender's address is included for identification and for the recipient to "
+                            "send a reply. If using an advocate, the advocate's office address may be used "
+                            "as the correspondence address. Ensure the address is complete with PIN code "
+                            "so any reply or legal proceedings can be properly served."
+                        ),
                     ),
                     _clause(
                         "ln_recipient_name",
                         "Recipient (Noticee)",
                         "text",
                         "Full name of the recipient/noticee",
+                        learn_more=(
+                            "The recipient is the person or entity against whom the grievance exists. Use "
+                            "their exact legal name. If the recipient is a company, use the registered company "
+                            "name along with the name of a director or authorized representative. Sending the "
+                            "notice to the wrong entity or person may render it legally ineffective."
+                        ),
                     ),
                     _clause(
                         "ln_recipient_address",
                         "Recipient Address",
                         "textarea",
                         "Complete address of the recipient (notice will be sent here)",
+                        learn_more=(
+                            "Use the recipient's registered office address (for companies) or residential "
+                            "address (for individuals). The notice is legally deemed served when delivered at "
+                            "this address, even if the recipient refuses to accept it. For companies, you can "
+                            "find the registered address on the MCA portal. Send to both the registered office "
+                            "and the last known business address for better chances of actual receipt."
+                        ),
                     ),
                     _clause(
                         "ln_subject",
@@ -1965,6 +2289,14 @@ def legal_notice_template() -> dict:
                         "number",
                         "Total monetary amount claimed, if applicable (enter 0 if non-monetary)",
                         required=False,
+                        learn_more=(
+                            "Specify the exact monetary amount you are claiming, including the principal amount, "
+                            "interest, and any damages. Be precise — courts look at the amount claimed in the "
+                            "notice when assessing the claim. For cheque bounce cases under Section 138 NI Act, "
+                            "the amount is the cheque amount. For breach of contract, include both the direct "
+                            "loss and any consequential damages you can quantify. Enter 0 for non-monetary "
+                            "demands like cease-and-desist or specific performance."
+                        ),
                     ),
                 ],
             },
@@ -2028,6 +2360,13 @@ def legal_notice_template() -> dict:
                         "textarea",
                         "References to any prior emails, letters, or communication regarding this matter",
                         required=False,
+                        learn_more=(
+                            "Referencing prior communication shows that you attempted to resolve the matter "
+                            "before sending a legal notice. Cite specific emails, letters, WhatsApp messages, "
+                            "or meeting dates. For example: 'Email dated 15 Jan 2025 requesting payment' or "
+                            "'Letter ref no. ABC/2025 sent via courier'. This strengthens your case by "
+                            "demonstrating the recipient was given a fair chance to resolve the issue."
+                        ),
                     ),
                     _clause(
                         "ln_documents_enclosed",
@@ -2035,6 +2374,13 @@ def legal_notice_template() -> dict:
                         "textarea",
                         "List of supporting documents enclosed with the notice (if any)",
                         required=False,
+                        learn_more=(
+                            "Listing enclosed documents adds weight to your notice and puts the recipient on "
+                            "notice about the evidence you hold. Common enclosures include copies of contracts, "
+                            "invoices, bounced cheque copies, email printouts, and bank statements. Only enclose "
+                            "copies, never originals. If you prefer to reserve evidence for court, you can "
+                            "leave this blank and state that documents will be produced at the appropriate forum."
+                        ),
                     ),
                     _clause(
                         "ln_send_via",
@@ -2048,6 +2394,14 @@ def legal_notice_template() -> dict:
                             "Email (with delivery receipt)",
                             "Registered Post and Email both",
                         ],
+                        learn_more=(
+                            "The mode of sending determines whether you can prove the notice was delivered. "
+                            "Registered Post with Acknowledgment Due (RPAD) is the gold standard — Indian "
+                            "courts universally accept it as proof of service. Speed Post provides tracking "
+                            "but no signed acknowledgment. Email delivery receipts are increasingly accepted "
+                            "but should supplement, not replace, physical delivery for important matters. "
+                            "Sending via both Registered Post and Email provides the strongest proof of service."
+                        ),
                         india_note=(
                             "Registered Post with Acknowledgment Due (AD) is the "
                             "preferred mode for legal notices in India. Courts "
@@ -2076,12 +2430,26 @@ def legal_notice_template() -> dict:
                         "Bar Council enrollment number of the advocate",
                         required=False,
                         depends_on="ln_advocate_name",
+                        learn_more=(
+                            "The Bar Council enrollment number uniquely identifies the advocate and confirms "
+                            "they are a licensed legal practitioner. This adds credibility to the notice and "
+                            "allows the recipient to verify the advocate's credentials through the Bar Council "
+                            "of India's website. An advocate sending a notice without their enrollment number "
+                            "may not be taken as seriously."
+                        ),
                     ),
                     _clause(
                         "ln_governing_law",
                         "Jurisdiction",
                         "text",
                         "City and state whose courts will have jurisdiction",
+                        learn_more=(
+                            "Jurisdiction determines where legal proceedings will be initiated if the notice "
+                            "does not result in resolution. Typically, you can choose the courts where the "
+                            "cause of action arose, where the defendant resides, or where the contract was "
+                            "to be performed. For cheque bounce cases, jurisdiction lies where the cheque was "
+                            "presented or where the payee's bank is located. Enter both city and state for clarity."
+                        ),
                     ),
                 ],
             },

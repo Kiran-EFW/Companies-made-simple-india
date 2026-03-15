@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { apiCall, simulateRound, simulateExit } from "@/lib/api";
+import Footer from "@/components/footer";
 
 interface ShareholderData {
   id: number;
@@ -1269,6 +1270,7 @@ export default function CapTablePage() {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   );
 }

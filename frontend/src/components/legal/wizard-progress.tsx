@@ -28,12 +28,15 @@ export default function WizardProgress({ steps, currentStep, onStepClick }: Wiza
               >
                 <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all ${
-                    isCompleted
-                      ? "bg-emerald-500/20 border-emerald-500 text-emerald-400"
-                      : isCurrent
-                      ? "bg-purple-500/20 border-purple-500 text-purple-400 ring-4 ring-purple-500/10"
-                      : "bg-gray-800 border-gray-700 text-gray-500"
+                    isCurrent ? "ring-4 ring-purple-500/10" : ""
                   }`}
+                  style={
+                    isCompleted
+                      ? { background: "var(--color-success-light)", borderColor: "var(--color-success)", color: "var(--color-success)" }
+                      : isCurrent
+                      ? { background: "rgba(139,92,246,0.2)", borderColor: "#8b5cf6", color: "var(--color-accent-purple-light)" }
+                      : { background: "var(--color-bg-card)", borderColor: "var(--color-border)", color: "var(--color-text-muted)" }
+                  }
                 >
                   {isCompleted ? (
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
@@ -44,13 +47,14 @@ export default function WizardProgress({ steps, currentStep, onStepClick }: Wiza
                   )}
                 </div>
                 <span
-                  className={`text-[10px] font-medium max-w-[80px] text-center leading-tight ${
-                    isCompleted
-                      ? "text-emerald-400"
+                  className="text-[10px] font-medium max-w-[80px] text-center leading-tight"
+                  style={{
+                    color: isCompleted
+                      ? "var(--color-success)"
                       : isCurrent
-                      ? "text-purple-400"
-                      : "text-gray-500"
-                  }`}
+                      ? "var(--color-accent-purple-light)"
+                      : "var(--color-text-muted)",
+                  }}
                 >
                   {step.title}
                 </span>
@@ -59,9 +63,10 @@ export default function WizardProgress({ steps, currentStep, onStepClick }: Wiza
               {/* Connector line */}
               {idx < steps.length - 1 && (
                 <div
-                  className={`w-8 lg:w-12 h-0.5 mx-1 mt-[-16px] ${
-                    isCompleted ? "bg-emerald-500/50" : "bg-gray-700"
-                  }`}
+                  className="w-8 lg:w-12 h-0.5 mx-1 mt-[-16px]"
+                  style={{
+                    background: isCompleted ? "rgba(16,185,129,0.5)" : "var(--color-border)",
+                  }}
                 />
               )}
             </div>

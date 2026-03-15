@@ -31,7 +31,7 @@ interface WorkflowData {
 
 function CompletedIcon() {
   return (
-    <svg className="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+    <svg className="w-5 h-5" style={{ color: "var(--color-success)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
     </svg>
   );
@@ -40,15 +40,15 @@ function CompletedIcon() {
 function CurrentIcon() {
   return (
     <div className="relative flex items-center justify-center">
-      <span className="absolute w-5 h-5 rounded-full bg-blue-500/30 animate-ping" />
-      <span className="relative w-3 h-3 rounded-full bg-blue-500" />
+      <span className="absolute w-5 h-5 rounded-full animate-ping" style={{ background: "rgba(59,130,246,0.3)" }} />
+      <span className="relative w-3 h-3 rounded-full" style={{ background: "var(--color-info)" }} />
     </div>
   );
 }
 
 function UpcomingIcon() {
   return (
-    <span className="w-3 h-3 rounded-full bg-gray-600 border-2 border-gray-500" />
+    <span className="w-3 h-3 rounded-full border-2" style={{ background: "var(--color-text-muted)", borderColor: "var(--color-text-muted)" }} />
   );
 }
 
@@ -126,13 +126,13 @@ export default function WorkflowProgress({ companyId }: { companyId: number }) {
         }}
       >
         <div className="animate-pulse space-y-4">
-          <div className="h-5 bg-gray-700/50 rounded w-48" />
-          <div className="h-2 bg-gray-700/50 rounded w-full" />
+          <div className="h-5 rounded w-48" style={{ background: "var(--color-border)" }} />
+          <div className="h-2 rounded w-full" style={{ background: "var(--color-border)" }} />
           <div className="space-y-3 mt-6">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-gray-700/50" />
-                <div className="h-4 bg-gray-700/50 rounded w-40" />
+                <div className="w-8 h-8 rounded-full" style={{ background: "var(--color-border)" }} />
+                <div className="h-4 rounded w-40" style={{ background: "var(--color-border)" }} />
               </div>
             ))}
           </div>
@@ -153,10 +153,11 @@ export default function WorkflowProgress({ companyId }: { companyId: number }) {
           borderColor: "var(--color-border, #2a3050)",
         }}
       >
-        <p className="text-red-400 text-sm">{error}</p>
+        <p className="text-sm" style={{ color: "var(--color-error)" }}>{error}</p>
         <button
           onClick={fetchWorkflow}
-          className="mt-3 text-xs text-purple-400 hover:text-purple-300 transition-colors"
+          className="mt-3 text-xs transition-colors"
+          style={{ color: "var(--color-accent-purple-light)" }}
         >
           Try again
         </button>
@@ -173,7 +174,7 @@ export default function WorkflowProgress({ companyId }: { companyId: number }) {
           borderColor: "var(--color-border, #2a3050)",
         }}
       >
-        <p className="text-gray-400 text-sm">No workflow steps available for this entity type.</p>
+        <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>No workflow steps available for this entity type.</p>
       </div>
     );
   }
@@ -196,19 +197,19 @@ export default function WorkflowProgress({ companyId }: { companyId: number }) {
       <div className="px-6 py-4 border-b" style={{ borderColor: "var(--color-border, #2a3050)" }}>
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-semibold text-white">Incorporation Workflow</h3>
-            <p className="text-xs text-gray-400 mt-0.5">{entityLabel}</p>
+            <h3 className="text-sm font-semibold" style={{ color: "var(--color-text-primary)" }}>Incorporation Workflow</h3>
+            <p className="text-xs mt-0.5" style={{ color: "var(--color-text-secondary)" }}>{entityLabel}</p>
           </div>
           <div className="text-right">
-            <span className="text-lg font-bold text-white">{workflow.progress_pct}%</span>
-            <p className="text-[10px] text-gray-500">
+            <span className="text-lg font-bold" style={{ color: "var(--color-text-primary)" }}>{workflow.progress_pct}%</span>
+            <p className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>
               {workflow.completed_steps}/{workflow.total_steps} steps
             </p>
           </div>
         </div>
 
         {/* Progress bar */}
-        <div className="mt-3 h-1.5 bg-gray-700/50 rounded-full overflow-hidden">
+        <div className="mt-3 h-1.5 rounded-full overflow-hidden" style={{ background: "var(--color-border)" }}>
           <div
             className="h-full rounded-full transition-all duration-700 ease-out"
             style={{
@@ -233,7 +234,7 @@ export default function WorkflowProgress({ companyId }: { companyId: number }) {
                 {/* Step row */}
                 <button
                   onClick={() => toggleStep(idx)}
-                  className="w-full flex items-start gap-3 py-2.5 text-left hover:bg-white/[0.02] rounded-lg transition-colors px-1 -mx-1"
+                  className="w-full flex items-start gap-3 py-2.5 text-left rounded-lg transition-colors px-1 -mx-1"
                 >
                   {/* Connector line + icon */}
                   <div className="flex flex-col items-center shrink-0 pt-0.5">
@@ -268,23 +269,25 @@ export default function WorkflowProgress({ companyId }: { companyId: number }) {
                   <div className="flex-1 min-w-0 pb-1">
                     <div className="flex items-center gap-2">
                       <span
-                        className={`text-sm font-medium ${
-                          step.status === "completed"
-                            ? "text-emerald-400"
-                            : step.status === "current"
-                            ? "text-blue-400"
-                            : "text-gray-500"
-                        }`}
+                        className="text-sm font-medium"
+                        style={{
+                          color:
+                            step.status === "completed"
+                              ? "var(--color-success)"
+                              : step.status === "current"
+                              ? "var(--color-info)"
+                              : "var(--color-text-muted)",
+                        }}
                       >
                         {step.name}
                       </span>
                       {step.status === "completed" && (
-                        <span className="text-[10px] text-emerald-500/70 font-medium uppercase tracking-wider">
+                        <span className="text-[10px] font-medium uppercase tracking-wider" style={{ color: "var(--color-success)", opacity: 0.7 }}>
                           Done
                         </span>
                       )}
                       {step.status === "current" && (
-                        <span className="text-[10px] text-blue-400/70 font-medium uppercase tracking-wider">
+                        <span className="text-[10px] font-medium uppercase tracking-wider" style={{ color: "var(--color-info)", opacity: 0.7 }}>
                           In Progress
                         </span>
                       )}
@@ -293,7 +296,8 @@ export default function WorkflowProgress({ companyId }: { companyId: number }) {
                     {/* Expand indicator */}
                     <div className="flex items-center gap-1 mt-0.5">
                       <svg
-                        className={`w-3 h-3 text-gray-600 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+                        className={`w-3 h-3 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+                        style={{ color: "var(--color-text-muted)" }}
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -301,14 +305,14 @@ export default function WorkflowProgress({ companyId }: { companyId: number }) {
                       >
                         <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
                       </svg>
-                      <span className="text-[11px] text-gray-600">Details</span>
+                      <span className="text-[11px]" style={{ color: "var(--color-text-muted)" }}>Details</span>
                     </div>
 
                     {/* Expanded content */}
                     {isExpanded && (
                       <div
-                        className="mt-2 p-3 rounded-lg text-xs text-gray-400 leading-relaxed"
-                        style={{ background: "rgba(255, 255, 255, 0.03)" }}
+                        className="mt-2 p-3 rounded-lg text-xs leading-relaxed"
+                        style={{ background: "rgba(255, 255, 255, 0.03)", color: "var(--color-text-secondary)" }}
                       >
                         {step.description}
                       </div>
@@ -328,7 +332,7 @@ export default function WorkflowProgress({ companyId }: { companyId: number }) {
           style={{ borderColor: "var(--color-border, #2a3050)" }}
         >
           {error && (
-            <p className="text-xs text-red-400 mb-2">{error}</p>
+            <p className="text-xs mb-2" style={{ color: "var(--color-error)" }}>{error}</p>
           )}
           <button
             onClick={handleNextStep}
@@ -365,10 +369,10 @@ export default function WorkflowProgress({ companyId }: { companyId: number }) {
           }}
         >
           <div className="flex items-center justify-center gap-2">
-            <svg className="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="w-5 h-5" style={{ color: "var(--color-success)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z" />
             </svg>
-            <span className="text-sm font-medium text-emerald-400">
+            <span className="text-sm font-medium" style={{ color: "var(--color-success)" }}>
               All workflow steps completed
             </span>
           </div>

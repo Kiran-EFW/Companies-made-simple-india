@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { apiCall } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import Footer from "@/components/footer";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -68,8 +69,7 @@ export default function SignupPage() {
           <input
             required
             type="text"
-            className="w-full p-3 rounded-xl bg-transparent border text-sm focus:outline-none focus:border-purple-500 transition-colors"
-            style={{ borderColor: "var(--color-border)" }}
+            className="input-field"
             value={formData.full_name}
             onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
             placeholder="John Doe"
@@ -83,8 +83,7 @@ export default function SignupPage() {
           <input
             required
             type="email"
-            className="w-full p-3 rounded-xl bg-transparent border text-sm focus:outline-none focus:border-purple-500 transition-colors"
-            style={{ borderColor: "var(--color-border)" }}
+            className="input-field"
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             placeholder="john@example.com"
@@ -97,8 +96,7 @@ export default function SignupPage() {
           </label>
           <input
             type="tel"
-            className="w-full p-3 rounded-xl bg-transparent border text-sm focus:outline-none focus:border-purple-500 transition-colors"
-            style={{ borderColor: "var(--color-border)" }}
+            className="input-field"
             value={formData.phone}
             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
             placeholder="+91 98765 43210"
@@ -112,8 +110,7 @@ export default function SignupPage() {
           <input
             required
             type="password"
-            className="w-full p-3 rounded-xl bg-transparent border text-sm focus:outline-none focus:border-purple-500 transition-colors"
-            style={{ borderColor: "var(--color-border)" }}
+            className="input-field"
             value={formData.password}
             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
             placeholder="••••••••"
@@ -131,10 +128,12 @@ export default function SignupPage() {
 
       <div className="mt-6 text-center text-sm" style={{ color: "var(--color-text-secondary)" }}>
         Already have an account?{" "}
-        <Link href="/login" className="font-semibold hover:text-white transition-colors">
+        <Link href="/login" className="font-semibold transition-colors" style={{ color: "var(--color-accent-purple-light)" }}>
           Log in
         </Link>
       </div>
+
+      <Footer />
     </div>
   );
 }

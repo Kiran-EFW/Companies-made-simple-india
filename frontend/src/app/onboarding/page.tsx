@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { createDraftCompany, updateOnboarding, createPaymentOrder, verifyPayment } from "@/lib/api";
+import Footer from "@/components/footer";
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -204,9 +205,9 @@ export default function OnboardingPage() {
               <div key={i} className="flex items-center flex-1 last:flex-none">
                 <div 
                   className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
-                    step >= i ? "bg-purple-600 text-white" : "bg-gray-800 text-gray-500"
+                    step >= i ? "" : ""
                   }`}
-                  style={step >= i ? { background: "var(--color-primary-purple)" } : {}}
+                  style={step >= i ? { background: "var(--color-primary-purple)", color: "var(--color-text-primary)" } : { background: "var(--color-bg-card)", color: "var(--color-text-muted)" }}
                 >
                   {i}
                 </div>
@@ -267,7 +268,7 @@ export default function OnboardingPage() {
                   <div key={idx} className="p-4 rounded-xl border mb-4" style={{ borderColor: "var(--color-border)", background: "rgba(255,255,255,0.02)" }}>
                     <h3 className="font-semibold mb-3">
                       Director {idx + 1} 
-                      {idx === 0 && <span className="ml-2 text-xs py-1 px-2 rounded-full bg-purple-500/20 text-purple-300">You</span>}
+                      {idx === 0 && <span className="ml-2 text-xs py-1 px-2 rounded-full" style={{ background: "rgba(139, 92, 246, 0.2)", color: "var(--color-accent-purple-light)" }}>You</span>}
                     </h3>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -344,6 +345,7 @@ export default function OnboardingPage() {
           </form>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

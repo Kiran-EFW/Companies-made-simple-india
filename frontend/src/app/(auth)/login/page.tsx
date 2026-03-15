@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { apiCall } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import Footer from "@/components/footer";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -68,9 +69,10 @@ export default function LoginPage() {
       </div>
 
       {process.env.NODE_ENV === "development" && (
-        <button 
+        <button
           onClick={handleDevSkip}
-          className="w-full mb-6 py-2 px-4 rounded-lg bg-gray-800 border border-purple-500/30 text-purple-400 text-xs font-mono hover:bg-purple-500/10 transition-colors flex items-center justify-center gap-2"
+          className="w-full mb-6 py-2 px-4 rounded-lg border text-xs font-mono transition-colors flex items-center justify-center gap-2"
+          style={{ background: "var(--color-bg-card)", borderColor: "rgba(139, 92, 246, 0.3)", color: "var(--color-accent-purple-light)" }}
         >
           <span>🛠️</span> DEV SKIP (AUTO LOGIN)
         </button>
@@ -90,8 +92,7 @@ export default function LoginPage() {
           <input
             required
             type="email"
-            className="w-full p-3 rounded-xl bg-transparent border text-sm focus:outline-none focus:border-purple-500 transition-colors"
-            style={{ borderColor: "var(--color-border)" }}
+            className="input-field"
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             placeholder="john@example.com"
@@ -103,15 +104,14 @@ export default function LoginPage() {
             <label className="block text-sm font-medium" style={{ color: "var(--color-text-secondary)" }}>
               Password
             </label>
-            <span className="text-xs cursor-pointer hover:text-white transition-colors" style={{ color: "var(--color-text-muted)" }} onClick={() => alert("Password reset coming soon. Contact support@companiesmade.in for help.")}>
+            <span className="text-xs cursor-pointer transition-colors" style={{ color: "var(--color-text-muted)" }} onClick={() => alert("Password reset coming soon. Contact support@companiesmade.in for help.")}>
               Forgot password?
             </span>
           </div>
           <input
             required
             type="password"
-            className="w-full p-3 rounded-xl bg-transparent border text-sm focus:outline-none focus:border-purple-500 transition-colors"
-            style={{ borderColor: "var(--color-border)" }}
+            className="input-field"
             value={formData.password}
             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
             placeholder="••••••••"
@@ -129,10 +129,12 @@ export default function LoginPage() {
 
       <div className="mt-6 text-center text-sm" style={{ color: "var(--color-text-secondary)" }}>
         Don&#39;t have an account?{" "}
-        <Link href="/signup" className="font-semibold hover:text-white transition-colors">
+        <Link href="/signup" className="font-semibold transition-colors" style={{ color: "var(--color-accent-purple-light)" }}>
           Sign up
         </Link>
       </div>
+
+      <Footer />
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ChatWidget from "@/components/chat-widget";
+import Footer from "@/components/footer";
 
 const ENTITY_CARDS = [
   {
@@ -82,14 +83,14 @@ export default function HomePage() {
         <div className="hidden md:flex items-center gap-8">
           <Link
             href="/pricing"
-            className="text-sm font-medium hover:text-white transition-colors"
+            className="text-sm font-medium transition-colors"
             style={{ color: "var(--color-text-secondary)" }}
           >
             Pricing
           </Link>
           <Link
             href="/wizard"
-            className="text-sm font-medium hover:text-white transition-colors"
+            className="text-sm font-medium transition-colors"
             style={{ color: "var(--color-text-secondary)" }}
           >
             Entity Wizard
@@ -287,21 +288,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Footer ── */}
-      <footer
-        className="relative z-10 py-12 border-t"
-        style={{ borderColor: "var(--color-border)" }}
-      >
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="flex items-center gap-2">
-            <span className="text-lg">⚡</span>
-            <span className="font-bold gradient-text">CMS India</span>
-          </div>
-          <p style={{ color: "var(--color-text-muted)" }} className="text-sm">
-            © 2025 Companies Made Simple India. All rights reserved.
-          </p>
-        </div>
-      </footer>
+      <Footer />
 
       <ChatWidget />
     </div>

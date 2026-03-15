@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { getNotifications, markNotificationRead, markAllNotificationsRead, deleteNotification } from "@/lib/api";
 import Link from "next/link";
+import Footer from "@/components/footer";
 
 function timeAgo(dateStr: string): string {
   const now = new Date();
@@ -29,15 +30,16 @@ const FILTER_TABS = [
 ];
 
 function NotificationTypeIcon({ type }: { type: string }) {
-  const colorMap: Record<string, string> = {
-    status_update: "text-blue-400 bg-blue-500/10",
-    payment: "text-emerald-400 bg-emerald-500/10",
-    document: "text-purple-400 bg-purple-500/10",
-    compliance: "text-amber-400 bg-amber-500/10",
-    message: "text-cyan-400 bg-cyan-500/10",
+  const styleMap: Record<string, { color: string; background: string }> = {
+    status_update: { color: "var(--color-info)", background: "rgba(59,130,246,0.1)" },
+    payment: { color: "var(--color-success)", background: "var(--color-success-light)" },
+    document: { color: "var(--color-accent-purple-light)", background: "rgba(139,92,246,0.1)" },
+    compliance: { color: "var(--color-warning)", background: "rgba(245,158,11,0.1)" },
+    message: { color: "#22d3ee", background: "rgba(34,211,238,0.1)" },
   };
 
-  const classes = colorMap[type] || "text-gray-400 bg-gray-500/10";
+  const defaultStyle = { color: "var(--color-text-secondary)", background: "rgba(107,114,128,0.1)" };
+  const s = styleMap[type] || defaultStyle;
 
   const icons: Record<string, React.ReactNode> = {
     status_update: (
@@ -68,7 +70,7 @@ function NotificationTypeIcon({ type }: { type: string }) {
   };
 
   return (
-    <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${classes}`}>
+    <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style={{ color: s.color, background: s.background }}>
       {icons[type] || (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
@@ -154,7 +156,7 @@ export default function NotificationsPage() {
   if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center glow-bg">
-        <div className="animate-pulse text-gray-500">Loading notifications...</div>
+        <div className="animate-pulse" style={{ color: "var(--color-text-muted)" }}>Loading notifications...</div>
       </div>
     );
   }
@@ -169,10 +171,10 @@ export default function NotificationsPage() {
             <span className="font-bold hidden md:block" style={{ fontFamily: "var(--font-display)" }}>CMS Prime</span>
           </Link>
           <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="text-xs font-medium text-gray-400 hover:text-purple-400 transition-colors">
+            <Link href="/dashboard" className="text-xs font-medium transition-colors" style={{ color: "var(--color-text-secondary)" }}>
               Dashboard
             </Link>
-            <Link href="/notifications/preferences" className="text-xs font-medium text-gray-400 hover:text-purple-400 transition-colors">
+            <Link href="/notifications/preferences" className="text-xs font-medium transition-colors" style={{ color: "var(--color-text-secondary)" }}>
               Preferences
             </Link>
           </div>
@@ -203,9 +205,14 @@ export default function NotificationsPage() {
               onClick={() => setActiveFilter(tab.key)}
               className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
                 activeFilter === tab.key
-                  ? "bg-purple-500/20 text-purple-400 border border-purple-500/30"
-                  : "text-gray-400 hover:bg-white/5 border border-transparent"
+                  ? "bg-purple-500/20 border border-purple-500/30"
+                  : "border border-transparent"
               }`}
+              style={
+                activeFilter === tab.key
+                  ? { color: "var(--color-accent-purple-light)" }
+                  : { color: "var(--color-text-secondary)" }
+              }
             >
               {tab.label}
             </button>
@@ -215,11 +222,11 @@ export default function NotificationsPage() {
         {/* Notification List */}
         {filteredNotifications.length === 0 ? (
           <div className="glass-card p-12 text-center animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
-            <svg className="w-12 h-12 text-gray-600 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <svg className="w-12 h-12 mx-auto mb-4" style={{ color: "var(--color-text-muted)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
             </svg>
-            <h2 className="text-xl font-bold mb-2 text-gray-300">No notifications</h2>
-            <p className="text-gray-500">
+            <h2 className="text-xl font-bold mb-2" style={{ color: "var(--color-text-primary)" }}>No notifications</h2>
+            <p style={{ color: "var(--color-text-muted)" }}>
               {activeFilter === "unread"
                 ? "You're all caught up! No unread notifications."
                 : "Nothing to show here yet. Notifications will appear as your incorporation progresses."}
@@ -240,15 +247,18 @@ export default function NotificationsPage() {
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <h3 className={`text-sm font-semibold ${!notif.is_read ? "text-white" : "text-gray-300"}`}>
+                    <h3
+                      className="text-sm font-semibold"
+                      style={{ color: !notif.is_read ? "var(--color-text-primary)" : "var(--color-text-primary)" }}
+                    >
                       {notif.title}
                     </h3>
                     {!notif.is_read && (
                       <span className="w-2 h-2 bg-purple-500 rounded-full shrink-0" />
                     )}
                   </div>
-                  <p className="text-xs text-gray-400 leading-relaxed">{notif.message}</p>
-                  <p className="text-[10px] text-gray-600 mt-1.5">{timeAgo(notif.created_at)}</p>
+                  <p className="text-xs leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>{notif.message}</p>
+                  <p className="text-[10px] mt-1.5" style={{ color: "var(--color-text-muted)" }}>{timeAgo(notif.created_at)}</p>
                 </div>
 
                 <button
@@ -256,7 +266,8 @@ export default function NotificationsPage() {
                     e.stopPropagation();
                     handleDelete(notif.id);
                   }}
-                  className="p-1.5 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-red-500/10 text-gray-500 hover:text-red-400 transition-all"
+                  className="p-1.5 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-red-500/10 transition-all"
+                  style={{ color: "var(--color-text-muted)" }}
                   title="Delete notification"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -274,18 +285,18 @@ export default function NotificationsPage() {
             <button
               onClick={() => setPage((p) => Math.max(0, p - 1))}
               disabled={page === 0}
-              className="px-4 py-2 rounded-lg text-sm font-medium border transition-colors disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/5"
+              className="px-4 py-2 rounded-lg text-sm font-medium border transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               style={{ borderColor: "var(--color-border)" }}
             >
               Previous
             </button>
-            <span className="text-sm text-gray-400">
+            <span className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
               Page {page + 1} of {totalPages}
             </span>
             <button
               onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
               disabled={page >= totalPages - 1}
-              className="px-4 py-2 rounded-lg text-sm font-medium border transition-colors disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/5"
+              className="px-4 py-2 rounded-lg text-sm font-medium border transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               style={{ borderColor: "var(--color-border)" }}
             >
               Next
@@ -293,6 +304,8 @@ export default function NotificationsPage() {
           </div>
         )}
       </div>
+
+      <Footer />
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { getSigningPageData, submitSignature, declineSignature } from "@/lib/api";
+import Footer from "@/components/footer";
 
 type SignatureMethod = "draw" | "type" | "upload";
 type FontChoice = "Dancing Script" | "Great Vibes" | "Sacramento";
@@ -202,10 +203,10 @@ export default function PublicSigningPage() {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--color-bg-primary, #f9fafb)" }}>
         <div className="text-center">
-          <div className="w-8 h-8 border-3 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-sm text-gray-500">Loading document...</p>
+          <div className="w-8 h-8 border-3 rounded-full animate-spin mx-auto mb-4" style={{ borderColor: "var(--color-border, #e5e7eb)", borderTopColor: "var(--color-accent-purple, #9333ea)" }} />
+          <p className="text-sm" style={{ color: "var(--color-text-muted, #6b7280)" }}>Loading document...</p>
         </div>
       </div>
     );
@@ -214,13 +215,13 @@ export default function PublicSigningPage() {
   // Error state (no data)
   if (error && !data) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
-        <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 text-center">
-          <svg className="w-12 h-12 text-red-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <div className="min-h-screen flex items-center justify-center p-6" style={{ background: "var(--color-bg-primary, #f9fafb)" }}>
+        <div className="max-w-md w-full rounded-xl shadow-lg p-8 text-center" style={{ background: "var(--color-bg-card, #ffffff)" }}>
+          <svg className="w-12 h-12 mx-auto mb-4" style={{ color: "var(--color-error, #f87171)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
           </svg>
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">Unable to Load Document</h2>
-          <p className="text-sm text-gray-500">{error}</p>
+          <h2 className="text-lg font-semibold mb-2" style={{ color: "var(--color-text-primary, #111827)" }}>Unable to Load Document</h2>
+          <p className="text-sm" style={{ color: "var(--color-text-muted, #6b7280)" }}>{error}</p>
         </div>
       </div>
     );
@@ -237,22 +238,22 @@ export default function PublicSigningPage() {
   // Success state after signing
   if (success) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen" style={{ background: "var(--color-bg-primary, #f9fafb)" }}>
         <link
           href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Great+Vibes&family=Sacramento&display=swap"
           rel="stylesheet"
         />
         {/* Header */}
-        <header className="bg-white border-b border-gray-200 px-6 py-4">
+        <header className="px-6 py-4" style={{ background: "var(--color-bg-card, #ffffff)", borderBottom: "1px solid var(--color-border, #e5e7eb)" }}>
           <div className="max-w-4xl mx-auto flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-purple-600 flex items-center justify-center">
-              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "var(--color-accent-purple, #9333ea)" }}>
+              <svg className="w-5 h-5" style={{ color: "#ffffff" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
               </svg>
             </div>
             <div>
-              <h1 className="text-sm font-bold text-gray-900">Companies Made Simple India</h1>
-              <p className="text-xs text-gray-500">Document Signing</p>
+              <h1 className="text-sm font-bold" style={{ color: "var(--color-text-primary, #111827)" }}>Companies Made Simple India</h1>
+              <p className="text-xs" style={{ color: "var(--color-text-muted, #6b7280)" }}>Document Signing</p>
             </div>
           </div>
         </header>
@@ -263,20 +264,22 @@ export default function PublicSigningPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Document Signed Successfully</h2>
-          <p className="text-sm text-gray-500 mb-6">
+          <h2 className="text-2xl font-bold mb-2" style={{ color: "var(--color-text-primary, #111827)" }}>Document Signed Successfully</h2>
+          <p className="text-sm mb-6" style={{ color: "var(--color-text-muted, #6b7280)" }}>
             Your signature has been recorded. You will receive a confirmation email with a copy of the signed document once all parties have signed.
           </p>
-          <div className="bg-gray-100 rounded-lg p-4 text-xs text-gray-500">
+          <div className="rounded-lg p-4 text-xs" style={{ background: "var(--color-bg-secondary, #f3f4f6)", color: "var(--color-text-muted, #6b7280)" }}>
             You can safely close this window.
           </div>
         </div>
+
+        <Footer />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ background: "var(--color-bg-primary, #f9fafb)" }}>
       {/* Google Fonts for typed signatures */}
       <link
         href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Great+Vibes&family=Sacramento&display=swap"
@@ -284,16 +287,16 @@ export default function PublicSigningPage() {
       />
 
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-10">
+      <header className="px-6 py-4 sticky top-0 z-10" style={{ background: "var(--color-bg-card, #ffffff)", borderBottom: "1px solid var(--color-border, #e5e7eb)" }}>
         <div className="max-w-4xl mx-auto flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-purple-600 flex items-center justify-center">
-            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "var(--color-accent-purple, #9333ea)" }}>
+            <svg className="w-5 h-5" style={{ color: "#ffffff" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
             </svg>
           </div>
           <div>
-            <h1 className="text-sm font-bold text-gray-900">Companies Made Simple India</h1>
-            <p className="text-xs text-gray-500">Document Signing</p>
+            <h1 className="text-sm font-bold" style={{ color: "var(--color-text-primary, #111827)" }}>Companies Made Simple India</h1>
+            <p className="text-xs" style={{ color: "var(--color-text-muted, #6b7280)" }}>Document Signing</p>
           </div>
         </div>
       </header>
@@ -301,12 +304,12 @@ export default function PublicSigningPage() {
       <div className="max-w-4xl mx-auto px-6 py-8 space-y-6">
         {/* Error Banner */}
         {error && (
-          <div className="rounded-lg border border-red-200 bg-red-50 p-3 flex items-center gap-2">
-            <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <div className="rounded-lg border p-3 flex items-center gap-2" style={{ borderColor: "rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.05)" }}>
+            <svg className="w-4 h-4 shrink-0" style={{ color: "var(--color-error, #ef4444)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
             </svg>
-            <p className="text-xs text-red-700 flex-1">{error}</p>
-            <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600">
+            <p className="text-xs flex-1" style={{ color: "#b91c1c" }}>{error}</p>
+            <button onClick={() => setError(null)} style={{ color: "var(--color-error, #f87171)" }}>
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -317,13 +320,13 @@ export default function PublicSigningPage() {
         {/* Expired / Cancelled state */}
         {isExpiredOrCancelled && (
           <div className="max-w-lg mx-auto text-center py-12">
-            <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <svg className="w-12 h-12 mx-auto mb-4" style={{ color: "var(--color-text-secondary, #9ca3af)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">
+            <h2 className="text-xl font-bold mb-2" style={{ color: "var(--color-text-primary, #111827)" }}>
               This signing request has {data.request_status === "cancelled" ? "been cancelled" : "expired"}
             </h2>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm" style={{ color: "var(--color-text-muted, #6b7280)" }}>
               Please contact the document sender for more information.
             </p>
           </div>
@@ -337,13 +340,13 @@ export default function PublicSigningPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
               </svg>
             </div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">You have already signed this document</h2>
+            <h2 className="text-xl font-bold mb-2" style={{ color: "var(--color-text-primary, #111827)" }}>You have already signed this document</h2>
             {data.signed_at && (
-              <p className="text-sm text-gray-500 mb-4">
+              <p className="text-sm mb-4" style={{ color: "var(--color-text-muted, #6b7280)" }}>
                 Signed on {new Date(data.signed_at).toLocaleString()}
               </p>
             )}
-            <p className="text-xs text-gray-400">
+            <p className="text-xs" style={{ color: "var(--color-text-secondary, #9ca3af)" }}>
               {data.all_signed
                 ? "All parties have signed. You will receive a copy of the completed document."
                 : "Waiting for other parties to complete signing."}
@@ -354,11 +357,11 @@ export default function PublicSigningPage() {
         {/* Declined state */}
         {isDeclined && !isExpiredOrCancelled && (
           <div className="max-w-lg mx-auto text-center py-12">
-            <svg className="w-12 h-12 text-red-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <svg className="w-12 h-12 mx-auto mb-4" style={{ color: "var(--color-error, #f87171)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">You have declined to sign this document</h2>
-            <p className="text-sm text-gray-500">
+            <h2 className="text-xl font-bold mb-2" style={{ color: "var(--color-text-primary, #111827)" }}>You have declined to sign this document</h2>
+            <p className="text-sm" style={{ color: "var(--color-text-muted, #6b7280)" }}>
               The document sender has been notified of your decision.
             </p>
           </div>
@@ -368,52 +371,53 @@ export default function PublicSigningPage() {
         {isPending && !isExpiredOrCancelled && (
           <>
             {/* Document Title */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-              <h2 className="text-lg font-bold text-gray-900">
+            <div className="rounded-xl shadow-sm border p-5" style={{ background: "var(--color-bg-card, #ffffff)", borderColor: "var(--color-border, #e5e7eb)" }}>
+              <h2 className="text-lg font-bold" style={{ color: "var(--color-text-primary, #111827)" }}>
                 {data.document_title || "Document"}
               </h2>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs mt-1" style={{ color: "var(--color-text-muted, #6b7280)" }}>
                 Please review the document below, then provide your signature at the bottom.
               </p>
             </div>
 
             {/* Document Viewer */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-              <div className="px-5 py-3 border-b border-gray-100 flex items-center gap-2">
-                <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <div className="rounded-xl shadow-sm border overflow-hidden" style={{ background: "var(--color-bg-card, #ffffff)", borderColor: "var(--color-border, #e5e7eb)" }}>
+              <div className="px-5 py-3 flex items-center gap-2" style={{ borderBottom: "1px solid var(--color-border, #f3f4f6)" }}>
+                <svg className="w-4 h-4" style={{ color: "var(--color-text-secondary, #9ca3af)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
                 </svg>
-                <span className="text-xs font-medium text-gray-600">Document Preview</span>
+                <span className="text-xs font-medium" style={{ color: "var(--color-text-muted, #6b7280)" }}>Document Preview</span>
               </div>
               <div
-                className="p-8 max-h-[500px] overflow-y-auto bg-white prose prose-sm max-w-none text-gray-800"
+                className="p-8 max-h-[500px] overflow-y-auto prose prose-sm max-w-none"
+                style={{ background: "var(--color-bg-card, #ffffff)", color: "var(--color-text-primary, #1f2937)" }}
                 dangerouslySetInnerHTML={{ __html: data.document_html || "<p>Document content will appear here.</p>" }}
               />
             </div>
 
             {/* Signatory Info */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-              <h3 className="text-sm font-semibold text-gray-900 mb-3">Your Details</h3>
+            <div className="rounded-xl shadow-sm border p-5" style={{ background: "var(--color-bg-card, #ffffff)", borderColor: "var(--color-border, #e5e7eb)" }}>
+              <h3 className="text-sm font-semibold mb-3" style={{ color: "var(--color-text-primary, #111827)" }}>Your Details</h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
                 <div>
-                  <span className="text-xs text-gray-500 block">Name</span>
-                  <span className="text-gray-900 font-medium">{data.signer_name || "--"}</span>
+                  <span className="text-xs block" style={{ color: "var(--color-text-muted, #6b7280)" }}>Name</span>
+                  <span className="font-medium" style={{ color: "var(--color-text-primary, #111827)" }}>{data.signer_name || "--"}</span>
                 </div>
                 <div>
-                  <span className="text-xs text-gray-500 block">Email</span>
-                  <span className="text-gray-900">{data.signer_email || "--"}</span>
+                  <span className="text-xs block" style={{ color: "var(--color-text-muted, #6b7280)" }}>Email</span>
+                  <span style={{ color: "var(--color-text-primary, #111827)" }}>{data.signer_email || "--"}</span>
                 </div>
                 <div>
-                  <span className="text-xs text-gray-500 block">Designation</span>
-                  <span className="text-gray-900">{data.signer_designation || "--"}</span>
+                  <span className="text-xs block" style={{ color: "var(--color-text-muted, #6b7280)" }}>Designation</span>
+                  <span style={{ color: "var(--color-text-primary, #111827)" }}>{data.signer_designation || "--"}</span>
                 </div>
               </div>
             </div>
 
             {/* All Parties */}
             {data.all_signatories && data.all_signatories.length > 1 && (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-                <h3 className="text-sm font-semibold text-gray-900 mb-3">All Signing Parties</h3>
+              <div className="rounded-xl shadow-sm border p-5" style={{ background: "var(--color-bg-card, #ffffff)", borderColor: "var(--color-border, #e5e7eb)" }}>
+                <h3 className="text-sm font-semibold mb-3" style={{ color: "var(--color-text-primary, #111827)" }}>All Signing Parties</h3>
                 <div className="space-y-2">
                   {data.all_signatories.map((s: any, idx: number) => (
                     <div key={idx} className="flex items-center gap-3 text-sm">
@@ -426,13 +430,13 @@ export default function PublicSigningPage() {
                           <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                       ) : (
-                        <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <svg className="w-4 h-4" style={{ color: "var(--color-text-secondary, #9ca3af)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                       )}
-                      <span className="text-gray-900">{s.name}</span>
+                      <span style={{ color: "var(--color-text-primary, #111827)" }}>{s.name}</span>
                       {s.designation && (
-                        <span className="text-gray-400 text-xs">({s.designation})</span>
+                        <span className="text-xs" style={{ color: "var(--color-text-secondary, #9ca3af)" }}>({s.designation})</span>
                       )}
                       <span
                         className={`text-xs px-2 py-0.5 rounded-full ${
@@ -452,20 +456,21 @@ export default function PublicSigningPage() {
             )}
 
             {/* Signature Capture */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 space-y-5">
-              <h3 className="text-sm font-semibold text-gray-900">Your Signature</h3>
+            <div className="rounded-xl shadow-sm border p-5 space-y-5" style={{ background: "var(--color-bg-card, #ffffff)", borderColor: "var(--color-border, #e5e7eb)" }}>
+              <h3 className="text-sm font-semibold" style={{ color: "var(--color-text-primary, #111827)" }}>Your Signature</h3>
 
               {/* Signature Method Tabs */}
-              <div className="flex gap-1 bg-gray-100 rounded-lg p-1 w-fit">
+              <div className="flex gap-1 rounded-lg p-1 w-fit" style={{ background: "var(--color-bg-secondary, #f3f4f6)" }}>
                 {(["draw", "type", "upload"] as SignatureMethod[]).map((method) => (
                   <button
                     key={method}
                     onClick={() => setSignatureMethod(method)}
-                    className={`px-4 py-1.5 rounded-md text-xs font-medium transition-colors capitalize ${
+                    className="px-4 py-1.5 rounded-md text-xs font-medium transition-colors capitalize"
+                    style={
                       signatureMethod === method
-                        ? "bg-white text-gray-900 shadow-sm"
-                        : "text-gray-500 hover:text-gray-700"
-                    }`}
+                        ? { background: "var(--color-bg-card, #ffffff)", color: "var(--color-text-primary, #111827)", boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }
+                        : { color: "var(--color-text-muted, #6b7280)" }
+                    }
                   >
                     {method === "draw" ? "Draw" : method === "type" ? "Type" : "Upload"}
                   </button>
@@ -475,12 +480,13 @@ export default function PublicSigningPage() {
               {/* Draw Tab */}
               {signatureMethod === "draw" && (
                 <div className="space-y-3">
-                  <p className="text-xs text-gray-500">Draw your signature using your mouse or finger</p>
+                  <p className="text-xs" style={{ color: "var(--color-text-muted, #6b7280)" }}>Draw your signature using your mouse or finger</p>
                   <canvas
                     ref={canvasRef}
                     width={400}
                     height={150}
-                    className="border-2 border-dashed border-gray-300 rounded-lg cursor-crosshair bg-white touch-none w-full max-w-[400px]"
+                    className="border-2 border-dashed rounded-lg cursor-crosshair touch-none w-full max-w-[400px]"
+                    style={{ borderColor: "var(--color-border, #d1d5db)", background: "var(--color-bg-card, #ffffff)" }}
                     onMouseDown={startDrawing}
                     onMouseMove={draw}
                     onMouseUp={stopDrawing}
@@ -491,7 +497,8 @@ export default function PublicSigningPage() {
                   />
                   <button
                     onClick={clearCanvas}
-                    className="px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors"
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors"
+                    style={{ borderColor: "var(--color-border, #d1d5db)", color: "var(--color-text-muted, #6b7280)" }}
                   >
                     Clear
                   </button>
@@ -502,37 +509,38 @@ export default function PublicSigningPage() {
               {signatureMethod === "type" && (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-xs text-gray-500 mb-1">Type your name</label>
+                    <label className="block text-xs mb-1" style={{ color: "var(--color-text-muted, #6b7280)" }}>Type your name</label>
                     <input
                       type="text"
                       value={typedName}
                       onChange={(e) => setTypedName(e.target.value)}
                       placeholder="Your full name"
-                      className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-colors"
+                      className="w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-colors"
+                      style={{ borderColor: "var(--color-border, #d1d5db)", color: "var(--color-text-primary, #111827)" }}
                     />
                   </div>
 
                   {typedName && (
                     <div>
-                      <label className="block text-xs text-gray-500 mb-2">Select a font style</label>
+                      <label className="block text-xs mb-2" style={{ color: "var(--color-text-muted, #6b7280)" }}>Select a font style</label>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         {fonts.map((font) => (
                           <button
                             key={font}
                             onClick={() => setSelectedFont(font)}
-                            className={`rounded-lg border-2 p-4 text-center transition-all ${
-                              selectedFont === font
-                                ? "border-purple-500 bg-purple-50"
-                                : "border-gray-200 hover:border-gray-300"
-                            }`}
+                            className="rounded-lg border-2 p-4 text-center transition-all"
+                            style={{
+                              borderColor: selectedFont === font ? "var(--color-accent-purple, #9333ea)" : "var(--color-border, #e5e7eb)",
+                              background: selectedFont === font ? "rgba(147,51,234,0.05)" : "transparent",
+                            }}
                           >
                             <span
-                              className="text-2xl text-gray-900 block mb-1"
-                              style={{ fontFamily: `'${font}', cursive` }}
+                              className="text-2xl block mb-1"
+                              style={{ fontFamily: `'${font}', cursive`, color: "var(--color-text-primary, #111827)" }}
                             >
                               {typedName}
                             </span>
-                            <span className="text-[10px] text-gray-400">{font}</span>
+                            <span className="text-[10px]" style={{ color: "var(--color-text-secondary, #9ca3af)" }}>{font}</span>
                           </button>
                         ))}
                       </div>
@@ -544,14 +552,14 @@ export default function PublicSigningPage() {
               {/* Upload Tab */}
               {signatureMethod === "upload" && (
                 <div className="space-y-3">
-                  <p className="text-xs text-gray-500">Upload an image of your signature (PNG, JPG)</p>
+                  <p className="text-xs" style={{ color: "var(--color-text-muted, #6b7280)" }}>Upload an image of your signature (PNG, JPG)</p>
 
                   {!uploadedSignature ? (
-                    <label className="flex flex-col items-center justify-center w-full max-w-[400px] h-[150px] border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                      <svg className="w-8 h-8 text-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <label className="flex flex-col items-center justify-center w-full max-w-[400px] h-[150px] border-2 border-dashed rounded-lg cursor-pointer transition-colors" style={{ borderColor: "var(--color-border, #d1d5db)" }}>
+                      <svg className="w-8 h-8 mb-2" style={{ color: "var(--color-text-secondary, #9ca3af)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
                       </svg>
-                      <span className="text-xs text-gray-500">Click to upload signature image</span>
+                      <span className="text-xs" style={{ color: "var(--color-text-muted, #6b7280)" }}>Click to upload signature image</span>
                       <input
                         type="file"
                         accept="image/png,image/jpeg,image/jpg"
@@ -561,7 +569,7 @@ export default function PublicSigningPage() {
                     </label>
                   ) : (
                     <div className="space-y-2">
-                      <div className="border-2 border-gray-200 rounded-lg p-4 bg-white max-w-[400px]">
+                      <div className="border-2 rounded-lg p-4 max-w-[400px]" style={{ borderColor: "var(--color-border, #e5e7eb)", background: "var(--color-bg-card, #ffffff)" }}>
                         <img
                           src={uploadedSignature}
                           alt="Uploaded signature"
@@ -570,7 +578,8 @@ export default function PublicSigningPage() {
                       </div>
                       <button
                         onClick={() => setUploadedSignature(null)}
-                        className="px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors"
+                        className="px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors"
+                        style={{ borderColor: "var(--color-border, #d1d5db)", color: "var(--color-text-muted, #6b7280)" }}
                       >
                         Remove & Upload New
                       </button>
@@ -587,7 +596,7 @@ export default function PublicSigningPage() {
                   onChange={(e) => setAgreedToTerms(e.target.checked)}
                   className="mt-0.5 w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
                 />
-                <span className="text-xs text-gray-600 leading-relaxed">
+                <span className="text-xs leading-relaxed" style={{ color: "var(--color-text-muted, #4b5563)" }}>
                   I agree that this electronic signature is legally binding under the Information Technology Act, 2000 and constitutes my consent to sign this document.
                 </span>
               </label>
@@ -596,7 +605,8 @@ export default function PublicSigningPage() {
               <button
                 onClick={handleSign}
                 disabled={submitting || !agreedToTerms}
-                className="w-full sm:w-auto px-8 py-3 rounded-lg text-sm font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-8 py-3 rounded-lg text-sm font-semibold text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                style={{ background: submitting ? "rgba(16,185,129,0.5)" : "var(--color-success, #059669)" }}
               >
                 {submitting ? (
                   <>
@@ -618,7 +628,8 @@ export default function PublicSigningPage() {
             <div className="text-center pt-2">
               <button
                 onClick={() => setShowDeclineModal(true)}
-                className="text-xs text-red-500 hover:text-red-600 font-medium transition-colors"
+                className="text-xs font-medium transition-colors"
+                style={{ color: "var(--color-error, #ef4444)" }}
               >
                 Decline to Sign
               </button>
@@ -626,10 +637,10 @@ export default function PublicSigningPage() {
 
             {/* Decline Modal */}
             {showDeclineModal && (
-              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-6">
-                <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Decline to Sign</h3>
-                  <p className="text-sm text-gray-500">
+              <div className="fixed inset-0 flex items-center justify-center z-50 p-6" style={{ background: "var(--color-overlay, rgba(0,0,0,0.5))" }}>
+                <div className="rounded-xl shadow-xl max-w-md w-full p-6 space-y-4" style={{ background: "var(--color-bg-card, #ffffff)" }}>
+                  <h3 className="text-lg font-semibold" style={{ color: "var(--color-text-primary, #111827)" }}>Decline to Sign</h3>
+                  <p className="text-sm" style={{ color: "var(--color-text-muted, #6b7280)" }}>
                     Please provide a reason for declining. The document sender will be notified.
                   </p>
                   <textarea
@@ -637,7 +648,8 @@ export default function PublicSigningPage() {
                     onChange={(e) => setDeclineReason(e.target.value)}
                     rows={3}
                     placeholder="Reason for declining..."
-                    className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 resize-none"
+                    className="w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 resize-none"
+                    style={{ borderColor: "var(--color-border, #d1d5db)", color: "var(--color-text-primary, #111827)" }}
                   />
                   <div className="flex items-center justify-end gap-3">
                     <button
@@ -645,14 +657,16 @@ export default function PublicSigningPage() {
                         setShowDeclineModal(false);
                         setDeclineReason("");
                       }}
-                      className="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors"
+                      className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                      style={{ color: "var(--color-text-muted, #6b7280)" }}
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleDecline}
                       disabled={declining || !declineReason.trim()}
-                      className="px-4 py-2 rounded-lg text-sm font-medium bg-red-600 hover:bg-red-500 text-white transition-colors disabled:opacity-50 flex items-center gap-2"
+                      className="px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors disabled:opacity-50 flex items-center gap-2"
+                      style={{ background: "var(--color-error, #dc2626)" }}
                     >
                       {declining ? (
                         <>
@@ -672,8 +686,8 @@ export default function PublicSigningPage() {
       </div>
 
       {/* Footer */}
-      <footer className="border-t border-gray-200 mt-12 py-6 px-6">
-        <div className="max-w-4xl mx-auto text-center text-xs text-gray-400">
+      <footer className="mt-12 py-6 px-6" style={{ borderTop: "1px solid var(--color-border, #e5e7eb)" }}>
+        <div className="max-w-4xl mx-auto text-center text-xs" style={{ color: "var(--color-text-secondary, #9ca3af)" }}>
           <p>Powered by Companies Made Simple India</p>
           <p className="mt-1">E-signatures are legally valid under the Information Technology Act, 2000</p>
         </div>

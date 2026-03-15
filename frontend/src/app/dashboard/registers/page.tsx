@@ -12,6 +12,7 @@ import {
   exportRegister,
 } from "@/lib/api";
 import NotificationBell from "@/components/notification-bell";
+import Footer from "@/components/footer";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -276,7 +277,7 @@ export default function RegistersPage() {
   if (authLoading || (loading && !summary.length)) {
     return (
       <div className="min-h-screen flex items-center justify-center glow-bg">
-        <div className="animate-pulse-glow w-16 h-16 rounded-full bg-purple-500/20 flex items-center justify-center">
+        <div className="animate-pulse-glow w-16 h-16 rounded-full flex items-center justify-center" style={{ background: "rgba(139, 92, 246, 0.2)" }}>
           <span className="text-2xl">&#9889;</span>
         </div>
       </div>
@@ -333,7 +334,7 @@ export default function RegistersPage() {
 
         {/* Penalty warning */}
         <div className="p-4 rounded-lg border border-amber-500/30 bg-amber-500/5 mb-8 animate-fade-in-up" style={{ animationDelay: "0.05s" }}>
-          <p className="text-xs text-amber-400">
+          <p className="text-xs" style={{ color: "var(--color-warning)" }}>
             <span className="font-semibold">Important:</span> These registers are mandatory under the Companies Act 2013. Non-maintenance attracts penalties up to Rs 3,00,000.
           </p>
         </div>
@@ -365,7 +366,7 @@ export default function RegistersPage() {
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div>
-                        <h3 className="text-sm font-semibold text-white">{reg.name}</h3>
+                        <h3 className="text-sm font-semibold" style={{ color: "var(--color-text-primary)" }}>{reg.name}</h3>
                         {reg.section && (
                           <p className="text-[10px] text-purple-400 font-medium mt-0.5">{reg.section}</p>
                         )}
@@ -392,8 +393,8 @@ export default function RegistersPage() {
                       <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
                         isActive
                           ? "bg-purple-500/20 text-purple-400 border-purple-500/30"
-                          : "bg-gray-500/10 text-gray-400 border-gray-500/30"
-                      }`}>
+                          : ""
+                      }`} style={!isActive ? { background: "rgba(107, 114, 128, 0.1)", color: "var(--color-text-secondary)", borderColor: "rgba(107, 114, 128, 0.3)" } : {}}>
                         {isActive ? "VIEWING" : "VIEW"}
                       </span>
                     </div>
@@ -415,8 +416,8 @@ export default function RegistersPage() {
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => handleExport(activeRegister)}
-                      className="text-xs font-medium border border-gray-700 px-3 py-1.5 rounded-lg hover:bg-white/5 transition-colors"
-                      style={{ color: "var(--color-text-secondary)" }}
+                      className="text-xs font-medium border px-3 py-1.5 rounded-lg transition-colors"
+                      style={{ color: "var(--color-text-secondary)", borderColor: "var(--color-border)" }}
                     >
                       Export HTML
                     </button>
@@ -484,8 +485,8 @@ export default function RegistersPage() {
                       </button>
                       <button
                         onClick={() => { setShowForm(false); setMessage(""); }}
-                        className="text-sm px-4 py-2 rounded-lg border border-gray-700 hover:bg-white/5 transition-colors"
-                        style={{ color: "var(--color-text-secondary)" }}
+                        className="text-sm px-4 py-2 rounded-lg border transition-colors"
+                        style={{ color: "var(--color-text-secondary)", borderColor: "var(--color-border)" }}
                       >
                         Cancel
                       </button>
@@ -527,7 +528,7 @@ export default function RegistersPage() {
                       </thead>
                       <tbody>
                         {entries.map((entry) => (
-                          <tr key={entry.id} style={{ borderBottom: "1px solid var(--color-border)" }} className="hover:bg-white/5 transition-colors">
+                          <tr key={entry.id} style={{ borderBottom: "1px solid var(--color-border)" }} className="transition-colors">
                             <td className="p-3 font-mono text-xs">{entry.entry_number}</td>
                             <td className="p-3 text-xs" style={{ color: "var(--color-text-muted)" }}>
                               {entry.entry_date ? new Date(entry.entry_date).toLocaleDateString("en-IN") : "-"}
@@ -558,6 +559,7 @@ export default function RegistersPage() {
           </>
         )}
       </div>
+      <Footer />
     </div>
   );
 }

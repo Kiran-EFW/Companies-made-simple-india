@@ -15,6 +15,7 @@ import { useAuth } from "@/lib/auth-context";
 import ClauseCard from "@/components/legal/clause-card";
 import WizardProgress from "@/components/legal/wizard-progress";
 import DocumentPreview from "@/components/legal/document-preview";
+import Footer from "@/components/footer";
 
 export default function DocumentWizardPage() {
   const params = useParams();
@@ -164,11 +165,11 @@ export default function DocumentWizardPage() {
     return (
       <div className="p-8">
         <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-gray-800 rounded w-64" />
-          <div className="h-2 bg-gray-800 rounded w-full" />
+          <div className="h-8 rounded w-64" style={{ background: "var(--color-bg-card)" }} />
+          <div className="h-2 rounded w-full" style={{ background: "var(--color-bg-card)" }} />
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-32 bg-gray-800 rounded-xl" />
+              <div key={i} className="h-32 rounded-xl" style={{ background: "var(--color-bg-card)" }} />
             ))}
           </div>
         </div>
@@ -181,13 +182,14 @@ export default function DocumentWizardPage() {
     return (
       <div className="p-8 text-center">
         <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-8 max-w-md mx-auto">
-          <svg className="w-10 h-10 text-red-400 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <svg className="w-10 h-10 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} style={{ color: "var(--color-error)" }}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
           </svg>
-          <p className="text-sm text-red-400 mb-4">{error}</p>
+          <p className="text-sm mb-4" style={{ color: "var(--color-error)" }}>{error}</p>
           <button
             onClick={() => router.push("/documents")}
-            className="text-sm text-purple-400 hover:text-purple-300 font-medium"
+            className="text-sm font-medium"
+            style={{ color: "var(--color-accent-purple-light)" }}
           >
             Back to Documents
           </button>
@@ -215,7 +217,8 @@ export default function DocumentWizardPage() {
       <div className="flex items-center gap-4">
         <button
           onClick={() => router.push("/documents")}
-          className="text-gray-400 hover:text-white transition-colors"
+          className="transition-colors"
+          style={{ color: "var(--color-text-secondary)" }}
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
@@ -225,7 +228,7 @@ export default function DocumentWizardPage() {
           <h1 className="text-xl font-bold" style={{ fontFamily: "var(--font-display)" }}>
             {templateDef.name}
           </h1>
-          <p className="text-xs text-gray-400">{templateDef.description}</p>
+          <p className="text-xs" style={{ color: "var(--color-text-secondary)" }}>{templateDef.description}</p>
         </div>
       </div>
 
@@ -239,11 +242,11 @@ export default function DocumentWizardPage() {
       {/* Error Banner */}
       {error && (
         <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-3 flex items-center gap-2">
-          <svg className="w-4 h-4 text-red-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ color: "var(--color-error)" }}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
           </svg>
-          <p className="text-xs text-red-300 flex-1">{error}</p>
-          <button onClick={() => setError(null)} className="text-red-400 hover:text-red-300">
+          <p className="text-xs flex-1" style={{ color: "var(--color-error)" }}>{error}</p>
+          <button onClick={() => setError(null)} style={{ color: "var(--color-error)" }}>
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -258,13 +261,15 @@ export default function DocumentWizardPage() {
           <div className="flex items-center justify-between">
             <button
               onClick={() => setPreviewHtml(null)}
-              className="px-4 py-2 rounded-lg text-sm font-medium text-gray-400 hover:text-white border border-gray-700 hover:border-gray-600 transition-colors"
+              className="px-4 py-2 rounded-lg text-sm font-medium border transition-colors"
+              style={{ color: "var(--color-text-secondary)", borderColor: "var(--color-border)" }}
             >
               Back to Editing
             </button>
             <button
               onClick={handleFinalize}
-              className="px-6 py-2.5 rounded-lg text-sm font-medium bg-emerald-600 hover:bg-emerald-500 text-white transition-colors flex items-center gap-2"
+              className="px-6 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+              style={{ background: "var(--color-success)", color: "var(--color-text-primary)" }}
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
@@ -277,12 +282,12 @@ export default function DocumentWizardPage() {
         <>
           {/* Step Header */}
           {currentStepDef && (
-            <div className="border-b border-gray-700 pb-4">
-              <h2 className="text-lg font-bold text-white" style={{ fontFamily: "var(--font-display)" }}>
+            <div className="pb-4" style={{ borderBottom: "1px solid var(--color-border)" }}>
+              <h2 className="text-lg font-bold" style={{ fontFamily: "var(--font-display)", color: "var(--color-text-primary)" }}>
                 Step {currentStep + 1}: {currentStepDef.title}
               </h2>
               {currentStepDef.description && (
-                <p className="text-xs text-gray-400 mt-1">{currentStepDef.description}</p>
+                <p className="text-xs mt-1" style={{ color: "var(--color-text-secondary)" }}>{currentStepDef.description}</p>
               )}
             </div>
           )}
@@ -301,11 +306,12 @@ export default function DocumentWizardPage() {
           </div>
 
           {/* Navigation */}
-          <div className="flex items-center justify-between pt-4 border-t border-gray-700">
+          <div className="flex items-center justify-between pt-4" style={{ borderTop: "1px solid var(--color-border)" }}>
             <button
               onClick={handleBack}
               disabled={currentStep === 0}
-              className="px-4 py-2 rounded-lg text-sm font-medium text-gray-400 hover:text-white border border-gray-700 hover:border-gray-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1.5"
+              className="px-4 py-2 rounded-lg text-sm font-medium border transition-colors disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1.5"
+              style={{ color: "var(--color-text-secondary)", borderColor: "var(--color-border)" }}
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
@@ -315,7 +321,7 @@ export default function DocumentWizardPage() {
 
             <div className="flex items-center gap-3">
               {saving && (
-                <span className="text-[10px] text-gray-500 flex items-center gap-1">
+                <span className="text-[10px] flex items-center gap-1" style={{ color: "var(--color-text-muted)" }}>
                   <div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
                   Saving...
                 </span>
@@ -325,7 +331,8 @@ export default function DocumentWizardPage() {
                 <button
                   onClick={handleGeneratePreview}
                   disabled={generating}
-                  className="px-6 py-2.5 rounded-lg text-sm font-medium bg-purple-600 hover:bg-purple-500 text-white transition-colors disabled:opacity-50 flex items-center gap-2"
+                  className="px-6 py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 flex items-center gap-2"
+                  style={{ background: "var(--color-accent-purple)", color: "var(--color-text-primary)" }}
                 >
                   {generating ? (
                     <>
@@ -345,7 +352,8 @@ export default function DocumentWizardPage() {
               ) : (
                 <button
                   onClick={handleNext}
-                  className="px-6 py-2.5 rounded-lg text-sm font-medium bg-purple-600 hover:bg-purple-500 text-white transition-colors flex items-center gap-1.5"
+                  className="px-6 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5"
+                  style={{ background: "var(--color-accent-purple)", color: "var(--color-text-primary)" }}
                 >
                   Next
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -357,6 +365,7 @@ export default function DocumentWizardPage() {
           </div>
         </>
       )}
+      <Footer />
     </div>
   );
 }

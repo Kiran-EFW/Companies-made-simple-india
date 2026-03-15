@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { PricingResponse, StateOption } from "@/lib/api";
+import Footer from "@/components/footer";
 
 const ENTITY_TYPES = [
   { value: "private_limited", label: "Private Limited", emoji: "🏢" },
@@ -171,7 +172,7 @@ export default function PricingPage() {
                       background:
                         entityType === e.value
                           ? "rgba(139, 92, 246, 0.2)"
-                          : "rgba(255,255,255,0.03)",
+                          : "var(--color-hover-overlay)",
                       border: `1px solid ${entityType === e.value ? "rgba(139, 92, 246, 0.5)" : "var(--color-border)"}`,
                     }}
                   >
@@ -197,7 +198,7 @@ export default function PricingPage() {
                       background:
                         planTier === p.value
                           ? "rgba(139, 92, 246, 0.2)"
-                          : "rgba(255,255,255,0.03)",
+                          : "var(--color-hover-overlay)",
                       border: `1px solid ${planTier === p.value ? "rgba(139, 92, 246, 0.5)" : "var(--color-border)"}`,
                     }}
                   >
@@ -279,7 +280,7 @@ export default function PricingPage() {
                     type="checkbox"
                     checked={hasDSC}
                     onChange={(e) => setHasDSC(e.target.checked)}
-                    className="w-4 h-4 rounded accent-purple-500"
+                    className="w-4 h-4 rounded accent-[var(--color-accent-purple)]"
                   />
                   <span className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
                     Directors already have valid DSC
@@ -332,13 +333,13 @@ export default function PricingPage() {
                     </div>
                     <div className="space-y-1">
                       {pricing.government_fees.name_reservation > 0 && (
-                        <div className="flex justify-between p-2 rounded" style={{ background: "rgba(255,255,255,0.02)" }}>
+                        <div className="flex justify-between p-2 rounded" style={{ background: "var(--color-stripe-alt)" }}>
                           <span style={{ color: "var(--color-text-secondary)" }}>MCA Name Reservation</span>
                           <span>{formatCurrency(pricing.government_fees.name_reservation)}</span>
                         </div>
                       )}
                       {pricing.government_fees.filing_fee > 0 && (
-                        <div className="flex justify-between p-2 rounded" style={{ background: "rgba(255,255,255,0.02)" }}>
+                        <div className="flex justify-between p-2 rounded" style={{ background: "var(--color-stripe-alt)" }}>
                           <span style={{ color: "var(--color-text-secondary)" }}>
                             {entityType === "llp" ? "FiLLiP Filing" : "SPICe+ Filing"}
                           </span>
@@ -346,24 +347,24 @@ export default function PricingPage() {
                         </div>
                       )}
                       {pricing.government_fees.roc_registration > 0 && (
-                        <div className="flex justify-between p-2 rounded" style={{ background: "rgba(255,255,255,0.02)" }}>
+                        <div className="flex justify-between p-2 rounded" style={{ background: "var(--color-stripe-alt)" }}>
                           <span style={{ color: "var(--color-text-secondary)" }}>ROC Registration</span>
                           <span>{formatCurrency(pricing.government_fees.roc_registration)}</span>
                         </div>
                       )}
                       {pricing.government_fees.section8_license > 0 && (
-                        <div className="flex justify-between p-2 rounded" style={{ background: "rgba(255,255,255,0.02)" }}>
+                        <div className="flex justify-between p-2 rounded" style={{ background: "var(--color-stripe-alt)" }}>
                           <span style={{ color: "var(--color-text-secondary)" }}>INC-12 License Fee</span>
                           <span>{formatCurrency(pricing.government_fees.section8_license)}</span>
                         </div>
                       )}
-                      <div className="flex justify-between p-2 rounded" style={{ background: "rgba(255,255,255,0.02)" }}>
+                      <div className="flex justify-between p-2 rounded" style={{ background: "var(--color-stripe-alt)" }}>
                         <span style={{ color: "var(--color-text-secondary)" }}>
                           Stamp Duty ({pricing.state_display})
                         </span>
                         <span>{formatCurrency(pricing.government_fees.stamp_duty.total_stamp_duty)}</span>
                       </div>
-                      <div className="flex justify-between p-2 rounded" style={{ background: "rgba(255,255,255,0.02)" }}>
+                      <div className="flex justify-between p-2 rounded" style={{ background: "var(--color-stripe-alt)" }}>
                         <span style={{ color: "var(--color-text-secondary)" }}>PAN + TAN Application</span>
                         <span>{formatCurrency(pricing.government_fees.pan_tan)}</span>
                       </div>
@@ -389,7 +390,7 @@ export default function PricingPage() {
                         </span>
                       </div>
                       <div className="space-y-1">
-                        <div className="flex justify-between p-2 rounded" style={{ background: "rgba(255,255,255,0.02)" }}>
+                        <div className="flex justify-between p-2 rounded" style={{ background: "var(--color-stripe-alt)" }}>
                           <span style={{ color: "var(--color-text-secondary)" }}>
                             DSC × {pricing.dsc.num_directors} (2-year)
                           </span>
@@ -397,7 +398,7 @@ export default function PricingPage() {
                             {formatCurrency(pricing.dsc.dsc_per_unit * pricing.dsc.num_directors)}
                           </span>
                         </div>
-                        <div className="flex justify-between p-2 rounded" style={{ background: "rgba(255,255,255,0.02)" }}>
+                        <div className="flex justify-between p-2 rounded" style={{ background: "var(--color-stripe-alt)" }}>
                           <span style={{ color: "var(--color-text-secondary)" }}>
                             USB Tokens × {pricing.dsc.num_directors}
                           </span>
@@ -444,7 +445,7 @@ export default function PricingPage() {
                     <div
                       className="p-4 rounded-xl mt-2"
                       style={{
-                        background: "rgba(245, 158, 11, 0.1)",
+                        background: "var(--color-warning-light)",
                         border: "1px solid rgba(245, 158, 11, 0.3)",
                       }}
                     >
@@ -501,6 +502,7 @@ export default function PricingPage() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

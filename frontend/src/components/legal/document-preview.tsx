@@ -7,11 +7,20 @@ interface DocumentPreviewProps {
 
 export default function DocumentPreview({ html, title }: DocumentPreviewProps) {
   return (
-    <div className="rounded-xl border border-gray-700 bg-gray-800/50 overflow-hidden">
+    <div
+      className="rounded-xl border overflow-hidden"
+      style={{
+        borderColor: "var(--color-border)",
+        background: "var(--color-bg-card)",
+      }}
+    >
       {title && (
-        <div className="px-5 py-3 border-b border-gray-700 flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-white">{title}</h3>
-          <span className="text-[10px] text-gray-500 uppercase tracking-wider">Preview</span>
+        <div
+          className="px-5 py-3 flex items-center justify-between"
+          style={{ borderBottom: "1px solid var(--color-border)" }}
+        >
+          <h3 className="text-sm font-semibold" style={{ color: "var(--color-text-primary)" }}>{title}</h3>
+          <span className="text-[10px] uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Preview</span>
         </div>
       )}
       <div className="p-4">

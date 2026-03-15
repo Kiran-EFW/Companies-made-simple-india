@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { getLegalTemplates, getLegalDrafts, getSignatureRequests } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { type ReactNode } from "react";
+import Footer from "@/components/footer";
 
 // Category-based icons using Heroicons patterns
 const CATEGORY_ICONS: Record<string, ReactNode> = {
@@ -150,11 +152,11 @@ export default function DocumentsPage() {
     return (
       <div className="p-8">
         <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-gray-800 rounded w-56" />
-          <div className="h-4 bg-gray-800 rounded w-80" />
+          <div className="h-8 rounded w-56" style={{ background: "var(--color-bg-card)" }} />
+          <div className="h-4 rounded w-80" style={{ background: "var(--color-bg-card)" }} />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-48 bg-gray-800 rounded-xl" />
+              <div key={i} className="h-48 rounded-xl" style={{ background: "var(--color-bg-card)" }} />
             ))}
           </div>
         </div>
@@ -169,11 +171,51 @@ export default function DocumentsPage() {
         <h1 className="text-2xl font-bold" style={{ fontFamily: "var(--font-display)" }}>
           Legal Documents
         </h1>
-        <p className="text-sm text-gray-400 mt-1">
+        <p className="text-sm mt-1" style={{ color: "var(--color-text-secondary)" }}>
           Create customized legal documents with clause-by-clause guidance. Every clause comes with
           plain-language explanations and India-specific legal notes.
         </p>
       </div>
+
+      {/* Founder's Guide Banner */}
+      <Link
+        href="/learn"
+        className="block rounded-xl border p-4 transition-all hover:border-purple-500/40 group"
+        style={{
+          background: "rgba(139, 92, 246, 0.06)",
+          borderColor: "rgba(139, 92, 246, 0.2)",
+        }}
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span
+              className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
+              style={{
+                background: "rgba(139, 92, 246, 0.15)",
+                border: "1px solid rgba(139, 92, 246, 0.4)",
+              }}
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="rgb(139, 92, 246)" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.438 60.438 0 00-.491 6.347A48.62 48.62 0 0112 20.904a48.62 48.62 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.636 50.636 0 00-2.658-.813A59.906 59.906 0 0112 3.493a59.903 59.903 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
+              </svg>
+            </span>
+            <div>
+              <h3 className="text-sm font-semibold" style={{ color: "var(--color-text-primary)" }}>New to legal documents? Check our Founder&apos;s Guide</h3>
+              <p className="text-[10px] mt-0.5" style={{ color: "var(--color-text-secondary)" }}>Learn what documents you need, when to create them, and common mistakes to avoid.</p>
+            </div>
+          </div>
+          <svg
+            className="w-5 h-5 group-hover:translate-x-1 transition-transform shrink-0"
+            style={{ color: "var(--color-accent-purple-light)" }}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+          </svg>
+        </div>
+      </Link>
 
       {/* Template Cards grouped by category */}
       {(() => {
@@ -193,14 +235,14 @@ export default function DocumentsPage() {
 
         return sortedCategories.map((category) => (
           <div key={category}>
-            <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-              <span className="text-purple-400/70 w-5 h-5">
+            <h2 className="text-sm font-semibold uppercase tracking-wider mb-4 flex items-center gap-2" style={{ color: "var(--color-text-secondary)" }}>
+              <span className="w-5 h-5" style={{ color: "var(--color-accent-purple-light)" }}>
                 {CATEGORY_ICONS[category] ? (
                   <span className="[&>svg]:w-5 [&>svg]:h-5">{CATEGORY_ICONS[category]}</span>
                 ) : null}
               </span>
               {category}
-              <span className="text-gray-600 text-[10px] font-normal normal-case">
+              <span className="text-[10px] font-normal normal-case" style={{ color: "var(--color-text-muted)" }}>
                 ({grouped[category].length} {grouped[category].length === 1 ? "template" : "templates"})
               </span>
             </h2>
@@ -208,24 +250,26 @@ export default function DocumentsPage() {
               {grouped[category].map((template: any) => (
                 <div
                   key={template.template_type}
-                  className={`rounded-xl border border-gray-700 bg-gray-800/50 p-6 hover:${CATEGORY_COLORS[category] || "border-purple-500/30"} hover:bg-gray-800/80 transition-all group`}
+                  className="rounded-xl border p-6 transition-all group"
+                  style={{ borderColor: "var(--color-border)", background: "var(--color-bg-card)" }}
                 >
-                  <div className="text-purple-400 mb-3">
+                  <div className="mb-3" style={{ color: "var(--color-accent-purple-light)" }}>
                     {CATEGORY_ICONS[category] || CATEGORY_ICONS["Business Operations"]}
                   </div>
-                  <h3 className="text-base font-bold text-white mb-1" style={{ fontFamily: "var(--font-display)" }}>
+                  <h3 className="text-base font-bold mb-1" style={{ fontFamily: "var(--font-display)", color: "var(--color-text-primary)" }}>
                     {template.name}
                   </h3>
-                  <p className="text-xs text-gray-400 mb-4 leading-relaxed line-clamp-2">
+                  <p className="text-xs mb-4 leading-relaxed line-clamp-2" style={{ color: "var(--color-text-secondary)" }}>
                     {template.description}
                   </p>
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-gray-500">
+                    <span className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>
                       {template.step_count ?? template.total_steps ?? "?"} steps &middot; {template.clause_count ?? template.total_clauses ?? "?"} clauses
                     </span>
                     <button
                       onClick={() => router.push(`/documents/create/${template.template_type}`)}
-                      className="px-4 py-2 rounded-lg text-xs font-medium bg-purple-600 hover:bg-purple-500 text-white transition-colors flex items-center gap-1.5 group-hover:shadow-lg group-hover:shadow-purple-500/10"
+                      className="px-4 py-2 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 group-hover:shadow-lg"
+                      style={{ background: "var(--color-accent-purple)", color: "var(--color-text-primary)" }}
                     >
                       Create
                       <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -243,8 +287,8 @@ export default function DocumentsPage() {
       {/* E-Signature Requests */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-            <svg className="w-4 h-4 text-purple-400/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <h2 className="text-sm font-semibold uppercase tracking-wider flex items-center gap-2" style={{ color: "var(--color-text-secondary)" }}>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} style={{ color: "var(--color-accent-purple-light)" }}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
             </svg>
             Signature Requests
@@ -256,7 +300,8 @@ export default function DocumentsPage() {
           </h2>
           <button
             onClick={() => router.push("/documents/signatures")}
-            className="text-xs text-purple-400 hover:text-purple-300 font-medium transition-colors flex items-center gap-1"
+            className="text-xs font-medium transition-colors flex items-center gap-1"
+            style={{ color: "var(--color-accent-purple-light)" }}
           >
             View All
             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -266,12 +311,12 @@ export default function DocumentsPage() {
         </div>
 
         {signatureReqs.length === 0 ? (
-          <div className="rounded-xl border border-gray-700 bg-gray-800/50 p-8 text-center">
-            <svg className="w-10 h-10 text-gray-600 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+          <div className="rounded-xl border p-8 text-center" style={{ borderColor: "var(--color-border)", background: "var(--color-bg-card)" }}>
+            <svg className="w-10 h-10 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1} style={{ color: "var(--color-text-muted)" }}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
             </svg>
-            <p className="text-xs text-gray-400">No signature requests yet</p>
-            <p className="text-[10px] text-gray-500 mt-0.5">Finalize a document, then send it for signing</p>
+            <p className="text-xs" style={{ color: "var(--color-text-secondary)" }}>No signature requests yet</p>
+            <p className="text-[10px] mt-0.5" style={{ color: "var(--color-text-muted)" }}>Finalize a document, then send it for signing</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -292,10 +337,11 @@ export default function DocumentsPage() {
                 <button
                   key={req.id}
                   onClick={() => router.push("/documents/signatures")}
-                  className="rounded-xl border border-gray-700 bg-gray-800/50 p-4 text-left hover:bg-gray-800/80 hover:border-purple-500/30 transition-all"
+                  className="rounded-xl border p-4 text-left transition-all"
+                  style={{ borderColor: "var(--color-border)", background: "var(--color-bg-card)" }}
                 >
                   <div className="flex items-start justify-between mb-2">
-                    <h4 className="text-sm font-medium text-white truncate flex-1 mr-2">
+                    <h4 className="text-sm font-medium truncate flex-1 mr-2" style={{ color: "var(--color-text-primary)" }}>
                       {req.document_title || req.title || "Untitled"}
                     </h4>
                     <span className={`inline-flex text-[10px] font-semibold px-2 py-0.5 rounded-full border ${badge.bg} ${badge.text} shrink-0`}>
@@ -303,7 +349,7 @@ export default function DocumentsPage() {
                     </span>
                   </div>
                   {signatories.length > 0 && (
-                    <div className="flex items-center gap-1.5 text-[10px] text-gray-500">
+                    <div className="flex items-center gap-1.5 text-[10px]" style={{ color: "var(--color-text-muted)" }}>
                       <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
                       </svg>
@@ -319,38 +365,38 @@ export default function DocumentsPage() {
 
       {/* User's Documents */}
       <div>
-        <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">
+        <h2 className="text-sm font-semibold uppercase tracking-wider mb-4" style={{ color: "var(--color-text-secondary)" }}>
           Your Documents
         </h2>
         {drafts.length === 0 ? (
-          <div className="rounded-xl border border-gray-700 bg-gray-800/50 p-8 text-center">
-            <svg className="w-10 h-10 text-gray-600 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+          <div className="rounded-xl border p-8 text-center" style={{ borderColor: "var(--color-border)", background: "var(--color-bg-card)" }}>
+            <svg className="w-10 h-10 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1} style={{ color: "var(--color-text-muted)" }}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
             </svg>
-            <p className="text-xs text-gray-400">No documents created yet</p>
-            <p className="text-[10px] text-gray-500 mt-0.5">Choose a template above to create your first legal document</p>
+            <p className="text-xs" style={{ color: "var(--color-text-secondary)" }}>No documents created yet</p>
+            <p className="text-[10px] mt-0.5" style={{ color: "var(--color-text-muted)" }}>Choose a template above to create your first legal document</p>
           </div>
         ) : (
-          <div className="rounded-xl border border-gray-700 bg-gray-800/50 overflow-hidden">
+          <div className="rounded-xl border overflow-hidden" style={{ borderColor: "var(--color-border)", background: "var(--color-bg-card)" }}>
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-700">
-                  <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider">Document</th>
-                  <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider">Type</th>
-                  <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider">Status</th>
-                  <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider">Created</th>
-                  <th className="text-right px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider">Actions</th>
+                <tr style={{ borderBottom: "1px solid var(--color-border)" }}>
+                  <th className="text-left px-5 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Document</th>
+                  <th className="text-left px-5 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Type</th>
+                  <th className="text-left px-5 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Status</th>
+                  <th className="text-left px-5 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Created</th>
+                  <th className="text-right px-5 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-700/50">
+              <tbody>
                 {drafts.map((draft) => {
                   const badge = STATUS_BADGES[draft.status] || STATUS_BADGES.draft;
                   return (
-                    <tr key={draft.id} className="hover:bg-white/5 transition-colors">
-                      <td className="px-5 py-3 text-white font-medium">
+                    <tr key={draft.id} className="transition-colors" style={{ borderBottom: "1px solid var(--color-border)" }}>
+                      <td className="px-5 py-3 font-medium" style={{ color: "var(--color-text-primary)" }}>
                         {draft.title || `Untitled ${draft.template_type.replace(/_/g, " ")}`}
                       </td>
-                      <td className="px-5 py-3 text-gray-400 capitalize">
+                      <td className="px-5 py-3 capitalize" style={{ color: "var(--color-text-secondary)" }}>
                         {draft.template_type.replace(/_/g, " ")}
                       </td>
                       <td className="px-5 py-3">
@@ -358,14 +404,15 @@ export default function DocumentsPage() {
                           {badge.label}
                         </span>
                       </td>
-                      <td className="px-5 py-3 text-xs text-gray-400">
+                      <td className="px-5 py-3 text-xs" style={{ color: "var(--color-text-secondary)" }}>
                         {draft.created_at ? new Date(draft.created_at).toLocaleDateString() : "--"}
                       </td>
                       <td className="px-5 py-3 text-right flex items-center justify-end gap-3">
                         {(draft.status === "finalized" || draft.status === "downloaded") && (
                           <button
                             onClick={() => router.push(`/documents/send-for-signing?documentId=${draft.id}`)}
-                            className="text-xs text-emerald-400 hover:text-emerald-300 font-medium transition-colors flex items-center gap-1"
+                            className="text-xs font-medium transition-colors flex items-center gap-1"
+                            style={{ color: "var(--color-success)" }}
                           >
                             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
@@ -375,7 +422,8 @@ export default function DocumentsPage() {
                         )}
                         <button
                           onClick={() => router.push(`/documents/create/${draft.template_type}?draft=${draft.id}`)}
-                          className="text-xs text-purple-400 hover:text-purple-300 font-medium transition-colors"
+                          className="text-xs font-medium transition-colors"
+                          style={{ color: "var(--color-accent-purple-light)" }}
                         >
                           {draft.status === "finalized" || draft.status === "downloaded" ? "View" : "Continue"}
                         </button>
@@ -388,6 +436,7 @@ export default function DocumentsPage() {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   );
 }

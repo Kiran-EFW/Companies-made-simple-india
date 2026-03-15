@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { getNotificationPreferences, updateNotificationPreferences } from "@/lib/api";
 import Link from "next/link";
+import Footer from "@/components/footer";
 
 interface Preferences {
   email_enabled: boolean;
@@ -31,14 +32,13 @@ function Toggle({ checked, onChange, label, description }: { checked: boolean; o
   return (
     <div className="flex items-center justify-between py-4 border-b" style={{ borderColor: "var(--color-border)" }}>
       <div>
-        <p className="text-sm font-medium text-white">{label}</p>
-        {description && <p className="text-xs text-gray-500 mt-0.5">{description}</p>}
+        <p className="text-sm font-medium" style={{ color: "var(--color-text-primary)" }}>{label}</p>
+        {description && <p className="text-xs mt-0.5" style={{ color: "var(--color-text-muted)" }}>{description}</p>}
       </div>
       <button
         onClick={() => onChange(!checked)}
-        className={`relative w-11 h-6 rounded-full transition-colors ${
-          checked ? "bg-purple-600" : "bg-gray-700"
-        }`}
+        className="relative w-11 h-6 rounded-full transition-colors"
+        style={{ background: checked ? "var(--color-accent-purple)" : "var(--color-border-light)" }}
       >
         <span
           className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${
@@ -96,7 +96,7 @@ export default function NotificationPreferencesPage() {
   if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center glow-bg">
-        <div className="animate-pulse text-gray-500">Loading preferences...</div>
+        <div className="animate-pulse" style={{ color: "var(--color-text-muted)" }}>Loading preferences...</div>
       </div>
     );
   }
@@ -111,10 +111,10 @@ export default function NotificationPreferencesPage() {
             <span className="font-bold hidden md:block" style={{ fontFamily: "var(--font-display)" }}>CMS Prime</span>
           </Link>
           <div className="flex items-center gap-4">
-            <Link href="/notifications" className="text-xs font-medium text-gray-400 hover:text-purple-400 transition-colors">
+            <Link href="/notifications" className="text-xs font-medium transition-colors" style={{ color: "var(--color-text-secondary)" }}>
               Notifications
             </Link>
-            <Link href="/profile" className="text-xs font-medium text-gray-400 hover:text-purple-400 transition-colors">
+            <Link href="/profile" className="text-xs font-medium transition-colors" style={{ color: "var(--color-text-secondary)" }}>
               Profile
             </Link>
           </div>
@@ -133,7 +133,7 @@ export default function NotificationPreferencesPage() {
         {/* Delivery Channels */}
         <div className="glass-card p-6 mb-6 animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
           <h2 className="text-lg font-bold mb-1">Delivery Channels</h2>
-          <p className="text-xs text-gray-500 mb-4">Choose how you want to receive notifications.</p>
+          <p className="text-xs mb-4" style={{ color: "var(--color-text-muted)" }}>Choose how you want to receive notifications.</p>
 
           <Toggle
             checked={preferences.email_enabled}
@@ -164,7 +164,7 @@ export default function NotificationPreferencesPage() {
         {/* Notification Types */}
         <div className="glass-card p-6 mb-6 animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
           <h2 className="text-lg font-bold mb-1">Notification Types</h2>
-          <p className="text-xs text-gray-500 mb-4">Choose which types of notifications you want to receive.</p>
+          <p className="text-xs mb-4" style={{ color: "var(--color-text-muted)" }}>Choose which types of notifications you want to receive.</p>
 
           <Toggle
             checked={preferences.status_updates}
@@ -202,12 +202,14 @@ export default function NotificationPreferencesPage() {
             {saving ? "Saving..." : "Save Preferences"}
           </button>
           {saved && (
-            <span className="text-sm text-emerald-400 font-medium animate-fade-in-up">
+            <span className="text-sm font-medium animate-fade-in-up" style={{ color: "var(--color-success)" }}>
               Preferences saved successfully!
             </span>
           )}
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 }

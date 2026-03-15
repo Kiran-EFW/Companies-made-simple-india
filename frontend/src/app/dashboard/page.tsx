@@ -6,6 +6,7 @@ import { getCompanies, uploadDocument, getCompanyLogs } from "@/lib/api";
 import Link from "next/link";
 import ChatWidget from "@/components/chat-widget";
 import NotificationBell from "@/components/notification-bell";
+import Footer from "@/components/footer";
 
 const PIPELINE_STEPS = [
   { key: "draft_to_payment", label: "Draft & Payment", statuses: ["draft", "entity_selected", "payment_pending", "payment_completed"] },
@@ -112,7 +113,7 @@ export default function DashboardPage() {
   if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center glow-bg">
-        <div className="animate-pulse-glow w-16 h-16 rounded-full bg-purple-500/20 flex items-center justify-center">
+        <div className="animate-pulse-glow w-16 h-16 rounded-full flex items-center justify-center" style={{ background: "rgba(139, 92, 246, 0.2)" }}>
            <span className="text-2xl">⚡</span>
         </div>
       </div>
@@ -146,6 +147,13 @@ export default function DashboardPage() {
                     Legal Docs
                   </Link>
                   <Link
+                    href="/learn"
+                    className="text-xs font-medium transition-colors hover:text-purple-400"
+                    style={{ color: "var(--color-text-secondary)" }}
+                  >
+                    Learn
+                  </Link>
+                  <Link
                     href="/compare"
                     className="text-xs font-medium transition-colors hover:text-purple-400"
                     style={{ color: "var(--color-text-secondary)" }}
@@ -161,9 +169,9 @@ export default function DashboardPage() {
                   </Link>
                   <div className="text-right hidden sm:block">
                     <p className="text-sm font-medium leading-none">{user.full_name}</p>
-                    <p className="text-[10px] text-gray-400 mt-1">Founder Account</p>
+                    <p className="text-[10px] mt-1" style={{ color: "var(--color-text-secondary)" }}>Founder Account</p>
                   </div>
-                  <button onClick={logout} className="text-xs p-2 rounded hover:bg-white/5 transition-colors" style={{ color: "var(--color-text-muted)" }}>
+                  <button onClick={logout} className="text-xs p-2 rounded transition-colors" style={{ color: "var(--color-text-muted)" }}>
                     Log Out
                   </button>
                 </div>
@@ -227,7 +235,7 @@ export default function DashboardPage() {
 
                   {/* Status Pipeline Visualizer */}
                   <div className="relative pt-8 pb-4">
-                     <div className="absolute top-10 left-0 right-0 h-1 bg-gray-800 rounded-full" style={{ background: "var(--color-border)" }} />
+                     <div className="absolute top-10 left-0 right-0 h-1 rounded-full" style={{ background: "var(--color-border)" }} />
                      
                      <div className="relative flex justify-between z-10 w-full">
                        {PIPELINE_STEPS.map((step, sIdx) => {
@@ -240,10 +248,10 @@ export default function DashboardPage() {
                                className={`w-6 h-6 rounded-full border-4 mb-2 transition-colors
                                 ${isPast ? "bg-emerald-500 border-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" 
                                   : isActive ? "bg-purple-500 border-purple-200 animate-pulse shadow-[0_0_15px_rgba(168,85,247,0.6)]" 
-                                  : "bg-gray-800 border-gray-700"}`}
+                                  : ""}`}
                                style={(!isPast && !isActive) ? { background: "var(--color-bg-card)", borderColor: "var(--color-border)" } : {}}
                              />
-                             <span className={`text-[10px] md:text-xs text-center font-medium ${isActive || isPast ? "text-white" : "text-gray-500"}`} style={(!isActive && !isPast) ? { color: "var(--color-text-muted)" } : {}}>
+                             <span className="text-[10px] md:text-xs text-center font-medium" style={{ color: (isActive || isPast) ? "var(--color-text-primary)" : "var(--color-text-muted)" }}>
                                {step.label}
                              </span>
                            </div>
@@ -311,10 +319,10 @@ export default function DashboardPage() {
                           const parsed = JSON.parse(doc.extracted_data);
                           const isCOI = parsed.display_name?.includes("COI") || parsed.display_name?.includes("Incorporation");
                           return (
-                            <div key={doc.id} className={`p-3 rounded-lg border ${isCOI ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-gray-800 bg-gray-900/30'} flex justify-between items-center group`}>
+                            <div key={doc.id} className="p-3 rounded-lg border flex justify-between items-center group" style={isCOI ? { borderColor: "rgba(16, 185, 129, 0.3)", background: "rgba(16, 185, 129, 0.05)" } : { borderColor: "var(--color-border)", background: "var(--color-bg-secondary)" }}>
                                <div>
-                                 <p className={`text-xs font-medium ${isCOI ? 'text-emerald-400' : 'text-white'}`}>{parsed.display_name || doc.original_filename}</p>
-                                 <p className="text-[10px] text-gray-500 uppercase">{isCOI ? 'Certificate' : 'PDF Draft'}</p>
+                                 <p className="text-xs font-medium" style={{ color: isCOI ? "var(--color-success)" : "var(--color-text-primary)" }}>{parsed.display_name || doc.original_filename}</p>
+                                 <p className="text-[10px] uppercase" style={{ color: "var(--color-text-muted)" }}>{isCOI ? 'Certificate' : 'PDF Draft'}</p>
                                </div>
                                <a 
                                  href="#" 
@@ -341,50 +349,50 @@ export default function DashboardPage() {
                         <div className="flex items-center gap-3 mb-4">
                            <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-xl">🎉</div>
                            <div>
-                              <h3 className="font-bold text-white">Post-Incorporation Setup</h3>
-                              <p className="text-xs text-gray-400">Your company is live! Complete these steps to start transacting.</p>
+                              <h3 className="font-bold" style={{ color: "var(--color-text-primary)" }}>Post-Incorporation Setup</h3>
+                              <p className="text-xs" style={{ color: "var(--color-text-secondary)" }}>Your company is live! Complete these steps to start transacting.</p>
                            </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                           <div className="p-4 rounded-lg bg-black/40 border border-gray-800 flex justify-between items-center group hover:border-purple-500/30 transition-colors">
+                           <div className="p-4 rounded-lg border flex justify-between items-center group hover:border-purple-500/30 transition-colors" style={{ background: "var(--color-overlay)", borderColor: "var(--color-border)" }}>
                               <div>
                                  <h4 className="text-sm font-semibold">Business Bank Account</h4>
-                                 <p className="text-[10px] text-gray-500">Partnered with Mercury, ICICI & HDFC</p>
+                                 <p className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>Partnered with Mercury, ICICI & HDFC</p>
                               </div>
                               <Link href="/dashboard/compliance" className="text-xs font-bold text-purple-400 group-hover:underline">Get Started &#8594;</Link>
                            </div>
-                           <div className="p-4 rounded-lg bg-black/40 border border-gray-800 flex justify-between items-center group hover:border-purple-500/30 transition-colors">
+                           <div className="p-4 rounded-lg border flex justify-between items-center group hover:border-purple-500/30 transition-colors" style={{ background: "var(--color-overlay)", borderColor: "var(--color-border)" }}>
                               <div>
                                  <h4 className="text-sm font-semibold">INC-20A Commencement</h4>
-                                 <p className="text-[10px] text-gray-500">Mandatory filing within 180 days</p>
+                                 <p className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>Mandatory filing within 180 days</p>
                               </div>
-                              <button className="text-xs font-bold text-gray-500 cursor-not-allowed">Coming Soon</button>
+                              <button className="text-xs font-bold cursor-not-allowed" style={{ color: "var(--color-text-muted)" }}>Coming Soon</button>
                            </div>
-                           <div className="p-4 rounded-lg bg-black/40 border border-gray-800 flex justify-between items-center group hover:border-purple-500/30 transition-colors">
+                           <div className="p-4 rounded-lg border flex justify-between items-center group hover:border-purple-500/30 transition-colors" style={{ background: "var(--color-overlay)", borderColor: "var(--color-border)" }}>
                               <div>
                                  <h4 className="text-sm font-semibold">Statutory Registers</h4>
-                                 <p className="text-[10px] text-gray-500">Mandatory registers under Companies Act 2013</p>
+                                 <p className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>Mandatory registers under Companies Act 2013</p>
                               </div>
                               <Link href="/dashboard/registers" className="text-xs font-bold text-purple-400 group-hover:underline">Manage &#8594;</Link>
                            </div>
-                           <div className="p-4 rounded-lg bg-black/40 border border-gray-800 flex justify-between items-center group hover:border-purple-500/30 transition-colors">
+                           <div className="p-4 rounded-lg border flex justify-between items-center group hover:border-purple-500/30 transition-colors" style={{ background: "var(--color-overlay)", borderColor: "var(--color-border)" }}>
                               <div>
                                  <h4 className="text-sm font-semibold">Meeting Management</h4>
-                                 <p className="text-[10px] text-gray-500">Board &amp; Shareholder meetings, minutes &amp; notices</p>
+                                 <p className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>Board &amp; Shareholder meetings, minutes &amp; notices</p>
                               </div>
                               <Link href="/dashboard/meetings" className="text-xs font-bold text-purple-400 group-hover:underline">Manage &#8594;</Link>
                            </div>
-                           <div className="p-4 rounded-lg bg-black/40 border border-gray-800 flex justify-between items-center group hover:border-purple-500/30 transition-colors">
+                           <div className="p-4 rounded-lg border flex justify-between items-center group hover:border-purple-500/30 transition-colors" style={{ background: "var(--color-overlay)", borderColor: "var(--color-border)" }}>
                               <div>
                                  <h4 className="text-sm font-semibold">Cap Table</h4>
-                                 <p className="text-[10px] text-gray-500">Track equity, shareholders &amp; ownership</p>
+                                 <p className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>Track equity, shareholders &amp; ownership</p>
                               </div>
                               <Link href="/dashboard/cap-table" className="text-xs font-bold text-purple-400 group-hover:underline">Manage &#8594;</Link>
                            </div>
-                           <div className="p-4 rounded-lg bg-black/40 border border-gray-800 flex justify-between items-center group hover:border-purple-500/30 transition-colors">
+                           <div className="p-4 rounded-lg border flex justify-between items-center group hover:border-purple-500/30 transition-colors" style={{ background: "var(--color-overlay)", borderColor: "var(--color-border)" }}>
                               <div>
                                  <h4 className="text-sm font-semibold">Data Room</h4>
-                                 <p className="text-[10px] text-gray-500">Secure document vault with investor sharing</p>
+                                 <p className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>Secure document vault with investor sharing</p>
                               </div>
                               <Link href="/dashboard/data-room" className="text-xs font-bold text-purple-400 group-hover:underline">Open &#8594;</Link>
                            </div>
@@ -394,15 +402,15 @@ export default function DashboardPage() {
 
                   {/* Live Agent Terminal */}
                   {liveLogs[comp.id] && liveLogs[comp.id].length > 0 && (
-                    <div className="mt-6 rounded-xl border border-gray-800 overflow-hidden bg-black/60 shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
-                      <div className="px-4 py-2 flex items-center justify-between border-b border-gray-800 bg-gray-900/50">
+                    <div className="mt-6 rounded-xl border overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.5)]" style={{ borderColor: "var(--color-border)", background: "var(--color-overlay)" }}>
+                      <div className="px-4 py-2 flex items-center justify-between border-b" style={{ borderColor: "var(--color-border)", background: "var(--color-bg-secondary)" }}>
                         <div className="flex items-center gap-2">
                           <div className="flex gap-1.5">
                             <div className="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
                             <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
                             <div className="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
                           </div>
-                          <span className="text-[10px] font-mono ml-2 text-gray-400 uppercase tracking-wider">
+                          <span className="text-[10px] font-mono ml-2 uppercase tracking-wider" style={{ color: "var(--color-text-secondary)" }}>
                             Agent Process Terminal
                           </span>
                         </div>
@@ -412,11 +420,11 @@ export default function DashboardPage() {
                         </div>
                       </div>
                       
-                      <div className="p-4 h-48 overflow-y-auto font-mono text-[11px] leading-relaxed custom-scrollbar bg-black/40">
+                      <div className="p-4 h-48 overflow-y-auto font-mono text-[11px] leading-relaxed custom-scrollbar" style={{ background: "var(--color-overlay)" }}>
                         <div className="space-y-1.5">
                           {liveLogs[comp.id].map((log, lIdx) => (
                             <div key={lIdx} className="flex gap-3 animate-fade-in">
-                              <span className="text-gray-600 shrink-0">[{new Date(log.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'})}]</span>
+                              <span className="shrink-0" style={{ color: "var(--color-text-muted)" }}>[{new Date(log.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'})}]</span>
                               <span className={
                                 log.level === "SUCCESS" ? "text-emerald-400" : 
                                 log.level === "ERROR" ? "text-rose-400" : 
@@ -438,7 +446,7 @@ export default function DashboardPage() {
                          <h4 className="text-sm font-semibold mb-1">Complete Payment</h4>
                          <p className="text-xs" style={{ color: "var(--color-text-secondary)" }}>Secure your slot to begin the process.</p>
                        </div>
-                       <Link href="/onboarding" className="btn-primary text-sm !py-2 !px-4 bg-amber-600 hover:bg-amber-500 text-white">Resume Checkout →</Link>
+                       <Link href="/onboarding" className="btn-primary text-sm !py-2 !px-4 bg-amber-600 hover:bg-amber-500" style={{ color: "var(--color-text-primary)" }}>Resume Checkout →</Link>
                     </div>
                   )}
 
@@ -450,6 +458,7 @@ export default function DashboardPage() {
       </div>
 
       {companies.length > 0 && <ChatWidget companyId={companies[0]?.id} />}
+      <Footer />
     </div>
   );
 }

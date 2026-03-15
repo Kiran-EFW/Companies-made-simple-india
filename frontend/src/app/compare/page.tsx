@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { apiCall } from "@/lib/api";
+import Footer from "@/components/footer";
 
 interface EntitySummary {
   entity_type: string;
@@ -246,7 +247,7 @@ export default function ComparePage() {
                       key={row.field}
                       style={{
                         borderBottom: "1px solid var(--color-border)",
-                        background: idx % 2 === 0 ? "transparent" : "rgba(255,255,255,0.02)",
+                        background: idx % 2 === 0 ? "transparent" : "var(--color-stripe-alt)",
                       }}
                     >
                       <td
@@ -397,6 +398,7 @@ export default function ComparePage() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

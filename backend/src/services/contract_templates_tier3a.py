@@ -132,12 +132,24 @@ def posh_policy_template() -> dict:
                         "Company Name",
                         "text",
                         "Registered name of the company",
+                        learn_more=(
+                            "Use the exact legal name as registered with the Ministry of Corporate Affairs (MCA). "
+                            "This name will appear on all official POSH policy documents and any filings with the "
+                            "District Officer. An incorrect name can create compliance issues if the policy is ever "
+                            "challenged or audited."
+                        ),
                     ),
                     _clause(
                         "posh_registered_address",
                         "Registered Address",
                         "textarea",
                         "Registered office address of the company",
+                        learn_more=(
+                            "Enter the registered office address as it appears on your Certificate of Incorporation. "
+                            "Under the POSH Act, each office or branch with 10+ employees must have its own ICC. "
+                            "If your company operates from multiple locations, you may need separate POSH policies "
+                            "or annexures covering each workplace."
+                        ),
                     ),
                     _clause(
                         "posh_employee_count",
@@ -191,6 +203,14 @@ def posh_policy_template() -> dict:
                         "ICC External Member",
                         "text",
                         "Name and organization of the external member from an NGO or association",
+                        learn_more=(
+                            "The external member brings an independent, unbiased perspective to the ICC. "
+                            "This person should be from an NGO or association committed to women's causes, "
+                            "or someone with experience in sexual harassment issues. Many companies approach "
+                            "local women's organizations, legal aid societies, or social work professionals. "
+                            "A common mistake is appointing someone with no relevant experience just to "
+                            "fulfill the requirement."
+                        ),
                         india_note=(
                             "Section 4(2)(c) requires one external member from an NGO or "
                             "association committed to the cause of women, or a person familiar "
@@ -240,6 +260,14 @@ def posh_policy_template() -> dict:
                             "60 days from date of complaint",
                         ],
                         default="90 days from date of complaint",
+                        learn_more=(
+                            "The inquiry timeline determines how quickly the ICC must investigate and reach "
+                            "a conclusion. While 90 days is the statutory maximum under Section 11(4) of the "
+                            "POSH Act, choosing 60 days demonstrates a stronger commitment to swift resolution. "
+                            "A faster timeline benefits the complainant but requires the ICC to be well-organized "
+                            "and responsive. Most startups should stick with 90 days to allow adequate time for "
+                            "thorough investigation."
+                        ),
                         india_note=(
                             "Section 11(4) of the POSH Act requires the inquiry to be "
                             "completed within 90 days."
@@ -270,6 +298,13 @@ def posh_policy_template() -> dict:
                             "Restraining respondent from reporting on complainant",
                             "Restraining respondent from contacting complainant",
                         ],
+                        learn_more=(
+                            "Interim relief measures protect the complainant during the pendency of the inquiry. "
+                            "These are temporary measures, not punishments. The ICC can recommend any combination "
+                            "of these measures based on the circumstances. It is best practice to include all "
+                            "available measures in your policy so the ICC has flexibility. The leave granted under "
+                            "Section 12 is in addition to the complainant's regular leave entitlement."
+                        ),
                         india_note=(
                             "Section 12 of the POSH Act empowers the ICC to recommend "
                             "interim relief including transfer, leave (up to 3 months, "
@@ -341,6 +376,14 @@ def posh_policy_template() -> dict:
                             "As recommended by ICC",
                         ],
                         default="As recommended by ICC",
+                        learn_more=(
+                            "This clause addresses situations where the ICC finds a complaint was made with "
+                            "malicious intent or is provably false. It is crucial to understand that the mere "
+                            "inability to prove a complaint does NOT make it false or malicious — this is a very "
+                            "important distinction under Section 14. Choosing 'As recommended by ICC' gives the "
+                            "committee discretion to decide appropriate action based on severity, which is the "
+                            "safest option for most companies."
+                        ),
                         india_note=(
                             "Section 14 of the POSH Act provides that if the ICC concludes "
                             "that the complaint was made with malicious intent or is false, "
@@ -355,6 +398,15 @@ def posh_policy_template() -> dict:
                         "toggle",
                         "Whether the company will file the annual report with the District Officer",
                         default=True,
+                        learn_more=(
+                            "Annual report filing is mandatory under Section 21 of the POSH Act. The report "
+                            "must contain details of complaints received, resolved, and pending. Even if your "
+                            "company had zero complaints during the year, you must still file the report. "
+                            "Non-filing can attract penalties and shows non-compliance during any audit or "
+                            "inspection. This should always be enabled."
+                        ),
+                        warning_condition={"posh_annual_report": {"eq": False}},
+                        warning="Annual report filing is mandatory under Section 21 of the POSH Act.",
                         india_note=(
                             "Section 21 of the POSH Act mandates that the ICC shall prepare "
                             "an annual report and submit it to the employer and District "
@@ -603,6 +655,12 @@ def convertible_note_template() -> dict:
                         "Company Name",
                         "text",
                         "Registered name of the company issuing the note",
+                        learn_more=(
+                            "Use the exact registered name of your company as it appears on your Certificate "
+                            "of Incorporation issued by the Registrar of Companies (ROC). This name will appear "
+                            "on MCA filings including the PAS-3 form that must be filed within 30 days of allotment. "
+                            "Any mismatch can cause filing rejections."
+                        ),
                     ),
                     _clause(
                         "cn_company_cin",
@@ -610,18 +668,37 @@ def convertible_note_template() -> dict:
                         "text",
                         "Corporate Identification Number of the company",
                         required=False,
+                        learn_more=(
+                            "The CIN is a unique 21-digit alphanumeric identifier assigned by MCA to every "
+                            "company registered in India. You can find it on your Certificate of Incorporation "
+                            "or by searching the MCA portal. While optional here, including it adds credibility "
+                            "and makes the agreement easier to enforce. Investors typically expect to see this."
+                        ),
                     ),
                     _clause(
                         "cn_company_address",
                         "Company Registered Address",
                         "textarea",
                         "Registered office address of the company",
+                        learn_more=(
+                            "Enter the registered office address as it appears in your MCA records. This is "
+                            "the address where legal notices can be served. If your operating address differs "
+                            "from your registered address, use the registered one here. Investors may conduct "
+                            "due diligence to verify this address matches official records."
+                        ),
                     ),
                     _clause(
                         "cn_investor_name",
                         "Investor Name",
                         "text",
                         "Full legal name of the investor (individual or entity)",
+                        learn_more=(
+                            "Enter the investor's full legal name exactly as it appears on their PAN card "
+                            "(for individuals) or Certificate of Incorporation (for entities). This name will "
+                            "be used in the company's register of members upon conversion and in RBI filings "
+                            "for foreign investors. Using an incorrect name can cause delays in share allotment "
+                            "and regulatory filings."
+                        ),
                     ),
                     _clause(
                         "cn_investor_type",
@@ -635,6 +712,13 @@ def convertible_note_template() -> dict:
                             "Foreign Individual",
                             "Foreign Entity / VC Fund",
                         ],
+                        learn_more=(
+                            "The investor type determines which regulatory framework applies. Indian residents "
+                            "and entities have simpler compliance requirements. NRIs, foreign individuals, and "
+                            "foreign entities trigger FEMA compliance, RBI filing requirements, and a minimum "
+                            "investment threshold of INR 25 lakhs per convertible note. If you choose a foreign "
+                            "investor type, budget extra time and legal fees for regulatory filings."
+                        ),
                         india_note=(
                             "Foreign investors must comply with FEMA (Foreign Exchange "
                             "Management Act) regulations and RBI pricing guidelines. "
@@ -651,6 +735,13 @@ def convertible_note_template() -> dict:
                         "number",
                         "Total investment amount in Indian Rupees",
                         min_value=1,
+                        learn_more=(
+                            "This is the total amount the investor will invest in exchange for the convertible "
+                            "note. For foreign investors, the minimum is INR 25 lakhs per note as per RBI "
+                            "regulations. The company must pass a special resolution under Section 42 of the "
+                            "Companies Act and file Form PAS-3 with MCA within 30 days of allotment. A common "
+                            "founder mistake is not accounting for the dilution this amount will cause upon conversion."
+                        ),
                         india_note=(
                             "Under Companies Act 2013, Section 42 governs private placement "
                             "of securities. The company must pass a special resolution and "
@@ -662,6 +753,12 @@ def convertible_note_template() -> dict:
                         "Execution Date",
                         "date",
                         "Date of execution of this agreement",
+                        learn_more=(
+                            "The execution date is when both parties sign the agreement. Interest (if any) "
+                            "starts accruing from the date the investment amount is actually received by the "
+                            "company, not necessarily the execution date. The maturity period also begins from "
+                            "this date. Ensure funds are received promptly after execution to avoid mismatches."
+                        ),
                     ),
                 ],
             },
@@ -727,6 +824,13 @@ def convertible_note_template() -> dict:
                         "Minimum amount of the equity round to trigger conversion",
                         required=False,
                         depends_on="cn_conversion_trigger",
+                        learn_more=(
+                            "The qualifying amount sets the minimum size of a future equity round that triggers "
+                            "automatic conversion. Setting this too high may mean the note never converts and "
+                            "reaches maturity instead. Setting it too low means even a small funding round triggers "
+                            "conversion. Common practice is to set this at 2-3x the note amount. For example, if "
+                            "the note is INR 50 lakhs, a qualifying round minimum of INR 1-1.5 Cr is typical."
+                        ),
                     ),
                     _clause(
                         "cn_interest_rate",
@@ -780,6 +884,18 @@ def convertible_note_template() -> dict:
                             "Convert at fair market value (independent valuation)",
                         ],
                         default="Convert at valuation cap",
+                        learn_more=(
+                            "If no qualifying round happens before the note matures, this clause determines "
+                            "the outcome. Converting at the valuation cap is founder-friendly as it avoids a "
+                            "cash repayment obligation. Repaying principal + interest protects the investor but "
+                            "can strain a startup's cash. Extending by mutual agreement is flexible but uncertain. "
+                            "Fair market valuation requires an independent valuer which adds cost and may result "
+                            "in a valuation neither party likes."
+                        ),
+                        pros=["Conversion at cap: No cash outflow for company", "FMV: Fair to both parties"],
+                        cons=["Repayment: Cash burden on startup", "Extension: Uncertainty for investor"],
+                        warning_condition={"cn_maturity_action": {"eq": "Repay principal + interest"}},
+                        warning="Repayment obligation at maturity can strain startup cash flow.",
                     ),
                     _clause(
                         "cn_information_rights",
@@ -818,6 +934,14 @@ def convertible_note_template() -> dict:
                             "Indian law, courts at company registered office",
                         ],
                         default="Indian law, courts at company registered office",
+                        learn_more=(
+                            "The governing law determines which legal framework interprets the agreement, and "
+                            "jurisdiction determines where disputes are heard. Choosing courts at your company's "
+                            "registered office is most convenient for the company. Investors sometimes negotiate "
+                            "for a neutral or more commercially active jurisdiction like Mumbai or Delhi. "
+                            "Convertible notes involving foreign investors must always be governed by Indian law "
+                            "per FEMA requirements."
+                        ),
                     ),
                 ],
             },
@@ -1029,24 +1153,47 @@ def msa_template() -> dict:
                         "Client Name",
                         "text",
                         "Full legal name of the client",
+                        learn_more=(
+                            "Use the exact legal name of the client entity — the party receiving the services. "
+                            "For companies, this is the name on their Certificate of Incorporation. For LLPs, "
+                            "use the name as registered with MCA. Getting the legal name wrong can make contract "
+                            "enforcement difficult if disputes arise."
+                        ),
                     ),
                     _clause(
                         "msa_client_address",
                         "Client Address",
                         "textarea",
                         "Registered or principal business address of the client",
+                        learn_more=(
+                            "The client's address is important for determining jurisdiction and serving notices. "
+                            "Use the registered office address for companies or the principal place of business "
+                            "for proprietorships. This address will be referenced in the governing law clause "
+                            "if you select jurisdiction at the client's location."
+                        ),
                     ),
                     _clause(
                         "msa_provider_name",
                         "Service Provider Name",
                         "text",
                         "Full legal name of the service provider",
+                        learn_more=(
+                            "This is your company's legal name if you are the service provider, or the vendor's "
+                            "name if you are the client. The service provider is the party delivering the services. "
+                            "Ensure this matches official registration documents to avoid enforceability issues."
+                        ),
                     ),
                     _clause(
                         "msa_provider_address",
                         "Service Provider Address",
                         "textarea",
                         "Registered or principal business address of the provider",
+                        learn_more=(
+                            "Enter the service provider's registered or principal business address. This address "
+                            "is used for sending official notices and communications under the agreement. If the "
+                            "provider is a startup operating from a co-working space, use the registered office "
+                            "address for legal certainty."
+                        ),
                     ),
                     _clause(
                         "msa_service_description",
@@ -1077,6 +1224,13 @@ def msa_template() -> dict:
                         "Effective Date",
                         "date",
                         "Date from which this agreement takes effect",
+                        learn_more=(
+                            "The effective date is when obligations under the MSA begin. It may differ from the "
+                            "signing date if you want the agreement to start on a future date. SLAs, payment "
+                            "obligations, and the initial term all run from this date. A common mistake is "
+                            "starting work before the effective date, which leaves the work unprotected by the "
+                            "agreement's terms."
+                        ),
                     ),
                 ],
             },
@@ -1111,6 +1265,13 @@ def msa_template() -> dict:
                         "Fee Amount / Rate (INR)",
                         "text",
                         "Amount or rate as applicable (e.g., INR 5,00,000 per month or INR 3,000/hour)",
+                        learn_more=(
+                            "Specify the fee clearly with the unit — whether it is per month, per hour, per "
+                            "project, or per milestone. Ambiguity in fee amounts is the top cause of B2B payment "
+                            "disputes. If using time-and-material, specify the rate card for different resource "
+                            "levels. Remember that GST (typically 18%) will be charged additionally unless "
+                            "explicitly included in the quoted fee."
+                        ),
                     ),
                     _clause(
                         "msa_payment_terms",
@@ -1125,6 +1286,15 @@ def msa_template() -> dict:
                             "Advance payment",
                         ],
                         default="Net 30 days",
+                        learn_more=(
+                            "Payment terms determine when the client must pay after receiving an invoice. "
+                            "'Net 30' means payment is due within 30 days. If you are the provider, shorter "
+                            "terms improve cash flow. If you are the client, longer terms give you more "
+                            "working capital flexibility. Note: If the provider is an MSME, payment must be "
+                            "within 45 days under the MSMED Act regardless of what is agreed here."
+                        ),
+                        pros=["Shorter terms: Better cash flow for provider", "Longer terms: Working capital flexibility for client"],
+                        cons=["Too short: Client may struggle to pay on time", "Too long: Cash flow strain on provider"],
                         common_choice_label="Net 30 is market standard",
                     ),
                     _clause(
@@ -1135,6 +1305,13 @@ def msa_template() -> dict:
                         default=2,
                         min_value=0,
                         max_value=5,
+                        learn_more=(
+                            "Late payment interest incentivizes timely payment and compensates the provider for "
+                            "delayed cash flow. The standard rate is 1.5-2% per month (18-24% annualized). "
+                            "Setting it too high (above 3%) may be challenged as penal or unconscionable. "
+                            "Setting it at 0% removes any incentive for timely payment. This interest is separate "
+                            "from the MSMED Act's mandatory compound interest of 3x bank rate for MSME vendors."
+                        ),
                     ),
                     _clause(
                         "msa_gst_handling",
@@ -1147,6 +1324,13 @@ def msa_template() -> dict:
                             "Reverse charge mechanism",
                         ],
                         default="GST charged additionally at applicable rate",
+                        learn_more=(
+                            "GST handling determines who bears the tax burden. If GST is included in fees, the "
+                            "provider absorbs the tax and the effective revenue is lower. If charged additionally, "
+                            "the client pays the base fee plus 18% GST on top. Reverse charge applies in specific "
+                            "cases like imports of services. The most common and transparent approach is 'GST charged "
+                            "additionally' which lets both parties clearly see the tax component."
+                        ),
                         india_note=(
                             "Under GST law, services attract 18% GST (most professional "
                             "services). The provider must issue a GST-compliant tax invoice. "
@@ -1198,6 +1382,15 @@ def msa_template() -> dict:
                             "Licensed to client for deliverable use only",
                         ],
                         default="Provider retains ownership, grants usage license",
+                        learn_more=(
+                            "Pre-existing IP refers to tools, frameworks, code libraries, or methodologies the "
+                            "provider already owns before the engagement. It would be unfair to transfer ownership "
+                            "of these to the client. The standard approach is for the provider to retain ownership "
+                            "but grant the client a license to use it as part of the deliverables. If you exclude "
+                            "pre-existing IP entirely, the client may not be able to use the deliverables properly."
+                        ),
+                        pros=["Retains provider's competitive advantage", "Client gets usage rights for deliverables"],
+                        cons=["Client may be dependent on provider for updates to pre-existing IP components"],
                     ),
                     _clause(
                         "msa_confidentiality_period",
@@ -1211,6 +1404,13 @@ def msa_template() -> dict:
                             "Perpetual (no expiry)",
                         ],
                         default="3 years after termination",
+                        learn_more=(
+                            "The confidentiality survival period determines how long parties must keep each "
+                            "other's information secret after the agreement ends. Shorter periods (2 years) are "
+                            "easier to agree to but may not protect highly sensitive data. Perpetual confidentiality "
+                            "is strongest but harder to enforce and monitor. Three years is the industry standard "
+                            "for most B2B agreements and balances protection with practicality."
+                        ),
                         common_choice_label="3 years is typical for B2B",
                     ),
                     _clause(
@@ -1219,6 +1419,16 @@ def msa_template() -> dict:
                         "toggle",
                         "Whether the agreement includes data protection / DPDP Act compliance obligations",
                         default=True,
+                        learn_more=(
+                            "Data protection obligations ensure that any personal data shared between parties "
+                            "during the engagement is handled in compliance with the Digital Personal Data "
+                            "Protection Act, 2023 (DPDP Act). If either party processes personal data of "
+                            "customers, employees, or users, this should be enabled. Disabling it when personal "
+                            "data is involved creates legal risk and potential penalties under the DPDP Act, "
+                            "which can go up to INR 250 Crores for significant breaches."
+                        ),
+                        warning="Disable only if no personal data is shared during the engagement.",
+                        warning_condition={"msa_data_protection": {"eq": False}},
                         india_note=(
                             "If personal data is shared during the engagement, both parties "
                             "must comply with the Digital Personal Data Protection Act, 2023 "
@@ -1266,6 +1476,18 @@ def msa_template() -> dict:
                             "No indemnification",
                         ],
                         default="Mutual indemnification",
+                        learn_more=(
+                            "Indemnification means one party agrees to compensate the other for losses caused "
+                            "by their breach. Mutual indemnification is fairest — both parties cover each other "
+                            "for their respective breaches. 'Provider indemnifies client only' is common in "
+                            "client-drafted agreements but leaves the provider exposed. 'No indemnification' is "
+                            "risky as neither party has recourse if the other's actions cause losses. As a "
+                            "startup, push for mutual indemnification to ensure balanced protection."
+                        ),
+                        pros=["Mutual: Balanced and fair", "One-sided: Protects the specified party strongly"],
+                        cons=["One-sided: Unfair to the non-protected party", "No indemnification: Neither party has recourse"],
+                        warning="No indemnification leaves both parties without recourse for losses.",
+                        warning_condition={"msa_indemnity": {"eq": "No indemnification"}},
                     ),
                     _clause(
                         "msa_term_months",
@@ -1275,6 +1497,13 @@ def msa_template() -> dict:
                         default=12,
                         min_value=1,
                         max_value=60,
+                        learn_more=(
+                            "The initial term is how long the MSA is valid before it either expires or renews. "
+                            "Twelve months is standard for most B2B engagements. Shorter terms (3-6 months) suit "
+                            "pilot projects, while longer terms (24-36 months) are common for enterprise contracts. "
+                            "The term affects pricing negotiations — providers often offer better rates for longer "
+                            "commitments. Consider including an auto-renewal clause to avoid gaps in service."
+                        ),
                     ),
                     _clause(
                         "msa_termination_notice",
@@ -1287,6 +1516,13 @@ def msa_template() -> dict:
                             "90 days written notice",
                         ],
                         default="30 days written notice",
+                        learn_more=(
+                            "The termination notice period gives both parties time to plan for the end of the "
+                            "engagement. Thirty days is standard and allows for transition of work. Ninety days "
+                            "is better for complex engagements where transition needs more time. A common mistake "
+                            "is setting very short notice periods that do not allow sufficient time for knowledge "
+                            "transfer and finding a replacement provider."
+                        ),
                     ),
                     _clause(
                         "msa_dispute_resolution",
@@ -1300,6 +1536,14 @@ def msa_template() -> dict:
                             "Courts of competent jurisdiction",
                         ],
                         default="Arbitration (sole arbitrator) under Arbitration Act 1996",
+                        learn_more=(
+                            "Dispute resolution determines how disagreements are handled. Arbitration is "
+                            "faster and more confidential than court litigation in India. A sole arbitrator "
+                            "is cheaper and quicker, while a 3-member tribunal is suitable for high-value "
+                            "disputes. Mediation followed by arbitration encourages amicable settlement first. "
+                            "Courts should be a last resort due to delays in the Indian judicial system. "
+                            "Most B2B contracts in India use arbitration for its efficiency and enforceability."
+                        ),
                         india_note=(
                             "Arbitration under the Arbitration and Conciliation Act, 1996 "
                             "is the preferred dispute resolution mechanism in Indian B2B "
@@ -1312,6 +1556,13 @@ def msa_template() -> dict:
                         "text",
                         "City whose courts / arbitration seat will have jurisdiction",
                         default="Bengaluru",
+                        learn_more=(
+                            "The jurisdiction city determines where arbitration proceedings will take place or "
+                            "which courts will hear disputes. Choose a city that is convenient for your company. "
+                            "Major commercial hubs like Mumbai, Delhi, and Bengaluru have experienced commercial "
+                            "courts and arbitration centres. The seat of arbitration also determines the procedural "
+                            "law applicable to the arbitration proceedings."
+                        ),
                     ),
                 ],
             },
@@ -1569,24 +1820,48 @@ def vendor_agreement_template() -> dict:
                         "Company Name (Purchaser)",
                         "text",
                         "Registered name of the purchasing company",
+                        learn_more=(
+                            "Enter the full legal name of the company purchasing goods or services. This is "
+                            "the party that will receive the supply and make payments. If the vendor is an "
+                            "MSME, the purchaser has additional obligations under the MSMED Act including "
+                            "filing half-yearly returns on the MSME Samadhaan portal."
+                        ),
                     ),
                     _clause(
                         "va_company_address",
                         "Company Address",
                         "textarea",
                         "Registered address of the purchasing company",
+                        learn_more=(
+                            "This is the registered office address of the company placing the purchase order. "
+                            "Delivery instructions may differ from this address — the delivery location is "
+                            "specified separately in individual purchase orders. This address is used for "
+                            "sending invoices, notices, and official correspondence."
+                        ),
                     ),
                     _clause(
                         "va_vendor_name",
                         "Vendor Name",
                         "text",
                         "Full legal name of the vendor/supplier",
+                        learn_more=(
+                            "Enter the vendor's exact legal name as it appears on their GST registration "
+                            "certificate or Certificate of Incorporation. This must match for GST Input Tax "
+                            "Credit claims. If the vendor name on invoices does not match this agreement, "
+                            "you may face issues during GST reconciliation and audits."
+                        ),
                     ),
                     _clause(
                         "va_vendor_address",
                         "Vendor Address",
                         "textarea",
                         "Registered or principal business address of the vendor",
+                        learn_more=(
+                            "The vendor's registered or principal business address. This is important for "
+                            "determining the applicable GST rate (intra-state CGST+SGST vs inter-state IGST) "
+                            "and for serving legal notices. Verify this address matches the vendor's GST "
+                            "registration to avoid ITC claim issues."
+                        ),
                     ),
                     _clause(
                         "va_supply_type",
@@ -1598,12 +1873,26 @@ def vendor_agreement_template() -> dict:
                             "Services only",
                             "Goods and Services",
                         ],
+                        learn_more=(
+                            "The type of supply determines which legal frameworks apply. Goods are governed by "
+                            "the Sale of Goods Act, 1930, while services fall under the Indian Contract Act. "
+                            "GST rates also differ — goods have varying rates (5%, 12%, 18%, 28%) while services "
+                            "typically attract 18%. TDS rates also differ: 1%/2% under Section 194C for "
+                            "contracts vs 10% under Section 194J for professional services."
+                        ),
                     ),
                     _clause(
                         "va_supply_description",
                         "Description of Goods/Services",
                         "textarea",
                         "Detailed description of the goods or services to be supplied",
+                        learn_more=(
+                            "Be as specific as possible — include product specifications, HSN/SAC codes for GST "
+                            "purposes, quantities, quality grades, and brand/model numbers where applicable. "
+                            "A vague description leads to disputes over quality and quantity. For services, "
+                            "describe the scope, methodology, and expected outcomes. This description forms "
+                            "the basis for acceptance and warranty claims."
+                        ),
                     ),
                     _clause(
                         "va_delivery_terms",
@@ -1618,12 +1907,27 @@ def vendor_agreement_template() -> dict:
                             "As specified in Purchase Order",
                         ],
                         default="Delivered at purchaser premises (DAP)",
+                        learn_more=(
+                            "Delivery terms define when risk and responsibility transfer from vendor to buyer. "
+                            "Ex-works means the buyer bears all risk from the vendor's premises. DAP means the "
+                            "vendor is responsible until delivery at the buyer's premises. FOB and CIF are "
+                            "typically used for imports/exports. For domestic purchases, DAP is most common as "
+                            "it keeps the vendor responsible for transit risk, damage, and insurance."
+                        ),
+                        pros=["DAP: Less risk for buyer", "Ex-works: Lower price from vendor"],
+                        cons=["DAP: Higher vendor pricing", "Ex-works: Buyer manages logistics and risk"],
                     ),
                     _clause(
                         "va_effective_date",
                         "Effective Date",
                         "date",
                         "Date from which this agreement takes effect",
+                        learn_more=(
+                            "The effective date is when the vendor agreement becomes operative. Purchase orders "
+                            "placed before this date are not governed by this agreement. If you have an existing "
+                            "vendor relationship, set the effective date to cover ongoing and future orders. The "
+                            "agreement term, pricing, and warranty obligations all start from this date."
+                        ),
                     ),
                 ],
             },
@@ -1644,6 +1948,15 @@ def vendor_agreement_template() -> dict:
                             "Rate card / schedule of rates",
                             "Cost plus margin",
                         ],
+                        learn_more=(
+                            "The pricing model affects your procurement costs and budgeting. Fixed price per "
+                            "unit is best for standard products — you know exactly what each unit costs. "
+                            "Rate card works when you order different items at different rates. Cost plus margin "
+                            "is transparent but requires you to verify the vendor's actual costs. For startups "
+                            "buying regularly, negotiate a fixed price per unit with volume discounts."
+                        ),
+                        pros=["Fixed price: Budget certainty", "Cost plus: Transparency"],
+                        cons=["Fixed price: No benefit if costs drop", "Cost plus: Requires cost verification"],
                     ),
                     _clause(
                         "va_payment_terms",
@@ -1658,6 +1971,15 @@ def vendor_agreement_template() -> dict:
                             "50% advance, 50% on delivery",
                         ],
                         default="Net 30 days",
+                        learn_more=(
+                            "Payment terms set when the vendor gets paid after delivering goods/services and "
+                            "submitting an invoice. For MSME vendors, there is a hard legal limit of 45 days "
+                            "under the MSMED Act — choosing Net 60 for an MSME vendor would violate the law. "
+                            "The 50% advance option protects the vendor's cash flow but means the buyer pays "
+                            "before receiving the full delivery, which carries risk."
+                        ),
+                        warning="Exceeding 45-day payment terms for MSME vendors violates the MSMED Act.",
+                        warning_condition={"va_payment_terms": {"in": ["Net 60 days"]}},
                         india_note=(
                             "Under the MSMED Act, 2006, buyers must make payment to Micro "
                             "and Small Enterprise vendors within 45 days of acceptance of "
@@ -1677,6 +1999,14 @@ def vendor_agreement_template() -> dict:
                             "Medium Enterprise",
                             "Not an MSME",
                         ],
+                        learn_more=(
+                            "MSME classification is based on the vendor's investment in plant/machinery and "
+                            "annual turnover. If the vendor is a Micro or Small Enterprise, the MSMED Act "
+                            "mandates payment within 45 days and imposes compound interest (3x RBI bank rate) "
+                            "for delayed payments. This interest is NOT tax-deductible for the buyer. Ask the "
+                            "vendor for their Udyam Registration Certificate to verify their MSME status. "
+                            "Many startups unknowingly violate this law and face claims on the Samadhaan portal."
+                        ),
                         india_note=(
                             "If the vendor is a Micro or Small Enterprise under the MSMED "
                             "Act, 2006, payment must be made within 45 days. The buyer must "
@@ -1700,6 +2030,16 @@ def vendor_agreement_template() -> dict:
                             "As per manufacturer warranty",
                         ],
                         default="12 months",
+                        learn_more=(
+                            "The warranty period defines how long the vendor guarantees their goods/services "
+                            "to be free from defects. During this period, the vendor must repair or replace "
+                            "defective goods at no cost. Choosing 'No warranty' is risky — you have no recourse "
+                            "if goods are defective after delivery. 12 months is standard for most goods. For "
+                            "high-value capital equipment, negotiate 24 months. For consumables, 3-6 months "
+                            "may be appropriate."
+                        ),
+                        warning="No warranty leaves you without recourse for defective goods.",
+                        warning_condition={"va_warranty_period": {"eq": "No warranty"}},
                     ),
                     _clause(
                         "va_quality_standards",
@@ -1724,6 +2064,14 @@ def vendor_agreement_template() -> dict:
                             "Reverse charge applicable",
                         ],
                         default="GST charged extra at applicable rate",
+                        learn_more=(
+                            "GST handling is crucial for proper tax compliance and claiming Input Tax Credit "
+                            "(ITC). If GST is included in the price, the vendor absorbs it, which may mean "
+                            "the vendor has priced it in already. If GST is charged extra, you pay more but "
+                            "can claim ITC to offset your own GST liability. Reverse charge applies for specific "
+                            "notified categories of services. Always insist on GST-compliant invoices with the "
+                            "vendor's valid GSTIN to claim ITC."
+                        ),
                         india_note=(
                             "The purchaser should verify the vendor's GSTIN and ensure "
                             "GST-compliant invoices are received to claim Input Tax Credit "
@@ -1748,6 +2096,13 @@ def vendor_agreement_template() -> dict:
                         default=12,
                         min_value=1,
                         max_value=60,
+                        learn_more=(
+                            "The agreement term sets how long this vendor relationship is formally governed. "
+                            "Twelve months is standard for most vendor agreements. Shorter terms (3-6 months) "
+                            "are good for trial relationships or seasonal supplies. Longer terms (24-36 months) "
+                            "help secure pricing and supply assurance but reduce flexibility if a better vendor "
+                            "emerges. Consider pairing longer terms with auto-renewal for continuity."
+                        ),
                     ),
                     _clause(
                         "va_auto_renewal",
@@ -1755,6 +2110,13 @@ def vendor_agreement_template() -> dict:
                         "toggle",
                         "Whether the agreement automatically renews at the end of the term",
                         default=False,
+                        learn_more=(
+                            "Auto-renewal means the agreement continues for another term of equal duration "
+                            "unless either party gives written notice of non-renewal before the current term "
+                            "ends. This ensures continuity of supply but means you must actively decide to "
+                            "stop — forgetting to give notice will lock you in. If disabled, the agreement "
+                            "simply expires and you must negotiate a new one, which creates a gap in coverage."
+                        ),
                         pros=["Continuity of supply relationship"],
                         cons=["May lock in unfavourable terms"],
                     ),
@@ -1770,6 +2132,13 @@ def vendor_agreement_template() -> dict:
                             "90 days written notice",
                         ],
                         default="30 days written notice",
+                        learn_more=(
+                            "The notice period gives both parties time to wind down the relationship gracefully. "
+                            "For critical supply relationships, choose a longer period (60-90 days) so the buyer "
+                            "can find an alternative vendor. For non-critical supplies, 15-30 days is sufficient. "
+                            "Note that termination for cause (material breach) usually has a separate, shorter "
+                            "cure period and does not require this notice."
+                        ),
                     ),
                     _clause(
                         "va_liability_cap",
@@ -1783,6 +2152,16 @@ def vendor_agreement_template() -> dict:
                             "Unlimited",
                         ],
                         default="Limited to total payments in last 12 months",
+                        learn_more=(
+                            "The liability cap sets the maximum amount you can recover from the vendor if "
+                            "something goes wrong. 'Limited to 12-month payments' is the market standard. "
+                            "'Per PO' limits recovery to individual order values, which may be very low. "
+                            "'Unlimited' is almost never agreed to by vendors and is unrealistic. Exceptions "
+                            "(carve-outs) usually apply for IP infringement, wilful misconduct, and "
+                            "confidentiality breaches."
+                        ),
+                        pros=["Liability cap: Fair risk allocation", "Per PO: Vendor likely to accept"],
+                        cons=["Unlimited: Vendor will refuse or raise prices", "Per PO: May not cover consequential losses"],
                     ),
                     _clause(
                         "va_governing_law_city",
@@ -1790,6 +2169,13 @@ def vendor_agreement_template() -> dict:
                         "text",
                         "City whose courts will have exclusive jurisdiction",
                         default="Bengaluru",
+                        learn_more=(
+                            "The jurisdiction city determines where legal proceedings will be initiated in "
+                            "case of a dispute. As the buyer, you typically want jurisdiction at your location "
+                            "for convenience. Vendors may push for their own city. Choose a location with "
+                            "active commercial courts. For MSME vendors, note that disputes may also be "
+                            "taken to the MSME Facilitation Council regardless of the jurisdiction clause."
+                        ),
                     ),
                 ],
             },
@@ -2022,30 +2408,61 @@ def saas_agreement_template() -> dict:
                         "Provider / Licensor Name",
                         "text",
                         "Full legal name of the SaaS provider or software licensor",
+                        learn_more=(
+                            "Enter the legal name of the entity that owns and operates the SaaS platform. "
+                            "This is the party granting the license and providing the service. If your startup "
+                            "offers a SaaS product, this is your company name. The provider bears responsibility "
+                            "for uptime, data security, and support obligations under this agreement."
+                        ),
                     ),
                     _clause(
                         "saas_provider_address",
                         "Provider Address",
                         "textarea",
                         "Registered or principal business address of the provider",
+                        learn_more=(
+                            "The provider's official address for legal notices and correspondence. If the "
+                            "provider is a foreign entity offering services in India, the Indian subsidiary "
+                            "or local representative's address should be used. This address is also relevant "
+                            "for determining GST liability and applicable jurisdiction."
+                        ),
                     ),
                     _clause(
                         "saas_customer_name",
                         "Customer / Licensee Name",
                         "text",
                         "Full legal name of the customer subscribing to the service",
+                        learn_more=(
+                            "The customer is the entity subscribing to and using the SaaS platform. Use the "
+                            "exact legal name to ensure invoices, licenses, and data processing obligations are "
+                            "properly attributed. If you are subscribing on behalf of a group company, specify "
+                            "whether the license extends to affiliates or only the named entity."
+                        ),
                     ),
                     _clause(
                         "saas_customer_address",
                         "Customer Address",
                         "textarea",
                         "Registered or principal business address of the customer",
+                        learn_more=(
+                            "The customer's official address is used for invoicing, sending notices, and "
+                            "determining the applicable GST treatment (CGST+SGST for intra-state, IGST for "
+                            "inter-state). Ensure this matches your GST registration address to claim Input "
+                            "Tax Credit on the subscription fees."
+                        ),
                     ),
                     _clause(
                         "saas_platform_name",
                         "Platform / Software Name",
                         "text",
                         "Name of the SaaS platform or software product",
+                        learn_more=(
+                            "Enter the commercial name of the SaaS platform or software product being licensed. "
+                            "This is the brand name customers know, not necessarily the company name. For "
+                            "example, the company might be 'XYZ Technologies Pvt Ltd' but the platform could "
+                            "be called 'XYZ Cloud'. This name will be used throughout the agreement to refer "
+                            "to the service being provided."
+                        ),
                     ),
                     _clause(
                         "saas_subscription_tier",
@@ -2060,6 +2477,14 @@ def saas_agreement_template() -> dict:
                             "Custom / Negotiated",
                         ],
                         default="Professional / Business",
+                        learn_more=(
+                            "The subscription tier defines the feature set, user limits, and support level "
+                            "included in the agreement. Free/Freemium tiers typically have limited features "
+                            "and no SLA guarantees. Enterprise and Custom tiers usually include dedicated "
+                            "support, custom integrations, and negotiable SLAs. Ensure the chosen tier's "
+                            "features match the customer's actual needs — upgrading mid-term may involve "
+                            "additional costs or a new agreement."
+                        ),
                     ),
                     _clause(
                         "saas_features",
@@ -2077,6 +2502,12 @@ def saas_agreement_template() -> dict:
                         "Effective Date",
                         "date",
                         "Date from which the subscription begins",
+                        learn_more=(
+                            "The effective date is when the subscription term begins and the customer gets "
+                            "access to the platform. Billing typically starts from this date. If you are the "
+                            "provider, ensure onboarding and account setup are completed by this date. If you "
+                            "are the customer, negotiate a reasonable setup period before billing begins."
+                        ),
                     ),
                 ],
             },
@@ -2118,6 +2549,15 @@ def saas_agreement_template() -> dict:
                             "24/7 support with dedicated account manager",
                         ],
                         default="Email + chat (business hours)",
+                        learn_more=(
+                            "The support level determines how quickly and through which channels the customer "
+                            "can get help when issues arise. Email-only support is cheapest but has the slowest "
+                            "response times. 24/7 support with a dedicated account manager is premium and "
+                            "usually reserved for enterprise-tier subscriptions. For startups, 'Email + chat "
+                            "during business hours' is a reasonable balance of cost and responsiveness."
+                        ),
+                        pros=["Higher support: Faster issue resolution", "Lower support: Reduced cost"],
+                        cons=["Higher support: More expensive for provider", "Lower support: Frustrating for critical issues"],
                     ),
                     _clause(
                         "saas_data_hosting",
@@ -2130,6 +2570,14 @@ def saas_agreement_template() -> dict:
                             "Customer choice of region",
                             "Provider's standard infrastructure",
                         ],
+                        learn_more=(
+                            "Data hosting location matters for regulatory compliance, data sovereignty, and "
+                            "latency. India-based hosting ensures compliance with data localization requirements "
+                            "for regulated sectors like banking (RBI mandate) and healthcare. International "
+                            "hosting may offer better infrastructure but requires compliance with cross-border "
+                            "data transfer rules under the DPDP Act. Some government contracts mandate data "
+                            "residency in India."
+                        ),
                         india_note=(
                             "Under the DPDP Act, 2023, personal data may be transferred "
                             "outside India to all countries except those restricted by the "
@@ -2150,6 +2598,15 @@ def saas_agreement_template() -> dict:
                             "Customer-managed backups",
                         ],
                         default="Daily automated backups",
+                        learn_more=(
+                            "The backup policy determines how much data you could lose in a disaster scenario. "
+                            "Daily backups mean up to 24 hours of data could be lost. Real-time backups minimize "
+                            "data loss but are more expensive to implement. Weekly backups are risky for active "
+                            "platforms. Customer-managed backups put the responsibility on the customer and "
+                            "should only be chosen if the customer has the technical capability."
+                        ),
+                        warning="Weekly backups risk up to 7 days of data loss in a disaster.",
+                        warning_condition={"saas_data_backup": {"eq": "Weekly backups"}},
                     ),
                     _clause(
                         "saas_data_portability",
@@ -2163,6 +2620,16 @@ def saas_agreement_template() -> dict:
                             "Immediate deletion upon termination",
                         ],
                         default="Data export available for 30 days after termination",
+                        learn_more=(
+                            "Data portability determines how long the customer can retrieve their data after "
+                            "the subscription ends. Thirty days is standard for most SaaS products. Choosing "
+                            "immediate deletion is risky as the customer may lose critical business data. As a "
+                            "provider, offering a reasonable export window builds trust. As a customer, ensure "
+                            "you have a plan to export data before the window closes. Data should be available "
+                            "in standard formats like CSV, JSON, or XML."
+                        ),
+                        warning="Immediate deletion means no chance to recover data after termination.",
+                        warning_condition={"saas_data_portability": {"eq": "Immediate deletion upon termination"}},
                         india_note=(
                             "Under the DPDP Act, data principals have the right to data "
                             "portability. The provider should facilitate data export in a "
@@ -2201,6 +2668,13 @@ def saas_agreement_template() -> dict:
                         "User Limit",
                         "text",
                         "Maximum number of authorized users (e.g., '50 users' or 'Unlimited')",
+                        learn_more=(
+                            "The user limit caps how many people can access the platform simultaneously or "
+                            "in total. Exceeding this limit typically violates the agreement and may result in "
+                            "service suspension. If you expect your team to grow, negotiate a user limit with "
+                            "headroom or include a clear process for adding users. Unlimited user licenses are "
+                            "rare and typically come with enterprise pricing."
+                        ),
                     ),
                     _clause(
                         "saas_restrictions",
@@ -2232,6 +2706,13 @@ def saas_agreement_template() -> dict:
                         "Subscription Fee (INR)",
                         "text",
                         "Fee amount and billing frequency (e.g., 'INR 50,000/month' or 'INR 5,00,000/year')",
+                        learn_more=(
+                            "Clearly state the fee amount along with the billing period (monthly, quarterly, "
+                            "or annually). Annual plans often come with a discount of 15-20% compared to "
+                            "monthly billing. Remember that 18% GST will be charged additionally on SaaS "
+                            "subscriptions. For the customer, annual prepayment reduces cost but increases "
+                            "lock-in. Specify whether fees are subject to annual price escalation."
+                        ),
                     ),
                     _clause(
                         "saas_payment_terms",
@@ -2245,6 +2726,15 @@ def saas_agreement_template() -> dict:
                             "Net 30 after invoice",
                         ],
                         default="Annual upfront payment",
+                        learn_more=(
+                            "Payment terms affect cash flow for both parties. Annual upfront is most common "
+                            "for SaaS — it gives the provider predictable revenue and often comes with a "
+                            "discount for the customer. Quarterly or monthly billing reduces the customer's "
+                            "upfront outlay but costs more over time. Net 30 after invoice is typical for "
+                            "enterprise deals where the customer needs time for procurement processing."
+                        ),
+                        pros=["Annual: Discounts and simplicity", "Monthly: Lower initial commitment"],
+                        cons=["Annual: Large upfront payment", "Monthly: No discount, higher total cost"],
                     ),
                     _clause(
                         "saas_liability_cap",
@@ -2258,6 +2748,14 @@ def saas_agreement_template() -> dict:
                             "Unlimited",
                         ],
                         default="Limited to fees paid in last 12 months",
+                        learn_more=(
+                            "The liability cap limits the maximum amount the customer can claim from the "
+                            "provider if things go wrong (data breach, extended outage, etc.). Twelve months "
+                            "of fees is the SaaS industry standard globally. Six months is more favorable to "
+                            "the provider. Unlimited liability is almost never agreed to as it creates "
+                            "existential risk. Common carve-outs (exceptions to the cap) include data breaches "
+                            "due to gross negligence, IP infringement, and breach of confidentiality."
+                        ),
                         common_choice_label="12-month fees is industry standard",
                     ),
                     _clause(
@@ -2268,6 +2766,14 @@ def saas_agreement_template() -> dict:
                         default=12,
                         min_value=1,
                         max_value=60,
+                        learn_more=(
+                            "The subscription term is the initial duration of the SaaS agreement. Annual "
+                            "(12-month) terms are most common for SaaS products. Shorter terms (1-3 months) "
+                            "suit trial periods or pilot programs. Longer terms (24-36 months) may come with "
+                            "better pricing but reduce flexibility if the product does not meet needs. As a "
+                            "startup customer, start with 12 months unless you are very confident about the "
+                            "product fit."
+                        ),
                     ),
                     _clause(
                         "saas_auto_renewal",
@@ -2275,6 +2781,16 @@ def saas_agreement_template() -> dict:
                         "toggle",
                         "Whether the subscription auto-renews at the end of the term",
                         default=True,
+                        learn_more=(
+                            "Auto-renewal means the subscription continues for another term unless either "
+                            "party provides notice of non-renewal before the current term ends. For providers, "
+                            "this ensures recurring revenue. For customers, it provides uninterrupted service "
+                            "but requires active management to cancel. Under Indian consumer protection rules, "
+                            "auto-renewal terms must be clearly disclosed and customers must have a straightforward "
+                            "way to cancel."
+                        ),
+                        pros=["Uninterrupted service", "Revenue predictability for provider"],
+                        cons=["Customer may forget to cancel", "May lock in at old pricing"],
                         india_note=(
                             "Under the Consumer Protection Act, 2019 and Consumer Protection "
                             "(E-Commerce) Rules, 2020, auto-renewal terms must be clearly "
@@ -2293,6 +2809,13 @@ def saas_agreement_template() -> dict:
                             "90 days written notice",
                         ],
                         default="30 days written notice",
+                        learn_more=(
+                            "The termination notice period determines how far in advance either party must "
+                            "communicate their intention to end or not renew the subscription. Thirty days is "
+                            "standard. As a customer, shorter notice (15 days) gives more flexibility. As a "
+                            "provider, longer notice (60-90 days) helps with revenue planning. Remember to "
+                            "set calendar reminders before the notice deadline to avoid unintended auto-renewal."
+                        ),
                     ),
                     _clause(
                         "saas_governing_law_city",
@@ -2300,6 +2823,14 @@ def saas_agreement_template() -> dict:
                         "text",
                         "City whose courts will have exclusive jurisdiction",
                         default="Bengaluru",
+                        learn_more=(
+                            "The governing law and jurisdiction city determine where disputes will be resolved. "
+                            "SaaS providers typically choose their company's home city for convenience. "
+                            "Enterprise customers may negotiate for their own city. Bengaluru, Mumbai, and "
+                            "Delhi are popular choices due to their established commercial courts and technology "
+                            "ecosystem. The IT Act, 2000 and DPDP Act, 2023 apply regardless of the jurisdiction "
+                            "chosen if the service is offered in India."
+                        ),
                     ),
                 ],
             },

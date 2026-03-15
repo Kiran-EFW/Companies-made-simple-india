@@ -342,7 +342,7 @@ export default function ChatWidget({ companyId }: ChatWidgetProps) {
                 onKeyDown={handleKeyDown}
                 placeholder="Ask about incorporation..."
                 disabled={loading}
-                className="flex-1 bg-transparent text-sm outline-none placeholder:text-gray-500"
+                className="flex-1 bg-transparent text-sm outline-none"
                 style={{ color: "var(--color-text-primary, #f3f4f6)" }}
               />
               <button

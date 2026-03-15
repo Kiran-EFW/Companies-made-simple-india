@@ -15,6 +15,7 @@ import {
   calculateTds,
 } from "@/lib/api";
 import NotificationBell from "@/components/notification-bell";
+import Footer from "@/components/footer";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -101,7 +102,7 @@ function ScoreGauge({ score, grade }: { score: number; grade: string }) {
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="text-3xl font-bold" style={{ color }}>{score}</span>
-        <span className="text-xs font-semibold text-gray-400">{grade}</span>
+        <span className="text-xs font-semibold" style={{ color: "var(--color-text-secondary)" }}>{grade}</span>
       </div>
     </div>
   );
@@ -114,11 +115,14 @@ function StatusBadge({ status }: { status: string }) {
     upcoming: "bg-blue-500/10 text-blue-400 border-blue-500/30",
     completed: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30",
     in_progress: "bg-purple-500/10 text-purple-400 border-purple-500/30",
-    not_applicable: "bg-gray-500/10 text-gray-400 border-gray-500/30",
+    not_applicable: "bg-gray-500/10 border-gray-500/30",
   };
 
   return (
-    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${styles[status] || styles.upcoming}`}>
+    <span
+      className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${styles[status] || styles.upcoming}`}
+      style={status === "not_applicable" ? { color: "var(--color-text-secondary)" } : {}}
+    >
       {status.replace(/_/g, " ").toUpperCase()}
     </span>
   );
@@ -259,7 +263,7 @@ export default function ComplianceDashboard() {
   if (authLoading || (loading && !scoreData)) {
     return (
       <div className="min-h-screen flex items-center justify-center glow-bg">
-        <div className="animate-pulse-glow w-16 h-16 rounded-full bg-purple-500/20 flex items-center justify-center">
+        <div className="animate-pulse-glow w-16 h-16 rounded-full flex items-center justify-center" style={{ background: "rgba(139, 92, 246, 0.2)" }}>
           <span className="text-2xl">&#9889;</span>
         </div>
       </div>
@@ -362,25 +366,25 @@ export default function ComplianceDashboard() {
                 </div>
                 <div className="glass-card p-5">
                   <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Completed</p>
-                  <p className="text-3xl font-bold mt-2 text-emerald-400">{scoreData?.completed || 0}</p>
+                  <p className="text-3xl font-bold mt-2" style={{ color: "var(--color-success)" }}>{scoreData?.completed || 0}</p>
                 </div>
                 <div className="glass-card p-5">
                   <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Overdue</p>
-                  <p className="text-3xl font-bold mt-2 text-red-400">{scoreData?.overdue || 0}</p>
+                  <p className="text-3xl font-bold mt-2" style={{ color: "var(--color-error)" }}>{scoreData?.overdue || 0}</p>
                 </div>
                 <div className="glass-card p-5">
                   <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Due Soon</p>
-                  <p className="text-3xl font-bold mt-2 text-amber-400">{scoreData?.due_soon || 0}</p>
+                  <p className="text-3xl font-bold mt-2" style={{ color: "var(--color-warning)" }}>{scoreData?.due_soon || 0}</p>
                 </div>
                 <div className="glass-card p-5 md:col-span-2">
                   <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Penalty Exposure</p>
-                  <p className="text-2xl font-bold mt-2 text-red-400">
+                  <p className="text-2xl font-bold mt-2" style={{ color: "var(--color-error)" }}>
                     Rs {(scoreData?.estimated_penalty_exposure || 0).toLocaleString("en-IN")}
                   </p>
                 </div>
                 <div className="glass-card p-5 md:col-span-2">
                   <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>In Progress</p>
-                  <p className="text-3xl font-bold mt-2 text-purple-400">{scoreData?.in_progress || 0}</p>
+                  <p className="text-3xl font-bold mt-2" style={{ color: "var(--color-info)" }}>{scoreData?.in_progress || 0}</p>
                 </div>
               </div>
             </div>
@@ -394,7 +398,7 @@ export default function ComplianceDashboard() {
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     activeTab === tab
                       ? "bg-purple-500/20 text-purple-400 border border-purple-500/30"
-                      : "hover:bg-white/5"
+                      : ""
                   }`}
                   style={activeTab !== tab ? { color: "var(--color-text-secondary)" } : {}}
                 >
@@ -428,14 +432,15 @@ export default function ComplianceDashboard() {
                               ? "border-red-500/30 bg-red-500/5"
                               : entry.status === "due_soon"
                               ? "border-amber-500/30 bg-amber-500/5"
-                              : "border-gray-800 bg-gray-900/30"
+                              : ""
                           }`}
+                          style={entry.status !== "overdue" && entry.status !== "due_soon" ? { borderColor: "var(--color-border)", background: "var(--color-bg-secondary)" } : {}}
                         >
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
                               <h4 className="text-sm font-semibold">{entry.title}</h4>
                               <StatusBadge status={entry.status} />
-                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-800 text-gray-400">
+                              <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: "var(--color-bg-card)", color: "var(--color-text-secondary)" }}>
                                 {entry.frequency}
                               </span>
                             </div>
@@ -459,7 +464,7 @@ export default function ComplianceDashboard() {
                               </p>
                             )}
                             {entry.status === "overdue" && (
-                              <p className="text-[10px] mt-0.5 text-red-400 font-semibold">
+                              <p className="text-[10px] mt-0.5 font-semibold" style={{ color: "var(--color-error)" }}>
                                 OVERDUE
                               </p>
                             )}
@@ -474,11 +479,11 @@ export default function ComplianceDashboard() {
               {/* Overdue Tab */}
               {activeTab === "overdue" && (
                 <div className="glass-card p-6">
-                  <h3 className="text-lg font-bold mb-4 text-red-400">Overdue Tasks</h3>
+                  <h3 className="text-lg font-bold mb-4" style={{ color: "var(--color-error)" }}>Overdue Tasks</h3>
                   {overdueTasks.length === 0 ? (
                     <div className="text-center py-12">
                       <div className="text-4xl mb-3">&#10003;</div>
-                      <p className="text-sm text-emerald-400 font-semibold">All clear! No overdue tasks.</p>
+                      <p className="text-sm font-semibold" style={{ color: "var(--color-success)" }}>All clear! No overdue tasks.</p>
                     </div>
                   ) : (
                     <div className="space-y-3">
@@ -488,12 +493,12 @@ export default function ComplianceDashboard() {
                           className="p-4 rounded-lg border border-red-500/30 bg-red-500/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-3"
                         >
                           <div className="flex-1">
-                            <h4 className="text-sm font-semibold text-red-300">{task.title}</h4>
+                            <h4 className="text-sm font-semibold" style={{ color: "var(--color-error)" }}>{task.title}</h4>
                             <p className="text-xs mt-1" style={{ color: "var(--color-text-secondary)" }}>
                               {task.description}
                             </p>
                             {task.due_date && (
-                              <p className="text-[10px] mt-1 text-red-400">
+                              <p className="text-[10px] mt-1" style={{ color: "var(--color-error)" }}>
                                 Was due: {new Date(task.due_date).toLocaleDateString("en-IN", {
                                   day: "2-digit",
                                   month: "short",
@@ -522,28 +527,28 @@ export default function ComplianceDashboard() {
                   {!penaltyData || penaltyData.details.length === 0 ? (
                     <div className="text-center py-12">
                       <div className="text-4xl mb-3">&#128170;</div>
-                      <p className="text-sm text-emerald-400 font-semibold">No penalties! All filings are on time.</p>
+                      <p className="text-sm font-semibold" style={{ color: "var(--color-success)" }}>No penalties! All filings are on time.</p>
                     </div>
                   ) : (
                     <>
                       <div className="p-4 rounded-lg border border-red-500/30 bg-red-500/5 mb-6">
-                        <p className="text-xs font-semibold uppercase tracking-wider text-red-400 mb-1">
+                        <p className="text-xs font-semibold uppercase tracking-wider mb-1" style={{ color: "var(--color-error)" }}>
                           Total Estimated Penalty Exposure
                         </p>
-                        <p className="text-3xl font-bold text-red-400">
+                        <p className="text-3xl font-bold" style={{ color: "var(--color-error)" }}>
                           Rs {penaltyData.total.toLocaleString("en-IN")}
                         </p>
                       </div>
                       <div className="space-y-3">
                         {penaltyData.details.map((p, idx) => (
-                          <div key={idx} className="p-4 rounded-lg border border-gray-800 bg-gray-900/30 flex justify-between items-center">
+                          <div key={idx} className="p-4 rounded-lg border flex justify-between items-center" style={{ borderColor: "var(--color-border)", background: "var(--color-bg-secondary)" }}>
                             <div>
                               <h4 className="text-sm font-semibold">{p.task_title}</h4>
-                              <p className="text-xs text-gray-400 mt-0.5">
+                              <p className="text-xs mt-0.5" style={{ color: "var(--color-text-secondary)" }}>
                                 {p.days_overdue} days overdue {p.description && `- ${p.description}`}
                               </p>
                             </div>
-                            <span className="text-lg font-bold text-red-400">
+                            <span className="text-lg font-bold" style={{ color: "var(--color-error)" }}>
                               Rs {p.estimated_penalty.toLocaleString("en-IN")}
                             </span>
                           </div>
@@ -626,15 +631,15 @@ export default function ComplianceDashboard() {
                         </div>
                         <div>
                           <p className="text-[10px] uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>TDS Amount</p>
-                          <p className="text-lg font-bold text-amber-400">Rs {(tdsResult.tds_amount || 0).toLocaleString("en-IN")}</p>
+                          <p className="text-lg font-bold" style={{ color: "var(--color-warning)" }}>Rs {(tdsResult.tds_amount || 0).toLocaleString("en-IN")}</p>
                         </div>
                         <div>
                           <p className="text-[10px] uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Net Payable</p>
-                          <p className="text-lg font-bold text-emerald-400">Rs {(tdsResult.net_payable || 0).toLocaleString("en-IN")}</p>
+                          <p className="text-lg font-bold" style={{ color: "var(--color-success)" }}>Rs {(tdsResult.net_payable || 0).toLocaleString("en-IN")}</p>
                         </div>
                       </div>
                       {tdsResult.note && (
-                        <p className="text-xs mt-3 p-2 rounded bg-gray-800/50" style={{ color: "var(--color-text-secondary)" }}>
+                        <p className="text-xs mt-3 p-2 rounded" style={{ color: "var(--color-text-secondary)", background: "var(--color-bg-card)" }}>
                           {tdsResult.note}
                         </p>
                       )}
@@ -687,6 +692,7 @@ export default function ComplianceDashboard() {
           </>
         )}
       </div>
+      <Footer />
     </div>
   );
 }

@@ -16,6 +16,7 @@ from src.routers import legal_docs
 from src.routers import statutory_registers, meetings, data_room
 from src.routers import esign
 from src.routers import invoices
+from src.routers import founder_education
 from src.utils.exceptions import APIError
 from src.middleware.security import (
     RateLimitMiddleware,
@@ -142,6 +143,7 @@ app.include_router(meetings.router, prefix=settings.api_v1_prefix)
 app.include_router(data_room.router, prefix=settings.api_v1_prefix)
 app.include_router(esign.router, prefix=settings.api_v1_prefix)
 app.include_router(invoices.router, prefix=settings.api_v1_prefix)
+app.include_router(founder_education.router, prefix=settings.api_v1_prefix)
 
 
 @app.get("/")
