@@ -212,7 +212,7 @@ class NotificationService:
         """Send email via the existing email service."""
         email_service.send_email(
             to_email=user.email,
-            subject=f"CMS India: {subject}",
+            subject=f"Anvils: {subject}",
             html_content=body,
         )
 

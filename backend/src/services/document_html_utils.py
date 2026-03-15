@@ -468,7 +468,7 @@ def base_html_wrap(
     margin: 2.5cm 2cm 3cm 2cm;
     @top-center {{ content: "{title}"; font-size: 8pt; color: #999; }}
     @bottom-center {{ content: "Page " counter(page) " of " counter(pages); font-size: 8pt; color: #999; }}
-    @bottom-right {{ content: "CMS India"; font-size: 8pt; color: #bbb; }}
+    @bottom-right {{ content: "Anvils"; font-size: 8pt; color: #bbb; }}
 }}
 body{{font-family:'Georgia','Times New Roman',serif;line-height:1.8;color:#1a1a1a;max-width:800px;margin:0 auto;padding:40px;position:relative;}}
 body::before {{

@@ -1250,7 +1250,7 @@ class ESignService:
                 Electronic Signature Audit Certificate
             </h1>
             <p style="margin: 8px 0 0; color: #e9d5ff; font-size: 14px;">
-                Companies Made Simple India
+                Anvils
             </p>
         </div>
 
@@ -1393,7 +1393,7 @@ class ESignService:
                     Legal Validity
                 </h3>
                 <p style="margin: 0; font-size: 13px; line-height: 1.6; color: #78350f;">
-                    This document was signed electronically via Companies Made Simple India.
+                    This document was signed electronically via Anvils.
                     Electronic signatures are legally valid and enforceable under the
                     Information Technology Act 2000, Section 3A (Electronic Signature) and
                     the Indian Contract Act 1872. The document hash above can be used to
@@ -1497,7 +1497,7 @@ class ESignService:
                    padding: 28px 40px; text-align: center;">
             <h1 style="margin: 0; color: #ffffff; font-size: 22px; font-weight: 700;
                        letter-spacing: 0.5px;">
-                Companies Made Simple India
+                Anvils
             </h1>
         </td>
     </tr>
@@ -1556,7 +1556,7 @@ class ESignService:
                     <td style="text-align: center; color: #94a3b8; font-size: 12px;
                                line-height: 1.6;">
                         <p style="margin: 0 0 4px; font-weight: 600; color: #64748b;">
-                            Powered by Companies Made Simple India
+                            Powered by Anvils
                         </p>
                         <p style="margin: 0;">
                             Electronic signatures valid under IT Act 2000, Section 3A
@@ -1617,7 +1617,7 @@ class ESignService:
         <td style="background: linear-gradient(135deg, #7c3aed, #6d28d9);
                    padding: 28px 40px; text-align: center;">
             <h1 style="margin: 0; color: #ffffff; font-size: 22px; font-weight: 700;">
-                Companies Made Simple India
+                Anvils
             </h1>
         </td>
     </tr>
@@ -1653,7 +1653,7 @@ class ESignService:
                 <tr>
                     <td style="text-align: center; color: #94a3b8; font-size: 12px;">
                         <p style="margin: 0 0 4px; font-weight: 600; color: #64748b;">
-                            Powered by Companies Made Simple India
+                            Powered by Anvils
                         </p>
                         <p style="margin: 0;">
                             Electronic signatures valid under IT Act 2000, Section 3A
@@ -1713,7 +1713,7 @@ class ESignService:
         <td style="background: linear-gradient(135deg, #7c3aed, #6d28d9);
                    padding: 28px 40px; text-align: center;">
             <h1 style="margin: 0; color: #ffffff; font-size: 22px; font-weight: 700;">
-                Companies Made Simple India
+                Anvils
             </h1>
         </td>
     </tr>
@@ -1741,7 +1741,7 @@ class ESignService:
                 <tr>
                     <td style="text-align: center; color: #94a3b8; font-size: 12px;">
                         <p style="margin: 0; font-weight: 600; color: #64748b;">
-                            Companies Made Simple India
+                            Anvils
                         </p>
                     </td>
                 </tr>
@@ -1806,7 +1806,7 @@ class ESignService:
         <td style="background: linear-gradient(135deg, #7c3aed, #6d28d9);
                    padding: 28px 40px; text-align: center;">
             <h1 style="margin: 0; color: #ffffff; font-size: 22px; font-weight: 700;">
-                Companies Made Simple India
+                Anvils
             </h1>
         </td>
     </tr>
@@ -1851,7 +1851,7 @@ class ESignService:
                 <tr>
                     <td style="text-align: center; color: #94a3b8; font-size: 12px;">
                         <p style="margin: 0 0 4px; font-weight: 600; color: #64748b;">
-                            Powered by Companies Made Simple India
+                            Powered by Anvils
                         </p>
                         <p style="margin: 0;">
                             Electronic signatures valid under IT Act 2000, Section 3A

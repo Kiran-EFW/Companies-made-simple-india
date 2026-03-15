@@ -6,7 +6,7 @@ router = APIRouter()
 
 @router.get("/health")
 def health_check():
-    return {"status": "ok", "service": "Companies Made Simple India"}
+    return {"status": "ok", "service": "Anvils"}
 
 
 @router.get("/health/detailed")

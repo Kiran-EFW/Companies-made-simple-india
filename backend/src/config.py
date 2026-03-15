@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 class Settings(BaseSettings):
     environment: str = "development"
     database_url: str = "sqlite:///./cms_india.db"
-    app_name: str = "Companies Made Simple India"
+    app_name: str = "Anvils"
     api_v1_prefix: str = "/api/v1"
 
     # Security — MUST be overridden via SECRET_KEY env var in production
@@ -52,7 +52,7 @@ class Settings(BaseSettings):
     # Email (SendGrid)
     sendgrid_api_key: str = ""
     from_email: str = "hello@companiesmade.in"
-    from_name: str = "Companies Made Simple India"
+    from_name: str = "Anvils"
 
     # Twilio (SMS / WhatsApp)
     twilio_account_sid: str = ""

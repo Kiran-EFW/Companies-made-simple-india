@@ -6,11 +6,6 @@ import { ErrorBoundary } from "@/components/error-boundary";
 export const metadata: Metadata = {
   title: "Anvils — Admin Portal",
   description: "Internal operations and administration portal for Anvils",
-  icons: {
-    icon: "/favicon.ico",
-    apple: "/apple-touch-icon.png",
-  },
-  manifest: "/site.webmanifest",
 };
 
 export default function RootLayout({

@@ -113,7 +113,7 @@ class SMSService:
         return self.send_sms(
             phone,
             "Compliance Reminder: {} is due on {}. "
-            "Login to Companies Made Simple to complete it. "
+            "Login to Anvils to complete it. "
             "Penalties may apply for late filing.".format(task_title, due_date),
         )
 
@@ -132,7 +132,7 @@ class SMSService:
         return self.send_whatsapp(
             phone,
             "All parties have signed *{}*. "
-            "Login to Companies Made Simple to download the signed document.".format(
+            "Login to Anvils to download the signed document.".format(
                 doc_title
             ),
         )

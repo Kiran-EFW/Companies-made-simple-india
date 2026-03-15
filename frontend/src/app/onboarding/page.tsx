@@ -114,7 +114,7 @@ export default function OnboardingPage() {
         key: orderData.key_id,
         amount: orderData.amount,
         currency: orderData.currency,
-        name: "Companies Made Simple India",
+        name: "Anvils",
         description: `Incorporation - ${draftConfig.entity_type.replace("_", " ")}`,
         order_id: orderData.order_id,
         handler: async function (response: any) {

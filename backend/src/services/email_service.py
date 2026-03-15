@@ -65,17 +65,17 @@ class EmailService:
         Returns:
             True if sent successfully
         """
-        subject = "Welcome to Companies Made Simple India!"
+        subject = "Welcome to Anvils!"
         html_content = f"""
         <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333333;">
             <div style="text-align: center; padding: 20px 0; border-bottom: 2px solid #2563EB;">
-                <h1 style="color: #2563EB; margin: 0; font-size: 24px;">Companies Made Simple India</h1>
+                <h1 style="color: #2563EB; margin: 0; font-size: 24px;">Anvils</h1>
             </div>
 
             <div style="padding: 30px 0;">
                 <h2 style="color: #1E293B; font-size: 20px;">Welcome, {user_name}!</h2>
                 <p style="font-size: 16px; line-height: 1.6;">
-                    Thank you for joining Companies Made Simple India. We are here to make
+                    Thank you for joining Anvils. We are here to make
                     your company incorporation journey smooth and hassle-free.
                 </p>
 
@@ -96,7 +96,7 @@ class EmailService:
             </div>
 
             <div style="border-top: 1px solid #E2E8F0; padding: 20px 0; text-align: center; color: #94A3B8; font-size: 12px;">
-                <p style="margin: 0;">Companies Made Simple India</p>
+                <p style="margin: 0;">Anvils</p>
                 <p style="margin: 5px 0 0 0;">Making company incorporation effortless</p>
             </div>
         </div>
@@ -127,7 +127,7 @@ class EmailService:
         html_content = f"""
         <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333333;">
             <div style="text-align: center; padding: 20px 0; border-bottom: 2px solid #2563EB;">
-                <h1 style="color: #2563EB; margin: 0; font-size: 24px;">Companies Made Simple India</h1>
+                <h1 style="color: #2563EB; margin: 0; font-size: 24px;">Anvils</h1>
             </div>
 
             <div style="padding: 30px 0;">
@@ -169,7 +169,7 @@ class EmailService:
             </div>
 
             <div style="border-top: 1px solid #E2E8F0; padding: 20px 0; text-align: center; color: #94A3B8; font-size: 12px;">
-                <p style="margin: 0;">Companies Made Simple India</p>
+                <p style="margin: 0;">Anvils</p>
                 <p style="margin: 5px 0 0 0;">This is an automated payment receipt. Please keep it for your records.</p>
             </div>
         </div>
@@ -206,7 +206,7 @@ class EmailService:
         html_content = f"""
         <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333333;">
             <div style="text-align: center; padding: 20px 0; border-bottom: 2px solid #2563EB;">
-                <h1 style="color: #2563EB; margin: 0; font-size: 24px;">Companies Made Simple India</h1>
+                <h1 style="color: #2563EB; margin: 0; font-size: 24px;">Anvils</h1>
             </div>
 
             <div style="padding: 30px 0;">
@@ -233,7 +233,7 @@ class EmailService:
             </div>
 
             <div style="border-top: 1px solid #E2E8F0; padding: 20px 0; text-align: center; color: #94A3B8; font-size: 12px;">
-                <p style="margin: 0;">Companies Made Simple India</p>
+                <p style="margin: 0;">Anvils</p>
                 <p style="margin: 5px 0 0 0;">Automated status notification</p>
             </div>
         </div>

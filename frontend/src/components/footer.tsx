@@ -8,10 +8,10 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <span className="font-semibold" style={{ color: "var(--color-text-secondary)" }}>
-            CMS India
+            Anvils
           </span>
           <span style={{ color: "var(--color-text-muted)" }}>
-            &copy; {new Date().getFullYear()} Companies Made Simple India
+            &copy; {new Date().getFullYear()} Anvils
           </span>
         </div>
         <div className="flex items-center gap-6">

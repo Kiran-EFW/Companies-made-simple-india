@@ -19,7 +19,7 @@ _BASE_TEMPLATE = Template("""<!DOCTYPE html>
   <tr>
     <td style="background:linear-gradient(135deg,#7C3AED,#6D28D9);padding:28px 40px;text-align:center;">
       <h1 style="margin:0;color:#FFFFFF;font-size:22px;font-weight:700;letter-spacing:0.5px;">
-        Companies Made Simple India
+        Anvils
       </h1>
     </td>
   </tr>
@@ -35,7 +35,7 @@ _BASE_TEMPLATE = Template("""<!DOCTYPE html>
       <table width="100%" cellpadding="0" cellspacing="0">
         <tr>
           <td style="text-align:center;color:#94A3B8;font-size:12px;line-height:1.6;">
-            <p style="margin:0 0 8px 0;font-weight:600;color:#64748B;">Companies Made Simple India</p>
+            <p style="margin:0 0 8px 0;font-weight:600;color:#64748B;">Anvils</p>
             <p style="margin:0 0 4px 0;">Making company incorporation effortless</p>
             <p style="margin:12px 0 0 0;">
               <a href="https://companiesmade.in" style="color:#7C3AED;text-decoration:none;">Website</a>
@@ -61,7 +61,7 @@ _BASE_TEMPLATE = Template("""<!DOCTYPE html>
 _WELCOME_CONTENT = Template("""
 <h2 style="color:#1E293B;font-size:20px;margin:0 0 16px 0;">Welcome, {{ user_name }}!</h2>
 <p style="font-size:15px;line-height:1.7;color:#475569;">
-  Thank you for joining Companies Made Simple India. We are here to make
+  Thank you for joining Anvils. We are here to make
   your company incorporation journey smooth and hassle-free.
 </p>
 <div style="background:#F5F3FF;border-radius:8px;padding:20px;margin:24px 0;">

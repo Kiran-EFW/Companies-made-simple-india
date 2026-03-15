@@ -39,7 +39,7 @@ export default function AdminLoginPage() {
             className="text-3xl font-bold gradient-text"
             style={{ fontFamily: "var(--font-display)" }}
           >
-            CMS India
+            Anvils
           </h1>
           <p className="text-sm mt-2" style={{ color: "var(--color-text-muted)" }}>Admin Portal</p>
         </div>
@@ -93,10 +93,10 @@ export default function AdminLoginPage() {
         </form>
 
         <p className="text-center text-[10px] mt-6" style={{ color: "var(--color-text-muted)" }}>
-          This portal is for authorized CMS India staff only.
+          This portal is for authorized Anvils staff only.
         </p>
         <p className="text-center text-[10px] mt-2" style={{ color: "var(--color-text-muted)" }}>
-          CMS India &copy; {new Date().getFullYear()}
+          Anvils &copy; {new Date().getFullYear()}
         </p>
       </div>
     </div>

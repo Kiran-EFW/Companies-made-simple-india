@@ -10,7 +10,7 @@ class InvoiceService:
     """Generate GST-compliant invoices and payment receipts."""
 
     COMPANY_DETAILS = {
-        "name": "Companies Made Simple India Private Limited",
+        "name": "Anvils India Private Limited",
         "address": "Bangalore, Karnataka, India",
         "gstin": "29XXXXX1234X1Z5",  # Placeholder
         "pan": "XXXXX1234X",  # Placeholder

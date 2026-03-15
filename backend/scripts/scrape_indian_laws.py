@@ -202,7 +202,7 @@ async def main():
     all_results = {
         "metadata": {
             "scraped_at": datetime.now().isoformat(),
-            "purpose": "Legal compliance verification for CMS India document templates",
+            "purpose": "Legal compliance verification for Anvils document templates",
         },
         "sources": {},
     }

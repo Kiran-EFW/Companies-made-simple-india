@@ -88,7 +88,7 @@ class PDFService:
         <body>
         <div id="page-header">{title}</div>
         <div id="page-footer">
-            Page <pdf:pagenumber /> of <pdf:pagecount /> &mdash; CMS India
+            Page <pdf:pagenumber /> of <pdf:pagecount /> &mdash; Anvils
         </div>
         {html}
         </body>

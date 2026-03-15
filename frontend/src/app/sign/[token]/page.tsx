@@ -272,7 +272,7 @@ export default function PublicSigningPage() {
               </svg>
             </div>
             <div>
-              <h1 className="text-sm font-bold" style={{ color: "var(--color-text-primary, #111827)" }}>Companies Made Simple India</h1>
+              <h1 className="text-sm font-bold" style={{ color: "var(--color-text-primary, #111827)" }}>Anvils</h1>
               <p className="text-xs" style={{ color: "var(--color-text-muted, #6b7280)" }}>Document Signing</p>
             </div>
           </div>
@@ -314,7 +314,7 @@ export default function PublicSigningPage() {
             </svg>
           </div>
           <div>
-            <h1 className="text-sm font-bold" style={{ color: "var(--color-text-primary, #111827)" }}>Companies Made Simple India</h1>
+            <h1 className="text-sm font-bold" style={{ color: "var(--color-text-primary, #111827)" }}>Anvils</h1>
             <p className="text-xs" style={{ color: "var(--color-text-muted, #6b7280)" }}>Document Signing</p>
           </div>
         </div>
@@ -707,7 +707,7 @@ export default function PublicSigningPage() {
       {/* Footer */}
       <footer className="mt-12 py-6 px-6" style={{ borderTop: "1px solid var(--color-border, #e5e7eb)" }}>
         <div className="max-w-4xl mx-auto text-center text-xs" style={{ color: "var(--color-text-secondary, #9ca3af)" }}>
-          <p>Powered by Companies Made Simple India</p>
+          <p>Powered by Anvils</p>
           <p className="mt-1">E-signatures are legally valid under the Information Technology Act, 2000</p>
         </div>
       </footer>

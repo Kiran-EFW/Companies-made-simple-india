@@ -14,7 +14,7 @@ def test_health_check_contains_service_name(client):
     """Health response includes the service name."""
     response = client.get("/api/v1/health")
     data = response.json()
-    assert data["service"] == "Companies Made Simple India"
+    assert data["service"] == "Anvils"
 
 
 def test_detailed_health_check(client):
@@ -32,6 +32,6 @@ def test_root_endpoint(client):
     response = client.get("/")
     assert response.status_code == 200
     data = response.json()
-    assert data["name"] == "Companies Made Simple India"
+    assert data["name"] == "Anvils"
     assert "version" in data
     assert "docs" in data

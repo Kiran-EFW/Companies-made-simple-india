@@ -2352,7 +2352,7 @@ class ContractTemplateService:
         color: #999;
     }
     @bottom-right {
-        content: "CMS India";
+        content: "Anvils";
         font-family: "Helvetica Neue", Arial, sans-serif;
         font-size: 8pt;
         color: #bbb;

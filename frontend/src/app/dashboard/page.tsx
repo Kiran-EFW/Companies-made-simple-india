@@ -201,7 +201,7 @@ export default function DashboardPage() {
           <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
             <Link href="/dashboard" className="flex items-center gap-2">
               <span className="text-xl">⚡</span>
-              <span className="font-bold hidden md:block" style={{ fontFamily: "var(--font-display)" }}>CMS Prime</span>
+              <span className="font-bold hidden md:block" style={{ fontFamily: "var(--font-display)" }}>Anvils</span>
             </Link>
             
             <div className="flex items-center gap-6">

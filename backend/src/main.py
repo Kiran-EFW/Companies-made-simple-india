@@ -66,7 +66,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Companies Made Simple India",
+    title="Anvils",
     description="AI-powered company incorporation and compliance platform for India",
     version="0.1.0",
     lifespan=lifespan,

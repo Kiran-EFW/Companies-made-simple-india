@@ -122,7 +122,7 @@ def _build_company_context(company: Company) -> str:
 def _get_system_prompt(company_context: Optional[str] = None) -> str:
     """Assemble the full system prompt for the chatbot."""
     base = (
-        "You are the Companies Made Simple India assistant, an expert on "
+        "You are the Anvils assistant, an expert on "
         "Indian company incorporation, MCA compliance, and business registration. "
         "Answer questions clearly, accurately, and concisely. "
         "When relevant, reference specific forms, deadlines, or fees. "

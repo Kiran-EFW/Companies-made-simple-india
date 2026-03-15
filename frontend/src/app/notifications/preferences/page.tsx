@@ -108,7 +108,7 @@ export default function NotificationPreferencesPage() {
         <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/dashboard" className="flex items-center gap-2">
             <span className="text-xl">&#9889;</span>
-            <span className="font-bold hidden md:block" style={{ fontFamily: "var(--font-display)" }}>CMS Prime</span>
+            <span className="font-bold hidden md:block" style={{ fontFamily: "var(--font-display)" }}>Anvils</span>
           </Link>
           <div className="flex items-center gap-4">
             <Link href="/notifications" className="text-xs font-medium transition-colors" style={{ color: "var(--color-text-secondary)" }}>
