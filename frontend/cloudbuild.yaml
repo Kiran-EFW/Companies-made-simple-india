@@ -8,8 +8,7 @@ substitutions:
   _REGION: asia-south1
   _REPO: cms-india
 
-options:
-  logging: CLOUD_LOGGING_ONLY
+options: {}
 
 steps:
   # 1. Build frontend image

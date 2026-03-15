@@ -16,7 +16,6 @@ substitutions:
   _SECRET_KEY_SECRET: cms-india-secret-key
 
 options:
-  logging: CLOUD_LOGGING_ONLY
   machineType: E2_HIGHCPU_8
 
 steps:
