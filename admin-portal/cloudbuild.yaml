@@ -24,7 +24,7 @@ steps:
       - -t
       - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/admin-portal:latest
       - --build-arg
-      - NEXT_PUBLIC_API_URL=/api/v1
+      - NEXT_PUBLIC_API_URL=https://cms-india-backend-979970479540.asia-south1.run.app/api/v1
       - ./admin-portal
 
   # 2. Push admin-portal image
