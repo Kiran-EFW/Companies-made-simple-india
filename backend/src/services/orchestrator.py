@@ -1,7 +1,10 @@
 import asyncio
+import logging
 import threading
 from sqlalchemy.orm import Session
 from src.models.company import Company, CompanyStatus
+
+logger = logging.getLogger(__name__)
 
 
 class ProcessOrchestrator:
@@ -40,7 +43,7 @@ class ProcessOrchestrator:
                 db.refresh(comp)
 
         except Exception as e:
-            print(f"Orchestrator pipeline failed for company {company_id}: {str(e)}")
+            logger.exception("Orchestrator pipeline failed for company %s", company_id)
         finally:
             db.close()
 
@@ -58,12 +61,12 @@ class ProcessOrchestrator:
                 incorporation_service.start_workflow(db, comp.id)
             )
             if not result.get("success"):
-                print(
-                    f"Incorporation workflow failed for company {comp.id}: "
-                    f"{result.get('error', 'unknown error')}"
+                logger.error(
+                    "Incorporation workflow failed for company %s: %s",
+                    comp.id, result.get("error", "unknown error"),
                 )
         except Exception as e:
-            print(f"Incorporation workflow exception for company {comp.id}: {str(e)}")
+            logger.exception("Incorporation workflow exception for company %s", comp.id)
         finally:
             loop.close()
 
@@ -72,7 +75,7 @@ class ProcessOrchestrator:
         """
         Kicks off the orchestrator in a background thread so the HTTP request can return immediately.
         """
-        thread = threading.Thread(target=ProcessOrchestrator._run_agents_pipeline, args=(company_id,))
+        thread = threading.Thread(target=ProcessOrchestrator._run_agents_pipeline, args=(company_id,), daemon=True)
         thread.start()
 
     @staticmethod
@@ -88,11 +91,11 @@ class ProcessOrchestrator:
                 if comp:
                     ProcessOrchestrator._run_incorporation_workflow(db, comp)
             except Exception as e:
-                print(f"Incorporation workflow trigger failed for company {cid}: {str(e)}")
+                logger.exception("Incorporation workflow trigger failed for company %s", cid)
             finally:
                 db.close()
 
-        thread = threading.Thread(target=_run, args=(company_id,))
+        thread = threading.Thread(target=_run, args=(company_id,), daemon=True)
         thread.start()
 
     @staticmethod
@@ -109,7 +112,7 @@ class ProcessOrchestrator:
             # After AI parsing, queue the document for human verification
             ProcessOrchestrator._auto_queue_for_review(doc_id)
 
-        thread = threading.Thread(target=_parse_and_queue, args=(document_id,))
+        thread = threading.Thread(target=_parse_and_queue, args=(document_id,), daemon=True)
         thread.start()
 
     @staticmethod
@@ -161,7 +164,7 @@ class ProcessOrchestrator:
             db.add(item)
             db.commit()
         except Exception as e:
-            print(f"Auto-queue for review failed for document {document_id}: {str(e)}")
+            logger.exception("Auto-queue for review failed for document %s", document_id)
         finally:
             db.close()
 
@@ -191,15 +194,15 @@ class ProcessOrchestrator:
 
             # For entity types that have full incorporation workflows, use them
             if entity_type in ("private_limited", "opc", "llp", "section_8", "sole_proprietorship"):
-                print(f"Company {comp.id} is ready. Triggering {entity_type} incorporation workflow.")
+                logger.info("Company %s is ready. Triggering %s incorporation workflow.", comp.id, entity_type)
                 ProcessOrchestrator._run_incorporation_workflow(db, comp)
             else:
                 # Fallback to legacy drafting agent for other entity types
                 comp.status = CompanyStatus.FILING_DRAFTED
                 db.commit()
-                print(f"Company {comp.id} is now READY_FOR_DRAFTING. Triggering Drafting Agent.")
+                logger.info("Company %s is now READY_FOR_DRAFTING. Triggering Drafting Agent.", comp.id)
 
                 from src.agents.document_drafter import DocumentDrafterAgent
                 drafter = DocumentDrafterAgent(company_id=comp.id)
-                thread = threading.Thread(target=drafter.run)
+                thread = threading.Thread(target=drafter.run, daemon=True)
                 thread.start()

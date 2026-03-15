@@ -24,6 +24,8 @@ def init_db():
     from src.models import statutory_register, meeting, data_room  # noqa
     from src.models import esign  # noqa
     from src.models import message  # noqa
+    from src.models import service_catalog  # noqa
+    from src.models import accounting_connection  # noqa
     Base.metadata.create_all(bind=engine)
 
 

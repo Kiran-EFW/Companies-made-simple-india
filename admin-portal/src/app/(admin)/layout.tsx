@@ -162,7 +162,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </nav>
 
           <div className="p-4" style={{ borderTop: "1px solid var(--color-border)" }}>
-            <a href="http://localhost:3000/dashboard" className="flex items-center gap-2 text-xs transition-colors" style={{ color: "var(--color-text-muted)" }}>
+            <a href="/dashboard" className="flex items-center gap-2 text-xs transition-colors" style={{ color: "var(--color-text-muted)" }}>
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
               </svg>

@@ -1,0 +1,57 @@
+############################################################
+# Cloud Build — Frontend
+#
+# Trigger path filter: frontend/**
+############################################################
+
+substitutions:
+  _REGION: asia-south1
+  _REPO: cms-india
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+steps:
+  # 1. Build frontend image
+  - name: gcr.io/cloud-builders/docker
+    id: build-frontend
+    args:
+      - build
+      - -t
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/frontend:${SHORT_SHA}
+      - -t
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/frontend:latest
+      - --build-arg
+      - NEXT_PUBLIC_API_URL=/api/v1
+      - ./frontend
+
+  # 2. Push frontend image
+  - name: gcr.io/cloud-builders/docker
+    id: push-frontend
+    args: [push, --all-tags, "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/frontend"]
+    waitFor: [build-frontend]
+
+  # 3. Deploy frontend to Cloud Run
+  - name: gcr.io/cloud-builders/gcloud
+    id: deploy-frontend
+    args:
+      - run
+      - deploy
+      - cms-india-frontend
+      - --image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/frontend:${SHORT_SHA}
+      - --region=${_REGION}
+      - --platform=managed
+      - --allow-unauthenticated
+      - --port=3000
+      - --cpu=1
+      - --memory=512Mi
+      - --min-instances=0
+      - --max-instances=10
+      - --set-env-vars=NODE_ENV=production
+    waitFor: [push-frontend]
+
+images:
+  - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/frontend:${SHORT_SHA}
+  - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/frontend:latest
+
+timeout: 900s

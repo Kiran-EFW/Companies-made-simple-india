@@ -64,10 +64,12 @@ def dev_login(db: Session = Depends(get_db)):
 
     user = db.query(User).filter(User.role == "user").first()
     if not user:
+        import secrets
+        dev_password = secrets.token_urlsafe(16)
         user = User(
             email="dev@example.com",
             full_name="Dev User",
-            hashed_password=get_password_hash("password"),
+            hashed_password=get_password_hash(dev_password),
         )
         db.add(user)
         db.commit()

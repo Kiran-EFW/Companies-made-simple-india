@@ -1,0 +1,57 @@
+############################################################
+# Cloud Build — Admin Portal
+#
+# Trigger path filter: admin-portal/**
+############################################################
+
+substitutions:
+  _REGION: asia-south1
+  _REPO: cms-india
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+steps:
+  # 1. Build admin-portal image
+  - name: gcr.io/cloud-builders/docker
+    id: build-admin
+    args:
+      - build
+      - -t
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/admin-portal:${SHORT_SHA}
+      - -t
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/admin-portal:latest
+      - --build-arg
+      - NEXT_PUBLIC_API_URL=/api/v1
+      - ./admin-portal
+
+  # 2. Push admin-portal image
+  - name: gcr.io/cloud-builders/docker
+    id: push-admin
+    args: [push, --all-tags, "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/admin-portal"]
+    waitFor: [build-admin]
+
+  # 3. Deploy admin portal to Cloud Run
+  - name: gcr.io/cloud-builders/gcloud
+    id: deploy-admin
+    args:
+      - run
+      - deploy
+      - cms-india-admin
+      - --image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/admin-portal:${SHORT_SHA}
+      - --region=${_REGION}
+      - --platform=managed
+      - --no-allow-unauthenticated
+      - --port=3001
+      - --cpu=1
+      - --memory=512Mi
+      - --min-instances=0
+      - --max-instances=5
+      - --set-env-vars=NODE_ENV=production
+    waitFor: [push-admin]
+
+images:
+  - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/admin-portal:${SHORT_SHA}
+  - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/admin-portal:latest
+
+timeout: 900s

@@ -3,6 +3,28 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { getSigningPageData, submitSignature, declineSignature } from "@/lib/api";
+
+/** Strip dangerous tags/attributes from HTML to prevent XSS. */
+function sanitizeHtml(html: string): string {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  const dangerous = doc.querySelectorAll("script, iframe, object, embed, form, link[rel=import]");
+  dangerous.forEach((el) => el.remove());
+  doc.querySelectorAll("*").forEach((el) => {
+    for (const attr of Array.from(el.attributes)) {
+      if (attr.name.startsWith("on") || attr.value.trim().toLowerCase().startsWith("javascript:")) {
+        el.removeAttribute(attr.name);
+      }
+    }
+    if (el.tagName === "A") {
+      const href = el.getAttribute("href") || "";
+      if (href.trim().toLowerCase().startsWith("javascript:")) {
+        el.removeAttribute("href");
+      }
+    }
+  });
+  return doc.body.innerHTML;
+}
+
 type SignatureMethod = "draw" | "type" | "upload";
 type FontChoice = "Dancing Script" | "Great Vibes" | "Sacramento";
 
@@ -388,7 +410,7 @@ export default function PublicSigningPage() {
               <div
                 className="p-8 max-h-[500px] overflow-y-auto prose prose-sm max-w-none"
                 style={{ background: "var(--color-bg-card, #ffffff)", color: "var(--color-text-primary, #1f2937)" }}
-                dangerouslySetInnerHTML={{ __html: data.document_html || "<p>Document content will appear here.</p>" }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(data.document_html || "<p>Document content will appear here.</p>") }}
               />
             </div>
 

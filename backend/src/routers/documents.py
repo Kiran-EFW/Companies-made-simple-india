@@ -10,6 +10,7 @@ from src.models.director import Director
 from src.models.document import Document, DocumentType
 from src.schemas.document import DocumentOut, DocumentUploadResponse
 from src.utils.security import get_current_user
+from src.utils.admin_auth import get_admin_user
 from src.services.orchestrator import ProcessOrchestrator
 from pydantic import BaseModel
 
@@ -128,12 +129,9 @@ class AdminDocumentVerifyRequest(BaseModel):
 @router.get("/admin/pending", response_model=List[DocumentOut])
 def admin_list_pending_documents(
     db: Session = Depends(get_db),
-    # In a real app we'd check for an Admin role here
-    current_user: User = Depends(get_current_user)  
+    current_user: User = Depends(get_admin_user),
 ):
     """List all documents needing admin team verification."""
-    # MVP: ANY user can act as admin for testing right now. 
-    # Return documents that are either PENDING or AI_VERIFIED, needing human eyes
     docs = db.query(Document).filter(
         Document.verification_status.in_(["pending", "ai_verified"])
     ).order_by(Document.uploaded_at.asc()).all()
@@ -144,7 +142,7 @@ def admin_verify_document(
     document_id: int,
     request: AdminDocumentVerifyRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_admin_user),
 ):
     """Approve or reject a document after Human Review."""
     doc = db.query(Document).filter(Document.id == document_id).first()

@@ -193,7 +193,11 @@ class CapTableService:
 
         # Recalculate percentages for all shareholders
         self._recalculate_percentages(db, company_id)
-        db.commit()
+        try:
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
         db.refresh(shareholder)
 
         return {
@@ -266,7 +270,11 @@ class CapTableService:
 
         # Recalculate percentages
         self._recalculate_percentages(db, company_id)
-        db.commit()
+        try:
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
 
         # Generate SH-4 form data
         sh4_data = self._generate_sh4(from_holder, to_holder, shares, price_per_share, total_amount)
@@ -352,7 +360,11 @@ class CapTableService:
 
         # Recalculate percentages
         self._recalculate_percentages(db, company_id)
-        db.commit()
+        try:
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
 
         # Generate PAS-3 form data
         pas3_data = self._generate_pas3(company_id, allotment_results)
