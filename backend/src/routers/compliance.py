@@ -1,19 +1,21 @@
-"""Compliance Router — endpoints for compliance calendar, scoring, filings, and TDS."""
+"""Compliance Router — endpoints for compliance calendar, scoring, filings, TDS, GST, and tax overview."""
 
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from datetime import datetime, timezone
+from datetime import datetime, date, timezone
 
 from src.database import get_db
 from src.models.user import User
 from src.models.company import Company
 from src.models.compliance_task import ComplianceTask, ComplianceTaskStatus
+from src.models.accounting_connection import AccountingConnection, ConnectionStatus
 from src.utils.security import get_current_user
 from src.services.compliance_engine import compliance_engine
 from src.services.annual_filing_service import annual_filing_service
 from src.services.tds_service import tds_service
+from src.services.zoho_books_service import zoho_books_service
 from src.utils.cache import cache_get, cache_set, cache_delete_pattern
 
 router = APIRouter(prefix="/companies/{company_id}/compliance", tags=["Compliance"])
@@ -397,3 +399,355 @@ def get_tds_due_dates(
     """Get TDS filing due dates for a quarter."""
     _get_user_company(company_id, db, current_user)
     return tds_service.get_filing_due_dates(quarter)
+
+
+# ---------------------------------------------------------------------------
+# GST Dashboard
+# ---------------------------------------------------------------------------
+
+GST_RETURN_SCHEDULE = [
+    {"return_type": "GSTR-1", "description": "Outward supplies (sales)", "frequency": "monthly", "due_day": 11},
+    {"return_type": "GSTR-3B", "description": "Summary return with tax payment", "frequency": "monthly", "due_day": 20},
+    {"return_type": "GSTR-9", "description": "Annual GST return", "frequency": "annual", "due_month": 12, "due_day": 31},
+    {"return_type": "GSTR-9C", "description": "GST audit reconciliation (turnover > 5 Cr)", "frequency": "annual", "due_month": 12, "due_day": 31},
+]
+
+
+@router.get("/gst/dashboard")
+async def get_gst_dashboard(
+    company_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """GST filing dashboard — return schedule, status, and Zoho Books data if connected."""
+    company = _get_user_company(company_id, db, current_user)
+
+    today = date.today()
+    fy_start_year = today.year if today.month >= 4 else today.year - 1
+    fy_start = date(fy_start_year, 4, 1)
+    fy_end = date(fy_start_year + 1, 3, 31)
+
+    # Build return schedule for current FY
+    returns: List[Dict[str, Any]] = []
+    for r in GST_RETURN_SCHEDULE:
+        if r["frequency"] == "monthly":
+            for month_offset in range(12):
+                m = ((fy_start.month - 1 + month_offset) % 12) + 1
+                y = fy_start.year + ((fy_start.month - 1 + month_offset) // 12)
+                due = date(y, m, min(r["due_day"], 28))
+                # Next month for filing (GSTR-1 for Jan is due 11 Feb)
+                if m == 12:
+                    filing_due = date(y + 1, 1, r["due_day"])
+                else:
+                    filing_due = date(y, m + 1, r["due_day"])
+
+                period_label = f"{date(y, m, 1).strftime('%b %Y')}"
+                status = "completed" if filing_due < today else ("due_soon" if (filing_due - today).days <= 15 else "upcoming")
+
+                # Check if compliance task exists
+                task = (
+                    db.query(ComplianceTask)
+                    .filter(
+                        ComplianceTask.company_id == company_id,
+                        ComplianceTask.title.contains(r["return_type"]),
+                        ComplianceTask.title.contains(period_label),
+                    )
+                    .first()
+                )
+                if task and task.status == ComplianceTaskStatus.COMPLETED:
+                    status = "completed"
+
+                returns.append({
+                    "return_type": r["return_type"],
+                    "description": r["description"],
+                    "period": period_label,
+                    "due_date": filing_due.isoformat(),
+                    "status": status,
+                    "days_remaining": max((filing_due - today).days, 0),
+                })
+        else:
+            # Annual return
+            annual_due = date(fy_start_year + 1, r.get("due_month", 12), r["due_day"])
+            status = "completed" if annual_due < today else ("due_soon" if (annual_due - today).days <= 30 else "upcoming")
+            returns.append({
+                "return_type": r["return_type"],
+                "description": r["description"],
+                "period": f"FY {fy_start_year}-{fy_start_year + 1}",
+                "due_date": annual_due.isoformat(),
+                "status": status,
+                "days_remaining": max((annual_due - today).days, 0),
+            })
+
+    # Check for Zoho Books connection to pull GST data
+    zoho_data = None
+    connection = (
+        db.query(AccountingConnection)
+        .filter(
+            AccountingConnection.company_id == company_id,
+            AccountingConnection.status == ConnectionStatus.CONNECTED,
+        )
+        .first()
+    )
+    if connection and connection.zoho_access_token and connection.zoho_org_id:
+        try:
+            gst_summary = await zoho_books_service.get_gst_summary(
+                connection.zoho_access_token,
+                connection.zoho_org_id,
+                fy_start.isoformat(),
+                fy_end.isoformat(),
+            )
+            invoices_data = await zoho_books_service.get_invoices(
+                connection.zoho_access_token,
+                connection.zoho_org_id,
+            )
+            bills_data = await zoho_books_service.get_bills(
+                connection.zoho_access_token,
+                connection.zoho_org_id,
+            )
+            zoho_data = {
+                "gst_summary": gst_summary,
+                "total_invoices": invoices_data.get("page_context", {}).get("total", 0),
+                "total_bills": bills_data.get("page_context", {}).get("total", 0),
+                "connected_platform": "zoho_books",
+                "org_name": connection.zoho_org_name,
+                "last_sync": connection.last_sync_at.isoformat() if connection.last_sync_at else None,
+            }
+        except Exception as e:
+            zoho_data = {"error": str(e), "connected_platform": "zoho_books"}
+
+    # Filter to show only upcoming and due_soon returns (next 3 months)
+    upcoming_returns = [r for r in returns if r["status"] in ("upcoming", "due_soon") and r["days_remaining"] <= 90]
+    upcoming_returns.sort(key=lambda x: x["due_date"])
+
+    return {
+        "company_id": company_id,
+        "financial_year": f"{fy_start_year}-{fy_start_year + 1}",
+        "upcoming_returns": upcoming_returns[:6],
+        "all_returns": returns,
+        "accounting_connected": connection is not None,
+        "zoho_data": zoho_data,
+        "gst_summary": {
+            "total_returns_fy": len([r for r in returns if r["return_type"] in ("GSTR-1", "GSTR-3B")]),
+            "completed": len([r for r in returns if r["status"] == "completed"]),
+            "due_soon": len([r for r in returns if r["status"] == "due_soon"]),
+            "overdue": len([r for r in returns if r["status"] == "overdue" if "overdue" in r.get("status", "")]),
+        },
+    }
+
+
+# ---------------------------------------------------------------------------
+# Tax Overview
+# ---------------------------------------------------------------------------
+
+@router.get("/tax/overview")
+async def get_tax_overview(
+    company_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Comprehensive tax overview — ITR, TDS, advance tax, and financial summary."""
+    company = _get_user_company(company_id, db, current_user)
+
+    today = date.today()
+    fy_start_year = today.year if today.month >= 4 else today.year - 1
+    fy_label = f"{fy_start_year}-{fy_start_year + 1}"
+
+    # Get all compliance tasks for this company
+    all_tasks = (
+        db.query(ComplianceTask)
+        .filter(ComplianceTask.company_id == company_id)
+        .all()
+    )
+
+    # ITR filing status
+    itr_task = next(
+        (t for t in all_tasks if t.task_type and t.task_type.value == "itr_filing"),
+        None,
+    )
+    itr_status = {
+        "task_id": itr_task.id if itr_task else None,
+        "status": itr_task.status.value if itr_task else "not_generated",
+        "due_date": itr_task.due_date.isoformat() if itr_task and itr_task.due_date else None,
+        "completed_date": itr_task.completed_date.isoformat() if itr_task and itr_task.completed_date else None,
+        "filing_reference": itr_task.filing_reference if itr_task else None,
+    }
+
+    # TDS return statuses
+    tds_quarters = []
+    for q in ["q1", "q2", "q3", "q4"]:
+        tds_task = next(
+            (t for t in all_tasks if t.task_type and t.task_type.value == f"tds_return_{q}"),
+            None,
+        )
+        quarter_label = {"q1": "Q1 (Apr-Jun)", "q2": "Q2 (Jul-Sep)", "q3": "Q3 (Oct-Dec)", "q4": "Q4 (Jan-Mar)"}
+        tds_quarters.append({
+            "quarter": quarter_label[q],
+            "task_id": tds_task.id if tds_task else None,
+            "status": tds_task.status.value if tds_task else "not_generated",
+            "due_date": tds_task.due_date.isoformat() if tds_task and tds_task.due_date else None,
+            "completed_date": tds_task.completed_date.isoformat() if tds_task and tds_task.completed_date else None,
+        })
+
+    # Advance tax statuses
+    advance_tax = []
+    for q in ["q1", "q2", "q3", "q4"]:
+        at_task = next(
+            (t for t in all_tasks if t.task_type and t.task_type.value == f"advance_tax_{q}"),
+            None,
+        )
+        cumulative = {"q1": "15%", "q2": "45%", "q3": "75%", "q4": "100%"}
+        advance_tax.append({
+            "quarter": f"Q{q[-1]} ({cumulative[q]} cumulative)",
+            "task_id": at_task.id if at_task else None,
+            "status": at_task.status.value if at_task else "not_generated",
+            "due_date": at_task.due_date.isoformat() if at_task and at_task.due_date else None,
+        })
+
+    # Financial data from Zoho Books if connected
+    financial_summary = None
+    connection = (
+        db.query(AccountingConnection)
+        .filter(
+            AccountingConnection.company_id == company_id,
+            AccountingConnection.status == ConnectionStatus.CONNECTED,
+        )
+        .first()
+    )
+    if connection and connection.zoho_access_token and connection.zoho_org_id:
+        try:
+            fy_start = f"{fy_start_year}-04-01"
+            fy_end = f"{fy_start_year + 1}-03-31"
+            pnl = await zoho_books_service.get_profit_and_loss(
+                connection.zoho_access_token,
+                connection.zoho_org_id,
+                from_date=fy_start,
+                to_date=fy_end,
+            )
+            bs = await zoho_books_service.get_balance_sheet(
+                connection.zoho_access_token,
+                connection.zoho_org_id,
+                date=fy_end,
+            )
+            financial_summary = {
+                "profit_and_loss": pnl,
+                "balance_sheet": bs,
+                "source": "zoho_books",
+                "org_name": connection.zoho_org_name,
+            }
+        except Exception as e:
+            financial_summary = {"error": str(e), "source": "zoho_books"}
+
+    # Penalty exposure
+    penalty_exposure = 0
+    now = datetime.now(timezone.utc)
+    for t in all_tasks:
+        if t.status == ComplianceTaskStatus.OVERDUE and t.due_date and t.task_type:
+            days_over = (now - t.due_date).days
+            info = compliance_engine.calculate_penalty(t.task_type.value, days_over)
+            penalty_exposure += info.get("estimated_penalty", 0)
+
+    return {
+        "company_id": company_id,
+        "financial_year": fy_label,
+        "itr": itr_status,
+        "tds_returns": tds_quarters,
+        "advance_tax": advance_tax,
+        "penalty_exposure": penalty_exposure,
+        "financial_summary": financial_summary,
+        "accounting_connected": connection is not None,
+        "tds_sections": tds_service.get_all_sections(),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Audit Pack
+# ---------------------------------------------------------------------------
+
+@router.get("/audit-pack")
+async def get_audit_pack(
+    company_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Generate an audit-ready data pack from accounting data and compliance status."""
+    company = _get_user_company(company_id, db, current_user)
+
+    today = date.today()
+    fy_start_year = today.year if today.month >= 4 else today.year - 1
+    fy_start = f"{fy_start_year}-04-01"
+    fy_end = f"{fy_start_year + 1}-03-31"
+
+    # Compliance status
+    score = compliance_engine.get_compliance_score(db, company_id)
+
+    # Get all tasks
+    all_tasks = (
+        db.query(ComplianceTask)
+        .filter(ComplianceTask.company_id == company_id)
+        .order_by(ComplianceTask.due_date)
+        .all()
+    )
+    task_summary = [_task_to_dict(t) for t in all_tasks]
+
+    # Financial data from Zoho Books
+    financial_reports = None
+    connection = (
+        db.query(AccountingConnection)
+        .filter(
+            AccountingConnection.company_id == company_id,
+            AccountingConnection.status == ConnectionStatus.CONNECTED,
+        )
+        .first()
+    )
+    if connection and connection.zoho_access_token and connection.zoho_org_id:
+        try:
+            trial_balance = await zoho_books_service.get_trial_balance(
+                connection.zoho_access_token, connection.zoho_org_id,
+                from_date=fy_start, to_date=fy_end,
+            )
+            pnl = await zoho_books_service.get_profit_and_loss(
+                connection.zoho_access_token, connection.zoho_org_id,
+                from_date=fy_start, to_date=fy_end,
+            )
+            bs = await zoho_books_service.get_balance_sheet(
+                connection.zoho_access_token, connection.zoho_org_id,
+                date=fy_end,
+            )
+            financial_reports = {
+                "trial_balance": trial_balance,
+                "profit_and_loss": pnl,
+                "balance_sheet": bs,
+                "source": "zoho_books",
+                "org_name": connection.zoho_org_name,
+            }
+        except Exception as e:
+            financial_reports = {"error": str(e), "source": "zoho_books"}
+
+    # Company info
+    entity = company.entity_type
+    if hasattr(entity, "value"):
+        entity = entity.value
+
+    return {
+        "company_id": company_id,
+        "company_name": company.approved_name or (company.proposed_names[0] if company.proposed_names else f"Company #{company_id}"),
+        "entity_type": entity,
+        "financial_year": f"{fy_start_year}-{fy_start_year + 1}",
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "compliance_score": score,
+        "compliance_tasks": task_summary,
+        "financial_reports": financial_reports,
+        "accounting_connected": connection is not None,
+        "checklist": {
+            "aoc4_filed": any(t.task_type and t.task_type.value == "aoc_4" and t.status == ComplianceTaskStatus.COMPLETED for t in all_tasks),
+            "mgt7_filed": any(t.task_type and t.task_type.value == "mgt_7" and t.status == ComplianceTaskStatus.COMPLETED for t in all_tasks),
+            "itr_filed": any(t.task_type and t.task_type.value == "itr_filing" and t.status == ComplianceTaskStatus.COMPLETED for t in all_tasks),
+            "dir3_kyc_done": any(t.task_type and t.task_type.value == "dir_3_kyc" and t.status == ComplianceTaskStatus.COMPLETED for t in all_tasks),
+            "agm_held": any(t.task_type and t.task_type.value == "agm" and t.status == ComplianceTaskStatus.COMPLETED for t in all_tasks),
+            "tds_returns_filed": all(
+                any(t.task_type and t.task_type.value == f"tds_return_{q}" and t.status == ComplianceTaskStatus.COMPLETED for t in all_tasks)
+                for q in ["q1", "q2", "q3", "q4"]
+            ),
+            "books_maintained": connection is not None,
+        },
+    }

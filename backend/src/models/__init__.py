@@ -10,6 +10,13 @@ from src.models.admin_log import AdminLog
 from src.models.internal_note import InternalNote
 from src.models.compliance_task import ComplianceTask, ComplianceTaskType, ComplianceTaskStatus
 from src.models.shareholder import Shareholder, ShareTransaction, ShareType, TransactionType
+from src.models.service_catalog import (
+    ServiceRequest, ServiceRequestStatus, ServiceCategory,
+    Subscription, SubscriptionStatus, SubscriptionInterval,
+)
+from src.models.accounting_connection import (
+    AccountingConnection, AccountingPlatform, ConnectionStatus,
+)
 
 __all__ = [
     "User", "UserRole",
@@ -24,4 +31,7 @@ __all__ = [
     "InternalNote",
     "ComplianceTask", "ComplianceTaskType", "ComplianceTaskStatus",
     "Shareholder", "ShareTransaction", "ShareType", "TransactionType",
+    "ServiceRequest", "ServiceRequestStatus", "ServiceCategory",
+    "Subscription", "SubscriptionStatus", "SubscriptionInterval",
+    "AccountingConnection", "AccountingPlatform", "ConnectionStatus",
 ]

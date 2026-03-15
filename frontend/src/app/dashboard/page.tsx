@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/lib/auth-context";
-import { getCompanies, uploadDocument, getCompanyLogs, getCompanyMessages, sendMessage, markMessagesRead } from "@/lib/api";
+import { getCompanies, uploadDocument, getCompanyLogs, getCompanyMessages, sendMessage, markMessagesRead, getUpsellItems, type UpsellItem } from "@/lib/api";
 import Link from "next/link";
 import ChatWidget from "@/components/chat-widget";
 import NotificationBell from "@/components/notification-bell";
@@ -32,6 +32,7 @@ export default function DashboardPage() {
   const [sendingMsg, setSendingMsg] = useState(false);
   const [msgUnread, setMsgUnread] = useState<Record<number, number>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [upsellItems, setUpsellItems] = useState<Record<number, UpsellItem[]>>({});
 
   useEffect(() => {
     if (authLoading) return;
@@ -41,13 +42,22 @@ export default function DashboardPage() {
       try {
         const comps = await getCompanies();
         setCompanies(comps);
+        // Load upsell items for incorporated companies
+        for (const c of comps) {
+          if (["incorporated", "fully_setup", "bank_account_pending", "bank_account_opened", "inc20a_pending"].includes(c.status)) {
+            try {
+              const items = await getUpsellItems(c.id);
+              setUpsellItems(prev => ({ ...prev, [c.id]: items }));
+            } catch {}
+          }
+        }
       } catch (err) {
         console.error("Failed to fetch companies:", err);
       } finally {
         setLoading(false);
       }
     };
-    
+
     fetchData();
   }, [user, authLoading]);
 
@@ -217,6 +227,20 @@ export default function DashboardPage() {
                     style={{ color: "var(--color-text-secondary)" }}
                   >
                     Learn
+                  </Link>
+                  <Link
+                    href="/services"
+                    className="text-xs font-medium transition-colors hover:text-purple-400"
+                    style={{ color: "var(--color-text-secondary)" }}
+                  >
+                    Services
+                  </Link>
+                  <Link
+                    href="/settings/accounting"
+                    className="text-xs font-medium transition-colors hover:text-purple-400"
+                    style={{ color: "var(--color-text-secondary)" }}
+                  >
+                    Accounting
                   </Link>
                   <Link
                     href="/compare"
@@ -461,8 +485,78 @@ export default function DashboardPage() {
                               </div>
                               <Link href="/dashboard/data-room" className="text-xs font-bold text-purple-400 group-hover:underline">Open &#8594;</Link>
                            </div>
+                           <div className="p-4 rounded-lg border flex justify-between items-center group hover:border-purple-500/30 transition-colors" style={{ background: "var(--color-overlay)", borderColor: "var(--color-border)" }}>
+                              <div>
+                                 <h4 className="text-sm font-semibold">Accounting Integration</h4>
+                                 <p className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>Connect Zoho Books or Tally Prime for auto-filing</p>
+                              </div>
+                              <Link href="/settings/accounting" className="text-xs font-bold text-purple-400 group-hover:underline">Connect &#8594;</Link>
+                           </div>
+                           <div className="p-4 rounded-lg border flex justify-between items-center group hover:border-purple-500/30 transition-colors" style={{ background: "var(--color-overlay)", borderColor: "var(--color-border)" }}>
+                              <div>
+                                 <h4 className="text-sm font-semibold">GST Filing</h4>
+                                 <p className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>GSTR-1, GSTR-3B returns &amp; deadlines</p>
+                              </div>
+                              <Link href="/dashboard/gst" className="text-xs font-bold text-purple-400 group-hover:underline">View &#8594;</Link>
+                           </div>
+                           <div className="p-4 rounded-lg border flex justify-between items-center group hover:border-purple-500/30 transition-colors" style={{ background: "var(--color-overlay)", borderColor: "var(--color-border)" }}>
+                              <div>
+                                 <h4 className="text-sm font-semibold">Tax Overview</h4>
+                                 <p className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>ITR, TDS, advance tax &amp; audit pack</p>
+                              </div>
+                              <Link href="/dashboard/tax" className="text-xs font-bold text-purple-400 group-hover:underline">View &#8594;</Link>
+                           </div>
                         </div>
                      </div>
+                  )}
+
+                  {/* Recommended Services / Upsell Panel */}
+                  {upsellItems[comp.id] && upsellItems[comp.id].length > 0 && (
+                    <div className="mt-6">
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="text-sm font-semibold flex items-center gap-2" style={{ color: "var(--color-text-primary)" }}>
+                          <span className="text-lg">🛡️</span> Recommended Next Steps
+                        </h4>
+                        <Link href="/services" className="text-xs font-medium text-purple-400 hover:underline">
+                          View All Services &#8594;
+                        </Link>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {upsellItems[comp.id].slice(0, 6).map(item => (
+                          <div
+                            key={item.service_key}
+                            className="p-4 rounded-xl border flex flex-col justify-between transition-colors hover:border-purple-500/30"
+                            style={{ background: "var(--color-overlay)", borderColor: "var(--color-border)" }}
+                          >
+                            <div>
+                              <div className="flex items-start justify-between mb-1.5">
+                                <h5 className="text-xs font-semibold leading-tight" style={{ color: "var(--color-text-primary)" }}>{item.name}</h5>
+                                {item.badge && (
+                                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase ml-2 shrink-0 ${
+                                    item.badge === "mandatory" ? "text-rose-400 bg-rose-500/10" :
+                                    item.badge === "popular" ? "text-purple-400 bg-purple-500/10" :
+                                    "text-emerald-400 bg-emerald-500/10"
+                                  }`}>{item.badge}</span>
+                                )}
+                              </div>
+                              <p className="text-[10px] leading-relaxed mb-2" style={{ color: "var(--color-text-muted)" }}>{item.reason}</p>
+                            </div>
+                            <div className="flex items-center justify-between pt-2" style={{ borderTop: "1px solid var(--color-border)" }}>
+                              <span className="text-sm font-bold" style={{ color: "var(--color-text-primary)" }}>
+                                Rs {item.total.toLocaleString("en-IN")}
+                              </span>
+                              <Link
+                                href={`/services?highlight=${item.service_key}`}
+                                className="text-[10px] font-bold px-3 py-1.5 rounded-lg transition-colors"
+                                style={{ background: item.urgency === "high" ? "var(--color-accent-purple)" : "var(--color-bg-secondary)", color: item.urgency === "high" ? "#fff" : "var(--color-text-primary)" }}
+                              >
+                                {item.urgency === "high" ? "Get Started" : "Learn More"}
+                              </Link>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )}
 
                   {/* Live Agent Terminal */}

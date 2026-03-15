@@ -1,0 +1,209 @@
+############################################################
+# Cloud Build — build & deploy to Cloud Run
+#
+# Required substitutions (set via trigger or --substitutions):
+#   _REGION              – e.g. asia-south1
+#   _CLOUD_SQL_CONNECTION – PROJECT:REGION:INSTANCE
+#   _DB_PASSWORD_SECRET  – Secret Manager name for DB password
+#   _SECRET_KEY_SECRET   – Secret Manager name for app secret key
+#
+# Defaults (override as needed):
+#   _REPO               – Artifact Registry repo name
+#   _DB_USER             – PostgreSQL user
+#   _DB_NAME             – PostgreSQL database name
+#   _REDIS_HOST          – Memorystore Redis IP
+############################################################
+
+substitutions:
+  _REGION: asia-south1
+  _REPO: cms-india
+  _DB_USER: cms_india
+  _DB_NAME: cms_india
+  _REDIS_HOST: "10.0.0.3"
+  _VPC_CONNECTOR: cms-india-connector
+  # These MUST be provided per-trigger or via --substitutions:
+  _CLOUD_SQL_CONNECTION: ""
+  _DB_PASSWORD_SECRET: cms-india-db-password
+  _SECRET_KEY_SECRET: cms-india-secret-key
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: E2_HIGHCPU_8
+
+# ── Build all three images in parallel ──────────────────
+steps:
+  # 1a. Build backend image
+  - name: gcr.io/cloud-builders/docker
+    id: build-backend
+    args:
+      - build
+      - -t
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/backend:${SHORT_SHA}
+      - -t
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/backend:latest
+      - ./backend
+    waitFor: ["-"]
+
+  # 1b. Build frontend image
+  - name: gcr.io/cloud-builders/docker
+    id: build-frontend
+    args:
+      - build
+      - -t
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/frontend:${SHORT_SHA}
+      - -t
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/frontend:latest
+      - --build-arg
+      - NEXT_PUBLIC_API_URL=/api/v1
+      - ./frontend
+    waitFor: ["-"]
+
+  # 1c. Build admin-portal image
+  - name: gcr.io/cloud-builders/docker
+    id: build-admin
+    args:
+      - build
+      - -t
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/admin-portal:${SHORT_SHA}
+      - -t
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/admin-portal:latest
+      - ./admin-portal
+    waitFor: ["-"]
+
+  # ── Push images ───────────────────────────────────────
+  # 2a. Push backend
+  - name: gcr.io/cloud-builders/docker
+    id: push-backend
+    args: [push, --all-tags, "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/backend"]
+    waitFor: [build-backend]
+
+  # 2b. Push frontend
+  - name: gcr.io/cloud-builders/docker
+    id: push-frontend
+    args: [push, --all-tags, "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/frontend"]
+    waitFor: [build-frontend]
+
+  # 2c. Push admin-portal
+  - name: gcr.io/cloud-builders/docker
+    id: push-admin
+    args: [push, --all-tags, "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/admin-portal"]
+    waitFor: [build-admin]
+
+  # ── Deploy to Cloud Run ──────────────────────────────
+  # 3a. Deploy backend API
+  - name: gcr.io/cloud-builders/gcloud
+    id: deploy-backend
+    args:
+      - run
+      - deploy
+      - cms-india-backend
+      - --image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/backend:${SHORT_SHA}
+      - --region=${_REGION}
+      - --platform=managed
+      - --allow-unauthenticated
+      - --port=8080
+      - --cpu=2
+      - --memory=1Gi
+      - --min-instances=1
+      - --max-instances=10
+      - --add-cloudsql-instances=${_CLOUD_SQL_CONNECTION}
+      - --vpc-connector=projects/${PROJECT_ID}/locations/${_REGION}/connectors/${_VPC_CONNECTOR}
+      - --set-env-vars=ENVIRONMENT=production,DB_USER=${_DB_USER},DB_NAME=${_DB_NAME},REDIS_URL=redis://${_REDIS_HOST}:6379/0,CELERY_BROKER_URL=redis://${_REDIS_HOST}:6379/1,CORS_ORIGINS=*
+      - --update-secrets=DATABASE_URL=${_DB_PASSWORD_SECRET}:latest,SECRET_KEY=${_SECRET_KEY_SECRET}:latest
+    waitFor: [push-backend]
+
+  # 3b. Deploy Celery worker
+  - name: gcr.io/cloud-builders/gcloud
+    id: deploy-celery-worker
+    args:
+      - run
+      - deploy
+      - cms-india-celery-worker
+      - --image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/backend:${SHORT_SHA}
+      - --region=${_REGION}
+      - --platform=managed
+      - --no-allow-unauthenticated
+      - --cpu=2
+      - --memory=1Gi
+      - --min-instances=1
+      - --max-instances=5
+      - --no-cpu-throttling
+      - --add-cloudsql-instances=${_CLOUD_SQL_CONNECTION}
+      - --vpc-connector=projects/${PROJECT_ID}/locations/${_REGION}/connectors/${_VPC_CONNECTOR}
+      - --set-env-vars=ENVIRONMENT=production,DB_USER=${_DB_USER},DB_NAME=${_DB_NAME},REDIS_URL=redis://${_REDIS_HOST}:6379/0,CELERY_BROKER_URL=redis://${_REDIS_HOST}:6379/1
+      - --update-secrets=DATABASE_URL=${_DB_PASSWORD_SECRET}:latest,SECRET_KEY=${_SECRET_KEY_SECRET}:latest
+      - --command=celery
+      - --args=-A,src.celery_app,worker,--loglevel=info,--concurrency=4
+    waitFor: [push-backend]
+
+  # 3c. Deploy Celery beat (scheduler) — single instance
+  - name: gcr.io/cloud-builders/gcloud
+    id: deploy-celery-beat
+    args:
+      - run
+      - deploy
+      - cms-india-celery-beat
+      - --image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/backend:${SHORT_SHA}
+      - --region=${_REGION}
+      - --platform=managed
+      - --no-allow-unauthenticated
+      - --cpu=1
+      - --memory=512Mi
+      - --min-instances=1
+      - --max-instances=1
+      - --no-cpu-throttling
+      - --add-cloudsql-instances=${_CLOUD_SQL_CONNECTION}
+      - --vpc-connector=projects/${PROJECT_ID}/locations/${_REGION}/connectors/${_VPC_CONNECTOR}
+      - --set-env-vars=ENVIRONMENT=production,DB_USER=${_DB_USER},DB_NAME=${_DB_NAME},REDIS_URL=redis://${_REDIS_HOST}:6379/0,CELERY_BROKER_URL=redis://${_REDIS_HOST}:6379/1
+      - --update-secrets=DATABASE_URL=${_DB_PASSWORD_SECRET}:latest,SECRET_KEY=${_SECRET_KEY_SECRET}:latest
+      - --command=celery
+      - --args=-A,src.celery_app,beat,--loglevel=info
+    waitFor: [push-backend]
+
+  # 3d. Deploy frontend
+  - name: gcr.io/cloud-builders/gcloud
+    id: deploy-frontend
+    args:
+      - run
+      - deploy
+      - cms-india-frontend
+      - --image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/frontend:${SHORT_SHA}
+      - --region=${_REGION}
+      - --platform=managed
+      - --allow-unauthenticated
+      - --port=3000
+      - --cpu=1
+      - --memory=512Mi
+      - --min-instances=0
+      - --max-instances=10
+      - --set-env-vars=NODE_ENV=production
+    waitFor: [push-frontend]
+
+  # 3e. Deploy admin portal
+  - name: gcr.io/cloud-builders/gcloud
+    id: deploy-admin
+    args:
+      - run
+      - deploy
+      - cms-india-admin
+      - --image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/admin-portal:${SHORT_SHA}
+      - --region=${_REGION}
+      - --platform=managed
+      - --no-allow-unauthenticated
+      - --port=3001
+      - --cpu=1
+      - --memory=512Mi
+      - --min-instances=0
+      - --max-instances=5
+      - --set-env-vars=NODE_ENV=production
+    waitFor: [push-admin]
+
+images:
+  - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/backend:${SHORT_SHA}
+  - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/backend:latest
+  - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/frontend:${SHORT_SHA}
+  - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/frontend:latest
+  - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/admin-portal:${SHORT_SHA}
+  - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/admin-portal:latest
+
+timeout: 1800s

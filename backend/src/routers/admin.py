@@ -21,6 +21,9 @@ from src.models.admin_log import AdminLog
 from src.models.internal_note import InternalNote
 from src.models.notification import NotificationType
 from src.models.message import Message
+from src.models.service_catalog import ServiceRequest, ServiceRequestStatus, Subscription, SubscriptionStatus
+from src.models.accounting_connection import AccountingConnection
+from src.models.compliance_task import ComplianceTask, ComplianceTaskStatus
 from src.utils.admin_auth import get_admin_user, require_role
 from src.utils.security import get_password_hash
 from src.services.notification_service import notification_service
@@ -624,3 +627,361 @@ def add_internal_note(
     )
 
     return note
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# SERVICE & SUBSCRIPTION MANAGEMENT
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+@router.get("/services/requests")
+def list_service_requests(
+    status_filter: Optional[str] = Query(None, alias="status"),
+    company_id: Optional[int] = Query(None),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_admin_user),
+):
+    """List all service requests across companies."""
+    query = db.query(ServiceRequest)
+    if status_filter:
+        query = query.filter(ServiceRequest.status == status_filter)
+    if company_id:
+        query = query.filter(ServiceRequest.company_id == company_id)
+
+    total = query.count()
+    requests = query.order_by(ServiceRequest.created_at.desc()).offset(skip).limit(limit).all()
+
+    return {
+        "requests": [
+            {
+                "id": r.id,
+                "company_id": r.company_id,
+                "company_name": r.company.approved_name or r.company.proposed_names[0] if r.company.proposed_names else f"Company #{r.company_id}",
+                "user_email": r.user.email if r.user else None,
+                "service_key": r.service_key,
+                "service_name": r.service_name,
+                "category": r.category.value if r.category else "",
+                "platform_fee": r.platform_fee,
+                "government_fee": r.government_fee,
+                "total_amount": r.total_amount,
+                "status": r.status.value if r.status else "",
+                "is_paid": r.is_paid,
+                "notes": r.notes,
+                "admin_notes": r.admin_notes,
+                "created_at": r.created_at.isoformat() if r.created_at else None,
+                "updated_at": r.updated_at.isoformat() if r.updated_at else None,
+                "completed_at": r.completed_at.isoformat() if r.completed_at else None,
+            }
+            for r in requests
+        ],
+        "total": total,
+    }
+
+
+@router.put("/services/requests/{request_id}/status")
+def update_service_request_status(
+    request_id: int,
+    request: Request,
+    status_value: str = Query(..., alias="status"),
+    admin_notes: Optional[str] = Query(None),
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_admin_user),
+):
+    """Update a service request's status."""
+    sr = db.query(ServiceRequest).filter(ServiceRequest.id == request_id).first()
+    if not sr:
+        raise HTTPException(status_code=404, detail="Service request not found")
+
+    valid_statuses = [s.value for s in ServiceRequestStatus]
+    if status_value not in valid_statuses:
+        raise HTTPException(status_code=400, detail=f"Invalid status. Valid: {valid_statuses}")
+
+    old_status = sr.status.value if sr.status else None
+    sr.status = ServiceRequestStatus(status_value)
+    if admin_notes:
+        sr.admin_notes = admin_notes
+    if status_value == "completed":
+        sr.completed_at = datetime.now(timezone.utc)
+    sr.updated_at = datetime.now(timezone.utc)
+    db.commit()
+
+    _log_admin_action(
+        db, admin_user, "update_service_request", "service_request", request_id,
+        details={"old_status": old_status, "new_status": status_value},
+        ip_address=request.client.host if request.client else None,
+    )
+
+    return {"message": "Status updated", "id": request_id, "status": status_value}
+
+
+@router.get("/services/subscriptions")
+def list_subscriptions(
+    status_filter: Optional[str] = Query(None, alias="status"),
+    company_id: Optional[int] = Query(None),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_admin_user),
+):
+    """List all subscriptions across companies."""
+    query = db.query(Subscription)
+    if status_filter:
+        query = query.filter(Subscription.status == status_filter)
+    if company_id:
+        query = query.filter(Subscription.company_id == company_id)
+
+    total = query.count()
+    subs = query.order_by(Subscription.created_at.desc()).offset(skip).limit(limit).all()
+
+    return {
+        "subscriptions": [
+            {
+                "id": s.id,
+                "company_id": s.company_id,
+                "company_name": s.company.approved_name or (s.company.proposed_names[0] if s.company.proposed_names else f"Company #{s.company_id}"),
+                "user_email": s.user.email if s.user else None,
+                "plan_key": s.plan_key,
+                "plan_name": s.plan_name,
+                "interval": s.interval.value if s.interval else "",
+                "amount": s.amount,
+                "status": s.status.value if s.status else "",
+                "current_period_start": s.current_period_start.isoformat() if s.current_period_start else None,
+                "current_period_end": s.current_period_end.isoformat() if s.current_period_end else None,
+                "created_at": s.created_at.isoformat() if s.created_at else None,
+                "cancelled_at": s.cancelled_at.isoformat() if s.cancelled_at else None,
+            }
+            for s in subs
+        ],
+        "total": total,
+    }
+
+
+@router.get("/services/stats")
+def get_services_stats(
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_admin_user),
+):
+    """Get aggregate stats for services and subscriptions."""
+    total_requests = db.query(ServiceRequest).count()
+    pending_requests = db.query(ServiceRequest).filter(
+        ServiceRequest.status == ServiceRequestStatus.PENDING
+    ).count()
+    in_progress_requests = db.query(ServiceRequest).filter(
+        ServiceRequest.status == ServiceRequestStatus.IN_PROGRESS
+    ).count()
+    completed_requests = db.query(ServiceRequest).filter(
+        ServiceRequest.status == ServiceRequestStatus.COMPLETED
+    ).count()
+
+    total_subs = db.query(Subscription).count()
+    active_subs = db.query(Subscription).filter(
+        Subscription.status == SubscriptionStatus.ACTIVE
+    ).count()
+
+    services_revenue = db.query(func.coalesce(func.sum(ServiceRequest.total_amount), 0)).filter(
+        ServiceRequest.is_paid == True,
+    ).scalar() or 0
+
+    subscription_revenue = db.query(func.coalesce(func.sum(Subscription.amount), 0)).filter(
+        Subscription.status == SubscriptionStatus.ACTIVE,
+    ).scalar() or 0
+
+    # Accounting connections
+    connected_accounts = db.query(AccountingConnection).filter(
+        AccountingConnection.status == "connected",
+    ).count()
+
+    return {
+        "service_requests": {
+            "total": total_requests,
+            "pending": pending_requests,
+            "in_progress": in_progress_requests,
+            "completed": completed_requests,
+        },
+        "subscriptions": {
+            "total": total_subs,
+            "active": active_subs,
+        },
+        "revenue": {
+            "services_paid": services_revenue,
+            "subscription_arr": subscription_revenue * 12 if subscription_revenue else 0,
+        },
+        "accounting_connections": connected_accounts,
+    }
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# COMPLIANCE WORKFLOW (CROSS-COMPANY)
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+@router.get("/compliance/overview")
+def get_compliance_overview(
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_admin_user),
+):
+    """Cross-company compliance overview for admin dashboard."""
+    from src.services.compliance_engine import compliance_engine
+
+    # All compliance tasks across all companies
+    all_tasks = db.query(ComplianceTask).all()
+
+    total = len(all_tasks)
+    overdue = [t for t in all_tasks if t.status == ComplianceTaskStatus.OVERDUE]
+    due_soon = [t for t in all_tasks if t.status == ComplianceTaskStatus.DUE_SOON]
+    in_progress = [t for t in all_tasks if t.status == ComplianceTaskStatus.IN_PROGRESS]
+    completed = [t for t in all_tasks if t.status == ComplianceTaskStatus.COMPLETED]
+    upcoming = [t for t in all_tasks if t.status == ComplianceTaskStatus.UPCOMING]
+
+    # Total penalty exposure
+    now = datetime.now(timezone.utc)
+    total_penalty = 0
+    for t in overdue:
+        if t.due_date and t.task_type:
+            days_over = (now - t.due_date).days
+            info = compliance_engine.calculate_penalty(t.task_type.value, days_over)
+            total_penalty += info.get("estimated_penalty", 0)
+
+    # Group overdue tasks by company
+    overdue_by_company: dict = {}
+    for t in overdue:
+        cid = t.company_id
+        if cid not in overdue_by_company:
+            comp = db.query(Company).filter(Company.id == cid).first()
+            overdue_by_company[cid] = {
+                "company_id": cid,
+                "company_name": comp.approved_name or (comp.proposed_names[0] if comp and comp.proposed_names else f"Company #{cid}"),
+                "tasks": [],
+            }
+        overdue_by_company[cid]["tasks"].append({
+            "id": t.id,
+            "title": t.title,
+            "task_type": t.task_type.value if t.task_type else None,
+            "due_date": t.due_date.isoformat() if t.due_date else None,
+            "days_overdue": (now - t.due_date).days if t.due_date else 0,
+        })
+
+    # Companies with scores
+    company_ids = list(set(t.company_id for t in all_tasks))
+    company_scores = []
+    for cid in company_ids[:50]:  # Limit to 50
+        score = compliance_engine.get_compliance_score(db, cid)
+        comp = db.query(Company).filter(Company.id == cid).first()
+        if comp:
+            company_scores.append({
+                "company_id": cid,
+                "company_name": comp.approved_name or (comp.proposed_names[0] if comp.proposed_names else f"Company #{cid}"),
+                "entity_type": comp.entity_type.value if comp.entity_type else "",
+                "score": score["score"],
+                "grade": score["grade"],
+                "overdue_count": score["overdue"],
+                "penalty_exposure": score["estimated_penalty_exposure"],
+            })
+
+    company_scores.sort(key=lambda x: x["score"])
+
+    return {
+        "summary": {
+            "total_tasks": total,
+            "overdue": len(overdue),
+            "due_soon": len(due_soon),
+            "in_progress": len(in_progress),
+            "completed": len(completed),
+            "upcoming": len(upcoming),
+            "total_penalty_exposure": total_penalty,
+            "companies_tracked": len(company_ids),
+        },
+        "overdue_by_company": list(overdue_by_company.values()),
+        "company_scores": company_scores,
+    }
+
+
+@router.get("/compliance/tasks")
+def list_compliance_tasks(
+    status_filter: Optional[str] = Query(None, alias="status"),
+    company_id: Optional[int] = Query(None),
+    task_type: Optional[str] = Query(None),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=200),
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_admin_user),
+):
+    """List compliance tasks across all companies with filters."""
+    query = db.query(ComplianceTask)
+    if status_filter:
+        try:
+            s = ComplianceTaskStatus(status_filter)
+            query = query.filter(ComplianceTask.status == s)
+        except ValueError:
+            raise HTTPException(status_code=400, detail=f"Invalid status: {status_filter}")
+    if company_id:
+        query = query.filter(ComplianceTask.company_id == company_id)
+    if task_type:
+        query = query.filter(ComplianceTask.task_type == task_type)
+
+    total = query.count()
+    tasks = query.order_by(ComplianceTask.due_date).offset(skip).limit(limit).all()
+
+    results = []
+    for t in tasks:
+        comp = db.query(Company).filter(Company.id == t.company_id).first()
+        results.append({
+            "id": t.id,
+            "company_id": t.company_id,
+            "company_name": comp.approved_name or (comp.proposed_names[0] if comp and comp.proposed_names else f"Company #{t.company_id}"),
+            "task_type": t.task_type.value if t.task_type else None,
+            "title": t.title,
+            "description": t.description,
+            "due_date": t.due_date.isoformat() if t.due_date else None,
+            "status": t.status.value if t.status else None,
+            "completed_date": t.completed_date.isoformat() if t.completed_date else None,
+            "filing_reference": t.filing_reference,
+        })
+
+    return {"tasks": results, "total": total}
+
+
+@router.put("/compliance/tasks/{task_id}")
+def admin_update_compliance_task(
+    task_id: int,
+    request: Request,
+    status_value: Optional[str] = Query(None, alias="status"),
+    filing_reference: Optional[str] = Query(None),
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_admin_user),
+):
+    """Admin: update a compliance task status or filing reference."""
+    task = db.query(ComplianceTask).filter(ComplianceTask.id == task_id).first()
+    if not task:
+        raise HTTPException(status_code=404, detail="Compliance task not found")
+
+    old_status = task.status.value if task.status else None
+    if status_value:
+        try:
+            new_status = ComplianceTaskStatus(status_value)
+        except ValueError:
+            raise HTTPException(status_code=400, detail=f"Invalid status: {status_value}")
+        task.status = new_status
+        if new_status == ComplianceTaskStatus.COMPLETED:
+            task.completed_date = datetime.now(timezone.utc)
+
+    if filing_reference is not None:
+        task.filing_reference = filing_reference
+
+    db.commit()
+    db.refresh(task)
+
+    _log_admin_action(
+        db, admin_user, "update_compliance_task", "compliance_task", task_id,
+        details={"old_status": old_status, "new_status": status_value, "filing_reference": filing_reference},
+        ip_address=request.client.host if request.client else None,
+    )
+
+    return {
+        "message": "Task updated",
+        "id": task.id,
+        "status": task.status.value if task.status else None,
+        "filing_reference": task.filing_reference,
+    }
