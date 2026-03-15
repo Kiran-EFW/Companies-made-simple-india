@@ -8,7 +8,9 @@ substitutions:
   _REGION: asia-south1
   _REPO: cms-india
 
-options: {}
+options:
+  logging: GCS_ONLY
+  logsBucket: gs://sub-projects-483107-cloudbuild-logs
 
 steps:
   # 1. Build admin-portal image
