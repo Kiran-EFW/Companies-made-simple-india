@@ -60,9 +60,9 @@ const SENIORITIES = ["junior", "mid", "senior", "lead", "head"];
 // ---------------------------------------------------------------------------
 
 function loadColor(active: number): string {
-  if (active < 5) return "text-emerald-400";
-  if (active <= 10) return "text-amber-400";
-  return "text-red-400";
+  if (active < 5) return "var(--color-success)";
+  if (active <= 10) return "var(--color-warning)";
+  return "var(--color-error)";
 }
 
 function loadBarColor(active: number): string {
@@ -72,9 +72,9 @@ function loadBarColor(active: number): string {
 }
 
 function slaColor(pct: number): string {
-  if (pct >= 90) return "text-emerald-400";
-  if (pct >= 70) return "text-amber-400";
-  return "text-red-400";
+  if (pct >= 90) return "var(--color-success)";
+  if (pct >= 70) return "var(--color-warning)";
+  return "var(--color-error)";
 }
 
 // ---------------------------------------------------------------------------
@@ -100,7 +100,7 @@ export default function WorkloadPage() {
   const [savingId, setSavingId] = useState<number | null>(null);
   const [saveSuccess, setSaveSuccess] = useState<number | null>(null);
 
-  // ── Fetch workload ──
+  // -- Fetch workload --
   useEffect(() => {
     if (tab !== "workload") return;
     let cancelled = false;
@@ -127,7 +127,7 @@ export default function WorkloadPage() {
     return () => { cancelled = true; };
   }, [tab]);
 
-  // ── Fetch performance ──
+  // -- Fetch performance --
   useEffect(() => {
     if (tab !== "performance") return;
     let cancelled = false;
@@ -151,7 +151,7 @@ export default function WorkloadPage() {
     return () => { cancelled = true; };
   }, [tab, perfPeriod]);
 
-  // ── Fetch staff ──
+  // -- Fetch staff --
   useEffect(() => {
     if (tab !== "hierarchy") return;
     let cancelled = false;
@@ -176,7 +176,7 @@ export default function WorkloadPage() {
     return () => { cancelled = true; };
   }, [tab]);
 
-  // ── Staff edit helpers ──
+  // -- Staff edit helpers --
   const getStaffField = (member: StaffMember, field: keyof StaffMember) => {
     const edits = editedStaff[member.id];
     if (edits && field in edits) return edits[field as keyof typeof edits];
@@ -224,7 +224,7 @@ export default function WorkloadPage() {
     }
   };
 
-  // ── Workload summary ──
+  // -- Workload summary --
   const [unassignedCount, setUnassignedCount] = useState(0);
   const totalActive = workload.reduce((s, w) => s + (w.active_tasks || 0), 0);
   const totalOverdue = workload.reduce((s, w) => s + (w.overdue_tasks || 0), 0);
@@ -243,7 +243,7 @@ export default function WorkloadPage() {
 
   return (
     <div className="p-6 lg:p-8 max-w-7xl space-y-6">
-      {/* ── Header ── */}
+      {/* -- Header -- */}
       <div>
         <h1
           className="text-3xl font-bold mb-1"
@@ -251,12 +251,12 @@ export default function WorkloadPage() {
         >
           Team Workload &amp; Performance
         </h1>
-        <p className="text-sm text-gray-400">
+        <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
           Monitor team capacity, track individual performance, and manage staff hierarchy.
         </p>
       </div>
 
-      {/* ── Tabs ── */}
+      {/* -- Tabs -- */}
       <div className="flex gap-1 bg-white/5 rounded-lg p-1 w-fit">
         {tabs.map((t) => (
           <button
@@ -264,9 +264,10 @@ export default function WorkloadPage() {
             onClick={() => setTab(t.key)}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
               tab === t.key
-                ? "bg-purple-500/20 text-purple-400 border border-purple-500/30"
-                : "text-gray-400 hover:text-gray-200 hover:bg-white/5 border border-transparent"
+                ? "bg-purple-500/20 border border-purple-500/30"
+                : "border border-transparent"
             }`}
+            style={{ color: tab === t.key ? "var(--color-accent-purple-light)" : "var(--color-text-secondary)" }}
           >
             {t.label}
           </button>
@@ -282,17 +283,17 @@ export default function WorkloadPage() {
             <div className="animate-pulse space-y-4">
               <div className="grid grid-cols-3 gap-4">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-20 bg-gray-800 rounded-lg" />
+                  <div key={i} className="h-20 rounded-lg" style={{ background: "var(--color-bg-card)" }} />
                 ))}
               </div>
-              <div className="h-64 bg-gray-800 rounded-lg" />
+              <div className="h-64 rounded-lg" style={{ background: "var(--color-bg-card)" }} />
             </div>
           ) : (
             <>
               {/* Summary bar */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="glass-card p-5">
-                  <p className="text-xs text-gray-400 uppercase tracking-wider font-medium">
+                  <p className="text-xs uppercase tracking-wider font-medium" style={{ color: "var(--color-text-secondary)" }}>
                     Total Active Tasks
                   </p>
                   <p
@@ -303,23 +304,23 @@ export default function WorkloadPage() {
                   </p>
                 </div>
                 <div className="glass-card p-5">
-                  <p className="text-xs text-gray-400 uppercase tracking-wider font-medium">
+                  <p className="text-xs uppercase tracking-wider font-medium" style={{ color: "var(--color-text-secondary)" }}>
                     Total Overdue
                   </p>
                   <p
-                    className={`text-3xl font-bold mt-1 ${totalOverdue > 0 ? "text-red-400" : "text-emerald-400"}`}
-                    style={{ fontFamily: "var(--font-display)" }}
+                    className="text-3xl font-bold mt-1"
+                    style={{ fontFamily: "var(--font-display)", color: totalOverdue > 0 ? "var(--color-error)" : "var(--color-success)" }}
                   >
                     {totalOverdue}
                   </p>
                 </div>
                 <div className="glass-card p-5">
-                  <p className="text-xs text-gray-400 uppercase tracking-wider font-medium">
+                  <p className="text-xs uppercase tracking-wider font-medium" style={{ color: "var(--color-text-secondary)" }}>
                     Unassigned Tasks
                   </p>
                   <p
-                    className="text-3xl font-bold text-amber-400 mt-1"
-                    style={{ fontFamily: "var(--font-display)" }}
+                    className="text-3xl font-bold mt-1"
+                    style={{ fontFamily: "var(--font-display)", color: "var(--color-warning)" }}
                   >
                     {unassignedCount}
                   </p>
@@ -328,43 +329,43 @@ export default function WorkloadPage() {
 
               {/* Team workload table */}
               <div className="glass-card overflow-hidden">
-                <div className="px-5 py-4 border-b border-gray-700/50">
-                  <h2 className="text-sm font-semibold text-gray-200">
+                <div className="px-5 py-4" style={{ borderBottom: "1px solid var(--color-border)" }}>
+                  <h2 className="text-sm font-semibold" style={{ color: "var(--color-text-primary)" }}>
                     Team Workload ({workload.length} members)
                   </h2>
                 </div>
 
                 {workload.length === 0 ? (
-                  <div className="p-10 text-center text-gray-500 text-sm">
+                  <div className="p-10 text-center text-sm" style={{ color: "var(--color-text-muted)" }}>
                     No workload data available.
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="border-b border-gray-700/50">
-                          <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider">
+                        <tr style={{ borderBottom: "1px solid var(--color-border)" }}>
+                          <th className="text-left px-5 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
                             Name
                           </th>
-                          <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider">
+                          <th className="text-left px-5 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
                             Department
                           </th>
-                          <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider">
+                          <th className="text-left px-5 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
                             Seniority
                           </th>
-                          <th className="text-center px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider">
+                          <th className="text-center px-5 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
                             Active
                           </th>
-                          <th className="text-center px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider">
+                          <th className="text-center px-5 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
                             Completed
                           </th>
-                          <th className="text-center px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider">
+                          <th className="text-center px-5 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
                             Overdue
                           </th>
-                          <th className="text-center px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider">
+                          <th className="text-center px-5 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
                             Pending Reviews
                           </th>
-                          <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider text-left">
+                          <th className="px-5 py-3 text-xs font-medium uppercase tracking-wider text-left" style={{ color: "var(--color-text-muted)" }}>
                             Load
                           </th>
                         </tr>
@@ -375,40 +376,39 @@ export default function WorkloadPage() {
                             key={w.user_id}
                             className="hover:bg-white/[0.03] transition-colors"
                           >
-                            <td className="px-5 py-3 text-gray-200 font-medium whitespace-nowrap">
+                            <td className="px-5 py-3 font-medium whitespace-nowrap" style={{ color: "var(--color-text-primary)" }}>
                               {w.user_name || w.full_name}
                             </td>
-                            <td className="px-5 py-3 text-gray-400 whitespace-nowrap">
-                              <span className="px-2 py-0.5 rounded text-xs bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                            <td className="px-5 py-3 whitespace-nowrap" style={{ color: "var(--color-text-secondary)" }}>
+                              <span className="px-2 py-0.5 rounded text-xs bg-purple-500/10 border border-purple-500/20" style={{ color: "var(--color-accent-purple-light)" }}>
                                 {w.department?.toUpperCase() || "--"}
                               </span>
                             </td>
-                            <td className="px-5 py-3 text-gray-400 capitalize whitespace-nowrap">
+                            <td className="px-5 py-3 capitalize whitespace-nowrap" style={{ color: "var(--color-text-secondary)" }}>
                               {w.seniority || "--"}
                             </td>
                             <td className="px-5 py-3 text-center">
-                              <span className={`font-bold ${loadColor(w.active_tasks)}`}>
+                              <span className="font-bold" style={{ color: loadColor(w.active_tasks) }}>
                                 {w.active_tasks}
                               </span>
                             </td>
-                            <td className="px-5 py-3 text-center text-gray-300">
+                            <td className="px-5 py-3 text-center" style={{ color: "var(--color-text-primary)" }}>
                               {w.completed_tasks}
                             </td>
                             <td className="px-5 py-3 text-center">
                               <span
-                                className={`font-bold ${
-                                  w.overdue_tasks > 0 ? "text-red-400" : "text-gray-500"
-                                }`}
+                                className="font-bold"
+                                style={{ color: w.overdue_tasks > 0 ? "var(--color-error)" : "var(--color-text-muted)" }}
                               >
                                 {w.overdue_tasks}
                               </span>
                             </td>
-                            <td className="px-5 py-3 text-center text-gray-300">
+                            <td className="px-5 py-3 text-center" style={{ color: "var(--color-text-primary)" }}>
                               {w.pending_reviews}
                             </td>
                             <td className="px-5 py-3">
                               <div className="flex items-center gap-2 min-w-[120px]">
-                                <div className="flex-1 h-2.5 bg-gray-800 rounded-full overflow-hidden">
+                                <div className="flex-1 h-2.5 rounded-full overflow-hidden" style={{ background: "var(--color-bg-card)" }}>
                                   <div
                                     className={`h-full rounded-full transition-all duration-500 ${loadBarColor(
                                       w.active_tasks
@@ -449,8 +449,9 @@ export default function WorkloadPage() {
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   perfPeriod === d
                     ? "bg-cyan-500/15 text-cyan-400 border border-cyan-500/30"
-                    : "bg-white/5 text-gray-400 hover:text-gray-200 hover:bg-white/10 border border-transparent"
+                    : "bg-white/5 hover:bg-white/10 border border-transparent"
                 }`}
+                style={{ color: perfPeriod === d ? undefined : "var(--color-text-secondary)" }}
               >
                 {d} days
               </button>
@@ -459,44 +460,44 @@ export default function WorkloadPage() {
 
           {perfLoading ? (
             <div className="animate-pulse space-y-4">
-              <div className="h-64 bg-gray-800 rounded-lg" />
+              <div className="h-64 rounded-lg" style={{ background: "var(--color-bg-card)" }} />
             </div>
           ) : (
             <div className="glass-card overflow-hidden">
-              <div className="px-5 py-4 border-b border-gray-700/50">
-                <h2 className="text-sm font-semibold text-gray-200">
+              <div className="px-5 py-4" style={{ borderBottom: "1px solid var(--color-border)" }}>
+                <h2 className="text-sm font-semibold" style={{ color: "var(--color-text-primary)" }}>
                   Performance Leaderboard &mdash; Last {perfPeriod} Days
                 </h2>
               </div>
 
               {performance.length === 0 ? (
-                <div className="p-10 text-center text-gray-500 text-sm">
+                <div className="p-10 text-center text-sm" style={{ color: "var(--color-text-muted)" }}>
                   No performance data available for this period.
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b border-gray-700/50">
-                        <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider">
+                      <tr style={{ borderBottom: "1px solid var(--color-border)" }}>
+                        <th className="text-left px-5 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
                           #
                         </th>
-                        <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider">
+                        <th className="text-left px-5 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
                           Name
                         </th>
-                        <th className="text-center px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider">
+                        <th className="text-center px-5 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
                           Completed
                         </th>
-                        <th className="text-center px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider">
+                        <th className="text-center px-5 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
                           Avg Turnaround
                         </th>
-                        <th className="text-center px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider">
+                        <th className="text-center px-5 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
                           SLA Compliance
                         </th>
-                        <th className="text-center px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider">
+                        <th className="text-center px-5 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
                           Docs Reviewed
                         </th>
-                        <th className="text-center px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider">
+                        <th className="text-center px-5 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
                           Escalations (R/Res)
                         </th>
                       </tr>
@@ -507,53 +508,50 @@ export default function WorkloadPage() {
                           key={p.user_id}
                           className="hover:bg-white/[0.03] transition-colors"
                         >
-                          <td className="px-5 py-3 text-gray-500 font-medium">
+                          <td className="px-5 py-3 font-medium" style={{ color: "var(--color-text-muted)" }}>
                             {idx + 1}
                           </td>
-                          <td className="px-5 py-3 text-gray-200 font-medium whitespace-nowrap">
+                          <td className="px-5 py-3 font-medium whitespace-nowrap" style={{ color: "var(--color-text-primary)" }}>
                             {p.user_name || p.full_name}
                           </td>
                           <td className="px-5 py-3 text-center">
-                            <span className="font-bold text-emerald-400">
+                            <span className="font-bold" style={{ color: "var(--color-success)" }}>
                               {p.tasks_completed}
                             </span>
                           </td>
-                          <td className="px-5 py-3 text-center text-gray-300">
+                          <td className="px-5 py-3 text-center" style={{ color: "var(--color-text-primary)" }}>
                             {p.avg_turnaround_hours != null
                               ? `${p.avg_turnaround_hours.toFixed(1)}h`
                               : "--"}
                           </td>
                           <td className="px-5 py-3 text-center">
                             <span
-                              className={`font-bold ${slaColor(
+                              className="font-bold"
+                              style={{ color: slaColor(
                                 p.sla_compliance_pct ?? p.sla_compliance ?? 0
-                              )}`}
+                              ) }}
                             >
                               {(p.sla_compliance_pct ?? p.sla_compliance) != null
                                 ? `${(p.sla_compliance_pct ?? p.sla_compliance ?? 0).toFixed(1)}%`
                                 : "--"}
                             </span>
                           </td>
-                          <td className="px-5 py-3 text-center text-gray-300">
+                          <td className="px-5 py-3 text-center" style={{ color: "var(--color-text-primary)" }}>
                             {p.documents_reviewed ?? 0}
                           </td>
                           <td className="px-5 py-3 text-center whitespace-nowrap">
                             <span
-                              className={
-                                (p.escalations_received ?? 0) > 0
-                                  ? "text-amber-400"
-                                  : "text-gray-500"
-                              }
+                              style={{ color: (p.escalations_received ?? 0) > 0
+                                ? "var(--color-warning)"
+                                : "var(--color-text-muted)" }}
                             >
                               {p.escalations_received ?? 0}
                             </span>
-                            <span className="text-gray-600 mx-1">/</span>
+                            <span className="mx-1" style={{ color: "var(--color-text-muted)" }}>/</span>
                             <span
-                              className={
-                                (p.escalations_resolved ?? 0) > 0
-                                  ? "text-emerald-400"
-                                  : "text-gray-500"
-                              }
+                              style={{ color: (p.escalations_resolved ?? 0) > 0
+                                ? "var(--color-success)"
+                                : "var(--color-text-muted)" }}
                             >
                               {p.escalations_resolved ?? 0}
                             </span>
@@ -576,44 +574,44 @@ export default function WorkloadPage() {
         <>
           {staffLoading ? (
             <div className="animate-pulse space-y-4">
-              <div className="h-64 bg-gray-800 rounded-lg" />
+              <div className="h-64 rounded-lg" style={{ background: "var(--color-bg-card)" }} />
             </div>
           ) : (
             <div className="glass-card overflow-hidden">
-              <div className="px-5 py-4 border-b border-gray-700/50">
-                <h2 className="text-sm font-semibold text-gray-200">
+              <div className="px-5 py-4" style={{ borderBottom: "1px solid var(--color-border)" }}>
+                <h2 className="text-sm font-semibold" style={{ color: "var(--color-text-primary)" }}>
                   Staff Hierarchy ({staff.length} members)
                 </h2>
               </div>
 
               {staff.length === 0 ? (
-                <div className="p-10 text-center text-gray-500 text-sm">
+                <div className="p-10 text-center text-sm" style={{ color: "var(--color-text-muted)" }}>
                   No staff data available.
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b border-gray-700/50">
-                        <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider">
+                      <tr style={{ borderBottom: "1px solid var(--color-border)" }}>
+                        <th className="text-left px-5 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
                           Name
                         </th>
-                        <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider">
+                        <th className="text-left px-5 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
                           Email
                         </th>
-                        <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider">
+                        <th className="text-left px-5 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
                           Role
                         </th>
-                        <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider">
+                        <th className="text-left px-5 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
                           Department
                         </th>
-                        <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider">
+                        <th className="text-left px-5 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
                           Seniority
                         </th>
-                        <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider">
+                        <th className="text-left px-5 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
                           Reports To
                         </th>
-                        <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider" />
+                        <th className="px-5 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }} />
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-700/30">
@@ -629,13 +627,13 @@ export default function WorkloadPage() {
                             key={member.id}
                             className="hover:bg-white/[0.03] transition-colors"
                           >
-                            <td className="px-5 py-3 text-gray-200 font-medium whitespace-nowrap">
+                            <td className="px-5 py-3 font-medium whitespace-nowrap" style={{ color: "var(--color-text-primary)" }}>
                               {member.full_name}
                             </td>
-                            <td className="px-5 py-3 text-gray-400 whitespace-nowrap">
+                            <td className="px-5 py-3 whitespace-nowrap" style={{ color: "var(--color-text-secondary)" }}>
                               {member.email}
                             </td>
-                            <td className="px-5 py-3 text-gray-400 capitalize whitespace-nowrap">
+                            <td className="px-5 py-3 capitalize whitespace-nowrap" style={{ color: "var(--color-text-secondary)" }}>
                               {member.role?.replace(/_/g, " ") || "--"}
                             </td>
                             <td className="px-5 py-3">
@@ -646,7 +644,8 @@ export default function WorkloadPage() {
                                 onChange={(e) =>
                                   setStaffField(member.id, "department", e.target.value)
                                 }
-                                className="bg-gray-800 border border-gray-700 rounded-md px-2 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-purple-500/50 transition-colors w-full min-w-[90px]"
+                                className="rounded-md px-2 py-1.5 text-xs focus:outline-none focus:border-purple-500/50 transition-colors w-full min-w-[90px]"
+                                style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                               >
                                 <option value="">--</option>
                                 {DEPARTMENTS.map((d) => (
@@ -664,7 +663,8 @@ export default function WorkloadPage() {
                                 onChange={(e) =>
                                   setStaffField(member.id, "seniority", e.target.value)
                                 }
-                                className="bg-gray-800 border border-gray-700 rounded-md px-2 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-purple-500/50 transition-colors w-full min-w-[90px]"
+                                className="rounded-md px-2 py-1.5 text-xs focus:outline-none focus:border-purple-500/50 transition-colors w-full min-w-[90px]"
+                                style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                               >
                                 <option value="">--</option>
                                 {SENIORITIES.map((s) => (
@@ -688,7 +688,8 @@ export default function WorkloadPage() {
                                     e.target.value ? Number(e.target.value) : null
                                   )
                                 }
-                                className="bg-gray-800 border border-gray-700 rounded-md px-2 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-purple-500/50 transition-colors w-full min-w-[130px]"
+                                className="rounded-md px-2 py-1.5 text-xs focus:outline-none focus:border-purple-500/50 transition-colors w-full min-w-[130px]"
+                                style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                               >
                                 <option value="">None</option>
                                 {staff
@@ -702,7 +703,7 @@ export default function WorkloadPage() {
                             </td>
                             <td className="px-5 py-3">
                               {justSaved ? (
-                                <span className="text-xs text-emerald-400 font-medium px-3 py-1.5">
+                                <span className="text-xs font-medium px-3 py-1.5" style={{ color: "var(--color-success)" }}>
                                   Saved
                                 </span>
                               ) : (
@@ -711,9 +712,10 @@ export default function WorkloadPage() {
                                   disabled={!hasEdits || isSaving}
                                   className={`text-xs px-3 py-1.5 rounded-md font-medium transition-colors ${
                                     hasEdits && !isSaving
-                                      ? "bg-purple-500/15 text-purple-400 border border-purple-500/30 hover:bg-purple-500/25 cursor-pointer"
-                                      : "bg-white/5 text-gray-600 border border-transparent cursor-not-allowed"
+                                      ? "bg-purple-500/15 border border-purple-500/30 hover:bg-purple-500/25 cursor-pointer"
+                                      : "bg-white/5 border border-transparent cursor-not-allowed"
                                   }`}
+                                  style={{ color: hasEdits && !isSaving ? "var(--color-accent-purple-light)" : "var(--color-text-muted)" }}
                                 >
                                   {isSaving ? "Saving..." : "Save"}
                                 </button>

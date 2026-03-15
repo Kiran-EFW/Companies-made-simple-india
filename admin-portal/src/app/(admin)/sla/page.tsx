@@ -60,25 +60,25 @@ function formatDate(dateStr: string | undefined | null): string {
   });
 }
 
-function getSeverityColor(hours: number | undefined | null): string {
-  if (hours == null) return "text-gray-400";
-  if (hours > 48) return "text-red-400";
-  if (hours > 24) return "text-amber-400";
-  return "text-yellow-400";
+function getSeverityColorValue(hours: number | undefined | null): string {
+  if (hours == null) return "var(--color-text-secondary)";
+  if (hours > 48) return "var(--color-error)";
+  if (hours > 24) return "var(--color-warning)";
+  return "var(--color-warning)";
 }
 
-function getSeverityBg(hours: number | undefined | null): string {
-  if (hours == null) return "bg-gray-500/10 border-gray-500/20";
-  if (hours > 48) return "bg-red-500/10 border-red-500/20";
-  if (hours > 24) return "bg-amber-500/10 border-amber-500/20";
-  return "bg-yellow-500/10 border-yellow-500/20";
+function getSeverityBgStyle(hours: number | undefined | null): React.CSSProperties {
+  if (hours == null) return { background: "rgba(107, 114, 128, 0.1)", borderColor: "rgba(107, 114, 128, 0.2)" };
+  if (hours > 48) return { background: "var(--color-error-light)", borderColor: "rgba(239, 68, 68, 0.2)" };
+  if (hours > 24) return { background: "var(--color-warning-light)", borderColor: "rgba(245, 158, 11, 0.2)" };
+  return { background: "rgba(234, 179, 8, 0.1)", borderColor: "rgba(234, 179, 8, 0.2)" };
 }
 
-function getComplianceColor(rate: number | undefined | null): string {
-  if (rate == null) return "text-gray-400";
-  if (rate >= 90) return "text-emerald-400";
-  if (rate >= 70) return "text-amber-400";
-  return "text-red-400";
+function getComplianceColorValue(rate: number | undefined | null): string {
+  if (rate == null) return "var(--color-text-secondary)";
+  if (rate >= 90) return "var(--color-success)";
+  if (rate >= 70) return "var(--color-warning)";
+  return "var(--color-error)";
 }
 
 // ---------------------------------------------------------------------------
@@ -154,16 +154,16 @@ export default function SLATrackingPage() {
     return (
       <div className="p-8">
         <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-gray-800 rounded w-56" />
+          <div className="h-8 rounded w-56" style={{ background: "var(--color-bg-card)" }} />
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-28 bg-gray-800 rounded-xl" />
+              <div key={i} className="h-28 rounded-xl" style={{ background: "var(--color-bg-card)" }} />
             ))}
           </div>
-          <div className="h-6 bg-gray-800 rounded w-40" />
+          <div className="h-6 rounded w-40" style={{ background: "var(--color-bg-card)" }} />
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-16 bg-gray-800 rounded-lg" />
+              <div key={i} className="h-16 rounded-lg" style={{ background: "var(--color-bg-card)" }} />
             ))}
           </div>
         </div>
@@ -187,7 +187,7 @@ export default function SLATrackingPage() {
         >
           SLA Tracking
         </h1>
-        <p className="text-sm text-gray-400 mt-1">
+        <p className="text-sm mt-1" style={{ color: "var(--color-text-secondary)" }}>
           Monitor service-level compliance and identify breaches across all
           companies.
         </p>
@@ -196,57 +196,56 @@ export default function SLATrackingPage() {
       {/* Overview Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total Companies Tracked */}
-        <div className="rounded-xl border border-gray-700 bg-gray-800/50 p-5">
-          <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">
+        <div className="rounded-xl p-5" style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
+          <p className="text-xs uppercase tracking-wider font-medium mb-1" style={{ color: "var(--color-text-muted)" }}>
             Companies Tracked
           </p>
           <p
-            className="text-3xl font-bold text-white"
-            style={{ fontFamily: "var(--font-display)" }}
+            className="text-3xl font-bold"
+            style={{ fontFamily: "var(--font-display)", color: "var(--color-text-primary)" }}
           >
             {overview?.total_companies ?? "--"}
           </p>
         </div>
 
         {/* Compliance Rate */}
-        <div className="rounded-xl border border-gray-700 bg-gray-800/50 p-5">
-          <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">
+        <div className="rounded-xl p-5" style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
+          <p className="text-xs uppercase tracking-wider font-medium mb-1" style={{ color: "var(--color-text-muted)" }}>
             SLA Compliance
           </p>
           <p
-            className={`text-3xl font-bold ${getComplianceColor(
-              overview?.compliance_rate
-            )}`}
-            style={{ fontFamily: "var(--font-display)" }}
+            className="text-3xl font-bold"
+            style={{ fontFamily: "var(--font-display)", color: getComplianceColorValue(overview?.compliance_rate) }}
           >
             {overview?.compliance_rate != null
               ? `${overview.compliance_rate}%`
               : "--"}
           </p>
           {overview?.compliance_rate != null && (
-            <div className="mt-2 h-1.5 bg-gray-900/60 rounded-full overflow-hidden">
+            <div className="mt-2 h-1.5 rounded-full overflow-hidden" style={{ background: "var(--color-bg-secondary)" }}>
               <div
-                className={`h-full rounded-full transition-all duration-700 ${
-                  overview.compliance_rate >= 90
-                    ? "bg-emerald-500"
+                className="h-full rounded-full transition-all duration-700"
+                style={{
+                  width: `${Math.min(overview.compliance_rate, 100)}%`,
+                  background: overview.compliance_rate >= 90
+                    ? "var(--color-success)"
                     : overview.compliance_rate >= 70
-                    ? "bg-amber-500"
-                    : "bg-red-500"
-                }`}
-                style={{ width: `${Math.min(overview.compliance_rate, 100)}%` }}
+                    ? "var(--color-warning)"
+                    : "var(--color-error)",
+                }}
               />
             </div>
           )}
         </div>
 
         {/* Avg Processing Time */}
-        <div className="rounded-xl border border-gray-700 bg-gray-800/50 p-5">
-          <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">
+        <div className="rounded-xl p-5" style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
+          <p className="text-xs uppercase tracking-wider font-medium mb-1" style={{ color: "var(--color-text-muted)" }}>
             Avg Processing Time
           </p>
           <p
-            className="text-3xl font-bold text-white"
-            style={{ fontFamily: "var(--font-display)" }}
+            className="text-3xl font-bold"
+            style={{ fontFamily: "var(--font-display)", color: "var(--color-text-primary)" }}
           >
             {overview?.avg_processing_time != null
               ? typeof overview.avg_processing_time === "number"
@@ -258,22 +257,27 @@ export default function SLATrackingPage() {
 
         {/* Active Breaches */}
         <div
-          className={`rounded-xl border p-5 ${
-            (overview?.active_breaches ?? 0) > 0
-              ? "border-red-500/30 bg-red-500/5"
-              : "border-gray-700 bg-gray-800/50"
-          }`}
+          className="rounded-xl p-5"
+          style={{
+            border: (overview?.active_breaches ?? 0) > 0
+              ? "1px solid rgba(239, 68, 68, 0.3)"
+              : "1px solid var(--color-border)",
+            background: (overview?.active_breaches ?? 0) > 0
+              ? "rgba(239, 68, 68, 0.05)"
+              : "var(--color-bg-card)",
+          }}
         >
-          <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">
+          <p className="text-xs uppercase tracking-wider font-medium mb-1" style={{ color: "var(--color-text-muted)" }}>
             Active Breaches
           </p>
           <p
-            className={`text-3xl font-bold ${
-              (overview?.active_breaches ?? 0) > 0
-                ? "text-red-400"
-                : "text-emerald-400"
-            }`}
-            style={{ fontFamily: "var(--font-display)" }}
+            className="text-3xl font-bold"
+            style={{
+              fontFamily: "var(--font-display)",
+              color: (overview?.active_breaches ?? 0) > 0
+                ? "var(--color-error)"
+                : "var(--color-success)",
+            }}
           >
             {overview?.active_breaches ?? 0}
           </p>
@@ -286,11 +290,11 @@ export default function SLATrackingPage() {
           <button
             key={tab.key}
             onClick={() => setFilter(tab.key)}
-            className={`px-4 py-2 text-sm rounded-lg transition-colors ${
-              filter === tab.key
-                ? "bg-purple-500/15 text-purple-400 border border-purple-500/30"
-                : "text-gray-400 hover:text-gray-300 hover:bg-white/5"
-            }`}
+            className="px-4 py-2 text-sm rounded-lg transition-colors"
+            style={filter === tab.key
+              ? { background: "rgba(139, 92, 246, 0.15)", color: "var(--color-accent-purple-light)", border: "1px solid rgba(139, 92, 246, 0.3)" }
+              : { color: "var(--color-text-secondary)", border: "1px solid transparent" }
+            }
           >
             {tab.label}
             {tab.key === "active" && (
@@ -303,11 +307,12 @@ export default function SLATrackingPage() {
       </div>
 
       {/* Breaches Table */}
-      <div className="rounded-xl border border-gray-700 bg-gray-800/50 overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-700 flex items-center justify-between">
+      <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
+        <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: "1px solid var(--color-border)" }}>
           <h2 className="text-sm font-semibold flex items-center gap-2">
             <svg
-              className="w-4 h-4 text-amber-400"
+              className="w-4 h-4"
+              style={{ color: "var(--color-warning)" }}
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -321,7 +326,7 @@ export default function SLATrackingPage() {
             </svg>
             SLA Breaches
           </h2>
-          <span className="text-xs text-gray-500">
+          <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>
             {filteredBreaches.length}{" "}
             {filteredBreaches.length === 1 ? "breach" : "breaches"}
           </span>
@@ -330,7 +335,8 @@ export default function SLATrackingPage() {
         {filteredBreaches.length === 0 ? (
           <div className="p-12 text-center">
             <svg
-              className="w-10 h-10 text-gray-600 mx-auto mb-3"
+              className="w-10 h-10 mx-auto mb-3"
+              style={{ color: "var(--color-text-muted)" }}
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -342,7 +348,7 @@ export default function SLATrackingPage() {
                 d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
               {filter === "active"
                 ? "No active SLA breaches. All systems operating within SLA."
                 : filter === "resolved"
@@ -357,35 +363,35 @@ export default function SLATrackingPage() {
           >
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-700">
-                  <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider">
+                <tr style={{ borderBottom: "1px solid var(--color-border)" }}>
+                  <th className="text-left px-5 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
                     Company
                   </th>
-                  <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider">
+                  <th className="text-left px-5 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
                     Step
                   </th>
-                  <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider">
+                  <th className="text-left px-5 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
                     Status
                   </th>
-                  <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider">
+                  <th className="text-left px-5 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
                     Assigned To
                   </th>
-                  <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider">
+                  <th className="text-left px-5 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
                     Breach Duration
                   </th>
-                  <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider">
+                  <th className="text-left px-5 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
                     Started At
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-700/50">
+              <tbody>
                 {filteredBreaches.map((breach, idx) => {
                   const durationHours =
                     breach.breach_duration ??
                     breach.breach_duration_hours ??
                     null;
-                  const severityColor = getSeverityColor(durationHours);
-                  const severityBg = getSeverityBg(durationHours);
+                  const severityColor = getSeverityColorValue(durationHours);
+                  const severityBgStyle = getSeverityBgStyle(durationHours);
                   const companyLabel =
                     breach.company_name ??
                     (breach.company_id
@@ -403,23 +409,23 @@ export default function SLATrackingPage() {
                   return (
                     <tr
                       key={breach.id ?? idx}
-                      className={`hover:bg-white/5 transition-colors ${
+                      className={`transition-colors ${
                         breach.is_resolved ? "opacity-50" : ""
                       }`}
                     >
-                      <td className="px-5 py-3 text-gray-200 font-medium">
+                      <td className="px-5 py-3 font-medium" style={{ color: "var(--color-text-primary)" }}>
                         {companyLabel}
                       </td>
-                      <td className="px-5 py-3 text-gray-300">
+                      <td className="px-5 py-3" style={{ color: "var(--color-text-primary)" }}>
                         {String(step).replace(/_/g, " ")}
                       </td>
                       <td className="px-5 py-3">
                         <span
-                          className={`inline-flex items-center text-[11px] px-2 py-0.5 rounded border font-medium ${
-                            breach.is_resolved
-                              ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-400"
-                              : "bg-red-500/15 border-red-500/30 text-red-400"
-                          }`}
+                          className="inline-flex items-center text-[11px] px-2 py-0.5 rounded font-medium"
+                          style={breach.is_resolved
+                            ? { background: "rgba(16, 185, 129, 0.15)", border: "1px solid rgba(16, 185, 129, 0.3)", color: "var(--color-success)" }
+                            : { background: "rgba(239, 68, 68, 0.15)", border: "1px solid rgba(239, 68, 68, 0.3)", color: "var(--color-error)" }
+                          }
                         >
                           {breach.is_resolved
                             ? "RESOLVED"
@@ -428,17 +434,18 @@ export default function SLATrackingPage() {
                                 .toUpperCase()}
                         </span>
                       </td>
-                      <td className="px-5 py-3 text-gray-300">
+                      <td className="px-5 py-3" style={{ color: "var(--color-text-primary)" }}>
                         {assignee}
                       </td>
                       <td className="px-5 py-3">
                         <span
-                          className={`inline-flex items-center text-xs px-2 py-0.5 rounded border font-semibold ${severityBg} ${severityColor}`}
+                          className="inline-flex items-center text-xs px-2 py-0.5 rounded font-semibold"
+                          style={{ ...severityBgStyle, color: severityColor, border: `1px solid ${severityBgStyle.borderColor}` }}
                         >
                           {formatDuration(durationHours)}
                         </span>
                       </td>
-                      <td className="px-5 py-3 text-gray-400 text-xs">
+                      <td className="px-5 py-3 text-xs" style={{ color: "var(--color-text-secondary)" }}>
                         {formatDate(startedAt)}
                       </td>
                     </tr>

@@ -55,15 +55,15 @@ const AUTO_DISMISS_MS = 4_000;
 const ANIMATION_MS = 300;
 
 const BORDER_COLOR: Record<ToastType, string> = {
-  success: "border-l-emerald-500",
-  error: "border-l-red-500",
-  info: "border-l-blue-500",
+  success: "var(--color-success)",
+  error: "var(--color-error)",
+  info: "var(--color-info)",
 };
 
 const ICON_COLOR: Record<ToastType, string> = {
-  success: "text-emerald-400",
-  error: "text-red-400",
-  info: "text-blue-400",
+  success: "var(--color-success)",
+  error: "var(--color-error)",
+  info: "var(--color-info)",
 };
 
 // ---------------------------------------------------------------------------
@@ -152,9 +152,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               w-80 max-w-[calc(100vw-3rem)]
               px-4 py-3
               rounded-lg
-              border border-gray-700 border-l-4
-              ${BORDER_COLOR[t.type]}
-              bg-gray-900 text-white shadow-lg shadow-black/40
+              border-l-4
+              shadow-lg shadow-black/40
               transition-all duration-300 ease-out
               ${
                 t.visible
@@ -162,10 +161,16 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                   : "opacity-0 translate-x-4"
               }
             `}
+            style={{
+              background: "var(--color-bg-primary)",
+              color: "var(--color-text-primary)",
+              borderColor: "var(--color-border)",
+              borderLeftColor: BORDER_COLOR[t.type],
+            }}
             role="alert"
           >
             {/* Icon */}
-            <span className={`mt-0.5 shrink-0 ${ICON_COLOR[t.type]}`}>
+            <span className="mt-0.5 shrink-0" style={{ color: ICON_COLOR[t.type] }}>
               {t.type === "success" && (
                 <svg
                   className="w-4 h-4"
@@ -219,7 +224,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             {/* Close button */}
             <button
               onClick={() => dismiss(t.id)}
-              className="shrink-0 mt-0.5 text-gray-500 hover:text-gray-300 transition-colors"
+              className="shrink-0 mt-0.5 transition-colors"
+              style={{ color: "var(--color-text-muted)" }}
               aria-label="Dismiss"
             >
               <svg

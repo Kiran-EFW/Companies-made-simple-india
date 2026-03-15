@@ -28,35 +28,35 @@ const STATUS_OPTIONS = [
   "cancelled",
 ] as const;
 
-const STATUS_BADGE_STYLES: Record<string, string> = {
-  unassigned: "bg-gray-500/10 border-gray-500/20 text-gray-500",
-  assigned: "bg-blue-500/10 border-blue-500/25 text-blue-400",
-  in_progress: "bg-amber-500/10 border-amber-500/25 text-amber-400",
-  waiting_on_client: "bg-orange-500/10 border-orange-500/25 text-orange-400",
-  waiting_on_government: "bg-purple-500/10 border-purple-500/25 text-purple-400",
-  under_review: "bg-cyan-500/10 border-cyan-500/25 text-cyan-400",
-  completed: "bg-emerald-500/10 border-emerald-500/25 text-emerald-400",
-  blocked: "bg-red-500/10 border-red-500/25 text-red-400",
-  cancelled: "bg-gray-500/10 border-gray-600/20 text-gray-600",
+const STATUS_BADGE_STYLES: Record<string, { bg: string; border: string; color: string }> = {
+  unassigned: { bg: "bg-gray-500/10", border: "border-gray-500/20", color: "var(--color-text-muted)" },
+  assigned: { bg: "bg-blue-500/10", border: "border-blue-500/25", color: "var(--color-info)" },
+  in_progress: { bg: "bg-amber-500/10", border: "border-amber-500/25", color: "var(--color-warning)" },
+  waiting_on_client: { bg: "bg-orange-500/10", border: "border-orange-500/25", color: "var(--color-warning)" },
+  waiting_on_government: { bg: "bg-purple-500/10", border: "border-purple-500/25", color: "var(--color-accent-purple-light)" },
+  under_review: { bg: "bg-cyan-500/10", border: "border-cyan-500/25", color: "var(--color-info)" },
+  completed: { bg: "bg-emerald-500/10", border: "border-emerald-500/25", color: "var(--color-success)" },
+  blocked: { bg: "bg-red-500/10", border: "border-red-500/25", color: "var(--color-error)" },
+  cancelled: { bg: "bg-gray-500/10", border: "border-gray-600/20", color: "var(--color-text-muted)" },
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  unassigned: "text-gray-500",
-  assigned: "text-blue-400",
-  in_progress: "text-amber-400",
-  waiting_on_client: "text-orange-400",
-  waiting_on_government: "text-purple-400",
-  under_review: "text-cyan-400",
-  completed: "text-emerald-400",
-  blocked: "text-red-400",
-  cancelled: "text-gray-600",
+  unassigned: "var(--color-text-muted)",
+  assigned: "var(--color-info)",
+  in_progress: "var(--color-warning)",
+  waiting_on_client: "var(--color-warning)",
+  waiting_on_government: "var(--color-accent-purple-light)",
+  under_review: "var(--color-info)",
+  completed: "var(--color-success)",
+  blocked: "var(--color-error)",
+  cancelled: "var(--color-text-muted)",
 };
 
-const PRIORITY_BADGES: Record<string, { bg: string; text: string }> = {
-  urgent: { bg: "bg-red-500/15 border-red-500/30", text: "text-red-400" },
-  high: { bg: "bg-amber-500/15 border-amber-500/30", text: "text-amber-400" },
-  normal: { bg: "bg-gray-500/15 border-gray-500/30", text: "text-gray-400" },
-  low: { bg: "bg-gray-500/10 border-gray-500/20", text: "text-gray-500" },
+const PRIORITY_BADGES: Record<string, { bg: string; border: string; color: string }> = {
+  urgent: { bg: "bg-red-500/15", border: "border-red-500/30", color: "var(--color-error)" },
+  high: { bg: "bg-amber-500/15", border: "border-amber-500/30", color: "var(--color-warning)" },
+  normal: { bg: "bg-gray-500/15", border: "border-gray-500/30", color: "var(--color-text-secondary)" },
+  low: { bg: "bg-gray-500/10", border: "border-gray-500/20", color: "var(--color-text-muted)" },
 };
 
 const NEXT_STATUS_OPTIONS: Record<string, string[]> = {
@@ -278,7 +278,7 @@ export default function FilingTaskDetailPage({
   if (loading) {
     return (
       <div className="p-6 lg:p-8 max-w-5xl">
-        <div className="animate-pulse text-gray-500 text-center py-20">
+        <div className="animate-pulse text-center py-20" style={{ color: "var(--color-text-muted)" }}>
           Loading task...
         </div>
       </div>
@@ -289,10 +289,11 @@ export default function FilingTaskDetailPage({
     return (
       <div className="p-6 lg:p-8 max-w-5xl">
         <div className="glass-card p-8 text-center">
-          <p className="text-red-400 mb-4">{error || "Task not found"}</p>
+          <p className="mb-4" style={{ color: "var(--color-error)" }}>{error || "Task not found"}</p>
           <Link
             href="/ops/tasks"
-            className="text-sm text-purple-400 hover:text-purple-300 underline"
+            className="text-sm hover:text-purple-300 underline"
+            style={{ color: "var(--color-accent-purple-light)" }}
           >
             Back to Tasks
           </Link>
@@ -320,8 +321,8 @@ export default function FilingTaskDetailPage({
 
   return (
     <div className="p-6 lg:p-8 max-w-5xl relative">
-      {/* ── Breadcrumb ── */}
-      <div className="mb-4 flex items-center gap-2 text-sm text-gray-500">
+      {/* -- Breadcrumb -- */}
+      <div className="mb-4 flex items-center gap-2 text-sm" style={{ color: "var(--color-text-muted)" }}>
         <Link
           href="/ops/tasks"
           className="hover:text-purple-400 transition-colors"
@@ -329,20 +330,20 @@ export default function FilingTaskDetailPage({
           Filing Tasks
         </Link>
         <span>/</span>
-        <span className="text-gray-400">Task #{task.id}</span>
+        <span style={{ color: "var(--color-text-secondary)" }}>Task #{task.id}</span>
       </div>
 
-      {/* ── Page Header ── */}
+      {/* -- Page Header -- */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
         <div className="flex-1 min-w-0">
           <h1
-            className="text-2xl font-bold text-white mb-2 break-words"
-            style={{ fontFamily: "var(--font-display)" }}
+            className="text-2xl font-bold mb-2 break-words"
+            style={{ fontFamily: "var(--font-display)", color: "var(--color-text-primary)" }}
           >
             {task.title}
           </h1>
           {task.description && (
-            <p className="text-sm text-gray-400 leading-relaxed">
+            <p className="text-sm leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>
               {task.description}
             </p>
           )}
@@ -351,7 +352,7 @@ export default function FilingTaskDetailPage({
         {/* Action buttons */}
         <div className="flex items-center gap-2 flex-shrink-0">
           {actionLoading && (
-            <span className="text-xs text-gray-500 animate-pulse">
+            <span className="text-xs animate-pulse" style={{ color: "var(--color-text-muted)" }}>
               Processing...
             </span>
           )}
@@ -365,19 +366,19 @@ export default function FilingTaskDetailPage({
                   setAssignDropdownOpen(false);
                 }}
                 disabled={actionLoading}
-                className="text-xs px-3 py-1.5 rounded-lg bg-white/5 text-gray-400 hover:bg-white/10 transition-colors disabled:opacity-40 border border-gray-700 font-medium"
+                className="text-xs px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 transition-colors disabled:opacity-40 font-medium"
+                style={{ color: "var(--color-text-secondary)", border: "1px solid var(--color-border)" }}
               >
                 Update Status
               </button>
               {statusDropdownOpen && (
-                <div className="absolute right-0 top-full mt-1 z-50 bg-gray-900 border border-gray-700 rounded-lg shadow-xl py-1 min-w-[200px]">
+                <div className="absolute right-0 top-full mt-1 z-50 rounded-lg shadow-xl py-1 min-w-[200px]" style={{ background: "var(--color-bg-secondary)", border: "1px solid var(--color-border)" }}>
                   {availableTransitions.map((s) => (
                     <button
                       key={s}
                       onClick={() => handleStatusUpdate(s)}
-                      className={`block w-full text-left px-3 py-2 text-xs hover:bg-white/5 transition-colors capitalize ${
-                        STATUS_COLORS[s] || "text-gray-400"
-                      }`}
+                      className="block w-full text-left px-3 py-2 text-xs transition-colors capitalize"
+                      style={{ color: STATUS_COLORS[s] || "var(--color-text-secondary)" }}
                     >
                       {humanize(s)}
                     </button>
@@ -396,14 +397,15 @@ export default function FilingTaskDetailPage({
                   setStatusDropdownOpen(false);
                 }}
                 disabled={actionLoading}
-                className="text-xs px-3 py-1.5 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors disabled:opacity-40 border border-blue-500/20 font-medium"
+                className="text-xs px-3 py-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 transition-colors disabled:opacity-40 border border-blue-500/20 font-medium"
+                style={{ color: "var(--color-info)" }}
               >
                 Assign
               </button>
               {assignDropdownOpen && (
-                <div className="absolute right-0 top-full mt-1 z-50 bg-gray-900 border border-gray-700 rounded-lg shadow-xl py-1 min-w-[220px] max-h-[260px] overflow-y-auto">
+                <div className="absolute right-0 top-full mt-1 z-50 rounded-lg shadow-xl py-1 min-w-[220px] max-h-[260px] overflow-y-auto" style={{ background: "var(--color-bg-secondary)", border: "1px solid var(--color-border)" }}>
                   {staff.length === 0 ? (
-                    <p className="px-3 py-2 text-xs text-gray-500">
+                    <p className="px-3 py-2 text-xs" style={{ color: "var(--color-text-muted)" }}>
                       No staff available
                     </p>
                   ) : (
@@ -411,13 +413,14 @@ export default function FilingTaskDetailPage({
                       <button
                         key={s.id}
                         onClick={() => handleAssign(s.id)}
-                        className="block w-full text-left px-3 py-2 text-xs text-gray-300 hover:bg-white/5 transition-colors"
+                        className="block w-full text-left px-3 py-2 text-xs transition-colors"
+                        style={{ color: "var(--color-text-primary)" }}
                       >
-                        <span className="font-medium text-white">
+                        <span className="font-medium" style={{ color: "var(--color-text-primary)" }}>
                           {s.full_name || s.email}
                         </span>
                         {s.department && (
-                          <span className="ml-2 text-gray-500">
+                          <span className="ml-2" style={{ color: "var(--color-text-muted)" }}>
                             {s.department}
                           </span>
                         )}
@@ -434,7 +437,8 @@ export default function FilingTaskDetailPage({
             <button
               onClick={() => setShowHandoffModal(true)}
               disabled={actionLoading}
-              className="text-xs px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition-colors disabled:opacity-40 border border-amber-500/20 font-medium"
+              className="text-xs px-3 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 transition-colors disabled:opacity-40 border border-amber-500/20 font-medium"
+              style={{ color: "var(--color-warning)" }}
             >
               Handoff
             </button>
@@ -444,14 +448,15 @@ export default function FilingTaskDetailPage({
           <button
             onClick={() => setShowDeleteConfirm(true)}
             disabled={actionLoading}
-            className="text-xs px-3 py-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors disabled:opacity-40 border border-red-500/20 font-medium"
+            className="text-xs px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 transition-colors disabled:opacity-40 border border-red-500/20 font-medium"
+            style={{ color: "var(--color-error)" }}
           >
             Delete
           </button>
         </div>
       </div>
 
-      {/* ── Main Content Grid ── */}
+      {/* -- Main Content Grid -- */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left column: Details */}
         <div className="lg:col-span-2 space-y-6">
@@ -460,11 +465,12 @@ export default function FilingTaskDetailPage({
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {/* Status */}
               <div>
-                <p className="text-[10px] text-gray-500 uppercase tracking-wider font-medium mb-1.5">
+                <p className="text-[10px] uppercase tracking-wider font-medium mb-1.5" style={{ color: "var(--color-text-muted)" }}>
                   Status
                 </p>
                 <span
-                  className={`text-xs font-medium px-2.5 py-1 rounded border capitalize inline-block ${statusBadge}`}
+                  className={`text-xs font-medium px-2.5 py-1 rounded border capitalize inline-block ${statusBadge.bg} ${statusBadge.border}`}
+                  style={{ color: statusBadge.color }}
                 >
                   {humanize(task.status || "")}
                 </span>
@@ -472,11 +478,12 @@ export default function FilingTaskDetailPage({
 
               {/* Priority */}
               <div>
-                <p className="text-[10px] text-gray-500 uppercase tracking-wider font-medium mb-1.5">
+                <p className="text-[10px] uppercase tracking-wider font-medium mb-1.5" style={{ color: "var(--color-text-muted)" }}>
                   Priority
                 </p>
                 <span
-                  className={`text-[10px] font-semibold px-2.5 py-1 rounded border uppercase tracking-wide inline-block ${priorityBadge.bg} ${priorityBadge.text}`}
+                  className={`text-[10px] font-semibold px-2.5 py-1 rounded border uppercase tracking-wide inline-block ${priorityBadge.bg} ${priorityBadge.border}`}
+                  style={{ color: priorityBadge.color }}
                 >
                   {task.priority}
                 </span>
@@ -484,28 +491,29 @@ export default function FilingTaskDetailPage({
 
               {/* Task Type */}
               <div>
-                <p className="text-[10px] text-gray-500 uppercase tracking-wider font-medium mb-1.5">
+                <p className="text-[10px] uppercase tracking-wider font-medium mb-1.5" style={{ color: "var(--color-text-muted)" }}>
                   Task Type
                 </p>
-                <span className="text-sm text-gray-300 capitalize">
+                <span className="text-sm capitalize" style={{ color: "var(--color-text-primary)" }}>
                   {humanize(task.task_type || "")}
                 </span>
               </div>
 
               {/* Company */}
               <div>
-                <p className="text-[10px] text-gray-500 uppercase tracking-wider font-medium mb-1.5">
+                <p className="text-[10px] uppercase tracking-wider font-medium mb-1.5" style={{ color: "var(--color-text-muted)" }}>
                   Company
                 </p>
                 {task.company_id ? (
                   <Link
                     href={`/companies/${task.company_id}`}
-                    className="text-sm text-purple-400 hover:text-purple-300 transition-colors underline underline-offset-2"
+                    className="text-sm hover:text-purple-300 transition-colors underline underline-offset-2"
+                    style={{ color: "var(--color-accent-purple-light)" }}
                   >
                     {task.company_name || `Company #${task.company_id}`}
                   </Link>
                 ) : (
-                  <span className="text-sm text-gray-500">--</span>
+                  <span className="text-sm" style={{ color: "var(--color-text-muted)" }}>--</span>
                 )}
               </div>
             </div>
@@ -513,64 +521,64 @@ export default function FilingTaskDetailPage({
 
           {/* Assignment & Timing */}
           <div className="glass-card p-5">
-            <h3 className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-4">
+            <h3 className="text-xs uppercase tracking-wider font-medium mb-4" style={{ color: "var(--color-text-muted)" }}>
               Assignment & Timing
             </h3>
             <div className="grid grid-cols-2 gap-x-6 gap-y-4">
               <div>
-                <p className="text-[10px] text-gray-500 uppercase tracking-wider font-medium mb-1">
+                <p className="text-[10px] uppercase tracking-wider font-medium mb-1" style={{ color: "var(--color-text-muted)" }}>
                   Assigned To
                 </p>
-                <p className="text-sm text-white">
+                <p className="text-sm" style={{ color: "var(--color-text-primary)" }}>
                   {task.assignee_name || (
-                    <span className="text-gray-600 italic">Unassigned</span>
+                    <span style={{ color: "var(--color-text-muted)", fontStyle: "italic" }}>Unassigned</span>
                   )}
                 </p>
               </div>
               <div>
-                <p className="text-[10px] text-gray-500 uppercase tracking-wider font-medium mb-1">
+                <p className="text-[10px] uppercase tracking-wider font-medium mb-1" style={{ color: "var(--color-text-muted)" }}>
                   Assigned By
                 </p>
-                <p className="text-sm text-gray-300">
+                <p className="text-sm" style={{ color: "var(--color-text-primary)" }}>
                   {task.assigned_by ? `User #${task.assigned_by}` : "--"}
                 </p>
               </div>
               <div>
-                <p className="text-[10px] text-gray-500 uppercase tracking-wider font-medium mb-1">
+                <p className="text-[10px] uppercase tracking-wider font-medium mb-1" style={{ color: "var(--color-text-muted)" }}>
                   Assigned At
                 </p>
-                <p className="text-sm text-gray-300 font-mono">
+                <p className="text-sm font-mono" style={{ color: "var(--color-text-primary)" }}>
                   {formatDateTime(task.assigned_at)}
                 </p>
               </div>
               <div>
-                <p className="text-[10px] text-gray-500 uppercase tracking-wider font-medium mb-1">
+                <p className="text-[10px] uppercase tracking-wider font-medium mb-1" style={{ color: "var(--color-text-muted)" }}>
                   Due Date
                 </p>
                 <p className="text-sm font-mono">
-                  <span className={overdue ? "text-red-400 font-semibold" : "text-gray-300"}>
+                  <span style={{ color: overdue ? "var(--color-error)" : "var(--color-text-primary)", fontWeight: overdue ? 600 : 400 }}>
                     {formatDate(task.due_date)}
                   </span>
                   {overdue && (
-                    <span className="ml-2 text-[10px] bg-red-500/15 border border-red-500/30 text-red-400 px-1.5 py-0.5 rounded">
+                    <span className="ml-2 text-[10px] bg-red-500/15 border border-red-500/30 px-1.5 py-0.5 rounded" style={{ color: "var(--color-error)" }}>
                       OVERDUE
                     </span>
                   )}
                 </p>
               </div>
               <div>
-                <p className="text-[10px] text-gray-500 uppercase tracking-wider font-medium mb-1">
+                <p className="text-[10px] uppercase tracking-wider font-medium mb-1" style={{ color: "var(--color-text-muted)" }}>
                   Started At
                 </p>
-                <p className="text-sm text-gray-300 font-mono">
+                <p className="text-sm font-mono" style={{ color: "var(--color-text-primary)" }}>
                   {formatDateTime(task.started_at)}
                 </p>
               </div>
               <div>
-                <p className="text-[10px] text-gray-500 uppercase tracking-wider font-medium mb-1">
+                <p className="text-[10px] uppercase tracking-wider font-medium mb-1" style={{ color: "var(--color-text-muted)" }}>
                   Completed At
                 </p>
-                <p className="text-sm text-gray-300 font-mono">
+                <p className="text-sm font-mono" style={{ color: "var(--color-text-primary)" }}>
                   {formatDateTime(task.completed_at)}
                 </p>
               </div>
@@ -579,36 +587,36 @@ export default function FilingTaskDetailPage({
 
           {/* Escalation info */}
           <div className="glass-card p-5">
-            <h3 className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-4">
+            <h3 className="text-xs uppercase tracking-wider font-medium mb-4" style={{ color: "var(--color-text-muted)" }}>
               Escalation
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-4">
               <div>
-                <p className="text-[10px] text-gray-500 uppercase tracking-wider font-medium mb-1">
+                <p className="text-[10px] uppercase tracking-wider font-medium mb-1" style={{ color: "var(--color-text-muted)" }}>
                   Escalation Level
                 </p>
-                <p className="text-sm text-white">
+                <p className="text-sm" style={{ color: "var(--color-text-primary)" }}>
                   {task.escalation_level ?? 0}
                   {(task.escalation_level ?? 0) > 0 && (
-                    <span className="ml-2 text-[10px] bg-red-500/15 border border-red-500/30 text-red-400 px-1.5 py-0.5 rounded">
+                    <span className="ml-2 text-[10px] bg-red-500/15 border border-red-500/30 px-1.5 py-0.5 rounded" style={{ color: "var(--color-error)" }}>
                       ESCALATED
                     </span>
                   )}
                 </p>
               </div>
               <div>
-                <p className="text-[10px] text-gray-500 uppercase tracking-wider font-medium mb-1">
+                <p className="text-[10px] uppercase tracking-wider font-medium mb-1" style={{ color: "var(--color-text-muted)" }}>
                   Escalated To
                 </p>
-                <p className="text-sm text-gray-300">
+                <p className="text-sm" style={{ color: "var(--color-text-primary)" }}>
                   {task.escalated_to ? `User #${task.escalated_to}` : "--"}
                 </p>
               </div>
               <div>
-                <p className="text-[10px] text-gray-500 uppercase tracking-wider font-medium mb-1">
+                <p className="text-[10px] uppercase tracking-wider font-medium mb-1" style={{ color: "var(--color-text-muted)" }}>
                   Escalated At
                 </p>
-                <p className="text-sm text-gray-300 font-mono">
+                <p className="text-sm font-mono" style={{ color: "var(--color-text-primary)" }}>
                   {formatDateTime(task.escalated_at)}
                 </p>
               </div>
@@ -618,12 +626,13 @@ export default function FilingTaskDetailPage({
           {/* Parent Task */}
           {task.parent_task_id && (
             <div className="glass-card p-5">
-              <h3 className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-3">
+              <h3 className="text-xs uppercase tracking-wider font-medium mb-3" style={{ color: "var(--color-text-muted)" }}>
                 Parent Task
               </h3>
               <Link
                 href={`/ops/tasks/${task.parent_task_id}`}
-                className="text-sm text-purple-400 hover:text-purple-300 transition-colors underline underline-offset-2"
+                className="text-sm hover:text-purple-300 transition-colors underline underline-offset-2"
+                style={{ color: "var(--color-accent-purple-light)" }}
               >
                 Task #{task.parent_task_id}
               </Link>
@@ -632,21 +641,23 @@ export default function FilingTaskDetailPage({
 
           {/* Notes (editable) */}
           <div className="glass-card p-5">
-            <h3 className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-3">
+            <h3 className="text-xs uppercase tracking-wider font-medium mb-3" style={{ color: "var(--color-text-muted)" }}>
               Notes
             </h3>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={4}
-              className="w-full bg-gray-900/60 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-purple-500/50 resize-y"
+              className="w-full rounded-lg px-3 py-2 text-sm placeholder-gray-600 focus:outline-none focus:border-purple-500/50 resize-y"
+              style={{ background: "var(--color-bg-secondary)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
               placeholder="Add notes..."
             />
             <div className="flex justify-end mt-2">
               <button
                 onClick={handleSaveNotes}
                 disabled={notesSaving || notes === (task.notes || "")}
-                className="text-xs px-4 py-1.5 rounded-lg bg-purple-600/80 text-white hover:bg-purple-600 transition-colors disabled:opacity-40 font-medium"
+                className="text-xs px-4 py-1.5 rounded-lg bg-purple-600/80 hover:bg-purple-600 transition-colors disabled:opacity-40 font-medium"
+                style={{ color: "var(--color-text-primary)" }}
               >
                 {notesSaving ? "Saving..." : "Save Notes"}
               </button>
@@ -656,14 +667,15 @@ export default function FilingTaskDetailPage({
           {/* Completion Notes (editable if completed) */}
           {task.status === "completed" && (
             <div className="glass-card p-5">
-              <h3 className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-3">
+              <h3 className="text-xs uppercase tracking-wider font-medium mb-3" style={{ color: "var(--color-text-muted)" }}>
                 Completion Notes
               </h3>
               <textarea
                 value={completionNotes}
                 onChange={(e) => setCompletionNotes(e.target.value)}
                 rows={3}
-                className="w-full bg-gray-900/60 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-purple-500/50 resize-y"
+                className="w-full rounded-lg px-3 py-2 text-sm placeholder-gray-600 focus:outline-none focus:border-purple-500/50 resize-y"
+                style={{ background: "var(--color-bg-secondary)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                 placeholder="Add completion notes..."
               />
               <div className="flex justify-end mt-2">
@@ -673,7 +685,8 @@ export default function FilingTaskDetailPage({
                     completionNotesSaving ||
                     completionNotes === (task.completion_notes || "")
                   }
-                  className="text-xs px-4 py-1.5 rounded-lg bg-purple-600/80 text-white hover:bg-purple-600 transition-colors disabled:opacity-40 font-medium"
+                  className="text-xs px-4 py-1.5 rounded-lg bg-purple-600/80 hover:bg-purple-600 transition-colors disabled:opacity-40 font-medium"
+                  style={{ color: "var(--color-text-primary)" }}
                 >
                   {completionNotesSaving ? "Saving..." : "Save Completion Notes"}
                 </button>
@@ -685,10 +698,10 @@ export default function FilingTaskDetailPage({
           {task.task_metadata &&
             Object.keys(task.task_metadata).length > 0 && (
               <div className="glass-card p-5">
-                <h3 className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-3">
+                <h3 className="text-xs uppercase tracking-wider font-medium mb-3" style={{ color: "var(--color-text-muted)" }}>
                   Task Metadata
                 </h3>
-                <pre className="bg-gray-900/60 border border-gray-700 rounded-lg px-4 py-3 text-xs text-gray-300 overflow-x-auto font-mono leading-relaxed">
+                <pre className="rounded-lg px-4 py-3 text-xs overflow-x-auto font-mono leading-relaxed" style={{ background: "var(--color-bg-secondary)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}>
                   {JSON.stringify(task.task_metadata, null, 2)}
                 </pre>
               </div>
@@ -699,25 +712,25 @@ export default function FilingTaskDetailPage({
         <div className="space-y-6">
           {/* Quick Reference */}
           <div className="glass-card p-5">
-            <h3 className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-4">
+            <h3 className="text-xs uppercase tracking-wider font-medium mb-4" style={{ color: "var(--color-text-muted)" }}>
               Quick Reference
             </h3>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-xs text-gray-500">Task ID</span>
-                <span className="text-sm text-white font-mono">#{task.id}</span>
+                <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>Task ID</span>
+                <span className="text-sm font-mono" style={{ color: "var(--color-text-primary)" }}>#{task.id}</span>
               </div>
               <div className="w-full h-px bg-gray-700/50" />
               <div className="flex justify-between items-center">
-                <span className="text-xs text-gray-500">Created</span>
-                <span className="text-xs text-gray-400 font-mono">
+                <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>Created</span>
+                <span className="text-xs font-mono" style={{ color: "var(--color-text-secondary)" }}>
                   {formatDate(task.created_at)}
                 </span>
               </div>
               <div className="w-full h-px bg-gray-700/50" />
               <div className="flex justify-between items-center">
-                <span className="text-xs text-gray-500">Updated</span>
-                <span className="text-xs text-gray-400 font-mono">
+                <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>Updated</span>
+                <span className="text-xs font-mono" style={{ color: "var(--color-text-secondary)" }}>
                   {formatDate(task.updated_at)}
                 </span>
               </div>
@@ -725,8 +738,8 @@ export default function FilingTaskDetailPage({
                 <>
                   <div className="w-full h-px bg-gray-700/50" />
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-500">Company ID</span>
-                    <span className="text-sm text-white font-mono">
+                    <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>Company ID</span>
+                    <span className="text-sm font-mono" style={{ color: "var(--color-text-primary)" }}>
                       #{task.company_id}
                     </span>
                   </div>
@@ -736,10 +749,11 @@ export default function FilingTaskDetailPage({
                 <>
                   <div className="w-full h-px bg-gray-700/50" />
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-500">Parent Task</span>
+                    <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>Parent Task</span>
                     <Link
                       href={`/ops/tasks/${task.parent_task_id}`}
-                      className="text-sm text-purple-400 hover:text-purple-300 font-mono"
+                      className="text-sm hover:text-purple-300 font-mono"
+                      style={{ color: "var(--color-accent-purple-light)" }}
                     >
                       #{task.parent_task_id}
                     </Link>
@@ -751,7 +765,7 @@ export default function FilingTaskDetailPage({
 
           {/* Status Timeline */}
           <div className="glass-card p-5">
-            <h3 className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-4">
+            <h3 className="text-xs uppercase tracking-wider font-medium mb-4" style={{ color: "var(--color-text-muted)" }}>
               Timeline
             </h3>
             <div className="space-y-3">
@@ -759,8 +773,8 @@ export default function FilingTaskDetailPage({
               <div className="flex items-start gap-3">
                 <div className="w-2 h-2 rounded-full bg-gray-500 mt-1.5 flex-shrink-0" />
                 <div>
-                  <p className="text-xs text-gray-400">Created</p>
-                  <p className="text-[11px] text-gray-500 font-mono">
+                  <p className="text-xs" style={{ color: "var(--color-text-secondary)" }}>Created</p>
+                  <p className="text-[11px] font-mono" style={{ color: "var(--color-text-muted)" }}>
                     {formatDateTime(task.created_at)}
                   </p>
                 </div>
@@ -771,8 +785,8 @@ export default function FilingTaskDetailPage({
                 <div className="flex items-start gap-3">
                   <div className="w-2 h-2 rounded-full bg-blue-400 mt-1.5 flex-shrink-0" />
                   <div>
-                    <p className="text-xs text-blue-400">Assigned</p>
-                    <p className="text-[11px] text-gray-500 font-mono">
+                    <p className="text-xs" style={{ color: "var(--color-info)" }}>Assigned</p>
+                    <p className="text-[11px] font-mono" style={{ color: "var(--color-text-muted)" }}>
                       {formatDateTime(task.assigned_at)}
                     </p>
                   </div>
@@ -784,8 +798,8 @@ export default function FilingTaskDetailPage({
                 <div className="flex items-start gap-3">
                   <div className="w-2 h-2 rounded-full bg-amber-400 mt-1.5 flex-shrink-0" />
                   <div>
-                    <p className="text-xs text-amber-400">Started</p>
-                    <p className="text-[11px] text-gray-500 font-mono">
+                    <p className="text-xs" style={{ color: "var(--color-warning)" }}>Started</p>
+                    <p className="text-[11px] font-mono" style={{ color: "var(--color-text-muted)" }}>
                       {formatDateTime(task.started_at)}
                     </p>
                   </div>
@@ -797,8 +811,8 @@ export default function FilingTaskDetailPage({
                 <div className="flex items-start gap-3">
                   <div className="w-2 h-2 rounded-full bg-red-400 mt-1.5 flex-shrink-0" />
                   <div>
-                    <p className="text-xs text-red-400">Escalated (Level {task.escalation_level})</p>
-                    <p className="text-[11px] text-gray-500 font-mono">
+                    <p className="text-xs" style={{ color: "var(--color-error)" }}>Escalated (Level {task.escalation_level})</p>
+                    <p className="text-[11px] font-mono" style={{ color: "var(--color-text-muted)" }}>
                       {formatDateTime(task.escalated_at)}
                     </p>
                   </div>
@@ -810,8 +824,8 @@ export default function FilingTaskDetailPage({
                 <div className="flex items-start gap-3">
                   <div className="w-2 h-2 rounded-full bg-emerald-400 mt-1.5 flex-shrink-0" />
                   <div>
-                    <p className="text-xs text-emerald-400">Completed</p>
-                    <p className="text-[11px] text-gray-500 font-mono">
+                    <p className="text-xs" style={{ color: "var(--color-success)" }}>Completed</p>
+                    <p className="text-[11px] font-mono" style={{ color: "var(--color-text-muted)" }}>
                       {formatDateTime(task.completed_at)}
                     </p>
                   </div>
@@ -822,38 +836,39 @@ export default function FilingTaskDetailPage({
         </div>
       </div>
 
-      {/* ── Handoff Modal ── */}
+      {/* -- Handoff Modal -- */}
       {showHandoffModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setShowHandoffModal(false)}
           />
-          <div className="relative bg-gray-900 border border-gray-700 rounded-xl shadow-2xl shadow-black/50 w-full max-w-md mx-4 p-6">
+          <div className="relative rounded-xl shadow-2xl shadow-black/50 w-full max-w-md mx-4 p-6" style={{ background: "var(--color-bg-secondary)", border: "1px solid var(--color-border)" }}>
             <h3
-              className="text-lg font-bold text-white mb-4"
-              style={{ fontFamily: "var(--font-display)" }}
+              className="text-lg font-bold mb-4"
+              style={{ fontFamily: "var(--font-display)", color: "var(--color-text-primary)" }}
             >
               Hand Off Task
             </h3>
-            <p className="text-sm text-gray-400 mb-4">
+            <p className="text-sm mb-4" style={{ color: "var(--color-text-secondary)" }}>
               Optionally reassign this task to another team member and provide a
               reason.
             </p>
 
             {/* Reassign to */}
             <div className="mb-4">
-              <label className="text-[10px] text-gray-500 uppercase tracking-wider font-medium block mb-1.5">
+              <label className="text-[10px] uppercase tracking-wider font-medium block mb-1.5" style={{ color: "var(--color-text-muted)" }}>
                 Reassign To (optional)
               </label>
               <select
                 value={handoffReassignTo}
                 onChange={(e) => setHandoffReassignTo(e.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-500/50"
+                className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-purple-500/50"
+                style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
               >
                 <option value="">No reassignment</option>
                 {staff.map((s: any) => (
-                  <option key={s.id} value={s.id} className="bg-gray-900">
+                  <option key={s.id} value={s.id}>
                     {s.full_name || s.email}
                   </option>
                 ))}
@@ -862,14 +877,15 @@ export default function FilingTaskDetailPage({
 
             {/* Reason */}
             <div className="mb-5">
-              <label className="text-[10px] text-gray-500 uppercase tracking-wider font-medium block mb-1.5">
+              <label className="text-[10px] uppercase tracking-wider font-medium block mb-1.5" style={{ color: "var(--color-text-muted)" }}>
                 Reason (optional)
               </label>
               <textarea
                 value={handoffReason}
                 onChange={(e) => setHandoffReason(e.target.value)}
                 rows={3}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-purple-500/50 resize-none"
+                className="w-full rounded-lg px-3 py-2 text-sm placeholder-gray-600 focus:outline-none focus:border-purple-500/50 resize-none"
+                style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                 placeholder="Why is this task being handed off?"
               />
             </div>
@@ -881,14 +897,16 @@ export default function FilingTaskDetailPage({
                   setHandoffReassignTo("");
                   setHandoffReason("");
                 }}
-                className="text-xs px-4 py-2 rounded-lg bg-gray-800 text-gray-400 hover:bg-gray-700 transition-colors font-medium"
+                className="text-xs px-4 py-2 rounded-lg transition-colors font-medium"
+                style={{ background: "var(--color-bg-card)", color: "var(--color-text-secondary)" }}
               >
                 Cancel
               </button>
               <button
                 onClick={handleHandoff}
                 disabled={actionLoading}
-                className="text-xs px-4 py-2 rounded-lg bg-amber-600 text-white hover:bg-amber-500 transition-colors disabled:opacity-40 font-medium"
+                className="text-xs px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 transition-colors disabled:opacity-40 font-medium"
+                style={{ color: "var(--color-text-primary)" }}
               >
                 {actionLoading ? "Processing..." : "Confirm Handoff"}
               </button>
@@ -897,23 +915,23 @@ export default function FilingTaskDetailPage({
         </div>
       )}
 
-      {/* ── Delete Confirmation Modal ── */}
+      {/* -- Delete Confirmation Modal -- */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setShowDeleteConfirm(false)}
           />
-          <div className="relative bg-gray-900 border border-gray-700 rounded-xl shadow-2xl shadow-black/50 w-full max-w-sm mx-4 p-6">
+          <div className="relative rounded-xl shadow-2xl shadow-black/50 w-full max-w-sm mx-4 p-6" style={{ background: "var(--color-bg-secondary)", border: "1px solid var(--color-border)" }}>
             <h3
-              className="text-lg font-bold text-white mb-2"
-              style={{ fontFamily: "var(--font-display)" }}
+              className="text-lg font-bold mb-2"
+              style={{ fontFamily: "var(--font-display)", color: "var(--color-text-primary)" }}
             >
               Delete Task
             </h3>
-            <p className="text-sm text-gray-400 mb-5">
+            <p className="text-sm mb-5" style={{ color: "var(--color-text-secondary)" }}>
               Are you sure you want to delete{" "}
-              <span className="text-white font-medium">
+              <span className="font-medium" style={{ color: "var(--color-text-primary)" }}>
                 &quot;{task.title}&quot;
               </span>
               ? This action cannot be undone.
@@ -921,14 +939,16 @@ export default function FilingTaskDetailPage({
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setShowDeleteConfirm(false)}
-                className="text-xs px-4 py-2 rounded-lg bg-gray-800 text-gray-400 hover:bg-gray-700 transition-colors font-medium"
+                className="text-xs px-4 py-2 rounded-lg transition-colors font-medium"
+                style={{ background: "var(--color-bg-card)", color: "var(--color-text-secondary)" }}
               >
                 Cancel
               </button>
               <button
                 onClick={handleDelete}
                 disabled={actionLoading}
-                className="text-xs px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-500 transition-colors disabled:opacity-40 font-medium"
+                className="text-xs px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 transition-colors disabled:opacity-40 font-medium"
+                style={{ color: "var(--color-text-primary)" }}
               >
                 {actionLoading ? "Deleting..." : "Delete Task"}
               </button>
@@ -937,7 +957,7 @@ export default function FilingTaskDetailPage({
         </div>
       )}
 
-      {/* ── Click-outside dismiss for dropdowns ── */}
+      {/* -- Click-outside dismiss for dropdowns -- */}
       {(statusDropdownOpen || assignDropdownOpen) && (
         <div
           className="fixed inset-0 z-40"

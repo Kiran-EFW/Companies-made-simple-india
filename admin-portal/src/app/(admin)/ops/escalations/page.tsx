@@ -5,10 +5,10 @@ import { getEscalations, resolveEscalation, getEscalationRules } from "@/lib/api
 import { useToast } from "@/components/toast";
 
 const ACTION_COLORS: Record<string, string> = {
-  notify: "text-blue-400",
-  reassign: "text-amber-400",
-  notify_and_reassign: "text-orange-400",
-  escalate_to_lead: "text-red-400",
+  notify: "var(--color-info)",
+  reassign: "var(--color-warning)",
+  notify_and_reassign: "var(--color-warning)",
+  escalate_to_lead: "var(--color-error)",
 };
 
 function formatTimestamp(dateStr: string): string {
@@ -130,15 +130,15 @@ export default function EscalationsPage() {
     return (
       <div className="p-8">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-800 rounded w-48" />
+          <div className="h-8 rounded w-48" style={{ background: "var(--color-bg-card)" }} />
           <div className="grid grid-cols-3 gap-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-24 bg-gray-800 rounded-lg" />
+              <div key={i} className="h-24 rounded-lg" style={{ background: "var(--color-bg-card)" }} />
             ))}
           </div>
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-32 bg-gray-800 rounded-lg" />
+              <div key={i} className="h-32 rounded-lg" style={{ background: "var(--color-bg-card)" }} />
             ))}
           </div>
         </div>
@@ -161,9 +161,10 @@ export default function EscalationsPage() {
             onClick={() => setActiveTab("escalations")}
             className={`px-4 py-2 text-sm rounded-lg transition-colors ${
               activeTab === "escalations"
-                ? "bg-purple-500/15 text-purple-400 border border-purple-500/30"
-                : "text-gray-400 hover:text-gray-300 hover:bg-white/5"
+                ? "bg-purple-500/15 border border-purple-500/30"
+                : ""
             }`}
+            style={{ color: activeTab === "escalations" ? "var(--color-accent-purple-light)" : "var(--color-text-secondary)" }}
           >
             Active Escalations
           </button>
@@ -172,8 +173,9 @@ export default function EscalationsPage() {
             className={`px-4 py-2 text-sm rounded-lg transition-colors ${
               activeTab === "rules"
                 ? "bg-cyan-500/15 text-cyan-400 border border-cyan-500/30"
-                : "text-gray-400 hover:text-gray-300 hover:bg-white/5"
+                : ""
             }`}
+            style={{ color: activeTab === "rules" ? undefined : "var(--color-text-secondary)" }}
           >
             Escalation Rules
           </button>
@@ -186,23 +188,23 @@ export default function EscalationsPage() {
           {/* Stats */}
           <div className="grid grid-cols-3 gap-4">
             <div className="glass-card p-4">
-              <p className="text-xs text-gray-400 uppercase tracking-wider">
+              <p className="text-xs uppercase tracking-wider" style={{ color: "var(--color-text-secondary)" }}>
                 Total Active
               </p>
-              <p className="text-2xl font-bold text-amber-400 mt-1">
+              <p className="text-2xl font-bold mt-1" style={{ color: "var(--color-warning)" }}>
                 {activeEscalations.length}
               </p>
             </div>
             <div className="glass-card p-4">
-              <p className="text-xs text-gray-400 uppercase tracking-wider">
+              <p className="text-xs uppercase tracking-wider" style={{ color: "var(--color-text-secondary)" }}>
                 Resolved Today
               </p>
-              <p className="text-2xl font-bold text-emerald-400 mt-1">
+              <p className="text-2xl font-bold mt-1" style={{ color: "var(--color-success)" }}>
                 {resolvedToday.length}
               </p>
             </div>
             <div className="glass-card p-4">
-              <p className="text-xs text-gray-400 uppercase tracking-wider">
+              <p className="text-xs uppercase tracking-wider" style={{ color: "var(--color-text-secondary)" }}>
                 Avg Resolution Time
               </p>
               <p className="text-2xl font-bold text-cyan-400 mt-1">
@@ -213,17 +215,18 @@ export default function EscalationsPage() {
 
           {/* Filter Toggle */}
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-gray-300 uppercase tracking-wider">
+            <h2 className="text-sm font-semibold uppercase tracking-wider" style={{ color: "var(--color-text-primary)" }}>
               {showResolved ? "All Escalations" : "Active Escalations"} (
               {escalations.length})
             </h2>
             <label className="flex items-center gap-2 cursor-pointer select-none">
-              <span className="text-xs text-gray-400">Show Resolved</span>
+              <span className="text-xs" style={{ color: "var(--color-text-secondary)" }}>Show Resolved</span>
               <button
                 onClick={() => setShowResolved(!showResolved)}
                 className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                  showResolved ? "bg-purple-500/40" : "bg-gray-700"
+                  showResolved ? "bg-purple-500/40" : ""
                 }`}
+                style={!showResolved ? { background: "var(--color-border-light)" } : undefined}
               >
                 <span
                   className={`inline-block h-3.5 w-3.5 rounded-full bg-white transition-transform ${
@@ -237,7 +240,7 @@ export default function EscalationsPage() {
           {/* Escalation List */}
           <div className="space-y-3">
             {escalations.length === 0 ? (
-              <div className="glass-card p-8 text-center text-gray-500">
+              <div className="glass-card p-8 text-center" style={{ color: "var(--color-text-muted)" }}>
                 <p>
                   {showResolved
                     ? "No escalations found."
@@ -251,7 +254,7 @@ export default function EscalationsPage() {
                   ? "border-emerald-500/30"
                   : "border-amber-500/30";
                 const actionColor =
-                  ACTION_COLORS[esc.action] || "text-gray-400";
+                  ACTION_COLORS[esc.action] || "var(--color-text-secondary)";
 
                 return (
                   <div
@@ -265,14 +268,13 @@ export default function EscalationsPage() {
                         {/* Rule name and status */}
                         <div className="flex items-center gap-2 flex-wrap">
                           <span
-                            className={`text-sm font-medium ${
-                              isResolved ? "text-gray-400" : "text-white"
-                            }`}
+                            className="text-sm font-medium"
+                            style={{ color: isResolved ? "var(--color-text-secondary)" : "var(--color-text-primary)" }}
                           >
                             {esc.rule_name || esc.escalation_rule?.name || "Unknown Rule"}
                           </span>
                           {isResolved && (
-                            <span className="text-[10px] px-1.5 py-0.5 rounded border bg-emerald-500/15 border-emerald-500/30 text-emerald-400">
+                            <span className="text-[10px] px-1.5 py-0.5 rounded border bg-emerald-500/15 border-emerald-500/30" style={{ color: "var(--color-success)" }}>
                               RESOLVED
                             </span>
                           )}
@@ -281,43 +283,43 @@ export default function EscalationsPage() {
                         {/* Details grid */}
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-1 text-xs">
                           <div>
-                            <span className="text-gray-500">Target: </span>
-                            <span className="text-gray-300">
+                            <span style={{ color: "var(--color-text-muted)" }}>Target: </span>
+                            <span style={{ color: "var(--color-text-primary)" }}>
                               {esc.target_type?.replace(/_/g, " ")}
                             </span>
                           </div>
                           <div>
-                            <span className="text-gray-500">Target ID: </span>
-                            <span className="text-gray-300 font-mono">
+                            <span style={{ color: "var(--color-text-muted)" }}>Target ID: </span>
+                            <span className="font-mono" style={{ color: "var(--color-text-primary)" }}>
                               {esc.target_id}
                             </span>
                           </div>
                           <div>
-                            <span className="text-gray-500">Company: </span>
-                            <span className="text-gray-300 font-mono">
+                            <span style={{ color: "var(--color-text-muted)" }}>Company: </span>
+                            <span className="font-mono" style={{ color: "var(--color-text-primary)" }}>
                               {esc.company_id}
                             </span>
                           </div>
                           <div>
-                            <span className="text-gray-500">Action: </span>
-                            <span className={actionColor}>
+                            <span style={{ color: "var(--color-text-muted)" }}>Action: </span>
+                            <span style={{ color: actionColor }}>
                               {esc.action?.replace(/_/g, " ")}
                             </span>
                           </div>
                         </div>
 
                         {/* Timestamp */}
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs" style={{ color: "var(--color-text-muted)" }}>
                           Created {formatTimestamp(esc.created_at)}{" "}
-                          <span className="text-gray-600">
+                          <span style={{ color: "var(--color-text-muted)" }}>
                             ({formatDate(esc.created_at)})
                           </span>
                         </div>
 
                         {/* Resolution notes if resolved */}
                         {isResolved && esc.resolution_notes && (
-                          <div className="text-xs text-gray-500 mt-1">
-                            <span className="text-gray-600">Resolution: </span>
+                          <div className="text-xs mt-1" style={{ color: "var(--color-text-muted)" }}>
+                            <span style={{ color: "var(--color-text-muted)" }}>Resolution: </span>
                             {esc.resolution_notes}
                           </div>
                         )}
@@ -336,12 +338,14 @@ export default function EscalationsPage() {
                                 [esc.id]: e.target.value,
                               }))
                             }
-                            className="w-48 text-xs px-2.5 py-1.5 rounded bg-white/5 border border-white/10 text-gray-300 placeholder-gray-600 focus:outline-none focus:border-purple-500/40"
+                            className="w-48 text-xs px-2.5 py-1.5 rounded bg-white/5 border border-white/10 placeholder-gray-600 focus:outline-none focus:border-purple-500/40"
+                            style={{ color: "var(--color-text-primary)" }}
                           />
                           <button
                             onClick={() => handleResolve(esc.id)}
                             disabled={resolvingId === esc.id}
-                            className="text-xs px-3 py-1.5 rounded bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="text-xs px-3 py-1.5 rounded bg-emerald-500/15 hover:bg-emerald-500/25 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            style={{ color: "var(--color-success)" }}
                           >
                             {resolvingId === esc.id ? "Resolving..." : "Resolve"}
                           </button>
@@ -359,7 +363,7 @@ export default function EscalationsPage() {
       {/* Escalation Rules Tab */}
       {activeTab === "rules" && (
         <>
-          <h2 className="text-sm font-semibold text-gray-300 uppercase tracking-wider">
+          <h2 className="text-sm font-semibold uppercase tracking-wider" style={{ color: "var(--color-text-primary)" }}>
             Escalation Rules ({rules.length})
           </h2>
 
@@ -368,19 +372,20 @@ export default function EscalationsPage() {
               {[1, 2, 3].map((i) => (
                 <div
                   key={i}
-                  className="h-28 bg-gray-800 rounded-lg animate-pulse"
+                  className="h-28 rounded-lg animate-pulse"
+                  style={{ background: "var(--color-bg-card)" }}
                 />
               ))}
             </div>
           ) : rules.length === 0 ? (
-            <div className="glass-card p-8 text-center text-gray-500">
+            <div className="glass-card p-8 text-center" style={{ color: "var(--color-text-muted)" }}>
               <p>No escalation rules configured.</p>
             </div>
           ) : (
             <div className="space-y-3">
               {rules.map((rule) => {
                 const actionColor =
-                  ACTION_COLORS[rule.action] || "text-gray-400";
+                  ACTION_COLORS[rule.action] || "var(--color-text-secondary)";
 
                 return (
                   <div
@@ -394,15 +399,16 @@ export default function EscalationsPage() {
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0 space-y-2">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-sm font-medium text-white">
+                          <span className="text-sm font-medium" style={{ color: "var(--color-text-primary)" }}>
                             {rule.name}
                           </span>
                           <span
                             className={`text-[10px] px-1.5 py-0.5 rounded border ${
                               rule.is_active
-                                ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-400"
-                                : "bg-gray-500/15 border-gray-500/30 text-gray-500"
+                                ? "bg-emerald-500/15 border-emerald-500/30"
+                                : "bg-gray-500/15 border-gray-500/30"
                             }`}
+                            style={{ color: rule.is_active ? "var(--color-success)" : "var(--color-text-muted)" }}
                           >
                             {rule.is_active ? "ACTIVE" : "INACTIVE"}
                           </span>
@@ -410,26 +416,26 @@ export default function EscalationsPage() {
 
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-1 text-xs">
                           <div>
-                            <span className="text-gray-500">Trigger: </span>
-                            <span className="text-gray-300">
+                            <span style={{ color: "var(--color-text-muted)" }}>Trigger: </span>
+                            <span style={{ color: "var(--color-text-primary)" }}>
                               {rule.trigger_type?.replace(/_/g, " ")}
                             </span>
                           </div>
                           <div>
-                            <span className="text-gray-500">Threshold: </span>
+                            <span style={{ color: "var(--color-text-muted)" }}>Threshold: </span>
                             <span className="text-cyan-400">
                               {rule.threshold_hours}h
                             </span>
                           </div>
                           <div>
-                            <span className="text-gray-500">Action: </span>
-                            <span className={actionColor}>
+                            <span style={{ color: "var(--color-text-muted)" }}>Action: </span>
+                            <span style={{ color: actionColor }}>
                               {rule.action?.replace(/_/g, " ")}
                             </span>
                           </div>
                           <div>
-                            <span className="text-gray-500">Escalate to: </span>
-                            <span className="text-purple-400">
+                            <span style={{ color: "var(--color-text-muted)" }}>Escalate to: </span>
+                            <span style={{ color: "var(--color-accent-purple-light)" }}>
                               {rule.escalate_to_role?.replace(/_/g, " ") || "N/A"}
                             </span>
                           </div>

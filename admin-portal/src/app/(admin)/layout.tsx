@@ -108,18 +108,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   };
 
   return (
-    <div className="min-h-screen bg-black text-white selection:bg-purple-500/30">
+    <div className="min-h-screen" style={{ background: "var(--color-bg-primary)", color: "var(--color-text-primary)" }}>
       <div className="flex h-screen overflow-hidden">
         {/* Admin Sidebar */}
         <aside className="w-64 glass-card border-r border-t-0 border-b-0 border-l-0 rounded-none flex flex-col">
-          <div className="p-6 border-b border-gray-800">
+          <div className="p-6" style={{ borderBottom: "1px solid var(--color-border)" }}>
             <Link href="/dashboard" className="flex items-center gap-2">
-              <svg className="w-6 h-6 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ color: "var(--color-accent-purple-light)" }}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
               </svg>
               <span className="font-bold text-lg" style={{ fontFamily: "var(--font-display)" }}>Prime Admin</span>
             </Link>
-            <p className="text-xs text-gray-500 mt-1">Ops Command Center</p>
+            <p className="text-xs mt-1" style={{ color: "var(--color-text-muted)" }}>Ops Command Center</p>
           </div>
 
           <nav className="flex-1 p-4 space-y-1">
@@ -129,11 +129,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium transition-colors ${
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium transition-colors"
+                  style={
                     active
-                      ? "bg-purple-500/10 text-purple-400"
-                      : "text-gray-400 hover:bg-white/5 hover:text-gray-300"
-                  }`}
+                      ? { background: "rgba(139, 92, 246, 0.1)", color: "var(--color-accent-purple-light)" }
+                      : { color: "var(--color-text-secondary)" }
+                  }
                 >
                   {item.icon}
                   <span className="text-sm">{item.label}</span>
@@ -142,14 +143,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             })}
           </nav>
 
-          <div className="p-4 border-t border-gray-800">
-            <a href="http://localhost:3000/dashboard" className="flex items-center gap-2 text-xs text-gray-500 hover:text-purple-400 transition-colors">
+          <div className="p-4" style={{ borderTop: "1px solid var(--color-border)" }}>
+            <a href="http://localhost:3000/dashboard" className="flex items-center gap-2 text-xs transition-colors" style={{ color: "var(--color-text-muted)" }}>
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
               </svg>
               Back to User Dashboard
             </a>
-            <p className="text-[10px] text-gray-600 mt-3 text-center">CMS India &copy; 2026</p>
+            <p className="text-[10px] mt-3 text-center" style={{ color: "var(--color-text-muted)" }}>CMS India &copy; 2026</p>
           </div>
         </aside>
 

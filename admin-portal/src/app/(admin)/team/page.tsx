@@ -12,15 +12,15 @@ const ROLE_OPTIONS = [
   { value: "customer_success", label: "Customer Success", description: "Customer support" },
 ];
 
-function getRoleBadgeClasses(role: string): string {
+function getRoleBadgeStyle(role: string): React.CSSProperties {
   switch (role) {
-    case "super_admin": return "bg-red-500/15 text-red-400 border-red-500/30";
-    case "admin": return "bg-purple-500/15 text-purple-400 border-purple-500/30";
+    case "super_admin": return { background: "rgba(239, 68, 68, 0.15)", color: "var(--color-error)", borderColor: "rgba(239, 68, 68, 0.3)" };
+    case "admin": return { background: "rgba(139, 92, 246, 0.15)", color: "var(--color-accent-purple-light)", borderColor: "rgba(139, 92, 246, 0.3)" };
     case "cs_lead":
-    case "ca_lead": return "bg-blue-500/15 text-blue-400 border-blue-500/30";
-    case "filing_coordinator": return "bg-emerald-500/15 text-emerald-400 border-emerald-500/30";
-    case "customer_success": return "bg-cyan-500/15 text-cyan-400 border-cyan-500/30";
-    default: return "bg-gray-500/15 text-gray-400 border-gray-500/30";
+    case "ca_lead": return { background: "rgba(59, 130, 246, 0.15)", color: "var(--color-info)", borderColor: "rgba(59, 130, 246, 0.3)" };
+    case "filing_coordinator": return { background: "rgba(16, 185, 129, 0.15)", color: "var(--color-success)", borderColor: "rgba(16, 185, 129, 0.3)" };
+    case "customer_success": return { background: "rgba(6, 182, 212, 0.15)", color: "rgb(34, 211, 238)", borderColor: "rgba(6, 182, 212, 0.3)" };
+    default: return { background: "rgba(107, 114, 128, 0.15)", color: "var(--color-text-secondary)", borderColor: "rgba(107, 114, 128, 0.3)" };
   }
 }
 
@@ -106,7 +106,7 @@ export default function AdminTeamPage() {
   if (loading) {
     return (
       <div className="p-12 flex items-center justify-center">
-        <div className="animate-pulse text-gray-500">Loading team members...</div>
+        <div className="animate-pulse" style={{ color: "var(--color-text-muted)" }}>Loading team members...</div>
       </div>
     );
   }
@@ -117,11 +117,12 @@ export default function AdminTeamPage() {
       <div className="flex justify-between items-end mb-8">
         <div>
           <h1 className="text-3xl font-bold mb-2" style={{ fontFamily: "var(--font-display)" }}>Team Management</h1>
-          <p className="text-sm text-gray-400">Manage your operations team members and their roles.</p>
+          <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>Manage your operations team members and their roles.</p>
         </div>
         <button
           onClick={() => setShowInviteForm(!showInviteForm)}
-          className="px-4 py-2 rounded-lg text-sm font-medium bg-purple-600 hover:bg-purple-500 text-white transition-colors"
+          className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+          style={{ background: "var(--color-accent-purple)", color: "var(--color-text-primary)" }}
         >
           + Invite Member
         </button>
@@ -129,7 +130,7 @@ export default function AdminTeamPage() {
 
       {/* Invite Form */}
       {showInviteForm && (
-        <div className="rounded-xl border border-gray-700 bg-gray-800/50 p-6 mb-6">
+        <div className="rounded-xl p-6 mb-6" style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
           <h3 className="text-sm font-semibold mb-4">Invite New Team Member</h3>
           <div className="flex flex-col sm:flex-row gap-3">
             <input
@@ -137,19 +138,22 @@ export default function AdminTeamPage() {
               value={inviteName}
               onChange={(e) => setInviteName(e.target.value)}
               placeholder="Full name..."
-              className="sm:w-48 bg-gray-900/50 border border-gray-700 rounded-lg p-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-purple-500/50"
+              className="sm:w-48 rounded-lg p-3 text-sm focus:outline-none"
+              style={{ background: "var(--color-bg-secondary)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
             />
             <input
               type="email"
               value={inviteEmail}
               onChange={(e) => setInviteEmail(e.target.value)}
               placeholder="Email address..."
-              className="flex-1 bg-gray-900/50 border border-gray-700 rounded-lg p-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-purple-500/50"
+              className="flex-1 rounded-lg p-3 text-sm focus:outline-none"
+              style={{ background: "var(--color-bg-secondary)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
             />
             <select
               value={inviteRole}
               onChange={(e) => setInviteRole(e.target.value)}
-              className="bg-gray-900/50 border border-gray-700 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-purple-500/50"
+              className="rounded-lg p-3 text-sm focus:outline-none"
+              style={{ background: "var(--color-bg-secondary)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
             >
               {ROLE_OPTIONS.map((r) => (
                 <option key={r.value} value={r.value}>{r.label}</option>
@@ -158,43 +162,44 @@ export default function AdminTeamPage() {
             <button
               onClick={handleInvite}
               disabled={!inviteEmail.trim() || !inviteName.trim() || inviting}
-              className="px-6 py-3 rounded-lg text-sm font-medium bg-purple-600 hover:bg-purple-500 text-white transition-colors disabled:opacity-50 whitespace-nowrap"
+              className="px-6 py-3 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 whitespace-nowrap"
+              style={{ background: "var(--color-accent-purple)", color: "var(--color-text-primary)" }}
             >
               {inviting ? "Sending..." : "Send Invite"}
             </button>
           </div>
-          <p className="text-[10px] text-gray-500 mt-2">An invitation email will be sent with a link to create their account.</p>
+          <p className="text-[10px] mt-2" style={{ color: "var(--color-text-muted)" }}>An invitation email will be sent with a link to create their account.</p>
         </div>
       )}
 
       {/* Team List */}
-      <div className="rounded-xl border border-gray-700 bg-gray-800/50 overflow-hidden">
+      <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-700">
-              <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider">Member</th>
-              <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider">Role</th>
-              <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider">Status</th>
-              <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider">Joined</th>
-              <th className="text-right px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider">Actions</th>
+            <tr style={{ borderBottom: "1px solid var(--color-border)" }}>
+              <th className="text-left px-5 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Member</th>
+              <th className="text-left px-5 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Role</th>
+              <th className="text-left px-5 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Status</th>
+              <th className="text-left px-5 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Joined</th>
+              <th className="text-right px-5 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-700/50">
+          <tbody>
             {team.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-5 py-8 text-center text-gray-500">No team members found.</td>
+                <td colSpan={5} className="px-5 py-8 text-center" style={{ color: "var(--color-text-muted)" }}>No team members found.</td>
               </tr>
             ) : (
               team.map((member) => (
-                <tr key={member.id} className="hover:bg-white/5 transition-colors">
+                <tr key={member.id} className="transition-colors">
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-xs font-bold text-purple-400">
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold" style={{ background: "rgba(139, 92, 246, 0.2)", color: "var(--color-accent-purple-light)" }}>
                         {(member.full_name || member.email || "?").charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-white">{member.full_name || "Unnamed"}</p>
-                        <p className="text-[10px] text-gray-500">{member.email}</p>
+                        <p className="text-sm font-medium" style={{ color: "var(--color-text-primary)" }}>{member.full_name || "Unnamed"}</p>
+                        <p className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>{member.email}</p>
                       </div>
                     </div>
                   </td>
@@ -203,26 +208,28 @@ export default function AdminTeamPage() {
                       value={member.role || "agent"}
                       onChange={(e) => handleRoleChange(member.id, e.target.value)}
                       disabled={changingRole === member.id}
-                      className={`text-xs font-semibold px-2.5 py-1 rounded-full border bg-transparent cursor-pointer focus:outline-none ${getRoleBadgeClasses(member.role || "agent")}`}
+                      className="text-xs font-semibold px-2.5 py-1 rounded-full border cursor-pointer focus:outline-none"
+                      style={getRoleBadgeStyle(member.role || "agent")}
                     >
                       {ROLE_OPTIONS.map((r) => (
-                        <option key={r.value} value={r.value} className="bg-gray-900 text-white">{r.label}</option>
+                        <option key={r.value} value={r.value} style={{ background: "var(--color-bg-secondary)", color: "var(--color-text-primary)" }}>{r.label}</option>
                       ))}
                     </select>
                   </td>
                   <td className="px-5 py-4">
-                    <span className={`text-xs font-medium ${member.is_active !== false ? "text-emerald-400" : "text-gray-500"}`}>
+                    <span className="text-xs font-medium" style={{ color: member.is_active !== false ? "var(--color-success)" : "var(--color-text-muted)" }}>
                       {member.is_active !== false ? "Active" : "Inactive"}
                     </span>
                   </td>
-                  <td className="px-5 py-4 text-xs text-gray-400">
+                  <td className="px-5 py-4 text-xs" style={{ color: "var(--color-text-secondary)" }}>
                     {member.created_at ? new Date(member.created_at).toLocaleDateString() : "--"}
                   </td>
                   <td className="px-5 py-4 text-right">
                     {member.is_active !== false && (
                       <button
                         onClick={() => handleDeactivate(member.id)}
-                        className="text-xs text-red-400 hover:text-red-300 font-medium transition-colors"
+                        className="text-xs font-medium transition-colors"
+                        style={{ color: "var(--color-error)" }}
                       >
                         Deactivate
                       </button>

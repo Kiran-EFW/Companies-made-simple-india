@@ -46,7 +46,7 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]">
+    <div className="min-h-screen flex items-center justify-center">
       <div className="w-full max-w-sm mx-4">
         <div className="text-center mb-8">
           <h1
@@ -55,14 +55,21 @@ export default function AdminLoginPage() {
           >
             CMS India
           </h1>
-          <p className="text-gray-500 text-sm mt-2">Admin Portal</p>
+          <p className="text-sm mt-2" style={{ color: "var(--color-text-muted)" }}>Admin Portal</p>
         </div>
 
         {process.env.NODE_ENV === "development" && (
           <button
             onClick={handleDevLogin}
             disabled={loading}
-            className="w-full mb-4 py-2.5 px-4 rounded-lg bg-gray-900 border border-purple-500/30 text-purple-400 text-xs font-mono hover:bg-purple-500/10 transition-colors disabled:opacity-50"
+            className="w-full mb-4 py-2.5 px-4 rounded-lg text-xs font-mono transition-colors disabled:opacity-50"
+            style={{
+              background: "var(--color-bg-secondary)",
+              borderWidth: "1px",
+              borderStyle: "solid",
+              borderColor: "rgba(139, 92, 246, 0.3)",
+              color: "var(--color-accent-purple-light)",
+            }}
           >
             DEV SKIP — Auto Login as Super Admin
           </button>
@@ -71,12 +78,12 @@ export default function AdminLoginPage() {
         <form onSubmit={handleSubmit} className="glass-card p-6 space-y-4">
           {error && (
             <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
-              <p className="text-red-400 text-sm">{error}</p>
+              <p className="text-sm" style={{ color: "var(--color-error)" }}>{error}</p>
             </div>
           )}
 
           <div>
-            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wider font-medium">
+            <label className="block text-xs mb-1.5 uppercase tracking-wider font-medium" style={{ color: "var(--color-text-secondary)" }}>
               Email
             </label>
             <input
@@ -84,13 +91,13 @@ export default function AdminLoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full bg-white/5 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-purple-500/50 transition-colors"
+              className="input-field w-full"
               placeholder="admin@cmsindia.co"
             />
           </div>
 
           <div>
-            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wider font-medium">
+            <label className="block text-xs mb-1.5 uppercase tracking-wider font-medium" style={{ color: "var(--color-text-secondary)" }}>
               Password
             </label>
             <input
@@ -98,7 +105,7 @@ export default function AdminLoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full bg-white/5 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-purple-500/50 transition-colors"
+              className="input-field w-full"
               placeholder="Enter your password"
             />
           </div>
@@ -106,13 +113,17 @@ export default function AdminLoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 rounded-lg text-sm font-medium bg-purple-600 hover:bg-purple-500 text-white transition-colors disabled:opacity-50"
+            className="w-full py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+            style={{
+              background: "var(--color-accent-purple)",
+              color: "var(--color-text-primary)",
+            }}
           >
             {loading ? "Signing in..." : "Sign In"}
           </button>
         </form>
 
-        <p className="text-center text-[10px] text-gray-600 mt-6">
+        <p className="text-center text-[10px] mt-6" style={{ color: "var(--color-text-muted)" }}>
           This portal is for authorized CMS India staff only.
         </p>
       </div>

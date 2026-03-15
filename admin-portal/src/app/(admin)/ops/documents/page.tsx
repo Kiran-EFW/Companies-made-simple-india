@@ -42,25 +42,25 @@ const FILTER_TABS: { key: FilterTab; label: string }[] = [
 
 const DECISION_BADGES: Record<
   Decision,
-  { text: string; bg: string; label: string }
+  { color: string; bg: string; label: string }
 > = {
   pending: {
-    text: "text-amber-400",
+    color: "var(--color-warning)",
     bg: "bg-amber-500/15",
     label: "Pending",
   },
   approved: {
-    text: "text-emerald-400",
+    color: "var(--color-success)",
     bg: "bg-emerald-500/15",
     label: "Approved",
   },
   rejected: {
-    text: "text-red-400",
+    color: "var(--color-error)",
     bg: "bg-red-500/15",
     label: "Rejected",
   },
   needs_reupload: {
-    text: "text-orange-400",
+    color: "var(--color-warning)",
     bg: "bg-orange-500/15",
     label: "Reupload",
   },
@@ -84,9 +84,9 @@ function timeAgo(dateStr: string): string {
 }
 
 function confidenceColor(score: number): string {
-  if (score >= 90) return "text-emerald-400";
-  if (score >= 70) return "text-amber-400";
-  return "text-red-400";
+  if (score >= 90) return "var(--color-success)";
+  if (score >= 70) return "var(--color-warning)";
+  return "var(--color-error)";
 }
 
 function confidenceBg(score: number): string {
@@ -124,7 +124,7 @@ export default function DocumentReviewQueuePage() {
   const [rejectionReason, setRejectionReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  // ── Fetch ──────────────────────────────────────────────────────────────
+  // -- Fetch --
 
   const fetchQueue = async () => {
     try {
@@ -145,7 +145,7 @@ export default function DocumentReviewQueuePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
-  // ── Actions ────────────────────────────────────────────────────────────
+  // -- Actions --
 
   const handleClaim = async (item: ReviewItem) => {
     setClaimingId(item.document_id);
@@ -197,7 +197,7 @@ export default function DocumentReviewQueuePage() {
     }
   };
 
-  // ── Derived stats ──────────────────────────────────────────────────────
+  // -- Derived stats --
 
   const pendingCount = items.filter((i) => i.decision === "pending").length;
   const avgConfidence =
@@ -208,21 +208,21 @@ export default function DocumentReviewQueuePage() {
     (i) => i.decision !== "pending" && isToday(i.reviewed_at),
   ).length;
 
-  // ── Render ─────────────────────────────────────────────────────────────
+  // -- Render --
 
   if (loading) {
     return (
       <div className="p-8">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-800 rounded w-64" />
+          <div className="h-8 rounded w-64" style={{ background: "var(--color-bg-card)" }} />
           <div className="grid grid-cols-3 gap-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-24 bg-gray-800 rounded-lg" />
+              <div key={i} className="h-24 rounded-lg" style={{ background: "var(--color-bg-card)" }} />
             ))}
           </div>
           <div className="space-y-3">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-32 bg-gray-800 rounded-lg" />
+              <div key={i} className="h-32 rounded-lg" style={{ background: "var(--color-bg-card)" }} />
             ))}
           </div>
         </div>
@@ -232,7 +232,7 @@ export default function DocumentReviewQueuePage() {
 
   return (
     <div className="p-8 space-y-6">
-      {/* ── Header + Filter Tabs ─────────────────────────────────────── */}
+      {/* -- Header + Filter Tabs -- */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1
@@ -241,7 +241,7 @@ export default function DocumentReviewQueuePage() {
           >
             Document Review Queue
           </h1>
-          <p className="text-gray-400 text-sm mt-1">
+          <p className="text-sm mt-1" style={{ color: "var(--color-text-secondary)" }}>
             Verify uploaded documents with AI-assisted confidence scoring
           </p>
         </div>
@@ -253,9 +253,10 @@ export default function DocumentReviewQueuePage() {
               onClick={() => setActiveTab(tab.key)}
               className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
                 activeTab === tab.key
-                  ? "bg-purple-500/20 text-purple-400"
-                  : "text-gray-400 hover:text-gray-300 hover:bg-white/5"
+                  ? "bg-purple-500/20"
+                  : "hover:bg-white/5"
               }`}
+              style={{ color: activeTab === tab.key ? "var(--color-accent-purple-light)" : "var(--color-text-secondary)" }}
             >
               {tab.label}
             </button>
@@ -263,28 +264,29 @@ export default function DocumentReviewQueuePage() {
         </div>
       </div>
 
-      {/* ── Stats Row ────────────────────────────────────────────────── */}
+      {/* -- Stats Row -- */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         <div className="glass-card p-4">
-          <p className="text-xs text-gray-400 uppercase tracking-wider">
+          <p className="text-xs uppercase tracking-wider" style={{ color: "var(--color-text-secondary)" }}>
             Total Pending
           </p>
-          <p className="text-2xl font-bold text-amber-400 mt-1">
+          <p className="text-2xl font-bold mt-1" style={{ color: "var(--color-warning)" }}>
             {pendingCount}
           </p>
         </div>
         <div className="glass-card p-4">
-          <p className="text-xs text-gray-400 uppercase tracking-wider">
+          <p className="text-xs uppercase tracking-wider" style={{ color: "var(--color-text-secondary)" }}>
             Avg AI Confidence
           </p>
           <p
-            className={`text-2xl font-bold mt-1 ${confidenceColor(avgConfidence)}`}
+            className="text-2xl font-bold mt-1"
+            style={{ color: confidenceColor(avgConfidence) }}
           >
             {avgConfidence}%
           </p>
         </div>
         <div className="glass-card p-4">
-          <p className="text-xs text-gray-400 uppercase tracking-wider">
+          <p className="text-xs uppercase tracking-wider" style={{ color: "var(--color-text-secondary)" }}>
             Reviewed Today
           </p>
           <p className="text-2xl font-bold text-cyan-400 mt-1">
@@ -293,11 +295,12 @@ export default function DocumentReviewQueuePage() {
         </div>
       </div>
 
-      {/* ── Review Cards ─────────────────────────────────────────────── */}
+      {/* -- Review Cards -- */}
       {items.length === 0 ? (
         <div className="glass-card p-12 text-center">
           <svg
-            className="w-10 h-10 text-gray-600 mx-auto mb-3"
+            className="w-10 h-10 mx-auto mb-3"
+            style={{ color: "var(--color-text-muted)" }}
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -309,7 +312,7 @@ export default function DocumentReviewQueuePage() {
               d="M10.125 2.25h-4.5c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125v-9M10.125 2.25h.375a9 9 0 019 9v.375M10.125 2.25A3.375 3.375 0 0113.5 5.625v1.5c0 .621.504 1.125 1.125 1.125h1.5a3.375 3.375 0 013.375 3.375M9 15l2.25 2.25L15 12"
             />
           </svg>
-          <p className="text-gray-500 text-sm">
+          <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
             No documents matching this filter.
           </p>
         </div>
@@ -328,25 +331,26 @@ export default function DocumentReviewQueuePage() {
                     {/* Left: Document info */}
                     <div className="flex-1 min-w-0 space-y-2">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm font-semibold text-white truncate">
+                        <span className="text-sm font-semibold truncate" style={{ color: "var(--color-text-primary)" }}>
                           {item.filename}
                         </span>
                         <span
-                          className={`text-[10px] px-2 py-0.5 rounded font-medium ${badge.bg} ${badge.text}`}
+                          className={`text-[10px] px-2 py-0.5 rounded font-medium ${badge.bg}`}
+                          style={{ color: badge.color }}
                         >
                           {badge.label}
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-3 text-xs text-gray-500 flex-wrap">
-                        <span className="text-gray-400">
+                      <div className="flex items-center gap-3 text-xs flex-wrap" style={{ color: "var(--color-text-muted)" }}>
+                        <span style={{ color: "var(--color-text-secondary)" }}>
                           {item.company_name}
                         </span>
-                        <span className="text-gray-600">|</span>
+                        <span style={{ color: "var(--color-text-muted)" }}>|</span>
                         <span>
                           {item.doc_type?.replace(/_/g, " ").toUpperCase()}
                         </span>
-                        <span className="text-gray-600">|</span>
+                        <span style={{ color: "var(--color-text-muted)" }}>|</span>
                         <span>{timeAgo(item.created_at)}</span>
                       </div>
 
@@ -356,7 +360,8 @@ export default function DocumentReviewQueuePage() {
                           {item.ai_flags.map((flag, idx) => (
                             <span
                               key={idx}
-                              className="text-[10px] px-1.5 py-0.5 rounded bg-red-500/15 text-red-400 border border-red-500/20"
+                              className="text-[10px] px-1.5 py-0.5 rounded bg-red-500/15 border border-red-500/20"
+                              style={{ color: "var(--color-error)" }}
                             >
                               {flag}
                             </span>
@@ -365,14 +370,14 @@ export default function DocumentReviewQueuePage() {
                       )}
 
                       {/* Reviewer */}
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs" style={{ color: "var(--color-text-muted)" }}>
                         Reviewer:{" "}
                         {item.reviewer_name ? (
-                          <span className="text-gray-300">
+                          <span style={{ color: "var(--color-text-primary)" }}>
                             {item.reviewer_name}
                           </span>
                         ) : (
-                          <span className="text-gray-600 italic">
+                          <span style={{ color: "var(--color-text-muted)", fontStyle: "italic" }}>
                             Unassigned
                           </span>
                         )}
@@ -385,11 +390,12 @@ export default function DocumentReviewQueuePage() {
                       <div
                         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg ${confidenceBg(item.ai_confidence)}`}
                       >
-                        <span className="text-[10px] text-gray-400 uppercase tracking-wider">
+                        <span className="text-[10px] uppercase tracking-wider" style={{ color: "var(--color-text-secondary)" }}>
                           AI
                         </span>
                         <span
-                          className={`text-lg font-bold tabular-nums ${confidenceColor(item.ai_confidence)}`}
+                          className="text-lg font-bold tabular-nums"
+                          style={{ color: confidenceColor(item.ai_confidence) }}
                         >
                           {item.ai_confidence ?? "--"}
                         </span>
@@ -401,7 +407,8 @@ export default function DocumentReviewQueuePage() {
                           <button
                             onClick={() => handleClaim(item)}
                             disabled={claimingId === item.document_id}
-                            className="text-xs px-2.5 py-1 rounded bg-purple-500/15 text-purple-400 hover:bg-purple-500/25 transition-colors disabled:opacity-50"
+                            className="text-xs px-2.5 py-1 rounded bg-purple-500/15 hover:bg-purple-500/25 transition-colors disabled:opacity-50"
+                            style={{ color: "var(--color-accent-purple-light)" }}
                           >
                             {claimingId === item.document_id
                               ? "Claiming..."
@@ -412,13 +419,15 @@ export default function DocumentReviewQueuePage() {
                           <>
                             <button
                               onClick={() => openAction(item, "approved")}
-                              className="text-xs px-2.5 py-1 rounded bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 transition-colors"
+                              className="text-xs px-2.5 py-1 rounded bg-emerald-500/15 hover:bg-emerald-500/25 transition-colors"
+                              style={{ color: "var(--color-success)" }}
                             >
                               Approve
                             </button>
                             <button
                               onClick={() => openAction(item, "rejected")}
-                              className="text-xs px-2.5 py-1 rounded bg-red-500/15 text-red-400 hover:bg-red-500/25 transition-colors"
+                              className="text-xs px-2.5 py-1 rounded bg-red-500/15 hover:bg-red-500/25 transition-colors"
+                              style={{ color: "var(--color-error)" }}
                             >
                               Reject
                             </button>
@@ -437,10 +446,10 @@ export default function DocumentReviewQueuePage() {
                   </div>
                 </div>
 
-                {/* ── Inline Expansion for Approve / Reject / Reupload ── */}
+                {/* -- Inline Expansion for Approve / Reject / Reupload -- */}
                 {isExpanded && actionTarget && (
-                  <div className="border-t border-gray-800 bg-white/[0.02] px-4 py-4 space-y-3">
-                    <p className="text-xs font-semibold text-gray-300 uppercase tracking-wider">
+                  <div className="bg-white/[0.02] px-4 py-4 space-y-3" style={{ borderTop: "1px solid var(--color-border)" }}>
+                    <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--color-text-primary)" }}>
                       {actionTarget.action === "approved"
                         ? "Approve Document"
                         : actionTarget.action === "rejected"
@@ -450,7 +459,7 @@ export default function DocumentReviewQueuePage() {
 
                     {/* Review notes */}
                     <div>
-                      <label className="block text-xs text-gray-400 mb-1">
+                      <label className="block text-xs mb-1" style={{ color: "var(--color-text-secondary)" }}>
                         Review Notes
                       </label>
                       <textarea
@@ -458,14 +467,15 @@ export default function DocumentReviewQueuePage() {
                         onChange={(e) => setReviewNotes(e.target.value)}
                         rows={3}
                         placeholder="Add any notes about this review..."
-                        className="w-full bg-white/5 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/30 transition-colors resize-none"
+                        className="w-full bg-white/5 rounded-lg px-3 py-2 text-sm placeholder-gray-600 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/30 transition-colors resize-none"
+                        style={{ border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                       />
                     </div>
 
                     {/* Rejection reason (only for reject / reupload) */}
                     {actionTarget.action !== "approved" && (
                       <div>
-                        <label className="block text-xs text-gray-400 mb-1">
+                        <label className="block text-xs mb-1" style={{ color: "var(--color-text-secondary)" }}>
                           {actionTarget.action === "rejected"
                             ? "Rejection Reason"
                             : "Reupload Reason"}
@@ -479,7 +489,8 @@ export default function DocumentReviewQueuePage() {
                               ? "Why is this document being rejected?"
                               : "Why does the client need to reupload?"
                           }
-                          className="w-full bg-white/5 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/30 transition-colors"
+                          className="w-full bg-white/5 rounded-lg px-3 py-2 text-sm placeholder-gray-600 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/30 transition-colors"
+                          style={{ border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                         />
                       </div>
                     )}
@@ -491,11 +502,16 @@ export default function DocumentReviewQueuePage() {
                         disabled={submitting}
                         className={`text-xs px-4 py-1.5 rounded font-medium transition-colors disabled:opacity-50 ${
                           actionTarget.action === "approved"
-                            ? "bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30"
+                            ? "bg-emerald-500/20 hover:bg-emerald-500/30"
                             : actionTarget.action === "rejected"
-                              ? "bg-red-500/20 text-red-400 hover:bg-red-500/30"
+                              ? "bg-red-500/20 hover:bg-red-500/30"
                               : "bg-orange-500/20 text-orange-400 hover:bg-orange-500/30"
                         }`}
+                        style={actionTarget.action === "approved"
+                          ? { color: "var(--color-success)" }
+                          : actionTarget.action === "rejected"
+                            ? { color: "var(--color-error)" }
+                            : undefined}
                       >
                         {submitting
                           ? "Submitting..."
@@ -507,7 +523,8 @@ export default function DocumentReviewQueuePage() {
                       </button>
                       <button
                         onClick={closeAction}
-                        className="text-xs px-3 py-1.5 rounded text-gray-400 hover:text-gray-300 bg-white/5 hover:bg-white/10 transition-colors"
+                        className="text-xs px-3 py-1.5 rounded bg-white/5 hover:bg-white/10 transition-colors"
+                        style={{ color: "var(--color-text-secondary)" }}
                       >
                         Cancel
                       </button>

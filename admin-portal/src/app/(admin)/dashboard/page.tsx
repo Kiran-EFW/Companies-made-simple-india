@@ -22,20 +22,20 @@ const KANBAN_COLUMNS = [
 function getPriorityBadge(priority: string) {
   switch (priority) {
     case "urgent":
-      return { bg: "bg-amber-500/15 border-amber-500/30", text: "text-amber-400", label: "URGENT" };
+      return { bg: "rgba(245, 158, 11, 0.15)", borderColor: "rgba(245, 158, 11, 0.3)", color: "var(--color-warning)", label: "URGENT" };
     case "vip":
-      return { bg: "bg-purple-500/15 border-purple-500/30", text: "text-purple-400", label: "VIP" };
+      return { bg: "rgba(139, 92, 246, 0.15)", borderColor: "rgba(139, 92, 246, 0.3)", color: "var(--color-accent-purple-light)", label: "VIP" };
     default:
       return null;
   }
 }
 
 function getStatusColor(status: string): string {
-  if (["incorporated", "fully_setup", "bank_account_opened"].includes(status)) return "text-emerald-400";
-  if (["draft", "entity_selected"].includes(status)) return "text-gray-400";
-  if (status.includes("rejected") || status.includes("query")) return "text-red-400";
-  if (status.includes("pending")) return "text-amber-400";
-  return "text-blue-400";
+  if (["incorporated", "fully_setup", "bank_account_opened"].includes(status)) return "var(--color-success)";
+  if (["draft", "entity_selected"].includes(status)) return "var(--color-text-secondary)";
+  if (status.includes("rejected") || status.includes("query")) return "var(--color-error)";
+  if (status.includes("pending")) return "var(--color-warning)";
+  return "var(--color-info)";
 }
 
 function timeAgo(dateStr: string): string {
@@ -120,7 +120,7 @@ export default function AdminDashboardPage() {
   if (loading) {
     return (
       <div className="p-12 flex items-center justify-center">
-        <div className="animate-pulse text-gray-500">Loading Operations Dashboard...</div>
+        <div className="animate-pulse" style={{ color: "var(--color-text-muted)" }}>Loading Operations Dashboard...</div>
       </div>
     );
   }
@@ -130,32 +130,35 @@ export default function AdminDashboardPage() {
       {/* Page Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2" style={{ fontFamily: "var(--font-display)" }}>Operations Dashboard</h1>
-        <p className="text-sm text-gray-400">Real-time overview of all company incorporations and operations.</p>
+        <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>Real-time overview of all company incorporations and operations.</p>
       </div>
 
       {/* Top Metrics Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-        <div className="rounded-xl border border-gray-700 bg-gray-800/50 p-5">
-          <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">Total Companies</p>
-          <p className="text-3xl font-bold text-white" style={{ fontFamily: "var(--font-display)" }}>{totalCompanies}</p>
+        <div className="rounded-xl p-5" style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
+          <p className="text-xs uppercase tracking-wider font-medium mb-1" style={{ color: "var(--color-text-muted)" }}>Total Companies</p>
+          <p className="text-3xl font-bold" style={{ fontFamily: "var(--font-display)", color: "var(--color-text-primary)" }}>{totalCompanies}</p>
         </div>
-        <div className="rounded-xl border border-gray-700 bg-gray-800/50 p-5">
-          <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">Active Incorporations</p>
-          <p className="text-3xl font-bold text-blue-400" style={{ fontFamily: "var(--font-display)" }}>{activeIncorporations}</p>
+        <div className="rounded-xl p-5" style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
+          <p className="text-xs uppercase tracking-wider font-medium mb-1" style={{ color: "var(--color-text-muted)" }}>Active Incorporations</p>
+          <p className="text-3xl font-bold" style={{ fontFamily: "var(--font-display)", color: "var(--color-info)" }}>{activeIncorporations}</p>
         </div>
-        <div className="rounded-xl border border-gray-700 bg-gray-800/50 p-5">
-          <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">Completed This Month</p>
-          <p className="text-3xl font-bold text-emerald-400" style={{ fontFamily: "var(--font-display)" }}>{completedThisMonth}</p>
+        <div className="rounded-xl p-5" style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
+          <p className="text-xs uppercase tracking-wider font-medium mb-1" style={{ color: "var(--color-text-muted)" }}>Completed This Month</p>
+          <p className="text-3xl font-bold" style={{ fontFamily: "var(--font-display)", color: "var(--color-success)" }}>{completedThisMonth}</p>
         </div>
-        <div className="rounded-xl border border-gray-700 bg-gray-800/50 p-5">
-          <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">Revenue This Month</p>
-          <p className="text-3xl font-bold text-amber-400" style={{ fontFamily: "var(--font-display)" }}>
+        <div className="rounded-xl p-5" style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
+          <p className="text-xs uppercase tracking-wider font-medium mb-1" style={{ color: "var(--color-text-muted)" }}>Revenue This Month</p>
+          <p className="text-3xl font-bold" style={{ fontFamily: "var(--font-display)", color: "var(--color-warning)" }}>
             {analytics?.revenue_total != null ? `₹${(analytics.revenue_total / 1000).toFixed(0)}K` : "--"}
           </p>
         </div>
-        <div className="rounded-xl border border-gray-700 bg-gray-800/50 p-5">
-          <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">SLA Compliance</p>
-          <p className={`text-3xl font-bold ${slaOverview?.on_time_percentage >= 90 ? "text-emerald-400" : slaOverview?.on_time_percentage >= 70 ? "text-amber-400" : "text-red-400"}`} style={{ fontFamily: "var(--font-display)" }}>
+        <div className="rounded-xl p-5" style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
+          <p className="text-xs uppercase tracking-wider font-medium mb-1" style={{ color: "var(--color-text-muted)" }}>SLA Compliance</p>
+          <p className="text-3xl font-bold" style={{
+            fontFamily: "var(--font-display)",
+            color: slaOverview?.on_time_percentage >= 90 ? "var(--color-success)" : slaOverview?.on_time_percentage >= 70 ? "var(--color-warning)" : "var(--color-error)",
+          }}>
             {slaOverview?.on_time_percentage != null ? `${slaOverview.on_time_percentage}%` : "--"}
           </p>
         </div>
@@ -164,7 +167,7 @@ export default function AdminDashboardPage() {
       {/* Pipeline Kanban Board */}
       <div className="mb-8">
         <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-          <svg className="w-5 h-5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ color: "var(--color-accent-purple-light)" }}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25" />
           </svg>
           Pipeline Board
@@ -172,15 +175,15 @@ export default function AdminDashboardPage() {
         <div className="flex gap-3 overflow-x-auto pb-4" style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(139, 92, 246, 0.3) transparent" }}>
           {kanbanData.map((col) => (
             <div key={col.key} className="min-w-[220px] w-[220px] shrink-0">
-              <div className="rounded-t-lg px-3 py-2 border border-b-0 border-gray-700 bg-gray-800/80 flex items-center justify-between">
-                <span className="text-xs font-semibold text-gray-300 uppercase tracking-wider">{col.label}</span>
-                <span className="text-xs font-bold text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full">
+              <div className="rounded-t-lg px-3 py-2 flex items-center justify-between" style={{ border: "1px solid var(--color-border)", borderBottom: "none", background: "var(--color-bg-card)" }}>
+                <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--color-text-primary)" }}>{col.label}</span>
+                <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ color: "var(--color-accent-purple-light)", background: "rgba(139, 92, 246, 0.1)" }}>
                   {col.companies.length}
                 </span>
               </div>
-              <div className="rounded-b-lg border border-gray-700 bg-gray-900/50 p-2 min-h-[200px] max-h-[400px] overflow-y-auto space-y-2" style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(139, 92, 246, 0.3) transparent" }}>
+              <div className="rounded-b-lg p-2 min-h-[200px] max-h-[400px] overflow-y-auto space-y-2" style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-secondary)", scrollbarWidth: "thin", scrollbarColor: "rgba(139, 92, 246, 0.3) transparent" }}>
                 {col.companies.length === 0 ? (
-                  <div className="text-center py-8 text-gray-600 text-xs">No companies</div>
+                  <div className="text-center py-8 text-xs" style={{ color: "var(--color-text-muted)" }}>No companies</div>
                 ) : (
                   col.companies.map((comp) => {
                     const priorityBadge = getPriorityBadge(comp.priority);
@@ -191,30 +194,43 @@ export default function AdminDashboardPage() {
                       <Link
                         key={comp.id}
                         href={`/companies/${comp.id}`}
-                        className="block rounded-lg border border-gray-700 bg-gray-800/60 p-3 hover:border-purple-500/40 hover:bg-gray-800 transition-all cursor-pointer group"
+                        className="block rounded-lg p-3 transition-all cursor-pointer group"
+                        style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}
                       >
                         <div className="flex items-start justify-between gap-1 mb-1.5">
-                          <p className="text-xs font-semibold text-white truncate group-hover:text-purple-300 transition-colors">
+                          <p className="text-xs font-semibold truncate transition-colors" style={{ color: "var(--color-text-primary)" }}>
                             {displayName}
                           </p>
                           {priorityBadge && (
-                            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border shrink-0 ${priorityBadge.bg} ${priorityBadge.text}`}>
+                            <span
+                              className="text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0"
+                              style={{
+                                background: priorityBadge.bg,
+                                borderWidth: "1px",
+                                borderStyle: "solid",
+                                borderColor: priorityBadge.borderColor,
+                                color: priorityBadge.color,
+                              }}
+                            >
                               {priorityBadge.label}
                             </span>
                           )}
                         </div>
-                        <p className="text-[10px] text-gray-500 mb-1.5">
+                        <p className="text-[10px] mb-1.5" style={{ color: "var(--color-text-muted)" }}>
                           {comp.entity_type?.replace(/_/g, " ").toUpperCase()}
                         </p>
                         <div className="flex items-center justify-between">
                           {comp.assigned_to_name ? (
-                            <span className="text-[10px] text-gray-400 truncate">
+                            <span className="text-[10px] truncate" style={{ color: "var(--color-text-secondary)" }}>
                               {comp.assigned_to_name}
                             </span>
                           ) : (
-                            <span className="text-[10px] text-gray-600 italic">Unassigned</span>
+                            <span className="text-[10px] italic" style={{ color: "var(--color-text-muted)" }}>Unassigned</span>
                           )}
-                          <span className={`text-[10px] font-mono ${days > 3 ? "text-red-400" : days > 1 ? "text-amber-400" : "text-gray-500"}`}>
+                          <span
+                            className="text-[10px] font-mono"
+                            style={{ color: days > 3 ? "var(--color-error)" : days > 1 ? "var(--color-warning)" : "var(--color-text-muted)" }}
+                          >
                             {days}d
                           </span>
                         </div>
@@ -231,31 +247,33 @@ export default function AdminDashboardPage() {
       {/* Bottom Section: Two Columns */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left: Recent Activity */}
-        <div className="rounded-xl border border-gray-700 bg-gray-800/50 overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-700 flex items-center justify-between">
+        <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
+          <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: "1px solid var(--color-border)" }}>
             <h3 className="text-sm font-semibold">Recent Activity</h3>
-            <span className="text-[10px] text-gray-500 uppercase tracking-wider">Last 10 changes</span>
+            <span className="text-[10px] uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Last 10 changes</span>
           </div>
-          <div className="divide-y divide-gray-700/50 max-h-[400px] overflow-y-auto" style={{ scrollbarWidth: "thin" }}>
+          <div className="max-h-[400px] overflow-y-auto" style={{ scrollbarWidth: "thin" }}>
             {recentActivity.length === 0 ? (
-              <div className="p-8 text-center text-gray-500 text-sm">No recent activity</div>
+              <div className="p-8 text-center text-sm" style={{ color: "var(--color-text-muted)" }}>No recent activity</div>
             ) : (
               recentActivity.map((comp) => {
                 const displayName = comp.approved_name || (comp.proposed_names && comp.proposed_names[0]) || `Company #${comp.id}`;
+                const statusColor = getStatusColor(comp.status);
                 return (
                   <Link
                     key={comp.id}
                     href={`/companies/${comp.id}`}
-                    className="flex items-center gap-3 px-5 py-3 hover:bg-white/5 transition-colors"
+                    className="flex items-center gap-3 px-5 py-3 transition-colors"
+                    style={{ borderBottom: "1px solid rgba(var(--color-border-rgb, 55, 65, 81), 0.5)" }}
                   >
-                    <div className={`w-2 h-2 rounded-full shrink-0 ${getStatusColor(comp.status).replace("text-", "bg-")}`} />
+                    <div className="w-2 h-2 rounded-full shrink-0" style={{ background: statusColor }} />
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-white truncate">{displayName}</p>
-                      <p className="text-[10px] text-gray-500">
+                      <p className="text-xs font-medium truncate" style={{ color: "var(--color-text-primary)" }}>{displayName}</p>
+                      <p className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>
                         {comp.status.replace(/_/g, " ").toUpperCase()}
                       </p>
                     </div>
-                    <span className="text-[10px] text-gray-600 shrink-0">
+                    <span className="text-[10px] shrink-0" style={{ color: "var(--color-text-muted)" }}>
                       {timeAgo(comp.updated_at || comp.created_at)}
                     </span>
                   </Link>
@@ -266,43 +284,48 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Right: SLA Breaches */}
-        <div className="rounded-xl border border-gray-700 bg-gray-800/50 overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-700 flex items-center justify-between">
+        <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
+          <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: "1px solid var(--color-border)" }}>
             <h3 className="text-sm font-semibold flex items-center gap-2">
-              <svg className="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ color: "var(--color-error)" }}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
               </svg>
               SLA Breaches
             </h3>
-            <Link href="/analytics" className="text-[10px] text-purple-400 hover:text-purple-300 font-medium transition-colors">
+            <Link href="/analytics" className="text-[10px] font-medium transition-colors" style={{ color: "var(--color-accent-purple-light)" }}>
               View Details
             </Link>
           </div>
-          <div className="divide-y divide-gray-700/50 max-h-[400px] overflow-y-auto" style={{ scrollbarWidth: "thin" }}>
+          <div className="max-h-[400px] overflow-y-auto" style={{ scrollbarWidth: "thin" }}>
             {slaBreaches.length === 0 ? (
               <div className="p-8 text-center">
-                <svg className="w-8 h-8 text-emerald-500/40 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <svg className="w-8 h-8 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} style={{ color: "rgba(16, 185, 129, 0.4)" }}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <p className="text-sm text-gray-500">No SLA breaches. Great work!</p>
+                <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>No SLA breaches. Great work!</p>
               </div>
             ) : (
               slaBreaches.map((breach, idx) => (
                 <Link
                   key={idx}
                   href={`/companies/${breach.company_id}`}
-                  className="flex items-center gap-3 px-5 py-3 hover:bg-white/5 transition-colors"
+                  className="flex items-center gap-3 px-5 py-3 transition-colors"
+                  style={{ borderBottom: "1px solid rgba(var(--color-border-rgb, 55, 65, 81), 0.5)" }}
                 >
-                  <div className="w-2 h-2 rounded-full bg-red-500 shrink-0 animate-pulse" />
+                  <div className="w-2 h-2 rounded-full shrink-0 animate-pulse" style={{ background: "rgb(239, 68, 68)" }} />
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium text-white truncate">
+                    <p className="text-xs font-medium truncate" style={{ color: "var(--color-text-primary)" }}>
                       {breach.company_name || `Company #${breach.company_id}`}
                     </p>
-                    <p className="text-[10px] text-gray-500">
+                    <p className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>
                       {breach.stage?.replace(/_/g, " ").toUpperCase()} - {breach.days_exceeded}d over SLA
                     </p>
                   </div>
-                  <span className="text-[10px] text-red-400 font-bold shrink-0 bg-red-500/10 px-2 py-0.5 rounded-full border border-red-500/20">
+                  <span className="text-[10px] font-bold shrink-0 px-2 py-0.5 rounded-full" style={{
+                    color: "var(--color-error)",
+                    background: "rgba(239, 68, 68, 0.1)",
+                    border: "1px solid rgba(239, 68, 68, 0.2)",
+                  }}>
                     {breach.days_exceeded}d
                   </span>
                 </Link>

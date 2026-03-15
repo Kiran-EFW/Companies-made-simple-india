@@ -25,9 +25,9 @@ const STATUS_OPTIONS = [
 ];
 
 const PRIORITY_OPTIONS = [
-  { value: "normal", label: "Normal", color: "text-gray-400" },
-  { value: "urgent", label: "Urgent", color: "text-amber-400" },
-  { value: "vip", label: "VIP", color: "text-purple-400" },
+  { value: "normal", label: "Normal", color: "var(--color-text-secondary)" },
+  { value: "urgent", label: "Urgent", color: "var(--color-warning)" },
+  { value: "vip", label: "VIP", color: "var(--color-accent-purple-light)" },
 ];
 
 const TABS = [
@@ -39,16 +39,16 @@ const TABS = [
   { key: "payments", label: "Payments" },
 ];
 
-function getStatusBadgeClasses(status: string): string {
+function getStatusBadgeStyle(status: string): React.CSSProperties {
   if (["incorporated", "fully_setup", "bank_account_opened"].includes(status))
-    return "bg-emerald-500/15 text-emerald-400 border-emerald-500/30";
+    return { background: "rgba(16, 185, 129, 0.15)", color: "var(--color-success)", borderColor: "rgba(16, 185, 129, 0.3)" };
   if (["draft", "entity_selected"].includes(status))
-    return "bg-gray-500/15 text-gray-400 border-gray-500/30";
+    return { background: "rgba(107, 114, 128, 0.15)", color: "var(--color-text-secondary)", borderColor: "rgba(107, 114, 128, 0.3)" };
   if (status.includes("rejected") || status.includes("query"))
-    return "bg-red-500/15 text-red-400 border-red-500/30";
+    return { background: "rgba(239, 68, 68, 0.15)", color: "var(--color-error)", borderColor: "rgba(239, 68, 68, 0.3)" };
   if (status.includes("pending"))
-    return "bg-amber-500/15 text-amber-400 border-amber-500/30";
-  return "bg-blue-500/15 text-blue-400 border-blue-500/30";
+    return { background: "rgba(245, 158, 11, 0.15)", color: "var(--color-warning)", borderColor: "rgba(245, 158, 11, 0.3)" };
+  return { background: "rgba(59, 130, 246, 0.15)", color: "var(--color-info)", borderColor: "rgba(59, 130, 246, 0.3)" };
 }
 
 function timeAgo(dateStr: string): string {
@@ -204,7 +204,7 @@ export default function AdminCompanyDetailPage() {
   if (loading) {
     return (
       <div className="p-12 flex items-center justify-center">
-        <div className="animate-pulse text-gray-500">Loading company details...</div>
+        <div className="animate-pulse" style={{ color: "var(--color-text-muted)" }}>Loading company details...</div>
       </div>
     );
   }
@@ -212,9 +212,9 @@ export default function AdminCompanyDetailPage() {
   if (!company) {
     return (
       <div className="p-12 text-center">
-        <h2 className="text-xl font-bold text-gray-300 mb-2">Company Not Found</h2>
-        <p className="text-gray-500 mb-4">The company with ID #{companyId} could not be found.</p>
-        <Link href="/dashboard" className="text-purple-400 hover:text-purple-300 text-sm font-medium">
+        <h2 className="text-xl font-bold mb-2" style={{ color: "var(--color-text-primary)" }}>Company Not Found</h2>
+        <p className="mb-4" style={{ color: "var(--color-text-muted)" }}>The company with ID #{companyId} could not be found.</p>
+        <Link href="/dashboard" className="text-sm font-medium" style={{ color: "var(--color-accent-purple-light)" }}>
           Back to Dashboard
         </Link>
       </div>
@@ -227,34 +227,34 @@ export default function AdminCompanyDetailPage() {
     <div className="p-6 lg:p-8 max-w-6xl">
       {/* Breadcrumb */}
       <div className="mb-6">
-        <Link href="/dashboard" className="text-xs text-gray-500 hover:text-purple-400 transition-colors">
+        <Link href="/dashboard" className="text-xs transition-colors" style={{ color: "var(--color-text-muted)" }}>
           Dashboard
         </Link>
-        <span className="text-xs text-gray-600 mx-2">/</span>
-        <span className="text-xs text-gray-400">{displayName}</span>
+        <span className="text-xs mx-2" style={{ color: "var(--color-text-muted)" }}>/</span>
+        <span className="text-xs" style={{ color: "var(--color-text-secondary)" }}>{displayName}</span>
       </div>
 
       {/* Header */}
-      <div className="rounded-xl border border-gray-700 bg-gray-800/50 p-6 mb-6">
+      <div className="rounded-xl p-6 mb-6" style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
         <div className="flex flex-col lg:flex-row justify-between gap-4">
           <div>
             <div className="flex items-center gap-3 mb-2">
               <h1 className="text-2xl font-bold" style={{ fontFamily: "var(--font-display)" }}>{displayName}</h1>
-              <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${getStatusBadgeClasses(company.status)}`}>
+              <span className="text-xs font-semibold px-2.5 py-1 rounded-full border" style={getStatusBadgeStyle(company.status)}>
                 {company.status.replace(/_/g, " ").toUpperCase()}
               </span>
             </div>
-            <div className="flex items-center gap-4 text-xs text-gray-400">
+            <div className="flex items-center gap-4 text-xs" style={{ color: "var(--color-text-secondary)" }}>
               <span>{company.entity_type?.replace(/_/g, " ").toUpperCase()}</span>
               <span>State: {company.state?.toUpperCase()}</span>
               <span>Plan: {company.plan_tier?.toUpperCase()}</span>
               {company.priority && company.priority !== "normal" && (
-                <span className={`font-bold ${company.priority === "vip" ? "text-purple-400" : "text-amber-400"}`}>
+                <span className="font-bold" style={{ color: company.priority === "vip" ? "var(--color-accent-purple-light)" : "var(--color-warning)" }}>
                   {company.priority.toUpperCase()}
                 </span>
               )}
               {company.assigned_to_name && (
-                <span>Assigned to: <strong className="text-white">{company.assigned_to_name}</strong></span>
+                <span>Assigned to: <strong style={{ color: "var(--color-text-primary)" }}>{company.assigned_to_name}</strong></span>
               )}
             </div>
           </div>
@@ -263,19 +263,22 @@ export default function AdminCompanyDetailPage() {
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => { setSelectedStatus(company.status); setShowStatusModal(true); }}
-              className="px-3 py-2 rounded-lg text-xs font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20 transition-colors"
+              className="px-3 py-2 rounded-lg text-xs font-medium transition-colors"
+              style={{ background: "var(--color-info-light)", color: "var(--color-info)", border: "1px solid rgba(59, 130, 246, 0.2)" }}
             >
               Change Status
             </button>
             <button
               onClick={() => setShowAssignModal(true)}
-              className="px-3 py-2 rounded-lg text-xs font-medium bg-purple-500/10 text-purple-400 border border-purple-500/20 hover:bg-purple-500/20 transition-colors"
+              className="px-3 py-2 rounded-lg text-xs font-medium transition-colors"
+              style={{ background: "rgba(139, 92, 246, 0.1)", color: "var(--color-accent-purple-light)", border: "1px solid rgba(139, 92, 246, 0.2)" }}
             >
               Assign
             </button>
             <button
               onClick={() => { setSelectedPriority(company.priority || "normal"); setShowPriorityModal(true); }}
-              className="px-3 py-2 rounded-lg text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 transition-colors"
+              className="px-3 py-2 rounded-lg text-xs font-medium transition-colors"
+              style={{ background: "var(--color-warning-light)", color: "var(--color-warning)", border: "1px solid rgba(245, 158, 11, 0.2)" }}
             >
               Set Priority
             </button>
@@ -284,20 +287,17 @@ export default function AdminCompanyDetailPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 overflow-x-auto border-b border-gray-700 pb-px">
+      <div className="flex gap-1 mb-6 overflow-x-auto pb-px" style={{ borderBottom: "1px solid var(--color-border)" }}>
         {TABS.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors relative ${
-              activeTab === tab.key
-                ? "text-purple-400"
-                : "text-gray-500 hover:text-gray-300"
-            }`}
+            className="px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors relative"
+            style={{ color: activeTab === tab.key ? "var(--color-accent-purple-light)" : "var(--color-text-muted)" }}
           >
             {tab.label}
             {activeTab === tab.key && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-500 rounded-full" />
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full" style={{ background: "var(--color-accent-purple)" }} />
             )}
           </button>
         ))}
@@ -309,43 +309,43 @@ export default function AdminCompanyDetailPage() {
       {activeTab === "overview" && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Company Info */}
-          <div className="rounded-xl border border-gray-700 bg-gray-800/50 p-5">
+          <div className="rounded-xl p-5" style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
             <h3 className="text-sm font-semibold mb-4">Company Information</h3>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-500">ID</span>
-                <span className="text-white font-mono">#{company.id}</span>
+                <span style={{ color: "var(--color-text-muted)" }}>ID</span>
+                <span className="font-mono" style={{ color: "var(--color-text-primary)" }}>#{company.id}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Entity Type</span>
-                <span className="text-white">{company.entity_type?.replace(/_/g, " ")}</span>
+                <span style={{ color: "var(--color-text-muted)" }}>Entity Type</span>
+                <span style={{ color: "var(--color-text-primary)" }}>{company.entity_type?.replace(/_/g, " ")}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">State</span>
-                <span className="text-white">{company.state}</span>
+                <span style={{ color: "var(--color-text-muted)" }}>State</span>
+                <span style={{ color: "var(--color-text-primary)" }}>{company.state}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Plan</span>
-                <span className="text-white">{company.plan_tier}</span>
+                <span style={{ color: "var(--color-text-muted)" }}>Plan</span>
+                <span style={{ color: "var(--color-text-primary)" }}>{company.plan_tier}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Authorized Capital</span>
-                <span className="text-white">{company.authorized_capital ? `₹${company.authorized_capital.toLocaleString()}` : "--"}</span>
+                <span style={{ color: "var(--color-text-muted)" }}>Authorized Capital</span>
+                <span style={{ color: "var(--color-text-primary)" }}>{company.authorized_capital ? `₹${company.authorized_capital.toLocaleString()}` : "--"}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Directors</span>
-                <span className="text-white">{company.num_directors || "--"}</span>
+                <span style={{ color: "var(--color-text-muted)" }}>Directors</span>
+                <span style={{ color: "var(--color-text-primary)" }}>{company.num_directors || "--"}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Created</span>
-                <span className="text-white">{new Date(company.created_at).toLocaleDateString()}</span>
+                <span style={{ color: "var(--color-text-muted)" }}>Created</span>
+                <span style={{ color: "var(--color-text-primary)" }}>{new Date(company.created_at).toLocaleDateString()}</span>
               </div>
               {company.proposed_names && company.proposed_names.length > 0 && (
                 <div>
-                  <span className="text-gray-500 block mb-1">Proposed Names</span>
+                  <span className="block mb-1" style={{ color: "var(--color-text-muted)" }}>Proposed Names</span>
                   <div className="space-y-1">
                     {company.proposed_names.map((name: string, i: number) => (
-                      <p key={i} className="text-xs text-gray-300 pl-2 border-l border-gray-700">{name}</p>
+                      <p key={i} className="text-xs pl-2" style={{ color: "var(--color-text-primary)", borderLeft: "1px solid var(--color-border)" }}>{name}</p>
                     ))}
                   </div>
                 </div>
@@ -354,14 +354,14 @@ export default function AdminCompanyDetailPage() {
           </div>
 
           {/* Directors */}
-          <div className="rounded-xl border border-gray-700 bg-gray-800/50 p-5">
+          <div className="rounded-xl p-5" style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
             <h3 className="text-sm font-semibold mb-4">Directors</h3>
             {company.directors && company.directors.length > 0 ? (
               <div className="space-y-3">
                 {company.directors.map((dir: any, idx: number) => (
-                  <div key={idx} className="p-3 rounded-lg border border-gray-700 bg-gray-900/30">
-                    <p className="text-sm font-medium text-white">{dir.full_name || dir.name || `Director ${idx + 1}`}</p>
-                    <div className="flex gap-4 mt-1 text-[10px] text-gray-500">
+                  <div key={idx} className="p-3 rounded-lg" style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-secondary)" }}>
+                    <p className="text-sm font-medium" style={{ color: "var(--color-text-primary)" }}>{dir.full_name || dir.name || `Director ${idx + 1}`}</p>
+                    <div className="flex gap-4 mt-1 text-[10px]" style={{ color: "var(--color-text-muted)" }}>
                       {dir.email && <span>{dir.email}</span>}
                       {dir.din && <span>DIN: {dir.din}</span>}
                       {dir.pan && <span>PAN: {dir.pan}</span>}
@@ -370,36 +370,36 @@ export default function AdminCompanyDetailPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-gray-500">No director information available.</p>
+              <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>No director information available.</p>
             )}
           </div>
 
           {/* Timeline */}
-          <div className="lg:col-span-2 rounded-xl border border-gray-700 bg-gray-800/50 p-5">
+          <div className="lg:col-span-2 rounded-xl p-5" style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
             <h3 className="text-sm font-semibold mb-4">Status Timeline</h3>
             {logs.length > 0 ? (
               <div className="relative pl-6 space-y-4">
-                <div className="absolute left-2 top-2 bottom-2 w-px bg-gray-700" />
+                <div className="absolute left-2 top-2 bottom-2 w-px" style={{ background: "var(--color-border)" }} />
                 {logs.slice(0, 20).map((log, idx) => (
                   <div key={idx} className="relative">
-                    <div className={`absolute left-[-18px] top-1.5 w-2.5 h-2.5 rounded-full border-2 ${
-                      log.level === "SUCCESS" ? "bg-emerald-500 border-emerald-400" :
-                      log.level === "ERROR" ? "bg-red-500 border-red-400" :
-                      log.level === "WARN" ? "bg-amber-500 border-amber-400" :
-                      "bg-purple-500 border-purple-400"
-                    }`} />
+                    <div className="absolute left-[-18px] top-1.5 w-2.5 h-2.5 rounded-full" style={
+                      log.level === "SUCCESS" ? { background: "var(--color-success)", border: "2px solid var(--color-success)" } :
+                      log.level === "ERROR" ? { background: "var(--color-error)", border: "2px solid var(--color-error)" } :
+                      log.level === "WARN" ? { background: "var(--color-warning)", border: "2px solid var(--color-warning)" } :
+                      { background: "var(--color-accent-purple)", border: "2px solid var(--color-accent-purple-light)" }
+                    } />
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-medium text-white">{log.agent_name || "System"}</span>
-                        <span className="text-[10px] text-gray-600">{new Date(log.timestamp || log.created_at).toLocaleString()}</span>
+                        <span className="text-xs font-medium" style={{ color: "var(--color-text-primary)" }}>{log.agent_name || "System"}</span>
+                        <span className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>{new Date(log.timestamp || log.created_at).toLocaleString()}</span>
                       </div>
-                      <p className="text-xs text-gray-400 mt-0.5">{log.message}</p>
+                      <p className="text-xs mt-0.5" style={{ color: "var(--color-text-secondary)" }}>{log.message}</p>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-gray-500">No timeline entries.</p>
+              <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>No timeline entries.</p>
             )}
           </div>
         </div>
@@ -412,33 +412,33 @@ export default function AdminCompanyDetailPage() {
             company.documents.map((doc: any) => {
               const extracted = doc.extracted_data ? (() => { try { return JSON.parse(doc.extracted_data); } catch { return null; } })() : null;
               return (
-                <div key={doc.id} className="rounded-xl border border-gray-700 bg-gray-800/50 overflow-hidden">
+                <div key={doc.id} className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
                   <div className="flex flex-col lg:flex-row">
                     <div className="flex-1 p-5">
                       <div className="flex items-center gap-3 mb-3">
-                        <span className="text-xs uppercase tracking-wider text-purple-400 font-bold">
+                        <span className="text-xs uppercase tracking-wider font-bold" style={{ color: "var(--color-accent-purple-light)" }}>
                           {doc.doc_type?.replace(/_/g, " ")}
                         </span>
-                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
-                          doc.verification_status === "team_verified" ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" :
-                          doc.verification_status === "ai_verified" ? "bg-blue-500/15 text-blue-400 border-blue-500/30" :
-                          doc.verification_status === "rejected" ? "bg-red-500/15 text-red-400 border-red-500/30" :
-                          "bg-amber-500/15 text-amber-400 border-amber-500/30"
-                        }`}>
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={
+                          doc.verification_status === "team_verified" ? { background: "rgba(16, 185, 129, 0.15)", color: "var(--color-success)", border: "1px solid rgba(16, 185, 129, 0.3)" } :
+                          doc.verification_status === "ai_verified" ? { background: "rgba(59, 130, 246, 0.15)", color: "var(--color-info)", border: "1px solid rgba(59, 130, 246, 0.3)" } :
+                          doc.verification_status === "rejected" ? { background: "rgba(239, 68, 68, 0.15)", color: "var(--color-error)", border: "1px solid rgba(239, 68, 68, 0.3)" } :
+                          { background: "rgba(245, 158, 11, 0.15)", color: "var(--color-warning)", border: "1px solid rgba(245, 158, 11, 0.3)" }
+                        }>
                           {doc.verification_status?.replace(/_/g, " ").toUpperCase()}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-300 mb-1">{doc.original_filename}</p>
-                      <p className="text-[10px] text-gray-500">Uploaded {new Date(doc.uploaded_at || doc.created_at).toLocaleString()}</p>
+                      <p className="text-sm mb-1" style={{ color: "var(--color-text-primary)" }}>{doc.original_filename}</p>
+                      <p className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>Uploaded {new Date(doc.uploaded_at || doc.created_at).toLocaleString()}</p>
                     </div>
                     {extracted && (
-                      <div className="flex-1 p-5 border-t lg:border-t-0 lg:border-l border-gray-700 bg-gray-900/30">
-                        <p className="text-xs font-semibold text-gray-400 mb-3">Extracted Data</p>
+                      <div className="flex-1 p-5" style={{ borderTop: "1px solid var(--color-border)", background: "var(--color-bg-secondary)" }}>
+                        <p className="text-xs font-semibold mb-3" style={{ color: "var(--color-text-secondary)" }}>Extracted Data</p>
                         <div className="space-y-1.5 font-mono text-xs">
                           {Object.entries(extracted).filter(([k]) => !k.startsWith("is_")).map(([key, val]) => (
                             <div key={key} className="flex justify-between gap-2">
-                              <span className="text-gray-500 truncate">{key.replace(/_/g, " ")}</span>
-                              <span className="text-gray-300 truncate text-right">{String(val)}</span>
+                              <span className="truncate" style={{ color: "var(--color-text-muted)" }}>{key.replace(/_/g, " ")}</span>
+                              <span className="truncate text-right" style={{ color: "var(--color-text-primary)" }}>{String(val)}</span>
                             </div>
                           ))}
                         </div>
@@ -449,8 +449,8 @@ export default function AdminCompanyDetailPage() {
               );
             })
           ) : (
-            <div className="rounded-xl border border-gray-700 bg-gray-800/50 p-8 text-center">
-              <p className="text-sm text-gray-500">No documents uploaded yet.</p>
+            <div className="rounded-xl p-8 text-center" style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
+              <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>No documents uploaded yet.</p>
             </div>
           )}
         </div>
@@ -461,30 +461,30 @@ export default function AdminCompanyDetailPage() {
         <div className="space-y-3">
           {tasks.length > 0 ? (
             tasks.map((task, idx) => (
-              <div key={idx} className="rounded-xl border border-gray-700 bg-gray-800/50 p-4">
+              <div key={idx} className="rounded-xl p-4" style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <span className={`w-2 h-2 rounded-full ${
-                      task.status === "completed" ? "bg-emerald-500" :
-                      task.status === "failed" ? "bg-red-500" :
-                      task.status === "running" ? "bg-blue-500 animate-pulse" :
-                      "bg-gray-500"
-                    }`} />
-                    <p className="text-sm font-medium text-white">{task.task_type || task.name || `Task ${idx + 1}`}</p>
+                    <span className={`w-2 h-2 rounded-full ${task.status === "running" ? "animate-pulse" : ""}`} style={{
+                      background: task.status === "completed" ? "var(--color-success)" :
+                        task.status === "failed" ? "var(--color-error)" :
+                        task.status === "running" ? "var(--color-info)" :
+                        "var(--color-text-muted)"
+                    }} />
+                    <p className="text-sm font-medium" style={{ color: "var(--color-text-primary)" }}>{task.task_type || task.name || `Task ${idx + 1}`}</p>
                   </div>
-                  <span className="text-[10px] text-gray-500">{task.created_at ? timeAgo(task.created_at) : ""}</span>
+                  <span className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>{task.created_at ? timeAgo(task.created_at) : ""}</span>
                 </div>
                 {task.result && (
-                  <p className="text-xs text-gray-400 pl-4">{typeof task.result === "string" ? task.result : JSON.stringify(task.result)}</p>
+                  <p className="text-xs pl-4" style={{ color: "var(--color-text-secondary)" }}>{typeof task.result === "string" ? task.result : JSON.stringify(task.result)}</p>
                 )}
                 {task.error && (
-                  <p className="text-xs text-red-400 pl-4">{task.error}</p>
+                  <p className="text-xs pl-4" style={{ color: "var(--color-error)" }}>{task.error}</p>
                 )}
               </div>
             ))
           ) : (
-            <div className="rounded-xl border border-gray-700 bg-gray-800/50 p-8 text-center">
-              <p className="text-sm text-gray-500">No AI agent tasks for this company.</p>
+            <div className="rounded-xl p-8 text-center" style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
+              <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>No AI agent tasks for this company.</p>
             </div>
           )}
         </div>
@@ -493,20 +493,22 @@ export default function AdminCompanyDetailPage() {
       {/* Notes Tab */}
       {activeTab === "notes" && (
         <div>
-          <div className="rounded-xl border border-gray-700 bg-gray-800/50 p-5 mb-6">
+          <div className="rounded-xl p-5 mb-6" style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
             <h3 className="text-sm font-semibold mb-3">Add Internal Note</h3>
             <textarea
               value={noteContent}
               onChange={(e) => setNoteContent(e.target.value)}
               placeholder="Type your internal note here..."
-              className="w-full bg-gray-900/50 border border-gray-700 rounded-lg p-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-purple-500/50 resize-none"
+              className="w-full rounded-lg p-3 text-sm resize-none focus:outline-none"
+              style={{ background: "var(--color-bg-secondary)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
               rows={3}
             />
             <div className="flex justify-end mt-3">
               <button
                 onClick={handleAddNote}
                 disabled={!noteContent.trim() || addingNote}
-                className="px-4 py-2 rounded-lg text-xs font-medium bg-purple-600 hover:bg-purple-500 text-white transition-colors disabled:opacity-50"
+                className="px-4 py-2 rounded-lg text-xs font-medium transition-colors disabled:opacity-50"
+                style={{ background: "var(--color-accent-purple)", color: "var(--color-text-primary)" }}
               >
                 {addingNote ? "Adding..." : "Add Note"}
               </button>
@@ -515,17 +517,17 @@ export default function AdminCompanyDetailPage() {
           <div className="space-y-3">
             {company.notes && company.notes.length > 0 ? (
               company.notes.map((note: any, idx: number) => (
-                <div key={idx} className="rounded-xl border border-gray-700 bg-gray-800/50 p-4">
+                <div key={idx} className="rounded-xl p-4" style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-medium text-purple-400">{note.author_name || note.author || "Admin"}</span>
-                    <span className="text-[10px] text-gray-500">{note.created_at ? new Date(note.created_at).toLocaleString() : ""}</span>
+                    <span className="text-xs font-medium" style={{ color: "var(--color-accent-purple-light)" }}>{note.author_name || note.author || "Admin"}</span>
+                    <span className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>{note.created_at ? new Date(note.created_at).toLocaleString() : ""}</span>
                   </div>
-                  <p className="text-sm text-gray-300">{note.content}</p>
+                  <p className="text-sm" style={{ color: "var(--color-text-primary)" }}>{note.content}</p>
                 </div>
               ))
             ) : (
-              <div className="rounded-xl border border-gray-700 bg-gray-800/50 p-8 text-center">
-                <p className="text-sm text-gray-500">No internal notes yet.</p>
+              <div className="rounded-xl p-8 text-center" style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
+                <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>No internal notes yet.</p>
               </div>
             )}
           </div>
@@ -535,20 +537,22 @@ export default function AdminCompanyDetailPage() {
       {/* Communication Tab */}
       {activeTab === "communication" && (
         <div>
-          <div className="rounded-xl border border-gray-700 bg-gray-800/50 p-5 mb-6">
+          <div className="rounded-xl p-5 mb-6" style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
             <h3 className="text-sm font-semibold mb-3">Send Message to Customer</h3>
             <textarea
               value={messageContent}
               onChange={(e) => setMessageContent(e.target.value)}
               placeholder="Type your message to the customer..."
-              className="w-full bg-gray-900/50 border border-gray-700 rounded-lg p-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-purple-500/50 resize-none"
+              className="w-full rounded-lg p-3 text-sm resize-none focus:outline-none"
+              style={{ background: "var(--color-bg-secondary)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
               rows={3}
             />
             <div className="flex justify-end mt-3">
               <button
                 onClick={handleSendMessage}
                 disabled={!messageContent.trim() || sendingMessage}
-                className="px-4 py-2 rounded-lg text-xs font-medium bg-blue-600 hover:bg-blue-500 text-white transition-colors disabled:opacity-50"
+                className="px-4 py-2 rounded-lg text-xs font-medium transition-colors disabled:opacity-50"
+                style={{ background: "var(--color-info)", color: "var(--color-text-primary)" }}
               >
                 {sendingMessage ? "Sending..." : "Send Message"}
               </button>
@@ -557,23 +561,23 @@ export default function AdminCompanyDetailPage() {
           <div className="space-y-3">
             {company.messages && company.messages.length > 0 ? (
               company.messages.map((msg: any, idx: number) => (
-                <div key={idx} className={`rounded-xl border p-4 ${
+                <div key={idx} className="rounded-xl p-4" style={
                   msg.direction === "outgoing"
-                    ? "border-blue-500/20 bg-blue-500/5"
-                    : "border-gray-700 bg-gray-800/50"
-                }`}>
+                    ? { border: "1px solid rgba(59, 130, 246, 0.2)", background: "rgba(59, 130, 246, 0.05)" }
+                    : { border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }
+                }>
                   <div className="flex items-center justify-between mb-2">
-                    <span className={`text-xs font-medium ${msg.direction === "outgoing" ? "text-blue-400" : "text-gray-400"}`}>
+                    <span className="text-xs font-medium" style={{ color: msg.direction === "outgoing" ? "var(--color-info)" : "var(--color-text-secondary)" }}>
                       {msg.direction === "outgoing" ? "Sent to customer" : "From customer"}
                     </span>
-                    <span className="text-[10px] text-gray-500">{msg.created_at ? new Date(msg.created_at).toLocaleString() : ""}</span>
+                    <span className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>{msg.created_at ? new Date(msg.created_at).toLocaleString() : ""}</span>
                   </div>
-                  <p className="text-sm text-gray-300">{msg.message || msg.content}</p>
+                  <p className="text-sm" style={{ color: "var(--color-text-primary)" }}>{msg.message || msg.content}</p>
                 </div>
               ))
             ) : (
-              <div className="rounded-xl border border-gray-700 bg-gray-800/50 p-8 text-center">
-                <p className="text-sm text-gray-500">No messages yet.</p>
+              <div className="rounded-xl p-8 text-center" style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
+                <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>No messages yet.</p>
               </div>
             )}
           </div>
@@ -584,41 +588,41 @@ export default function AdminCompanyDetailPage() {
       {activeTab === "payments" && (
         <div className="space-y-3">
           {company.payments && company.payments.length > 0 ? (
-            <div className="rounded-xl border border-gray-700 bg-gray-800/50 overflow-hidden">
+            <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-gray-700">
-                    <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider">Date</th>
-                    <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider">Amount</th>
-                    <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider">Status</th>
-                    <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider">Method</th>
-                    <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium uppercase tracking-wider">Ref</th>
+                  <tr style={{ borderBottom: "1px solid var(--color-border)" }}>
+                    <th className="text-left px-5 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Date</th>
+                    <th className="text-left px-5 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Amount</th>
+                    <th className="text-left px-5 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Status</th>
+                    <th className="text-left px-5 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Method</th>
+                    <th className="text-left px-5 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Ref</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-700/50">
+                <tbody>
                   {company.payments.map((payment: any, idx: number) => (
-                    <tr key={idx} className="hover:bg-white/5 transition-colors">
-                      <td className="px-5 py-3 text-gray-300">{payment.created_at ? new Date(payment.created_at).toLocaleDateString() : "--"}</td>
-                      <td className="px-5 py-3 text-white font-medium">{payment.amount ? `₹${payment.amount.toLocaleString()}` : "--"}</td>
+                    <tr key={idx} className="transition-colors">
+                      <td className="px-5 py-3" style={{ color: "var(--color-text-primary)" }}>{payment.created_at ? new Date(payment.created_at).toLocaleDateString() : "--"}</td>
+                      <td className="px-5 py-3 font-medium" style={{ color: "var(--color-text-primary)" }}>{payment.amount ? `₹${payment.amount.toLocaleString()}` : "--"}</td>
                       <td className="px-5 py-3">
-                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${
-                          payment.status === "completed" || payment.status === "paid" ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" :
-                          payment.status === "failed" ? "bg-red-500/15 text-red-400 border-red-500/30" :
-                          "bg-amber-500/15 text-amber-400 border-amber-500/30"
-                        }`}>
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={
+                          payment.status === "completed" || payment.status === "paid" ? { background: "rgba(16, 185, 129, 0.15)", color: "var(--color-success)", border: "1px solid rgba(16, 185, 129, 0.3)" } :
+                          payment.status === "failed" ? { background: "rgba(239, 68, 68, 0.15)", color: "var(--color-error)", border: "1px solid rgba(239, 68, 68, 0.3)" } :
+                          { background: "rgba(245, 158, 11, 0.15)", color: "var(--color-warning)", border: "1px solid rgba(245, 158, 11, 0.3)" }
+                        }>
                           {payment.status?.toUpperCase()}
                         </span>
                       </td>
-                      <td className="px-5 py-3 text-gray-400">{payment.method || "--"}</td>
-                      <td className="px-5 py-3 text-gray-500 font-mono text-xs">{payment.reference_id || payment.razorpay_payment_id || "--"}</td>
+                      <td className="px-5 py-3" style={{ color: "var(--color-text-secondary)" }}>{payment.method || "--"}</td>
+                      <td className="px-5 py-3 font-mono text-xs" style={{ color: "var(--color-text-muted)" }}>{payment.reference_id || payment.razorpay_payment_id || "--"}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           ) : (
-            <div className="rounded-xl border border-gray-700 bg-gray-800/50 p-8 text-center">
-              <p className="text-sm text-gray-500">No payment records.</p>
+            <div className="rounded-xl p-8 text-center" style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }}>
+              <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>No payment records.</p>
             </div>
           )}
         </div>
@@ -629,12 +633,13 @@ export default function AdminCompanyDetailPage() {
       {/* Status Change Modal */}
       {showStatusModal && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setShowStatusModal(false)}>
-          <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+          <div className="rounded-xl p-6 w-full max-w-md" style={{ background: "var(--color-bg-secondary)", border: "1px solid var(--color-border)" }} onClick={(e) => e.stopPropagation()}>
             <h3 className="text-lg font-bold mb-4">Change Status</h3>
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-sm text-white mb-3 focus:outline-none focus:border-purple-500/50"
+              className="w-full rounded-lg p-3 text-sm mb-3 focus:outline-none"
+              style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
             >
               {STATUS_OPTIONS.map((s) => (
                 <option key={s} value={s}>{s.replace(/_/g, " ").toUpperCase()}</option>
@@ -644,12 +649,13 @@ export default function AdminCompanyDetailPage() {
               value={statusNote}
               onChange={(e) => setStatusNote(e.target.value)}
               placeholder="Optional note..."
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-purple-500/50 resize-none mb-4"
+              className="w-full rounded-lg p-3 text-sm resize-none mb-4 focus:outline-none"
+              style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
               rows={2}
             />
             <div className="flex justify-end gap-2">
-              <button onClick={() => setShowStatusModal(false)} className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:bg-white/5 transition-colors">Cancel</button>
-              <button onClick={handleStatusChange} disabled={actionLoading} className="px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white transition-colors disabled:opacity-50">
+              <button onClick={() => setShowStatusModal(false)} className="px-4 py-2 rounded-lg text-sm transition-colors" style={{ color: "var(--color-text-secondary)" }}>Cancel</button>
+              <button onClick={handleStatusChange} disabled={actionLoading} className="px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50" style={{ background: "var(--color-info)", color: "var(--color-text-primary)" }}>
                 {actionLoading ? "Updating..." : "Update Status"}
               </button>
             </div>
@@ -660,12 +666,13 @@ export default function AdminCompanyDetailPage() {
       {/* Assign Modal */}
       {showAssignModal && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setShowAssignModal(false)}>
-          <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+          <div className="rounded-xl p-6 w-full max-w-md" style={{ background: "var(--color-bg-secondary)", border: "1px solid var(--color-border)" }} onClick={(e) => e.stopPropagation()}>
             <h3 className="text-lg font-bold mb-4">Assign Company</h3>
             <select
               value={selectedAssignee || ""}
               onChange={(e) => setSelectedAssignee(Number(e.target.value))}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-sm text-white mb-4 focus:outline-none focus:border-purple-500/50"
+              className="w-full rounded-lg p-3 text-sm mb-4 focus:outline-none"
+              style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
             >
               <option value="">Select team member...</option>
               {team.map((member) => (
@@ -673,8 +680,8 @@ export default function AdminCompanyDetailPage() {
               ))}
             </select>
             <div className="flex justify-end gap-2">
-              <button onClick={() => setShowAssignModal(false)} className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:bg-white/5 transition-colors">Cancel</button>
-              <button onClick={handleAssign} disabled={!selectedAssignee || actionLoading} className="px-4 py-2 rounded-lg text-sm font-medium bg-purple-600 hover:bg-purple-500 text-white transition-colors disabled:opacity-50">
+              <button onClick={() => setShowAssignModal(false)} className="px-4 py-2 rounded-lg text-sm transition-colors" style={{ color: "var(--color-text-secondary)" }}>Cancel</button>
+              <button onClick={handleAssign} disabled={!selectedAssignee || actionLoading} className="px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50" style={{ background: "var(--color-accent-purple)", color: "var(--color-text-primary)" }}>
                 {actionLoading ? "Assigning..." : "Assign"}
               </button>
             </div>
@@ -685,26 +692,26 @@ export default function AdminCompanyDetailPage() {
       {/* Priority Modal */}
       {showPriorityModal && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setShowPriorityModal(false)}>
-          <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+          <div className="rounded-xl p-6 w-full max-w-md" style={{ background: "var(--color-bg-secondary)", border: "1px solid var(--color-border)" }} onClick={(e) => e.stopPropagation()}>
             <h3 className="text-lg font-bold mb-4">Set Priority</h3>
             <div className="space-y-2 mb-4">
               {PRIORITY_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
                   onClick={() => setSelectedPriority(opt.value)}
-                  className={`w-full text-left px-4 py-3 rounded-lg border transition-colors ${
-                    selectedPriority === opt.value
-                      ? "border-purple-500/50 bg-purple-500/10"
-                      : "border-gray-700 bg-gray-800/50 hover:bg-gray-800"
-                  }`}
+                  className="w-full text-left px-4 py-3 rounded-lg transition-colors"
+                  style={selectedPriority === opt.value
+                    ? { border: "1px solid rgba(139, 92, 246, 0.5)", background: "rgba(139, 92, 246, 0.1)" }
+                    : { border: "1px solid var(--color-border)", background: "var(--color-bg-card)" }
+                  }
                 >
-                  <span className={`text-sm font-medium ${opt.color}`}>{opt.label}</span>
+                  <span className="text-sm font-medium" style={{ color: opt.color }}>{opt.label}</span>
                 </button>
               ))}
             </div>
             <div className="flex justify-end gap-2">
-              <button onClick={() => setShowPriorityModal(false)} className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:bg-white/5 transition-colors">Cancel</button>
-              <button onClick={handlePriorityChange} disabled={!selectedPriority || actionLoading} className="px-4 py-2 rounded-lg text-sm font-medium bg-amber-600 hover:bg-amber-500 text-white transition-colors disabled:opacity-50">
+              <button onClick={() => setShowPriorityModal(false)} className="px-4 py-2 rounded-lg text-sm transition-colors" style={{ color: "var(--color-text-secondary)" }}>Cancel</button>
+              <button onClick={handlePriorityChange} disabled={!selectedPriority || actionLoading} className="px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50" style={{ background: "var(--color-warning)", color: "var(--color-text-primary)" }}>
                 {actionLoading ? "Saving..." : "Set Priority"}
               </button>
             </div>
