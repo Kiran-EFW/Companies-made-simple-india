@@ -1,5 +1,11 @@
+import logging
 from pydantic_settings import BaseSettings
+from pydantic import model_validator
 from functools import lru_cache
+
+_DEFAULT_SECRET_KEY = "cms_india_dev_only_key_override_in_production"
+
+logger = logging.getLogger(__name__)
 
 
 class Settings(BaseSettings):
@@ -7,11 +13,20 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///./cms_india.db"
     app_name: str = "Companies Made Simple India"
     api_v1_prefix: str = "/api/v1"
-    
+
     # Security — MUST be overridden via SECRET_KEY env var in production
-    secret_key: str = "cms_india_dev_only_key_override_in_production"
+    secret_key: str = _DEFAULT_SECRET_KEY
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 1440  # 24 hours
+
+    @model_validator(mode="after")
+    def _enforce_production_secret_key(self):
+        if self.environment != "development" and self.secret_key == _DEFAULT_SECRET_KEY:
+            raise ValueError(
+                "SECRET_KEY must be set to a secure random value in production. "
+                "Generate one with: python -c \"import secrets; print(secrets.token_urlsafe(32))\""
+            )
+        return self
 
     # AI / LLM
     openai_api_key: str = ""

@@ -145,7 +145,17 @@ export default function NotificationBell() {
     }
     if (notification.action_url) {
       setIsOpen(false);
-      window.location.href = notification.action_url;
+      // Only allow relative URLs or same-origin to prevent open redirect
+      try {
+        const target = new URL(notification.action_url, window.location.origin);
+        if (target.origin === window.location.origin) {
+          window.location.href = target.href;
+        }
+      } catch {
+        if (notification.action_url.startsWith("/")) {
+          window.location.href = notification.action_url;
+        }
+      }
     }
   };
 

@@ -9,7 +9,7 @@ import {
   updateLegalDraftClauses,
   generateLegalPreview,
   finalizeLegalDocument,
-  getLegalDownloadUrl,
+  downloadLegalDocument,
 } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import ClauseCard from "@/components/legal/clause-card";
@@ -151,9 +151,7 @@ export default function DocumentWizardPage() {
     if (!draftId) return;
     try {
       await finalizeLegalDocument(draftId);
-      // Open download in new tab
-      const url = getLegalDownloadUrl(draftId);
-      window.open(url, "_blank");
+      await downloadLegalDocument(draftId);
       router.push("/documents");
     } catch (err: any) {
       setError(err.message || "Failed to finalize document");

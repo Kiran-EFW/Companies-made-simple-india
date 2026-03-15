@@ -5,8 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { apiCall } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
-import Footer from "@/components/footer";
-
 export default function SignupPage() {
   const router = useRouter();
   const { login } = useAuth();
@@ -133,7 +131,6 @@ export default function SignupPage() {
         </Link>
       </div>
 
-      <Footer />
     </div>
   );
 }

@@ -3,8 +3,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { getSigningPageData, submitSignature, declineSignature } from "@/lib/api";
-import Footer from "@/components/footer";
-
 type SignatureMethod = "draw" | "type" | "upload";
 type FontChoice = "Dancing Script" | "Great Vibes" | "Sacramento";
 
@@ -273,7 +271,6 @@ export default function PublicSigningPage() {
           </div>
         </div>
 
-        <Footer />
       </div>
     );
   }

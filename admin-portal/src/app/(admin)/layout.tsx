@@ -150,7 +150,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </svg>
               Back to User Dashboard
             </a>
-            <p className="text-[10px] mt-3 text-center" style={{ color: "var(--color-text-muted)" }}>CMS India &copy; 2026</p>
+            <p className="text-[10px] mt-3 text-center" style={{ color: "var(--color-text-muted)" }}>CMS India &copy; {new Date().getFullYear()}</p>
           </div>
         </aside>
 

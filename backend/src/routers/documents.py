@@ -18,6 +18,9 @@ router = APIRouter(prefix="/documents", tags=["Documents"])
 UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
+ALLOWED_EXTENSIONS = {".pdf", ".jpg", ".jpeg", ".png", ".webp"}
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
+
 
 @router.post("/upload", response_model=DocumentUploadResponse)
 async def upload_document(
@@ -29,18 +32,34 @@ async def upload_document(
     current_user: User = Depends(get_current_user)
 ):
     """Upload a document for a specific company and (optionally) director."""
+    # Validate file type
+    file_ext = os.path.splitext(file.filename or "")[1].lower()
+    if file_ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"File type '{file_ext}' not allowed. Accepted: {', '.join(sorted(ALLOWED_EXTENSIONS))}",
+        )
+
+    # Validate file size
+    contents = await file.read()
+    if len(contents) > MAX_FILE_SIZE:
+        raise HTTPException(
+            status_code=400,
+            detail=f"File too large. Maximum size is {MAX_FILE_SIZE // (1024 * 1024)} MB",
+        )
+    await file.seek(0)
+
     # Verify ownership
     comp = db.query(Company).filter(Company.id == company_id, Company.user_id == current_user.id).first()
     if not comp:
         raise HTTPException(status_code=404, detail="Company not found")
-        
+
     if director_id:
         dir_record = db.query(Director).filter(Director.id == director_id, Director.company_id == company_id).first()
         if not dir_record:
             raise HTTPException(status_code=404, detail="Director not found")
 
     # Save file
-    file_ext = os.path.splitext(file.filename)[1]
     safe_filename = f"comp_{company_id}_dir_{director_id}_{doc_type.value}{file_ext}"
     file_path = os.path.join(UPLOAD_DIR, safe_filename)
     

@@ -26,6 +26,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     AUTHENTICATED_LIMIT = 300
     UNAUTHENTICATED_LIMIT = 60
     SIGNING_ENDPOINT_LIMIT = 20
+    AUTH_ENDPOINT_LIMIT = 10
 
     def __init__(self, app, calls_per_minute: int = 60):
         super().__init__(app)
@@ -52,6 +53,10 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         # Stricter limit for public signing endpoints
         if "/esign/sign/" in path:
             return self.SIGNING_ENDPOINT_LIMIT
+
+        # Stricter limit for auth endpoints to prevent brute-force
+        if "/auth/login" in path or "/auth/signup" in path:
+            return self.AUTH_ENDPOINT_LIMIT
 
         # Check for authenticated user via Authorization header
         auth_header = request.headers.get("authorization", "")

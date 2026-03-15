@@ -5,13 +5,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { apiCall } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
-import Footer from "@/components/footer";
-
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [resetMsg, setResetMsg] = useState("");
   
   const [formData, setFormData] = useState({
     email: "",
@@ -104,7 +103,7 @@ export default function LoginPage() {
             <label className="block text-sm font-medium" style={{ color: "var(--color-text-secondary)" }}>
               Password
             </label>
-            <span className="text-xs cursor-pointer transition-colors" style={{ color: "var(--color-text-muted)" }} onClick={() => alert("Password reset coming soon. Contact support@companiesmade.in for help.")}>
+            <span className="text-xs cursor-pointer transition-colors" style={{ color: "var(--color-text-muted)" }} onClick={() => setResetMsg("Password reset coming soon. Contact support@companiesmade.in for help.")}>
               Forgot password?
             </span>
           </div>
@@ -116,6 +115,11 @@ export default function LoginPage() {
             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
             placeholder="••••••••"
           />
+          {resetMsg && (
+            <p className="text-xs mt-2" style={{ color: "var(--color-text-muted)" }}>
+              {resetMsg}
+            </p>
+          )}
         </div>
 
         <button
@@ -134,7 +138,6 @@ export default function LoginPage() {
         </Link>
       </div>
 
-      <Footer />
     </div>
   );
 }

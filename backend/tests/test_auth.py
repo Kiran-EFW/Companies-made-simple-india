@@ -7,7 +7,7 @@ def test_signup_success(client):
         "/api/v1/auth/signup",
         json={
             "email": "new@example.com",
-            "password": "securepassword",
+            "password": "Secure1pass",
             "full_name": "New User",
         },
     )
@@ -21,7 +21,7 @@ def test_signup_duplicate_email(client):
     """Signing up with an already-registered email returns 400."""
     payload = {
         "email": "dup@example.com",
-        "password": "password1",
+        "password": "Password1x",
         "full_name": "First User",
     }
     client.post("/api/v1/auth/signup", json=payload)
@@ -36,13 +36,13 @@ def test_login_success(client):
         "/api/v1/auth/signup",
         json={
             "email": "login@example.com",
-            "password": "loginpassword",
+            "password": "Login1pass",
             "full_name": "Login User",
         },
     )
     response = client.post(
         "/api/v1/auth/login",
-        json={"email": "login@example.com", "password": "loginpassword"},
+        json={"email": "login@example.com", "password": "Login1pass"},
     )
     assert response.status_code == 200
     data = response.json()
@@ -55,13 +55,13 @@ def test_login_wrong_password(client):
         "/api/v1/auth/signup",
         json={
             "email": "wrong@example.com",
-            "password": "correctpassword",
+            "password": "Correct1pass",
             "full_name": "Wrong Pass User",
         },
     )
     response = client.post(
         "/api/v1/auth/login",
-        json={"email": "wrong@example.com", "password": "wrongpassword"},
+        json={"email": "wrong@example.com", "password": "Wrong1pass"},
     )
     assert response.status_code == 401
 

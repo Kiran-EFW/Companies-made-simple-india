@@ -126,6 +126,9 @@ export default function AdminLoginPage() {
         <p className="text-center text-[10px] mt-6" style={{ color: "var(--color-text-muted)" }}>
           This portal is for authorized CMS India staff only.
         </p>
+        <p className="text-center text-[10px] mt-2" style={{ color: "var(--color-text-muted)" }}>
+          CMS India &copy; {new Date().getFullYear()}
+        </p>
       </div>
     </div>
   );

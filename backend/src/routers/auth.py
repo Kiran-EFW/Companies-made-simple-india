@@ -87,10 +87,12 @@ def dev_admin_login(db: Session = Depends(get_db)):
     # Find or create super admin
     admin = db.query(User).filter(User.role == UserRole.SUPER_ADMIN).first()
     if not admin:
+        import secrets
+        dev_password = secrets.token_urlsafe(16)
         admin = User(
             email="admin@cmsindia.co",
             full_name="Admin (Dev)",
-            hashed_password=get_password_hash("admin123"),
+            hashed_password=get_password_hash(dev_password),
             role=UserRole.SUPER_ADMIN,
             department=StaffDepartment.ADMIN,
             seniority=StaffSeniority.HEAD,
@@ -106,12 +108,13 @@ def dev_admin_login(db: Session = Depends(get_db)):
             ("filing@cmsindia.co", "Anita Verma (Filing)", UserRole.FILING_COORDINATOR, StaffDepartment.FILING, StaffSeniority.MID),
             ("cs@cmsindia.co", "Vikram Singh (CS)", UserRole.CUSTOMER_SUCCESS, StaffDepartment.SUPPORT, StaffSeniority.JUNIOR),
         ]
+        member_password = secrets.token_urlsafe(16)
         for email, name, role, dept, sen in team_roles:
             if not db.query(User).filter(User.email == email).first():
                 member = User(
                     email=email,
                     full_name=name,
-                    hashed_password=get_password_hash("password"),
+                    hashed_password=get_password_hash(member_password),
                     role=role,
                     department=dept,
                     seniority=sen,
