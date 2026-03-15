@@ -3,6 +3,8 @@ FROM python:3.9-slim
 # Install system dependencies required by WeasyPrint and other native libs
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
+    pkg-config \
+    libcairo2-dev \
     libpango-1.0-0 \
     libpangocairo-1.0-0 \
     libgdk-pixbuf-2.0-0 \
