@@ -67,7 +67,8 @@ def create_order(
         order_id=order["id"],
         amount=amount_paise,
         currency=order["currency"],
-        key_id=settings.razorpay_key_id,
+        key_id=settings.razorpay_key_id or "mock_key",
+        mock=order.get("mock", False),
     )
 
 

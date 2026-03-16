@@ -12,6 +12,7 @@ class CreateOrderResponse(BaseModel):
     amount: int  # in paise
     currency: str
     key_id: str
+    mock: bool = False
 
 
 class VerifyPaymentRequest(BaseModel):

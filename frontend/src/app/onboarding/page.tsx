@@ -110,6 +110,24 @@ export default function OnboardingPage() {
         throw new Error("Payment service is not configured. Please contact support.");
       }
 
+      // Mock payment mode — skip Razorpay modal and auto-complete
+      if (orderData.mock) {
+        try {
+          await verifyPayment({
+            razorpay_order_id: orderData.order_id,
+            razorpay_payment_id: `mock_pay_${Date.now()}`,
+            razorpay_signature: `mock_sig_${Date.now()}`,
+          });
+          localStorage.removeItem("pending_company_draft");
+          router.push("/dashboard");
+        } catch (verifyErr) {
+          console.error("Mock payment verification failed:", verifyErr);
+          alert("Payment verification failed. Please contact support.");
+          setLoading(false);
+        }
+        return;
+      }
+
       const options = {
         key: orderData.key_id,
         amount: orderData.amount,
