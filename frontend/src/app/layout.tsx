@@ -5,16 +5,17 @@ import { ErrorBoundary } from "@/components/error-boundary";
 import ToastContainer from "@/components/toast";
 
 export const metadata: Metadata = {
-  title: "Anvils — Companies Made Simple",
+  title: "Anvils — Equity & Governance for Indian Startups",
   description:
-    "AI-powered company incorporation platform for Indian entrepreneurs. Private Limited, OPC, LLP, Section 8 — transparent pricing, zero hidden fees.",
+    "Cap table management, ESOP administration, fundraising tools, compliance automation, and investor portals. Purpose-built for Indian startups and the professionals who advise them.",
   keywords: [
-    "company registration India",
-    "private limited company",
-    "LLP registration",
-    "OPC registration",
-    "startup India",
-    "company incorporation",
+    "cap table management India",
+    "ESOP management",
+    "startup compliance India",
+    "fundraising platform",
+    "company incorporation India",
+    "investor portal",
+    "equity management",
   ],
 };
 
