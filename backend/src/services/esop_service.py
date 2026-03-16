@@ -450,14 +450,25 @@ class ESOPService:
                 )
             }
 
+        # Determine price per share: use FMV if plan basis is "fmv"
+        exercise_price = grant.exercise_price
+        fmv_used = None
+        plan = db.query(ESOPPlan).filter(ESOPPlan.id == grant.plan_id).first()
+        if plan and plan.exercise_price_basis == "fmv":
+            from src.services.valuation_service import valuation_service
+            latest = valuation_service.get_latest_valuation(db, company_id)
+            if latest and latest.get("fair_market_value"):
+                fmv_used = latest["fair_market_value"]
+                exercise_price = max(exercise_price, fmv_used)
+
         # Create share allotment via cap table service
         entry = AllotmentEntry(
             name=grant.grantee_name,
             shares=num_options,
             share_type="equity",
             face_value=grant.exercise_price,
-            paid_up_value=grant.exercise_price,
-            price_per_share=grant.exercise_price,
+            paid_up_value=exercise_price,
+            price_per_share=exercise_price,
             email=grant.grantee_email,
             is_promoter=False,
         )
@@ -479,11 +490,14 @@ class ESOPService:
             raise
         db.refresh(grant)
 
-        return {
+        result = {
             "message": f"{num_options} options exercised successfully",
             "grant": self._serialize_grant(grant),
             "allotment": allotment_result,
         }
+        if fmv_used is not None:
+            result["fmv_per_share_used"] = fmv_used
+        return result
 
     # ------------------------------------------------------------------
     # Grant Letter Generation

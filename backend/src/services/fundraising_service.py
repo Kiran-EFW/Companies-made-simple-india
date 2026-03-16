@@ -1137,6 +1137,246 @@ class FundraisingService:
         }
 
 
+    # ------------------------------------------------------------------
+    # Convertible Instrument Conversion
+    # ------------------------------------------------------------------
+
+    def preview_conversion(
+        self,
+        db: Session,
+        company_id: int,
+        round_id: int,
+        trigger_round_id: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        """Preview SAFE/CCD/Note → equity conversion without persisting.
+
+        Args:
+            company_id: The company ID
+            round_id: The convertible round being converted
+            trigger_round_id: Optional equity round that triggers conversion
+        """
+        from src.models.shareholder import Shareholder
+
+        conv_round = (
+            db.query(FundingRound)
+            .filter(FundingRound.id == round_id, FundingRound.company_id == company_id)
+            .first()
+        )
+        if not conv_round:
+            return {"error": "Convertible round not found"}
+
+        if conv_round.instrument_type not in (
+            InstrumentType.SAFE, InstrumentType.CCD, InstrumentType.CONVERTIBLE_NOTE
+        ):
+            return {"error": "Round is not a convertible instrument"}
+
+        # Get trigger round price (if any)
+        trigger_price = None
+        if trigger_round_id:
+            trigger_round = (
+                db.query(FundingRound)
+                .filter(FundingRound.id == trigger_round_id, FundingRound.company_id == company_id)
+                .first()
+            )
+            if trigger_round and trigger_round.price_per_share:
+                trigger_price = trigger_round.price_per_share
+
+        # Get total shares for cap-price calc
+        total_shares_result = (
+            db.query(Shareholder)
+            .filter(Shareholder.company_id == company_id)
+            .all()
+        )
+        total_shares = sum(s.shares for s in total_shares_result) if total_shares_result else 10000
+
+        investors = (
+            db.query(RoundInvestor)
+            .filter(
+                RoundInvestor.funding_round_id == round_id,
+                RoundInvestor.converted == False,
+            )
+            .all()
+        )
+
+        previews = []
+        for inv in investors:
+            result = self._calculate_conversion(
+                conv_round, inv, trigger_price, total_shares
+            )
+            previews.append({
+                "investor_id": inv.id,
+                "investor_name": inv.investor_name,
+                "principal": inv.investment_amount,
+                **result,
+            })
+
+        return {
+            "round_name": conv_round.round_name,
+            "instrument_type": conv_round.instrument_type.value,
+            "valuation_cap": conv_round.valuation_cap,
+            "discount_rate": conv_round.discount_rate,
+            "trigger_price_per_share": trigger_price,
+            "total_existing_shares": total_shares,
+            "conversions": previews,
+        }
+
+    def convert_instrument(
+        self,
+        db: Session,
+        company_id: int,
+        round_id: int,
+        trigger_round_id: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        """Execute SAFE/CCD/Note → equity conversion.
+
+        Creates ConversionEvent records, adds shareholders to cap table,
+        and marks investors as converted.
+        """
+        from src.models.conversion_event import ConversionEvent
+        from src.models.shareholder import Shareholder
+        from src.services.cap_table_service import cap_table_service, ShareholderEntry
+
+        conv_round = (
+            db.query(FundingRound)
+            .filter(FundingRound.id == round_id, FundingRound.company_id == company_id)
+            .first()
+        )
+        if not conv_round:
+            return {"error": "Convertible round not found"}
+
+        if conv_round.instrument_type not in (
+            InstrumentType.SAFE, InstrumentType.CCD, InstrumentType.CONVERTIBLE_NOTE
+        ):
+            return {"error": "Round is not a convertible instrument"}
+
+        trigger_price = None
+        if trigger_round_id:
+            trigger_round = (
+                db.query(FundingRound)
+                .filter(FundingRound.id == trigger_round_id, FundingRound.company_id == company_id)
+                .first()
+            )
+            if trigger_round and trigger_round.price_per_share:
+                trigger_price = trigger_round.price_per_share
+
+        total_shares_result = (
+            db.query(Shareholder)
+            .filter(Shareholder.company_id == company_id)
+            .all()
+        )
+        total_shares = sum(s.shares for s in total_shares_result) if total_shares_result else 10000
+
+        investors = (
+            db.query(RoundInvestor)
+            .filter(
+                RoundInvestor.funding_round_id == round_id,
+                RoundInvestor.converted == False,
+            )
+            .all()
+        )
+
+        if not investors:
+            return {"error": "No unconverted investors in this round"}
+
+        converted = []
+        for inv in investors:
+            calc = self._calculate_conversion(conv_round, inv, trigger_price, total_shares)
+
+            # Create conversion event
+            event = ConversionEvent(
+                funding_round_id=round_id,
+                company_id=company_id,
+                trigger_round_id=trigger_round_id,
+                conversion_price=calc["conversion_price"],
+                conversion_method=calc["conversion_method"],
+                interest_accrued=calc["interest_accrued"],
+                principal_amount=inv.investment_amount,
+                total_conversion_amount=calc["total_amount"],
+                shares_issued=calc["shares_issued"],
+                price_per_share_used=calc["conversion_price"],
+            )
+            db.add(event)
+            db.flush()
+
+            # Add as shareholder
+            entry = ShareholderEntry(
+                name=inv.investor_name,
+                shares=calc["shares_issued"],
+                percentage=0.0,  # Will be recalculated
+                email=inv.investor_email,
+                is_promoter=False,
+            )
+            cap_table_service.add_shareholder(db, company_id, entry)
+
+            # Mark investor as converted
+            inv.converted = True
+            inv.conversion_event_id = event.id
+            inv.shares_issued = True
+            inv.shares_allotted = calc["shares_issued"]
+
+            converted.append({
+                "investor_name": inv.investor_name,
+                "conversion_event_id": event.id,
+                "shares_issued": calc["shares_issued"],
+                "conversion_price": calc["conversion_price"],
+                "conversion_method": calc["conversion_method"],
+            })
+
+        db.commit()
+        return {"converted_count": len(converted), "conversions": converted}
+
+    def _calculate_conversion(
+        self,
+        conv_round: FundingRound,
+        investor: RoundInvestor,
+        trigger_price: Optional[float],
+        total_shares: int,
+    ) -> Dict[str, Any]:
+        """Calculate conversion price and shares for a single investor."""
+        principal = investor.investment_amount
+        interest_accrued = 0.0
+
+        # Interest accrual for CCD/Notes
+        if conv_round.instrument_type in (InstrumentType.CCD, InstrumentType.CONVERTIBLE_NOTE):
+            rate = conv_round.interest_rate or 0
+            months = conv_round.maturity_months or 12
+            interest_accrued = principal * (rate / 100) * (months / 12)
+
+        total_amount = principal + interest_accrued
+
+        # Calculate possible conversion prices
+        prices = {}
+
+        if conv_round.valuation_cap and total_shares > 0:
+            prices["valuation_cap"] = conv_round.valuation_cap / total_shares
+
+        if conv_round.discount_rate and trigger_price:
+            prices["discount"] = trigger_price * (1 - conv_round.discount_rate / 100)
+
+        if trigger_price:
+            prices["trigger_price"] = trigger_price
+
+        # Use lowest price (most favorable to investor)
+        if prices:
+            best_method = min(prices, key=prices.get)
+            conversion_price = prices[best_method]
+        else:
+            # Fallback: use face value
+            best_method = "face_value"
+            conversion_price = 10.0
+
+        shares_issued = int(total_amount / conversion_price) if conversion_price > 0 else 0
+
+        return {
+            "conversion_price": round(conversion_price, 2),
+            "conversion_method": best_method,
+            "interest_accrued": round(interest_accrued, 2),
+            "total_amount": round(total_amount, 2),
+            "shares_issued": shares_issued,
+            "all_prices": {k: round(v, 2) for k, v in prices.items()},
+        }
+
+
 # ---------------------------------------------------------------------------
 # Singleton
 # ---------------------------------------------------------------------------

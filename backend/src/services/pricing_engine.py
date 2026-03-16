@@ -21,7 +21,7 @@ PLATFORM_FEES = {
     "opc": {"launch": 3499, "grow": 5499, "scale": 8999},
     "llp": {"launch": 3999, "grow": 6499, "scale": 9999},
     "section_8": {"launch": 7999, "grow": 11999, "scale": 17999},
-    "sole_proprietorship": {"launch": 1999, "grow": 3499, "scale": 0},
+    "sole_proprietorship": {"launch": 499, "grow": 999, "scale": 0},
     "partnership": {"launch": 2999, "grow": 4999, "scale": 7999},
     "public_limited": {"launch": 9999, "grow": 14999, "scale": 24999},
 }
@@ -372,6 +372,13 @@ def calculate_total_cost(
             "aoa_stamp_duty": 0,
             "deed_stamp_duty": deed_stamp,
             "total_stamp_duty": deed_stamp,
+        }
+    elif entity_type == "sole_proprietorship":
+        # Sole proprietorships have no MOA/AOA/deed — zero stamp duty
+        stamp_duty = {
+            "moa_stamp_duty": 0,
+            "aoa_stamp_duty": 0,
+            "total_stamp_duty": 0,
         }
     else:
         stamp_duty = calc_stamp_duty(state, authorized_capital)

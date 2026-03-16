@@ -27,6 +27,7 @@ from src.models.compliance_task import ComplianceTask, ComplianceTaskStatus
 from src.utils.admin_auth import get_admin_user, require_role
 from src.utils.security import get_password_hash
 from src.services.notification_service import notification_service
+from src.services.sms_service import sms_service
 from src.services.sla_service import sla_service
 from src.schemas.admin import (
     AdminCompanyOut,
@@ -277,6 +278,25 @@ def update_company_status(
         old_status=old_status or "",
         new_status=new_status,
     )
+
+    # Send SMS status update if user has SMS enabled
+    try:
+        owner = db.query(User).filter(User.id == company.user_id).first()
+        if owner and owner.phone:
+            from src.models.notification import NotificationPreference
+            prefs = (
+                db.query(NotificationPreference)
+                .filter(NotificationPreference.user_id == owner.id)
+                .first()
+            )
+            if prefs and prefs.sms_enabled and prefs.status_updates:
+                company_name = company.name or "Your company"
+                sms_service.send_status_update_sms(
+                    owner.phone, company_name, new_status.upper()
+                )
+    except Exception:
+        import logging
+        logging.getLogger(__name__).exception("SMS dispatch failed for status update")
 
     return company
 

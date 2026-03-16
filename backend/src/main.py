@@ -23,6 +23,10 @@ from src.routers import accounting
 from src.routers import esop
 from src.routers import fundraising
 from src.routers import stakeholders
+from src.routers import investor_portal
+from src.routers import cap_table_onboarding
+from src.routers import valuations
+from src.routers import ca_portal
 from src.utils.exceptions import APIError
 from src.middleware.security import (
     RateLimitMiddleware,
@@ -38,17 +42,19 @@ settings = get_settings()
 
 
 def _run_escalation_loop(stop_event: threading.Event):
-    """Background thread that runs escalation checks every 15 minutes."""
+    """Background thread that runs escalation and compliance reminder checks every 15 minutes."""
     from src.database import SessionLocal
     from src.services.escalation_service import escalation_service
+    from src.services.compliance_engine import compliance_engine
 
     while not stop_event.is_set():
         try:
             db = SessionLocal()
             escalation_service.run_escalation_check(db)
+            compliance_engine.check_and_send_reminders(db)
             db.close()
         except Exception:
-            logger.exception("Escalation check failed")
+            logger.exception("Escalation/compliance check failed")
         stop_event.wait(900)  # 15 minutes
 
 
@@ -156,6 +162,10 @@ app.include_router(accounting.router, prefix=settings.api_v1_prefix)
 app.include_router(esop.router, prefix=settings.api_v1_prefix)
 app.include_router(fundraising.router, prefix=settings.api_v1_prefix)
 app.include_router(stakeholders.router, prefix=settings.api_v1_prefix)
+app.include_router(investor_portal.router, prefix=settings.api_v1_prefix)
+app.include_router(cap_table_onboarding.router, prefix=settings.api_v1_prefix)
+app.include_router(valuations.router, prefix=settings.api_v1_prefix)
+app.include_router(ca_portal.router, prefix=settings.api_v1_prefix)
 
 
 @app.get("/")

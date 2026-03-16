@@ -106,6 +106,10 @@ class RoundInvestor(Base):
     # Link to shareholder record (created after allotment)
     shareholder_id = Column(Integer, ForeignKey("shareholders.id"), nullable=True)
 
+    # Conversion tracking (SAFE/CCD/Note → equity)
+    converted = Column(Boolean, default=False)
+    conversion_event_id = Column(Integer, ForeignKey("conversion_events.id"), nullable=True)
+
     notes = Column(Text, nullable=True)
 
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))

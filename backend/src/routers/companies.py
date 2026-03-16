@@ -1,13 +1,15 @@
+import secrets
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
 from src.database import get_db
-from src.models.user import User
+from src.models.user import User, UserRole
 from src.models.company import Company, CompanyStatus
 from src.models.director import Director
 from src.models.task import Task, AgentLog
+from src.models.ca_assignment import CAAssignment
 from src.schemas.company import CompanyCreate, CompanyOnboardDetails, CompanyOut
-from src.utils.security import get_current_user
+from src.utils.security import get_current_user, get_password_hash
 
 router = APIRouter(prefix="/companies", tags=["Companies"])
 
@@ -183,3 +185,75 @@ async def get_company_forms(
     if not result.get("success"):
         raise HTTPException(status_code=500, detail=result.get("error", "Failed to generate forms"))
     return result.get("data")
+
+
+# ---------------------------------------------------------------------------
+# CA Invitation
+# ---------------------------------------------------------------------------
+
+@router.post("/{company_id}/invite-ca")
+def invite_ca(
+    company_id: int,
+    data: dict,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Invite a CA to manage this company's compliance.
+
+    If the CA already has an account, creates a CAAssignment.
+    If not, creates a new user with CA_LEAD role and sends invite.
+    """
+    company = db.query(Company).filter(
+        Company.id == company_id, Company.user_id == current_user.id
+    ).first()
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+
+    email = data.get("email", "").strip().lower()
+    name = data.get("name", "").strip()
+    if not email or not name:
+        raise HTTPException(status_code=400, detail="Name and email are required")
+
+    # Check if user exists
+    ca_user = db.query(User).filter(User.email == email).first()
+
+    if not ca_user:
+        # Create CA user with temporary password
+        temp_password = secrets.token_urlsafe(12)
+        ca_user = User(
+            email=email,
+            full_name=name,
+            phone=data.get("phone"),
+            hashed_password=get_password_hash(temp_password),
+            role=UserRole.CA_LEAD,
+            is_active=True,
+        )
+        db.add(ca_user)
+        db.flush()
+
+    # Check if assignment already exists
+    existing = (
+        db.query(CAAssignment)
+        .filter(
+            CAAssignment.ca_user_id == ca_user.id,
+            CAAssignment.company_id == company_id,
+            CAAssignment.status == "active",
+        )
+        .first()
+    )
+    if existing:
+        return {"message": "CA is already assigned to this company"}
+
+    assignment = CAAssignment(
+        ca_user_id=ca_user.id,
+        company_id=company_id,
+        assigned_by=current_user.id,
+    )
+    db.add(assignment)
+    db.commit()
+
+    return {
+        "message": "CA invited successfully",
+        "ca_user_id": ca_user.id,
+        "assignment_id": assignment.id,
+    }

@@ -26,7 +26,7 @@ interface User {
 interface AuthContextValue {
   user: User | null;
   loading: boolean;
-  login: (token: string) => Promise<void>;
+  login: (token: string) => Promise<User | null>;
   logout: () => void;
   refreshUser: () => Promise<void>;
 }
@@ -38,7 +38,7 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue>({
   user: null,
   loading: true,
-  login: async () => {},
+  login: async () => null,
   logout: () => {},
   refreshUser: async () => {},
 });
@@ -55,7 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchUser = useCallback(async () => {
+  const fetchUser = useCallback(async (): Promise<User | null> => {
     try {
       const token =
         typeof window !== "undefined"
@@ -64,17 +64,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (!token) {
         setUser(null);
-        return;
+        return null;
       }
 
       const data = await apiCall("/auth/me");
       setUser(data);
+      return data;
     } catch {
       // Token invalid / expired — clear it
       if (typeof window !== "undefined") {
         localStorage.removeItem("access_token");
       }
       setUser(null);
+      return null;
     } finally {
       setLoading(false);
     }
@@ -85,11 +87,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [fetchUser]);
 
   const login = useCallback(
-    async (token: string) => {
+    async (token: string): Promise<User | null> => {
       if (typeof window !== "undefined") {
         localStorage.setItem("access_token", token);
       }
-      await fetchUser();
+      return await fetchUser();
     },
     [fetchUser],
   );

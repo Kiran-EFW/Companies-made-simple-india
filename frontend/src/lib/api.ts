@@ -1229,5 +1229,149 @@ export async function completeAllotment(companyId: number, roundId: number, data
 }
 
 // ---------------------------------------------------------------------------
+// Investor Portal (public, no auth)
+// ---------------------------------------------------------------------------
+
+export async function getInvestorProfile(token: string) {
+  const res = await fetch(`${API_BASE}/investor-portal/${token}/profile`);
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function getInvestorPortfolio(token: string) {
+  const res = await fetch(`${API_BASE}/investor-portal/${token}/portfolio`);
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function getInvestorCompanyDetail(token: string, companyId: number) {
+  const res = await fetch(`${API_BASE}/investor-portal/${token}/companies/${companyId}`);
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function getInvestorCapTable(token: string, companyId: number) {
+  const res = await fetch(`${API_BASE}/investor-portal/${token}/companies/${companyId}/cap-table`);
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function getInvestorFundingRounds(token: string, companyId: number) {
+  const res = await fetch(`${API_BASE}/investor-portal/${token}/companies/${companyId}/funding-rounds`);
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function getInvestorESOPGrants(token: string, companyId: number) {
+  const res = await fetch(`${API_BASE}/investor-portal/${token}/companies/${companyId}/esop-grants`);
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function getInvestorDocuments(token: string, companyId: number) {
+  const res = await fetch(`${API_BASE}/investor-portal/${token}/companies/${companyId}/documents`);
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+// ---------------------------------------------------------------------------
+// Cap Table Onboarding
+// ---------------------------------------------------------------------------
+
+export async function quickCapTableSetup(data: {
+  company_name: string;
+  entity_type?: string;
+  shareholders: { name: string; shares: number; email?: string; is_promoter?: boolean }[];
+}) {
+  return apiCall("/cap-table-onboarding/quick-setup", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Convertible Conversion
+// ---------------------------------------------------------------------------
+
+export async function previewConversion(companyId: number, roundId: number, triggerRoundId?: number) {
+  const params = triggerRoundId ? `?trigger_round_id=${triggerRoundId}` : "";
+  return apiCall(`/companies/${companyId}/fundraising/rounds/${roundId}/conversion-preview${params}`);
+}
+
+export async function convertRound(companyId: number, roundId: number, data?: { trigger_round_id?: number }) {
+  return apiCall(`/companies/${companyId}/fundraising/rounds/${roundId}/convert`, {
+    method: "POST",
+    body: JSON.stringify(data || {}),
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Valuations
+// ---------------------------------------------------------------------------
+
+export async function calculateNAV(companyId: number, data: { total_assets: number; total_liabilities: number; total_shares?: number }) {
+  return apiCall(`/companies/${companyId}/valuations/calculate-nav`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function calculateDCF(companyId: number, data: { current_revenue: number; growth_rate: number; profit_margin: number; discount_rate: number; total_shares?: number }) {
+  return apiCall(`/companies/${companyId}/valuations/calculate-dcf`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function createValuation(companyId: number, data: any) {
+  return apiCall(`/companies/${companyId}/valuations`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function listValuations(companyId: number) {
+  return apiCall(`/companies/${companyId}/valuations`);
+}
+
+export async function getLatestValuation(companyId: number) {
+  return apiCall(`/companies/${companyId}/valuations/latest`);
+}
+
+// ---------------------------------------------------------------------------
+// CA Portal
+// ---------------------------------------------------------------------------
+
+export async function getCADashboardSummary() {
+  return apiCall("/ca/dashboard-summary");
+}
+
+export async function getCACompanies() {
+  return apiCall("/ca/companies");
+}
+
+export async function getCACompanyCompliance(companyId: number) {
+  return apiCall(`/ca/companies/${companyId}/compliance`);
+}
+
+export async function getCACompanyDocuments(companyId: number) {
+  return apiCall(`/ca/companies/${companyId}/documents`);
+}
+
+export async function markFilingDone(companyId: number, taskId: number, data: { filing_reference?: string; notes?: string }) {
+  return apiCall(`/ca/companies/${companyId}/filings/${taskId}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function inviteCA(companyId: number, data: { name: string; email: string; phone?: string }) {
+  return apiCall(`/companies/${companyId}/invite-ca`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Admin/Ops functions have been moved to the separate admin-portal app.
 // ---------------------------------------------------------------------------

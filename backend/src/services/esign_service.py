@@ -23,6 +23,7 @@ from src.schemas.esign import (
     SubmitSignatureRequest,
 )
 from src.services.email_service import email_service
+from src.services.sms_service import sms_service
 
 settings = get_settings()
 
@@ -199,7 +200,8 @@ class ESignService:
             # Parallel: send to all pending signatories
             targets = [s for s in signatories if s.status == "pending"]
 
-        # Send emails
+        # Send emails and SMS
+        frontend_url = self._get_frontend_url()
         for signatory in targets:
             self._send_signing_invitation_email(
                 signatory=signatory,
@@ -216,6 +218,25 @@ class ESignService:
                 "email_sent",
                 {"email": signatory.email, "name": signatory.name},
             )
+            # Send SMS signing request if signatory is a user with a phone
+            try:
+                signer_user = (
+                    db.query(User)
+                    .filter(User.email == signatory.email)
+                    .first()
+                )
+                if signer_user and signer_user.phone:
+                    signing_url = "{}/sign/{}".format(
+                        frontend_url, signatory.access_token
+                    )
+                    sms_service.send_signing_request_sms(
+                        signer_user.phone,
+                        signatory.name or "Signatory",
+                        sig_request.title,
+                        signing_url,
+                    )
+            except Exception:
+                pass  # SMS is best-effort, don't block signing flow
 
         sig_request.status = "sent"
         db.commit()
@@ -455,6 +476,20 @@ class ESignService:
         if not unsigned:
             # All signed -- complete the request
             self._complete_request(db, sig_request)
+            # Send WhatsApp completion notification to all signatories
+            for s in all_signatories:
+                try:
+                    signer_user = (
+                        db.query(User)
+                        .filter(User.email == s.email)
+                        .first()
+                    )
+                    if signer_user and signer_user.phone:
+                        sms_service.send_document_signed_whatsapp(
+                            signer_user.phone, sig_request.title
+                        )
+                except Exception:
+                    pass  # WhatsApp is best-effort
         else:
             # Update request status
             signed_count = sum(

@@ -27,10 +27,12 @@ export default function LoginPage() {
         method: "POST",
         body: JSON.stringify(formData),
       });
-      await login(res.access_token);
-      
+      const userData = await login(res.access_token);
+
       if (typeof window !== "undefined" && localStorage.getItem("pending_company_draft")) {
         router.push("/onboarding");
+      } else if (userData?.role === "ca_lead" || userData?.role === "cs_lead") {
+        router.push("/ca-dashboard");
       } else {
         router.push("/dashboard");
       }

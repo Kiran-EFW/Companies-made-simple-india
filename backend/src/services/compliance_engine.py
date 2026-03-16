@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from src.models.company import Company, EntityType
 from src.models.compliance_task import ComplianceTask, ComplianceTaskType, ComplianceTaskStatus
+from src.models.user import User
 
 logger = logging.getLogger(__name__)
 
@@ -323,6 +324,30 @@ COMPLIANCE_RULES: Dict[str, Any] = {
     # Cross-entity rules (applied based on conditions, not entity type)
     # ------------------------------------------------------------------
     "_universal": [
+        {
+            "type": "first_board_meeting",
+            "title": "First Board Meeting",
+            "frequency": "one_time",
+            "due_rule": "within_30_days_of_incorporation",
+            "description": "The first meeting of the Board of Directors must be held within 30 days of incorporation.",
+            "condition": "post_incorporation",
+        },
+        {
+            "type": "auditor_appointment",
+            "title": "First Auditor Appointment",
+            "frequency": "one_time",
+            "due_rule": "within_30_days_of_incorporation",
+            "description": "First auditor must be appointed by the Board within 30 days of incorporation.",
+            "condition": "post_incorporation",
+        },
+        {
+            "type": "inc_20a",
+            "title": "INC-20A (Commencement of Business)",
+            "frequency": "one_time",
+            "due_rule": "within_180_days_of_incorporation",
+            "description": "File declaration for commencement of business. Mandatory for all companies.",
+            "condition": "post_incorporation",
+        },
         # MSME-1 — Semi-annual delayed payment reporting
         {
             "type": "msme_1_h1",
@@ -353,7 +378,7 @@ COMPLIANCE_RULES: Dict[str, Any] = {
         # FEMA/RBI — FDI tracking
         {
             "type": "fla_return",
-            "title": "FLA Return (Foreign Liabilities & Assets)",
+            "title": "FLA Return (RBI)",
             "frequency": "annual",
             "due_rule": "july_15",
             "description": (
@@ -370,8 +395,7 @@ COMPLIANCE_RULES: Dict[str, Any] = {
             "frequency": "annual",
             "due_rule": "june_30",
             "description": (
-                "Annual return of deposits and transactions not considered deposits. "
-                "Mandatory for companies accepting money that could be classified as deposits."
+                "Annual return of deposits. Required for all companies with loans/deposits."
             ),
             "penalty_per_day": 0,
             "penalty_note": "Company and officers liable for non-filing.",
@@ -384,8 +408,7 @@ COMPLIANCE_RULES: Dict[str, Any] = {
             "frequency": "annual",
             "due_rule": "december_31",
             "description": (
-                "Annual consolidated GST return. Mandatory for all regular GST registrants. "
-                "GSTR-9C (audit) required if turnover exceeds Rs 5 crore."
+                "Annual consolidated GST return. Mandatory for all regular GST registrants."
             ),
             "penalty_per_day": 200,
             "max_penalty": None,
@@ -405,6 +428,7 @@ COMPLIANCE_RULES: Dict[str, Any] = {
         },
     ],
 
+
     # ------------------------------------------------------------------
     # State-aware rules (PT, LWF) — added dynamically based on company.state
     # ------------------------------------------------------------------
@@ -412,72 +436,78 @@ COMPLIANCE_RULES: Dict[str, Any] = {
         "Maharashtra": [
             {
                 "type": "pt_monthly",
-                "title": "Professional Tax — Monthly Payment",
+                "title": "Professional Tax — Payment (MH)",
                 "frequency": "monthly",
                 "due_rule": "monthly_last_day",
-                "description": (
-                    "MH: Professional Tax deduction and payment. Rs 200/month (Rs 300 in Feb). "
-                    "Employer enrollment mandatory. PTRC for employer, PTEC for professionals."
-                ),
+                "description": "MH: PT payment. Rs 200/month (Rs 300 in Feb).",
             },
             {
                 "type": "lwf_h1",
-                "title": "LWF — H1 Contribution (Jun)",
+                "title": "LWF — H1 (MH)",
                 "frequency": "semi_annual",
                 "due_rule": "june_30",
-                "description": "Maharashtra LWF: Employer Rs 6 + Employee Rs 3 per half-year per employee.",
+                "description": "MH LWF: June contribution.",
             },
             {
                 "type": "lwf_h2",
-                "title": "LWF — H2 Contribution (Dec)",
+                "title": "LWF — H2 (MH)",
                 "frequency": "semi_annual",
                 "due_rule": "december_31",
-                "description": "Maharashtra LWF: H2 contribution.",
+                "description": "MH LWF: December contribution.",
             },
         ],
         "Karnataka": [
             {
                 "type": "pt_monthly",
-                "title": "Professional Tax — Monthly Payment",
+                "title": "Professional Tax — Payment (KA)",
                 "frequency": "monthly",
                 "due_rule": "monthly_20th",
-                "description": (
-                    "KA: Professional Tax due by 20th of following month. "
-                    "Slab-based: Rs 0-200 depending on salary bracket. Feb annual spike."
-                ),
+                "description": "KA: PT due by 20th. Slab-based. Feb annual spike.",
             },
-        ],
-        "Delhi": [
-            # Delhi has no Professional Tax or LWF
+            {
+                "type": "lwf_h2",
+                "title": "LWF — Annual (KA)",
+                "frequency": "annual",
+                "due_rule": "january_15",
+                "description": "KA LWF: Annual contribution by Jan 15.",
+            },
         ],
         "Telangana": [
             {
                 "type": "pt_monthly",
-                "title": "Professional Tax — Monthly Payment",
+                "title": "Professional Tax — Payment (TS)",
                 "frequency": "monthly",
                 "due_rule": "monthly_10th",
-                "description": "TS: Professional Tax due by 10th of following month. Max Rs 200/month.",
+                "description": "TS: PT due by 10th. Max Rs 200/month.",
             },
         ],
         "Tamil Nadu": [
             {
                 "type": "pt_annual",
-                "title": "Professional Tax — Annual Return",
-                "frequency": "annual",
-                "due_rule": "april_30",
-                "description": "TN: Professional Tax half-yearly. Max Rs 2,500/year.",
+                "title": "Professional Tax — H1 (TN)",
+                "frequency": "semi_annual",
+                "due_rule": "september_30",
+                "description": "TN: PT half-yearly payment (Apr-Sep).",
+            },
+            {
+                "type": "pt_annual",
+                "title": "Professional Tax — H2 (TN)",
+                "frequency": "semi_annual",
+                "due_rule": "march_31",
+                "description": "TN: PT half-yearly payment (Oct-Mar).",
             },
         ],
         "Gujarat": [
             {
                 "type": "pt_monthly",
-                "title": "Professional Tax — Monthly Payment",
+                "title": "Professional Tax — Payment (GJ)",
                 "frequency": "monthly",
                 "due_rule": "monthly_15th",
-                "description": "GJ: Professional Tax due by 15th of following month. Max Rs 200/month.",
+                "description": "GJ: PT due by 15th. Max Rs 200/month.",
             },
         ],
     },
+
 
     # ------------------------------------------------------------------
     # Labor/Payroll rules (applied based on employee count)
@@ -686,22 +716,67 @@ class ComplianceEngine:
         if state_name in state_rules_map:
             rules.extend(state_rules_map[state_name])
 
-        # Add labor rules (EPFO/ESIC) for companies
-        if entity not in ("sole_proprietorship", "partnership"):
-            labor_rules = COMPLIANCE_RULES.get("_labor_rules", [])
-            rules.extend(labor_rules)
+        # Add labor rules (EPFO/ESIC) based on employee count
+        num_employees = getattr(company, "employee_count", 0) or 0
+        labor_rules = COMPLIANCE_RULES.get("_labor_rules", [])
+        for lr in labor_rules:
+            cond = lr.get("condition", "")
+            if cond == "employees_gte_20" and num_employees < 20:
+                continue
+            if cond == "employees_gte_10" and num_employees < 10:
+                continue
+            rules.append(lr)
 
         calendar: List[Dict[str, Any]] = []
         for rule in rules:
             due = self.calculate_deadline(rule, company, fy_start, fy_end)
-            days_until = (due - date.today()).days if due else None
+            if not due:
+                continue
+            
+            # Condition check for universal rules
+            cond = rule.get("condition", "")
+            company_data = getattr(company, "data", {}) or {}
+            
+            if cond == "has_msme_vendors" and not company_data.get("has_msme_vendors"):
+                continue
+            if cond == "has_foreign_investment" and not company_data.get("has_fdi"):
+                continue
+            if cond == "gst_registered" and not company_data.get("gstin"):
+                continue
+            if cond == "private_limited_or_public" and entity not in ("private_limited", "public_limited"):
+                continue
+            if cond == "post_incorporation" and entity in ("sole_proprietorship", "partnership"):
+                continue
+
+            days_until = (due - date.today()).days
 
             status = "upcoming"
-            if days_until is not None:
-                if days_until < 0:
-                    status = "overdue"
-                elif days_until <= 30:
-                    status = "due_soon"
+            if days_until < 0:
+                status = "overdue"
+            elif days_until <= 30:
+                status = "due_soon"
+
+            title = rule["title"]
+            description = rule.get("description", "")
+            
+            # February Spike logic for Professional Tax (MH, KA)
+            if rule["type"] == "pt_monthly" and due.month == 2 and state_name in ["Maharashtra", "Karnataka"]:
+                title += " (Annual Spike)"
+                if state_name == "Maharashtra":
+                    description = "MH: February PT is Rs 300 (standard is Rs 200)."
+                else:
+                    description = "KA: February PT includes annual enrollment spike."
+
+            calendar.append({
+                "type": rule["type"],
+                "title": title,
+                "description": description,
+                "frequency": rule["frequency"],
+                "due_date": due.isoformat(),
+                "days_remaining": max(days_until, 0),
+                "status": status,
+                "financial_year": f"{financial_year}-{financial_year + 1}",
+            })
 
             calendar.append({
                 "type": rule["type"],
@@ -779,13 +854,17 @@ class ComplianceEngine:
             return fy_start + timedelta(days=120)
 
         # Incorporation-relative rules (Day 0 sequence)
-        if due_rule == "within_60_days_of_incorporation":
-            inc_date = getattr(company, "incorporation_date", None)
-            if inc_date:
-                if isinstance(inc_date, datetime):
-                    inc_date = inc_date.date()
+        inc_date = getattr(company, "incorporation_date", None)
+        if inc_date:
+            if isinstance(inc_date, datetime):
+                inc_date = inc_date.date()
+                
+            if due_rule == "within_30_days_of_incorporation":
+                return inc_date + timedelta(days=30)
+            if due_rule == "within_60_days_of_incorporation":
                 return inc_date + timedelta(days=60)
-            return fy_start + timedelta(days=60)
+            if due_rule == "within_180_days_of_incorporation":
+                return inc_date + timedelta(days=180)
 
         # Monthly rules — return next occurrence (15th/20th/last day of current month)
         today = date.today()
@@ -1067,6 +1146,76 @@ class ComplianceEngine:
                 else "Critical — immediate action needed to avoid penalties."
             ),
         }
+
+
+    # ── SMS Reminders ──────────────────────────────────────────────────
+
+    def check_and_send_reminders(self, db: Session) -> int:
+        """Send SMS reminders for compliance tasks due within 7 days.
+
+        Queries all pending/upcoming tasks due within 7 days, looks up the
+        company owner's phone and notification preferences, and dispatches
+        SMS reminders via sms_service.
+
+        Returns the number of reminders sent.
+        """
+        from src.services.sms_service import sms_service
+        from src.models.notification import NotificationPreference
+
+        now = datetime.now(timezone.utc)
+        upcoming = now + timedelta(days=7)
+
+        tasks = (
+            db.query(ComplianceTask)
+            .filter(
+                ComplianceTask.due_date >= now,
+                ComplianceTask.due_date <= upcoming,
+                ComplianceTask.status.notin_([
+                    ComplianceTaskStatus.COMPLETED,
+                    ComplianceTaskStatus.NOT_APPLICABLE,
+                ]),
+            )
+            .all()
+        )
+
+        sent_count = 0
+        for task in tasks:
+            try:
+                company = (
+                    db.query(Company)
+                    .filter(Company.id == task.company_id)
+                    .first()
+                )
+                if not company:
+                    continue
+
+                owner = (
+                    db.query(User)
+                    .filter(User.id == company.user_id)
+                    .first()
+                )
+                if not owner or not owner.phone:
+                    continue
+
+                prefs = (
+                    db.query(NotificationPreference)
+                    .filter(NotificationPreference.user_id == owner.id)
+                    .first()
+                )
+                if not prefs or not prefs.sms_enabled or not prefs.compliance_reminders:
+                    continue
+
+                due_str = task.due_date.strftime("%d %b %Y") if task.due_date else "soon"
+                sms_service.send_compliance_reminder_sms(
+                    owner.phone, task.title or task.task_type, due_str
+                )
+                sent_count += 1
+            except Exception:
+                logger.exception(
+                    "Failed to send compliance reminder for task %d", task.id
+                )
+
+        return sent_count
 
 
 # Module-level singleton

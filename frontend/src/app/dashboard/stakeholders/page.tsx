@@ -20,6 +20,7 @@ interface StakeholderProfile {
   entity_type: string | null;
   pan_number: string | null;
   is_foreign: boolean;
+  dashboard_access_token: string | null;
   linked_shareholder_ids: number[];
   created_at: string;
   updated_at: string;
@@ -90,6 +91,17 @@ export default function StakeholderDashboardPage() {
   // Link to shareholder
   const [linkingProfileId, setLinkingProfileId] = useState<number | null>(null);
   const [shareholderIdInput, setShareholderIdInput] = useState("");
+
+  // Share investor link
+  const [copiedId, setCopiedId] = useState<number | null>(null);
+
+  const handleCopyInvestorLink = (profile: StakeholderProfile) => {
+    if (!profile.dashboard_access_token) return;
+    const url = `${window.location.origin}/investor/${profile.dashboard_access_token}`;
+    navigator.clipboard.writeText(url);
+    setCopiedId(profile.id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
 
   useEffect(() => {
     fetchProfiles();
@@ -387,13 +399,27 @@ export default function StakeholderDashboardPage() {
                                   </button>
                                 </form>
                               ) : (
-                                <button
-                                  onClick={() => setLinkingProfileId(profile.id)}
-                                  className="text-[11px] px-2 py-1 rounded"
-                                  style={{ background: "rgba(139, 92, 246, 0.1)", color: "rgb(139, 92, 246)" }}
-                                >
-                                  Link Shareholder
-                                </button>
+                                <>
+                                  <button
+                                    onClick={() => setLinkingProfileId(profile.id)}
+                                    className="text-[11px] px-2 py-1 rounded"
+                                    style={{ background: "rgba(139, 92, 246, 0.1)", color: "rgb(139, 92, 246)" }}
+                                  >
+                                    Link Shareholder
+                                  </button>
+                                  {profile.dashboard_access_token && (
+                                    <button
+                                      onClick={() => handleCopyInvestorLink(profile)}
+                                      className="text-[11px] px-2 py-1 rounded"
+                                      style={{
+                                        background: copiedId === profile.id ? "rgba(16, 185, 129, 0.1)" : "rgba(59, 130, 246, 0.1)",
+                                        color: copiedId === profile.id ? "rgb(16, 185, 129)" : "rgb(59, 130, 246)",
+                                      }}
+                                    >
+                                      {copiedId === profile.id ? "Copied!" : "Share Portal Link"}
+                                    </button>
+                                  )}
+                                </>
                               )}
                             </div>
                           </td>

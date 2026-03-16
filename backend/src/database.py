@@ -29,6 +29,9 @@ def init_db():
     from src.models import esop  # noqa
     from src.models import funding_round  # noqa
     from src.models import stakeholder  # noqa
+    from src.models import conversion_event  # noqa
+    from src.models import valuation  # noqa
+    from src.models import ca_assignment  # noqa
     Base.metadata.create_all(bind=engine)
 
 

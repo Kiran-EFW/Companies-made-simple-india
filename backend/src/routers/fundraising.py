@@ -16,7 +16,8 @@ Endpoints:
 - POST /companies/{id}/fundraising/rounds/{round_id}/complete-allotment Allot shares
 """
 
-from fastapi import APIRouter, Depends, HTTPException
+from typing import Optional
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from src.database import get_db
@@ -213,6 +214,45 @@ def complete_allotment(
     """Allot shares to investors after closing. Updates cap table."""
     result = fundraising_service.complete_allotment(
         db, round_id, company_id, data.investor_ids
+    )
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
+    return result
+
+
+# ---------------------------------------------------------------------------
+# Convertible Instrument Conversion
+# ---------------------------------------------------------------------------
+
+@router.get("/{company_id}/fundraising/rounds/{round_id}/conversion-preview")
+def conversion_preview(
+    company_id: int,
+    round_id: int,
+    trigger_round_id: Optional[int] = Query(None),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Preview SAFE/CCD/Note conversion to equity (read-only)."""
+    result = fundraising_service.preview_conversion(
+        db, company_id, round_id, trigger_round_id
+    )
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
+    return result
+
+
+@router.post("/{company_id}/fundraising/rounds/{round_id}/convert")
+def convert_round(
+    company_id: int,
+    round_id: int,
+    data: Optional[dict] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Execute SAFE/CCD/Note conversion to equity shares."""
+    trigger_round_id = (data or {}).get("trigger_round_id")
+    result = fundraising_service.convert_instrument(
+        db, company_id, round_id, trigger_round_id
     )
     if "error" in result:
         raise HTTPException(status_code=400, detail=result["error"])

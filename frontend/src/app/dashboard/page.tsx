@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/lib/auth-context";
-import { getCompanies, uploadDocument, getCompanyLogs, getCompanyMessages, sendMessage, markMessagesRead, getUpsellItems, type UpsellItem } from "@/lib/api";
+import { getCompanies, uploadDocument, getCompanyLogs, getCompanyMessages, sendMessage, markMessagesRead, getUpsellItems, inviteCA, type UpsellItem } from "@/lib/api";
 import Link from "next/link";
 import ChatWidget from "@/components/chat-widget";
 import NotificationBell from "@/components/notification-bell";
@@ -33,6 +33,26 @@ export default function DashboardPage() {
   const [msgUnread, setMsgUnread] = useState<Record<number, number>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [upsellItems, setUpsellItems] = useState<Record<number, UpsellItem[]>>({});
+
+  // Invite CA modal state
+  const [showInviteCA, setShowInviteCA] = useState<number | null>(null);
+  const [caForm, setCaForm] = useState({ name: "", email: "", phone: "" });
+  const [caInviting, setCaInviting] = useState(false);
+  const [caMsg, setCaMsg] = useState("");
+
+  const handleInviteCA = async (companyId: number) => {
+    setCaInviting(true);
+    setCaMsg("");
+    try {
+      await inviteCA(companyId, { name: caForm.name, email: caForm.email, phone: caForm.phone || undefined });
+      setCaMsg("CA invited successfully! They will receive login credentials via email.");
+      setCaForm({ name: "", email: "", phone: "" });
+    } catch (err: any) {
+      setCaMsg(`Error: ${err.message}`);
+    } finally {
+      setCaInviting(false);
+    }
+  };
 
   useEffect(() => {
     if (authLoading) return;
@@ -527,6 +547,20 @@ export default function DashboardPage() {
                               </div>
                               <Link href="/dashboard/tax" className="text-xs font-bold text-purple-400 group-hover:underline">View &#8594;</Link>
                            </div>
+                           <div className="p-4 rounded-lg border flex justify-between items-center group hover:border-purple-500/30 transition-colors" style={{ background: "var(--color-overlay)", borderColor: "var(--color-border)" }}>
+                              <div>
+                                 <h4 className="text-sm font-semibold">Valuations (FMV)</h4>
+                                 <p className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>Rule 11UA fair market value for ESOP pricing</p>
+                              </div>
+                              <Link href="/dashboard/valuations" className="text-xs font-bold text-purple-400 group-hover:underline">Calculate &#8594;</Link>
+                           </div>
+                           <div className="p-4 rounded-lg border flex justify-between items-center group hover:border-purple-500/30 transition-colors" style={{ background: "var(--color-overlay)", borderColor: "var(--color-border)" }}>
+                              <div>
+                                 <h4 className="text-sm font-semibold">Invite Your CA</h4>
+                                 <p className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>Give your CA/CS access to compliance &amp; filings</p>
+                              </div>
+                              <button onClick={() => { setShowInviteCA(comp.id); setCaMsg(""); }} className="text-xs font-bold text-purple-400 group-hover:underline">Invite &#8594;</button>
+                           </div>
                         </div>
                      </div>
                   )}
@@ -723,6 +757,76 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
+
+      {/* Invite CA Modal */}
+      {showInviteCA !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.6)" }}>
+          <div className="glass-card p-6 w-full max-w-md" style={{ cursor: "default", background: "var(--color-bg-card)" }}>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Invite Your CA / CS</h3>
+              <button onClick={() => { setShowInviteCA(null); setCaMsg(""); }} className="text-sm" style={{ color: "var(--color-text-muted)" }}>
+                Close
+              </button>
+            </div>
+            <p className="text-sm mb-4" style={{ color: "var(--color-text-secondary)" }}>
+              Your CA will get a dedicated portal to view compliance tasks, company documents, and mark filings as complete.
+            </p>
+            {caMsg && (
+              <div className="p-3 rounded-lg mb-4 text-sm" style={{
+                background: caMsg.startsWith("Error") ? "rgba(244, 63, 94, 0.1)" : "rgba(16, 185, 129, 0.1)",
+                color: caMsg.startsWith("Error") ? "var(--color-accent-rose)" : "var(--color-accent-emerald)",
+              }}>
+                {caMsg}
+              </div>
+            )}
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium mb-1" style={{ color: "var(--color-text-secondary)" }}>CA Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={caForm.name}
+                  onChange={(e) => setCaForm({ ...caForm, name: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg text-sm"
+                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                  placeholder="Full name"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1" style={{ color: "var(--color-text-secondary)" }}>Email *</label>
+                <input
+                  type="email"
+                  required
+                  value={caForm.email}
+                  onChange={(e) => setCaForm({ ...caForm, email: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg text-sm"
+                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                  placeholder="ca@example.com"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1" style={{ color: "var(--color-text-secondary)" }}>Phone (optional)</label>
+                <input
+                  type="tel"
+                  value={caForm.phone}
+                  onChange={(e) => setCaForm({ ...caForm, phone: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg text-sm"
+                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                  placeholder="+91 98765 43210"
+                />
+              </div>
+              <button
+                onClick={() => handleInviteCA(showInviteCA)}
+                disabled={caInviting || !caForm.name || !caForm.email}
+                className="btn-primary w-full text-center justify-center mt-2"
+                style={{ opacity: (caInviting || !caForm.name || !caForm.email) ? 0.5 : 1 }}
+              >
+                {caInviting ? "Inviting..." : "Send Invitation"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {companies.length > 0 && <ChatWidget companyId={companies[0]?.id} />}
       <Footer />

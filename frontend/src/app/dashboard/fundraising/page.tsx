@@ -12,6 +12,8 @@ import {
   getClosingRoom,
   initiateClosing,
   completeAllotment,
+  previewConversion,
+  convertRound,
 } from "@/lib/api";
 import Footer from "@/components/footer";
 
@@ -43,6 +45,10 @@ interface FundingRound {
   amount_raised: number;
   status: string;
   allotment_completed: boolean;
+  valuation_cap: number | null;
+  discount_rate: number | null;
+  interest_rate: number | null;
+  maturity_months: number | null;
   notes: string | null;
   investor_count?: number;
   investors?: Investor[];
@@ -103,6 +109,12 @@ export default function FundraisingPage() {
     price_per_share: "",
     notes: "",
   });
+
+  // Conversion state
+  const [conversionPreview, setConversionPreview] = useState<any>(null);
+  const [triggerRoundId, setTriggerRoundId] = useState<string>("");
+  const [converting, setConverting] = useState(false);
+  const [showConversionConfirm, setShowConversionConfirm] = useState(false);
 
   // Add investor modal
   const [showAddInvestor, setShowAddInvestor] = useState(false);
@@ -257,6 +269,47 @@ export default function FundraisingPage() {
     } catch (err: any) {
       setMessage(`Error: ${err.message}`);
     }
+  }
+
+  const isConvertible = (type: string) =>
+    ["safe", "ccd", "convertible_note", "ccps"].includes(type);
+
+  const equityRounds = rounds.filter(
+    (r) => r.instrument_type === "equity" && r.id !== selectedRound?.id
+  );
+
+  async function handlePreviewConversion() {
+    if (!selectedRound) return;
+    setMessage("");
+    try {
+      const data = await previewConversion(
+        companyId,
+        selectedRound.id,
+        triggerRoundId ? parseInt(triggerRoundId) : undefined
+      );
+      setConversionPreview(data);
+    } catch (err: any) {
+      setMessage(`Error: ${err.message}`);
+    }
+  }
+
+  async function handleExecuteConversion() {
+    if (!selectedRound) return;
+    setConverting(true);
+    setMessage("");
+    try {
+      await convertRound(companyId, selectedRound.id, {
+        trigger_round_id: triggerRoundId ? parseInt(triggerRoundId) : undefined,
+      });
+      setMessage("Conversion complete! Shares have been allotted to the cap table.");
+      setConversionPreview(null);
+      setShowConversionConfirm(false);
+      fetchRoundDetail(selectedRound.id);
+      fetchRounds();
+    } catch (err: any) {
+      setMessage(`Error: ${err.message}`);
+    }
+    setConverting(false);
   }
 
   return (
@@ -430,6 +483,182 @@ export default function FundraisingPage() {
                       )}
                     </div>
                   </div>
+
+                  {/* Convertible Conversion Section */}
+                  {isConvertible(selectedRound.instrument_type) && !selectedRound.allotment_completed && (
+                    <div className="glass-card p-5" style={{ cursor: "default" }}>
+                      <div className="flex items-center gap-2 mb-4">
+                        <h3 className="font-semibold">Convert to Equity</h3>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: "rgba(245, 158, 11, 0.15)", color: "rgb(245, 158, 11)" }}>
+                          {INSTRUMENT_LABELS[selectedRound.instrument_type]}
+                        </span>
+                      </div>
+
+                      {/* Convertible terms summary */}
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 p-3 rounded-lg" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid var(--color-border)" }}>
+                        {selectedRound.valuation_cap != null && (
+                          <div className="text-center">
+                            <div className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>Valuation Cap</div>
+                            <div className="text-sm font-bold">{formatCurrency(selectedRound.valuation_cap)}</div>
+                          </div>
+                        )}
+                        {selectedRound.discount_rate != null && (
+                          <div className="text-center">
+                            <div className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>Discount Rate</div>
+                            <div className="text-sm font-bold">{selectedRound.discount_rate}%</div>
+                          </div>
+                        )}
+                        {selectedRound.interest_rate != null && (
+                          <div className="text-center">
+                            <div className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>Interest Rate</div>
+                            <div className="text-sm font-bold">{selectedRound.interest_rate}%</div>
+                          </div>
+                        )}
+                        {selectedRound.maturity_months != null && (
+                          <div className="text-center">
+                            <div className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>Maturity</div>
+                            <div className="text-sm font-bold">{selectedRound.maturity_months} months</div>
+                          </div>
+                        )}
+                        {!selectedRound.valuation_cap && !selectedRound.discount_rate && !selectedRound.interest_rate && !selectedRound.maturity_months && (
+                          <div className="col-span-4 text-center text-xs" style={{ color: "var(--color-text-muted)" }}>
+                            No convertible terms set. Edit the round to add valuation cap, discount rate, etc.
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Trigger round selector */}
+                      <div className="flex flex-wrap items-end gap-3 mb-4">
+                        <div className="flex-1 min-w-[200px]">
+                          <label className="block text-xs mb-1" style={{ color: "var(--color-text-muted)" }}>
+                            Trigger Round (equity round that sets price)
+                          </label>
+                          <select
+                            value={triggerRoundId}
+                            onChange={(e) => { setTriggerRoundId(e.target.value); setConversionPreview(null); }}
+                            className="w-full px-3 py-2 rounded-lg text-sm"
+                            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                          >
+                            <option value="">None (use valuation cap only)</option>
+                            {equityRounds.map((r) => (
+                              <option key={r.id} value={r.id.toString()}>
+                                {r.round_name} {r.price_per_share ? `(Rs ${r.price_per_share}/share)` : ""}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <button
+                          onClick={handlePreviewConversion}
+                          className="text-sm px-4 py-2 rounded-lg"
+                          style={{ background: "rgba(139, 92, 246, 0.1)", border: "1px solid rgba(139, 92, 246, 0.3)", color: "rgb(139, 92, 246)" }}
+                        >
+                          Preview Conversion
+                        </button>
+                      </div>
+
+                      {/* Conversion preview results */}
+                      {conversionPreview && (
+                        <div>
+                          <div className="grid grid-cols-3 gap-3 mb-4">
+                            <div className="p-3 rounded-lg text-center" style={{ background: "rgba(139, 92, 246, 0.08)", border: "1px solid rgba(139, 92, 246, 0.2)" }}>
+                              <div className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>Trigger Price</div>
+                              <div className="text-sm font-bold">
+                                {conversionPreview.trigger_price_per_share ? `Rs ${conversionPreview.trigger_price_per_share}` : "N/A"}
+                              </div>
+                            </div>
+                            <div className="p-3 rounded-lg text-center" style={{ background: "rgba(139, 92, 246, 0.08)", border: "1px solid rgba(139, 92, 246, 0.2)" }}>
+                              <div className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>Existing Shares</div>
+                              <div className="text-sm font-bold">{conversionPreview.total_existing_shares?.toLocaleString()}</div>
+                            </div>
+                            <div className="p-3 rounded-lg text-center" style={{ background: "rgba(139, 92, 246, 0.08)", border: "1px solid rgba(139, 92, 246, 0.2)" }}>
+                              <div className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>Total New Shares</div>
+                              <div className="text-sm font-bold">
+                                {conversionPreview.conversions?.reduce((s: number, c: any) => s + c.shares_issued, 0)?.toLocaleString()}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="overflow-x-auto rounded-lg" style={{ border: "1px solid var(--color-border)" }}>
+                            <table className="w-full text-sm">
+                              <thead>
+                                <tr style={{ borderBottom: "1px solid var(--color-border)", background: "rgba(255,255,255,0.02)" }}>
+                                  <th className="text-left p-3" style={{ color: "var(--color-text-muted)" }}>Investor</th>
+                                  <th className="text-right p-3" style={{ color: "var(--color-text-muted)" }}>Principal</th>
+                                  <th className="text-right p-3" style={{ color: "var(--color-text-muted)" }}>Interest</th>
+                                  <th className="text-right p-3" style={{ color: "var(--color-text-muted)" }}>Total</th>
+                                  <th className="text-right p-3" style={{ color: "var(--color-text-muted)" }}>Price/Share</th>
+                                  <th className="text-left p-3" style={{ color: "var(--color-text-muted)" }}>Method</th>
+                                  <th className="text-right p-3" style={{ color: "var(--color-text-muted)" }}>Shares</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {conversionPreview.conversions?.map((c: any) => (
+                                  <tr key={c.investor_id} style={{ borderBottom: "1px solid var(--color-border)" }}>
+                                    <td className="p-3 font-medium">{c.investor_name}</td>
+                                    <td className="p-3 text-right font-mono">{formatCurrency(c.principal)}</td>
+                                    <td className="p-3 text-right font-mono">{c.interest_accrued > 0 ? formatCurrency(c.interest_accrued) : "-"}</td>
+                                    <td className="p-3 text-right font-mono">{formatCurrency(c.total_amount)}</td>
+                                    <td className="p-3 text-right font-mono">Rs {c.conversion_price}</td>
+                                    <td className="p-3">
+                                      <span className="text-xs px-2 py-0.5 rounded-full capitalize" style={{ background: "rgba(139, 92, 246, 0.15)", color: "rgb(139, 92, 246)" }}>
+                                        {c.conversion_method?.replace(/_/g, " ")}
+                                      </span>
+                                    </td>
+                                    <td className="p-3 text-right font-bold" style={{ color: "rgb(16, 185, 129)" }}>{c.shares_issued?.toLocaleString()}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+
+                          {/* All available conversion prices per investor */}
+                          {conversionPreview.conversions?.length > 0 && conversionPreview.conversions[0].all_prices && (
+                            <div className="mt-3 p-3 rounded-lg text-xs" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--color-border)" }}>
+                              <span style={{ color: "var(--color-text-muted)" }}>Available prices: </span>
+                              {Object.entries(conversionPreview.conversions[0].all_prices as Record<string, number>).map(([method, price]) => (
+                                <span key={method} className="mr-3">
+                                  <span className="capitalize">{method.replace(/_/g, " ")}</span>: <span className="font-mono">Rs {price}</span>
+                                </span>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Execute conversion button */}
+                          <div className="mt-4 flex items-center gap-3">
+                            {!showConversionConfirm ? (
+                              <button
+                                onClick={() => setShowConversionConfirm(true)}
+                                className="btn-primary text-sm"
+                              >
+                                Execute Conversion
+                              </button>
+                            ) : (
+                              <>
+                                <span className="text-sm" style={{ color: "rgb(245, 158, 11)" }}>
+                                  This will create new shareholders on the cap table. Continue?
+                                </span>
+                                <button
+                                  onClick={handleExecuteConversion}
+                                  disabled={converting}
+                                  className="text-sm px-4 py-2 rounded-lg"
+                                  style={{ background: "rgba(16, 185, 129, 0.15)", border: "1px solid rgba(16, 185, 129, 0.4)", color: "rgb(16, 185, 129)" }}
+                                >
+                                  {converting ? "Converting..." : "Confirm Conversion"}
+                                </button>
+                                <button
+                                  onClick={() => setShowConversionConfirm(false)}
+                                  className="text-sm px-3 py-2 rounded-lg"
+                                  style={{ color: "var(--color-text-muted)" }}
+                                >
+                                  Cancel
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Investors Table */}
                   <div className="glass-card overflow-hidden" style={{ cursor: "default" }}>
