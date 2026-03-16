@@ -1,6 +1,7 @@
 import os
 import shutil
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from typing import List
 from src.database import get_db
@@ -20,7 +21,9 @@ UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 ALLOWED_EXTENSIONS = {".pdf", ".jpg", ".jpeg", ".png", ".webp"}
+PITCH_DECK_EXTENSIONS = {".pdf", ".ppt", ".pptx"}
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
+MAX_PITCH_DECK_SIZE = 50 * 1024 * 1024  # 50 MB for pitch decks
 
 
 @router.post("/upload", response_model=DocumentUploadResponse)
@@ -105,6 +108,112 @@ async def upload_document(
         message="Document uploaded successfully",
         document=new_doc
     )
+
+
+@router.get("/{document_id}/download")
+def download_document(
+    document_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Download a document file. User must own the company."""
+    doc = db.query(Document).filter(Document.id == document_id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    comp = db.query(Company).filter(
+        Company.id == doc.company_id, Company.user_id == current_user.id
+    ).first()
+    if not comp:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    if not os.path.exists(doc.file_path):
+        raise HTTPException(status_code=404, detail="File not found on disk")
+
+    media_type = "application/octet-stream"
+    ext = os.path.splitext(doc.file_path)[1].lower()
+    if ext == ".pdf":
+        media_type = "application/pdf"
+    elif ext in (".ppt", ".pptx"):
+        media_type = "application/vnd.ms-powerpoint"
+    elif ext in (".jpg", ".jpeg"):
+        media_type = "image/jpeg"
+    elif ext == ".png":
+        media_type = "image/png"
+
+    return FileResponse(
+        path=doc.file_path,
+        filename=doc.original_filename or os.path.basename(doc.file_path),
+        media_type=media_type,
+    )
+
+
+@router.post("/pitch-deck/upload")
+async def upload_pitch_deck(
+    company_id: int = Form(...),
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Upload a pitch deck (PDF or PPT) for a company."""
+    file_ext = os.path.splitext(file.filename or "")[1].lower()
+    if file_ext not in PITCH_DECK_EXTENSIONS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"File type '{file_ext}' not allowed. Accepted: {', '.join(sorted(PITCH_DECK_EXTENSIONS))}",
+        )
+
+    contents = await file.read()
+    if len(contents) > MAX_PITCH_DECK_SIZE:
+        raise HTTPException(
+            status_code=400,
+            detail=f"File too large. Maximum size is {MAX_PITCH_DECK_SIZE // (1024 * 1024)} MB",
+        )
+    await file.seek(0)
+
+    comp = db.query(Company).filter(
+        Company.id == company_id, Company.user_id == current_user.id
+    ).first()
+    if not comp:
+        raise HTTPException(status_code=404, detail="Company not found")
+
+    safe_filename = f"comp_{company_id}_pitch_deck{file_ext}"
+    file_path = os.path.join(UPLOAD_DIR, safe_filename)
+
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    # Replace existing pitch deck if any
+    existing = db.query(Document).filter(
+        Document.company_id == company_id,
+        Document.doc_type == DocumentType.PITCH_DECK,
+    ).first()
+    if existing:
+        if os.path.exists(existing.file_path):
+            os.remove(existing.file_path)
+        db.delete(existing)
+
+    new_doc = Document(
+        company_id=comp.id,
+        doc_type=DocumentType.PITCH_DECK,
+        file_path=file_path,
+        original_filename=file.filename,
+    )
+    db.add(new_doc)
+
+    # Store reference in company.data
+    existing_data = comp.data or {}
+    existing_data["pitch_deck_document_id"] = new_doc.id
+    comp.data = existing_data
+
+    db.commit()
+    db.refresh(new_doc)
+
+    return {
+        "message": "Pitch deck uploaded successfully",
+        "document_id": new_doc.id,
+        "filename": new_doc.original_filename,
+    }
 
 
 @router.get("/company/{company_id}", response_model=List[DocumentOut])

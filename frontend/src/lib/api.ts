@@ -147,6 +147,17 @@ export async function getCompanyLogs(companyId: number): Promise<any> {
   return apiCall(`/companies/${companyId}/logs`);
 }
 
+export async function getPitchProfile(companyId: number) {
+  return apiCall(`/companies/${companyId}/pitch-profile`);
+}
+
+export async function updatePitchProfile(companyId: number, data: Record<string, any>) {
+  return apiCall(`/companies/${companyId}/pitch-profile`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
 export async function getCompanyTasks(companyId: number): Promise<any> {
   return apiCall(`/companies/${companyId}/tasks`);
 }
@@ -182,6 +193,37 @@ export async function uploadDocument(companyId: number, docType: string, file: F
   }
 
   return res.json();
+}
+
+export async function uploadPitchDeck(companyId: number, file: File): Promise<any> {
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("company_id", String(companyId));
+
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(`${API_BASE}/documents/pitch-deck/upload`, {
+    method: "POST",
+    headers,
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.detail || "Pitch deck upload failed");
+  }
+
+  return res.json();
+}
+
+export function getInvestorPitchDeckUrl(token: string, companyId: number): string {
+  return `${API_BASE}/investor-portal/${token}/companies/${companyId}/pitch-deck`;
 }
 
 // ---------------------------------------------------------------------------
@@ -1272,6 +1314,54 @@ export async function getInvestorDocuments(token: string, companyId: number) {
   const res = await fetch(`${API_BASE}/investor-portal/${token}/companies/${companyId}/documents`);
   if (!res.ok) throw new Error(await res.text());
   return res.json();
+}
+
+export async function getInvestorESOPSummary(token: string) {
+  const res = await fetch(`${API_BASE}/investor-portal/${token}/esop-summary`);
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+// ---------------------------------------------------------------------------
+// Investor Discovery / Matchmaking
+// ---------------------------------------------------------------------------
+
+export async function discoverCompanies(token: string, filters?: { sector?: string; stage?: string }) {
+  const params = new URLSearchParams();
+  if (filters?.sector) params.set("sector", filters.sector);
+  if (filters?.stage) params.set("stage", filters.stage);
+  const qs = params.toString() ? `?${params.toString()}` : "";
+  const res = await fetch(`${API_BASE}/investor-portal/${token}/discover${qs}`);
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function expressInterest(token: string, companyId: number, message?: string) {
+  const res = await fetch(`${API_BASE}/investor-portal/${token}/interest/${companyId}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(message ? { message } : {}),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function withdrawInterest(token: string, companyId: number) {
+  const res = await fetch(`${API_BASE}/investor-portal/${token}/interest/${companyId}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function getMyInterests(token: string) {
+  const res = await fetch(`${API_BASE}/investor-portal/${token}/my-interests`);
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function getInvestorInterests(companyId: number) {
+  return apiCall(`/companies/${companyId}/investor-interests`);
 }
 
 // ---------------------------------------------------------------------------

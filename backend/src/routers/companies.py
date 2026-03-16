@@ -257,3 +257,129 @@ def invite_ca(
         "ca_user_id": ca_user.id,
         "assignment_id": assignment.id,
     }
+
+
+# ---------------------------------------------------------------------------
+# Company Pitch Profile
+# ---------------------------------------------------------------------------
+
+@router.patch("/{company_id}/pitch-profile")
+def update_pitch_profile(
+    company_id: int,
+    data: dict,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Update company pitch profile (video, tagline, sector, fundraise ask).
+
+    Stored in the flexible `data` JSON column.
+    Accepted fields: pitch_video_url, tagline, description, sector,
+                     stage, fundraise_ask, fundraise_status (open/closed),
+                     website, linkedin
+    """
+    company = db.query(Company).filter(
+        Company.id == company_id, Company.user_id == current_user.id
+    ).first()
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+
+    allowed_fields = {
+        "pitch_video_url", "tagline", "description", "sector",
+        "stage", "fundraise_ask", "fundraise_status",
+        "website", "linkedin",
+    }
+
+    existing_data = company.data or {}
+    for key, value in data.items():
+        if key in allowed_fields:
+            existing_data[key] = value
+
+    company.data = existing_data
+    db.commit()
+    db.refresh(company)
+
+    return {"message": "Pitch profile updated", "data": {k: existing_data.get(k) for k in allowed_fields}}
+
+
+@router.get("/{company_id}/pitch-profile")
+def get_pitch_profile(
+    company_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Get company pitch profile."""
+    company = db.query(Company).filter(
+        Company.id == company_id, Company.user_id == current_user.id
+    ).first()
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+
+    d = company.data or {}
+
+    # Check for pitch deck document
+    pitch_deck_filename = None
+    deck_id = d.get("pitch_deck_document_id")
+    if deck_id:
+        from src.models.document import Document, DocumentType
+        deck = db.query(Document).filter(
+            Document.id == deck_id,
+            Document.doc_type == DocumentType.PITCH_DECK,
+        ).first()
+        if deck:
+            pitch_deck_filename = deck.original_filename
+
+    return {
+        "company_id": company.id,
+        "name": company.approved_name or (company.proposed_names[0] if company.proposed_names else None),
+        "pitch_video_url": d.get("pitch_video_url"),
+        "tagline": d.get("tagline"),
+        "description": d.get("description"),
+        "sector": d.get("sector"),
+        "stage": d.get("stage"),
+        "fundraise_ask": d.get("fundraise_ask"),
+        "fundraise_status": d.get("fundraise_status"),
+        "website": d.get("website"),
+        "linkedin": d.get("linkedin"),
+        "pitch_deck_filename": pitch_deck_filename,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Investor Interests (founder view)
+# ---------------------------------------------------------------------------
+
+@router.get("/{company_id}/investor-interests")
+def get_investor_interests(
+    company_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """List investors who have expressed interest in this company."""
+    comp = db.query(Company).filter(
+        Company.id == company_id, Company.user_id == current_user.id
+    ).first()
+    if not comp:
+        raise HTTPException(status_code=404, detail="Company not found")
+
+    from src.models.investor_interest import InvestorInterest
+    interests = (
+        db.query(InvestorInterest)
+        .filter(InvestorInterest.company_id == company_id)
+        .order_by(InvestorInterest.created_at.desc())
+        .all()
+    )
+
+    return {
+        "interests": [
+            {
+                "id": i.id,
+                "investor_name": i.investor_name,
+                "investor_email": i.investor_email,
+                "investor_entity": i.investor_entity,
+                "message": i.message,
+                "status": i.status.value if i.status else "interested",
+                "created_at": i.created_at.isoformat() if i.created_at else None,
+            }
+            for i in interests
+        ]
+    }

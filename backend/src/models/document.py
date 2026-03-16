@@ -13,6 +13,7 @@ class DocumentType(str, enum.Enum):
     BANK_STATEMENT = "bank_statement"
     PHOTO = "photo"
     ADDRESS_PROOF = "address_proof"
+    PITCH_DECK = "pitch_deck"
     OTHER = "other"
 
 

@@ -8,6 +8,7 @@ import {
   getInvestorFundingRounds,
   getInvestorESOPGrants,
   getInvestorDocuments,
+  getInvestorPitchDeckUrl,
 } from "@/lib/api";
 
 type Tab = "holdings" | "cap-table" | "rounds" | "esop" | "documents";
@@ -96,16 +97,59 @@ export default function InvestorCompanyDetailPage() {
       {/* Company header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">{company?.name}</h1>
-        <div className="flex gap-3 mt-2 text-sm text-gray-500">
+        {company?.tagline && (
+          <p className="text-gray-600 mt-1">{company.tagline}</p>
+        )}
+        <div className="flex flex-wrap gap-3 mt-2 text-sm text-gray-500">
           {company?.entity_type && <span className="capitalize">{company.entity_type.replace("_", " ")}</span>}
+          {company?.sector && <span className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs font-medium">{company.sector}</span>}
           {company?.cin && <span>CIN: {company.cin}</span>}
           {company?.status && (
             <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-medium capitalize">
               {company.status.replace("_", " ")}
             </span>
           )}
+          {company?.website && (
+            <a href={company.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+              Website
+            </a>
+          )}
         </div>
       </div>
+
+      {/* Pitch deck viewer + description */}
+      {(company?.has_pitch_deck || company?.description) && (
+        <div className="mb-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {company?.has_pitch_deck && (
+            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+              <div className="relative w-full" style={{ paddingBottom: "75%" }}>
+                <iframe
+                  className="absolute inset-0 w-full h-full"
+                  src={getInvestorPitchDeckUrl(token, companyId)}
+                  title="Pitch Deck"
+                />
+              </div>
+              <div className="p-3 border-t border-gray-200 flex items-center justify-between">
+                <span className="text-xs text-gray-500">Pitch Deck</span>
+                <a
+                  href={getInvestorPitchDeckUrl(token, companyId)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-blue-600 hover:underline font-medium"
+                >
+                  Download
+                </a>
+              </div>
+            </div>
+          )}
+          {company?.description && (
+            <div className="bg-white rounded-lg border border-gray-200 p-5">
+              <h3 className="text-sm font-medium text-gray-500 mb-2">About</h3>
+              <p className="text-sm text-gray-700 whitespace-pre-line">{company.description}</p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
@@ -289,48 +333,117 @@ export default function InvestorCompanyDetailPage() {
               No ESOP grants found.
             </div>
           ) : (
-            esopGrants.map((g: any) => (
-              <div key={g.id} className="bg-white rounded-lg border border-gray-200 p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-gray-900">{g.plan_name || "Grant"}</h3>
-                  <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded capitalize">
-                    {g.status?.replace("_", " ")}
-                  </span>
+            esopGrants.map((g: any) => {
+              const vestedPct = g.number_of_options > 0
+                ? Math.round(((g.options_vested || 0) / g.number_of_options) * 100)
+                : 0;
+              return (
+                <div key={g.id} className="bg-white rounded-lg border border-gray-200 p-5">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-semibold text-gray-900">{g.plan_name || "Grant"}</h3>
+                    <span className={`text-xs px-2 py-1 rounded font-medium capitalize ${
+                      g.status === "active" || g.status === "partially_exercised"
+                        ? "bg-green-100 text-green-700"
+                        : g.status === "fully_exercised"
+                        ? "bg-blue-100 text-blue-700"
+                        : "bg-gray-100 text-gray-600"
+                    }`}>
+                      {g.status?.replace(/_/g, " ")}
+                    </span>
+                  </div>
+
+                  {/* Vesting progress bar */}
+                  <div className="mb-4">
+                    <div className="flex justify-between text-xs text-gray-500 mb-1">
+                      <span>{vestedPct}% vested</span>
+                      <span>{(g.options_vested || 0).toLocaleString()} / {g.number_of_options?.toLocaleString()}</span>
+                    </div>
+                    <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-green-500 transition-all"
+                        style={{ width: `${vestedPct}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-sm">
+                    <div>
+                      <p className="text-gray-500">Granted</p>
+                      <p className="font-medium">{g.number_of_options?.toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">Vested</p>
+                      <p className="font-medium text-green-700">{(g.options_vested || 0).toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">Exercisable</p>
+                      <p className="font-medium text-blue-700">{(g.options_exercisable || 0).toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">Exercised</p>
+                      <p className="font-medium">{g.options_exercised?.toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">Exercise Price</p>
+                      <p className="font-medium">Rs {g.exercise_price}</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 pt-3 border-t border-gray-100 grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+                    <div>
+                      <p className="text-gray-500">Grant Date</p>
+                      <p className="font-medium">{g.grant_date?.split("T")[0] || "-"}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">Vesting Period</p>
+                      <p className="font-medium">{g.vesting_months} months ({g.cliff_months}m cliff)</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">Vesting Type</p>
+                      <p className="font-medium capitalize">{g.vesting_type || "monthly"}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">Vesting Start</p>
+                      <p className="font-medium">{g.vesting_start_date?.split("T")[0] || "-"}</p>
+                    </div>
+                  </div>
+
+                  {/* Vesting schedule table */}
+                  {g.vesting_schedule && g.vesting_schedule.length > 0 && (
+                    <details className="mt-3 pt-3 border-t border-gray-100">
+                      <summary className="text-sm text-blue-600 cursor-pointer hover:underline">
+                        View vesting schedule ({g.vesting_schedule.length} milestones)
+                      </summary>
+                      <div className="mt-2 max-h-48 overflow-y-auto">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="text-gray-500 border-b border-gray-100">
+                              <th className="text-left py-1.5 pr-3">Date</th>
+                              <th className="text-right py-1.5 pr-3">Vesting</th>
+                              <th className="text-right py-1.5 pr-3">Cumulative</th>
+                              <th className="text-right py-1.5">%</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {g.vesting_schedule.map((vs: any, idx: number) => {
+                              const isPast = new Date(vs.date) <= new Date();
+                              return (
+                                <tr key={idx} className={`border-b border-gray-50 ${isPast ? "text-gray-900" : "text-gray-400"}`}>
+                                  <td className="py-1.5 pr-3">{vs.date?.split("T")[0]}</td>
+                                  <td className="py-1.5 pr-3 text-right">{vs.options_vesting?.toLocaleString()}</td>
+                                  <td className="py-1.5 pr-3 text-right font-medium">{vs.cumulative_vested?.toLocaleString()}</td>
+                                  <td className="py-1.5 text-right">{vs.percentage_vested?.toFixed(1)}%</td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </details>
+                  )}
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
-                  <div>
-                    <p className="text-gray-500">Options Granted</p>
-                    <p className="font-medium">{g.number_of_options?.toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">Exercise Price</p>
-                    <p className="font-medium">Rs {g.exercise_price}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">Exercised</p>
-                    <p className="font-medium">{g.options_exercised?.toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">Lapsed</p>
-                    <p className="font-medium">{g.options_lapsed?.toLocaleString()}</p>
-                  </div>
-                </div>
-                <div className="mt-3 pt-3 border-t border-gray-100 grid grid-cols-3 gap-4 text-sm">
-                  <div>
-                    <p className="text-gray-500">Grant Date</p>
-                    <p className="font-medium">{g.grant_date?.split("T")[0] || "-"}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">Vesting</p>
-                    <p className="font-medium">{g.vesting_months} months ({g.cliff_months}m cliff)</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">Vesting Start</p>
-                    <p className="font-medium">{g.vesting_start_date?.split("T")[0] || "-"}</p>
-                  </div>
-                </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       )}

@@ -21,7 +21,7 @@ from sqlalchemy.orm import Session
 
 from src.database import get_db
 from src.models.user import User
-from src.utils.auth import get_current_user
+from src.utils.security import get_current_user
 from src.services.cap_table_service import (
     cap_table_service,
     ShareholderEntry,
@@ -67,7 +67,11 @@ class WaterfallRequest(BaseModel):
 # ---------------------------------------------------------------------------
 
 @router.get("/{company_id}/cap-table")
-def get_cap_table(company_id: int, db: Session = Depends(get_db)):
+def get_cap_table(
+    company_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     """Get current cap table for a company."""
     cache_key = f"captable:{company_id}"
     cached = cache_get(cache_key)
@@ -83,6 +87,7 @@ def add_shareholder(
     company_id: int,
     entry: ShareholderEntry,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Add a shareholder to the cap table."""
     result = cap_table_service.add_shareholder(db, company_id, entry)
@@ -95,6 +100,7 @@ def record_transfer(
     company_id: int,
     request: TransferRequest,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Record a share transfer between shareholders."""
     result = cap_table_service.record_transfer(
@@ -114,6 +120,7 @@ def record_allotment(
     company_id: int,
     request: AllotmentRequest,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Record new share allotment."""
     result = cap_table_service.record_allotment(db, company_id, request.entries)
@@ -128,6 +135,7 @@ def dilution_preview(
     investor_name: str = Query("New Investor", description="Name of the investor"),
     price_per_share: float = Query(10.0, description="Price per share"),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Preview dilution from new investment."""
     return cap_table_service.get_dilution_preview(
@@ -136,13 +144,21 @@ def dilution_preview(
 
 
 @router.get("/{company_id}/cap-table/export")
-def export_cap_table(company_id: int, db: Session = Depends(get_db)):
+def export_cap_table(
+    company_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     """Export cap table with full transaction history."""
     return cap_table_service.export_cap_table(db, company_id)
 
 
 @router.get("/{company_id}/cap-table/transactions")
-def get_transactions(company_id: int, db: Session = Depends(get_db)):
+def get_transactions(
+    company_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     """Get transaction history for a company."""
     return cap_table_service.get_transactions(db, company_id)
 
@@ -156,6 +172,7 @@ def simulate_round(
     company_id: int,
     request: SimulateRoundRequest,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Simulate a funding round with dilution, ESOP pool, and new investors."""
     investors = [{"name": inv.name, "amount": inv.amount} for inv in request.investors]
@@ -175,6 +192,7 @@ def simulate_exit(
     company_id: int,
     request: SimulateExitRequest,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Simulate an exit / liquidity event and compute per-shareholder payouts."""
     return cap_table_service.simulate_exit(
@@ -191,6 +209,7 @@ def save_scenario(
     company_id: int,
     request: SaveScenarioRequest,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Save a simulation scenario (in-memory, returns data with generated ID)."""
     return cap_table_service.save_scenario(
@@ -209,6 +228,7 @@ def simulate_exit_waterfall(
     company_id: int,
     request: WaterfallRequest,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Full exit waterfall with liquidation preferences."""
     lp_dicts = None

@@ -32,6 +32,7 @@ def init_db():
     from src.models import conversion_event  # noqa
     from src.models import valuation  # noqa
     from src.models import ca_assignment  # noqa
+    from src.models import investor_interest  # noqa
     Base.metadata.create_all(bind=engine)
 
 

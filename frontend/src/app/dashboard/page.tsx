@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/lib/auth-context";
-import { getCompanies, uploadDocument, getCompanyLogs, getCompanyMessages, sendMessage, markMessagesRead, getUpsellItems, inviteCA, type UpsellItem } from "@/lib/api";
+import { getCompanies, uploadDocument, getCompanyLogs, getCompanyMessages, sendMessage, markMessagesRead, getUpsellItems, inviteCA, uploadPitchDeck, getInvestorInterests, type UpsellItem } from "@/lib/api";
 import Link from "next/link";
 import ChatWidget from "@/components/chat-widget";
 import NotificationBell from "@/components/notification-bell";
@@ -40,6 +40,28 @@ export default function DashboardPage() {
   const [caInviting, setCaInviting] = useState(false);
   const [caMsg, setCaMsg] = useState("");
 
+  // Pitch deck upload state
+  const [pitchDeckFilename, setPitchDeckFilename] = useState<Record<number, string | null>>({});
+  const [pitchDeckUploading, setPitchDeckUploading] = useState<number | null>(null);
+  const [pitchDeckMsg, setPitchDeckMsg] = useState<Record<number, string>>({});
+
+  // Investor interests state
+  const [investorInterests, setInvestorInterests] = useState<Record<number, any[]>>({});
+
+  const handlePitchDeckUpload = async (companyId: number, file: File) => {
+    setPitchDeckUploading(companyId);
+    setPitchDeckMsg(prev => ({ ...prev, [companyId]: "" }));
+    try {
+      const result = await uploadPitchDeck(companyId, file);
+      setPitchDeckFilename(prev => ({ ...prev, [companyId]: result.filename }));
+      setPitchDeckMsg(prev => ({ ...prev, [companyId]: "Pitch deck uploaded!" }));
+    } catch (err: any) {
+      setPitchDeckMsg(prev => ({ ...prev, [companyId]: `Error: ${err.message}` }));
+    } finally {
+      setPitchDeckUploading(null);
+    }
+  };
+
   const handleInviteCA = async (companyId: number) => {
     setCaInviting(true);
     setCaMsg("");
@@ -62,12 +84,18 @@ export default function DashboardPage() {
       try {
         const comps = await getCompanies();
         setCompanies(comps);
-        // Load upsell items for incorporated companies
+        // Load upsell items and investor interests for incorporated companies
         for (const c of comps) {
           if (["incorporated", "fully_setup", "bank_account_pending", "bank_account_opened", "inc20a_pending"].includes(c.status)) {
             try {
               const items = await getUpsellItems(c.id);
               setUpsellItems(prev => ({ ...prev, [c.id]: items }));
+            } catch {}
+            try {
+              const data = await getInvestorInterests(c.id);
+              if (data.interests?.length > 0) {
+                setInvestorInterests(prev => ({ ...prev, [c.id]: data.interests }));
+              }
             } catch {}
           }
         }
@@ -555,6 +583,33 @@ export default function DashboardPage() {
                               <Link href="/dashboard/valuations" className="text-xs font-bold text-purple-400 group-hover:underline">Calculate &#8594;</Link>
                            </div>
                            <div className="p-4 rounded-lg border flex justify-between items-center group hover:border-purple-500/30 transition-colors" style={{ background: "var(--color-overlay)", borderColor: "var(--color-border)" }}>
+                              <div className="flex-1 min-w-0">
+                                 <h4 className="text-sm font-semibold">Pitch Deck</h4>
+                                 <p className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>
+                                   {pitchDeckFilename[comp.id] ? pitchDeckFilename[comp.id] : "Upload PDF or PPT — visible to investors"}
+                                 </p>
+                                 {pitchDeckMsg[comp.id] && (
+                                   <p className="text-[10px] mt-1" style={{ color: pitchDeckMsg[comp.id].startsWith("Error") ? "var(--color-accent-rose)" : "var(--color-accent-emerald)" }}>
+                                     {pitchDeckMsg[comp.id]}
+                                   </p>
+                                 )}
+                              </div>
+                              <label className={`text-xs font-bold text-purple-400 group-hover:underline cursor-pointer shrink-0 ml-3 ${pitchDeckUploading === comp.id ? "opacity-50 pointer-events-none" : ""}`}>
+                                {pitchDeckUploading === comp.id ? "Uploading..." : (pitchDeckFilename[comp.id] ? "Replace" : "Upload")} &#8594;
+                                <input
+                                  type="file"
+                                  className="hidden"
+                                  accept=".pdf,.ppt,.pptx"
+                                  disabled={pitchDeckUploading === comp.id}
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) handlePitchDeckUpload(comp.id, file);
+                                    e.target.value = "";
+                                  }}
+                                />
+                              </label>
+                           </div>
+                           <div className="p-4 rounded-lg border flex justify-between items-center group hover:border-purple-500/30 transition-colors" style={{ background: "var(--color-overlay)", borderColor: "var(--color-border)" }}>
                               <div>
                                  <h4 className="text-sm font-semibold">Invite Your CA</h4>
                                  <p className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>Give your CA/CS access to compliance &amp; filings</p>
@@ -608,6 +663,58 @@ export default function DashboardPage() {
                                 {item.urgency === "high" ? "Get Started" : "Learn More"}
                               </Link>
                             </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Investor Interests */}
+                  {investorInterests[comp.id] && investorInterests[comp.id].length > 0 && (
+                    <div className="mt-6">
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="text-sm font-semibold flex items-center gap-2" style={{ color: "var(--color-text-primary)" }}>
+                          <span className="text-lg">🤝</span> Investor Interest
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full text-purple-400 bg-purple-500/10">
+                            {investorInterests[comp.id].length} new
+                          </span>
+                        </h4>
+                      </div>
+                      <div className="space-y-2">
+                        {investorInterests[comp.id].map((interest: any) => (
+                          <div
+                            key={interest.id}
+                            className="p-4 rounded-xl border flex items-start justify-between"
+                            style={{ background: "var(--color-overlay)", borderColor: "var(--color-border)" }}
+                          >
+                            <div>
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="text-sm font-semibold" style={{ color: "var(--color-text-primary)" }}>
+                                  {interest.investor_name || "Anonymous Investor"}
+                                </span>
+                                {interest.investor_entity && (
+                                  <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: "rgba(139, 92, 246, 0.1)", color: "var(--color-accent-purple-light)" }}>
+                                    {interest.investor_entity}
+                                  </span>
+                                )}
+                                <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium capitalize ${
+                                  interest.status === "intro_made"
+                                    ? "bg-emerald-500/10 text-emerald-400"
+                                    : "bg-blue-500/10 text-blue-400"
+                                }`}>
+                                  {interest.status.replace(/_/g, " ")}
+                                </span>
+                              </div>
+                              {interest.investor_email && (
+                                <p className="text-xs" style={{ color: "var(--color-text-secondary)" }}>{interest.investor_email}</p>
+                              )}
+                              {interest.message && (
+                                <p className="text-xs mt-1" style={{ color: "var(--color-text-muted)" }}>&ldquo;{interest.message}&rdquo;</p>
+                              )}
+                            </div>
+                            <span className="text-[10px] shrink-0 ml-3" style={{ color: "var(--color-text-muted)" }}>
+                              {interest.created_at ? new Date(interest.created_at).toLocaleDateString() : ""}
+                            </span>
                           </div>
                         ))}
                       </div>
