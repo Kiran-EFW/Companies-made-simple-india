@@ -17,6 +17,13 @@ from src.models.service_catalog import (
 from src.models.accounting_connection import (
     AccountingConnection, AccountingPlatform, ConnectionStatus,
 )
+from src.models.esop import (
+    ESOPPlan, ESOPGrant, ESOPPlanStatus, ESOPGrantStatus, VestingType,
+)
+from src.models.funding_round import (
+    FundingRound, RoundInvestor, FundingRoundStatus, InstrumentType,
+)
+from src.models.stakeholder import StakeholderProfile, StakeholderType
 
 __all__ = [
     "User", "UserRole",
@@ -34,4 +41,7 @@ __all__ = [
     "ServiceRequest", "ServiceRequestStatus", "ServiceCategory",
     "Subscription", "SubscriptionStatus", "SubscriptionInterval",
     "AccountingConnection", "AccountingPlatform", "ConnectionStatus",
+    "ESOPPlan", "ESOPGrant", "ESOPPlanStatus", "ESOPGrantStatus", "VestingType",
+    "FundingRound", "RoundInvestor", "FundingRoundStatus", "InstrumentType",
+    "StakeholderProfile", "StakeholderType",
 ]

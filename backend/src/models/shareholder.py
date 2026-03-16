@@ -35,6 +35,9 @@ class Shareholder(Base):
     date_of_allotment = Column(DateTime, nullable=True)
     is_promoter = Column(Boolean, default=False)
 
+    # Link to stakeholder profile (for portfolio view across companies)
+    stakeholder_profile_id = Column(Integer, ForeignKey("stakeholder_profiles.id"), nullable=True)
+
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(
         DateTime,
@@ -44,6 +47,7 @@ class Shareholder(Base):
 
     # Relationships
     company = relationship("Company", backref="shareholders")
+    stakeholder_profile = relationship("StakeholderProfile", backref="shareholdings")
 
 
 class ShareTransaction(Base):

@@ -189,7 +189,7 @@ export default function DashboardPage() {
     return (
       <div className="min-h-screen flex items-center justify-center glow-bg">
         <div className="animate-pulse-glow w-16 h-16 rounded-full flex items-center justify-center" style={{ background: "rgba(139, 92, 246, 0.2)" }}>
-           <span className="text-2xl">⚡</span>
+           <img src="/logo-icon.png" alt="Anvils" className="w-7 h-7 object-contain" />
         </div>
       </div>
     );
@@ -200,7 +200,7 @@ export default function DashboardPage() {
       <nav className="glass-card sticky top-0 z-50 rounded-none border-t-0 border-x-0 border-b">
           <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
             <Link href="/dashboard" className="flex items-center gap-2">
-              <span className="text-xl">⚡</span>
+              <img src="/logo-icon.png" alt="Anvils" className="w-5 h-5 object-contain" />
               <span className="font-bold hidden md:block" style={{ fontFamily: "var(--font-display)" }}>Anvils</span>
             </Link>
             
@@ -480,6 +480,27 @@ export default function DashboardPage() {
                            </div>
                            <div className="p-4 rounded-lg border flex justify-between items-center group hover:border-purple-500/30 transition-colors" style={{ background: "var(--color-overlay)", borderColor: "var(--color-border)" }}>
                               <div>
+                                 <h4 className="text-sm font-semibold">ESOP Management</h4>
+                                 <p className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>Stock option plans, grants &amp; vesting</p>
+                              </div>
+                              <Link href="/dashboard/esop" className="text-xs font-bold text-purple-400 group-hover:underline">Manage &#8594;</Link>
+                           </div>
+                           <div className="p-4 rounded-lg border flex justify-between items-center group hover:border-purple-500/30 transition-colors" style={{ background: "var(--color-overlay)", borderColor: "var(--color-border)" }}>
+                              <div>
+                                 <h4 className="text-sm font-semibold">Fundraising</h4>
+                                 <p className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>Funding rounds, investors &amp; closing room</p>
+                              </div>
+                              <Link href="/dashboard/fundraising" className="text-xs font-bold text-purple-400 group-hover:underline">Manage &#8594;</Link>
+                           </div>
+                           <div className="p-4 rounded-lg border flex justify-between items-center group hover:border-purple-500/30 transition-colors" style={{ background: "var(--color-overlay)", borderColor: "var(--color-border)" }}>
+                              <div>
+                                 <h4 className="text-sm font-semibold">Stakeholders</h4>
+                                 <p className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>Investors, employees, advisors &amp; portfolio</p>
+                              </div>
+                              <Link href="/dashboard/stakeholders" className="text-xs font-bold text-purple-400 group-hover:underline">View &#8594;</Link>
+                           </div>
+                           <div className="p-4 rounded-lg border flex justify-between items-center group hover:border-purple-500/30 transition-colors" style={{ background: "var(--color-overlay)", borderColor: "var(--color-border)" }}>
+                              <div>
                                  <h4 className="text-sm font-semibold">Data Room</h4>
                                  <p className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>Secure document vault with investor sharing</p>
                               </div>
@@ -642,7 +663,7 @@ export default function DashboardPage() {
                                     >
                                       <div className="flex items-center gap-2 mb-1">
                                         <span className="text-[10px] font-semibold" style={{ color: isMe ? "var(--color-accent-purple-light)" : "var(--color-info)" }}>
-                                          {isMe ? "You" : (msg.sender_name || "CMS Team")}
+                                          {isMe ? "You" : (msg.sender_name || "Anvils Team")}
                                         </span>
                                         <span className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>
                                           {msg.created_at ? new Date(msg.created_at).toLocaleString() : ""}

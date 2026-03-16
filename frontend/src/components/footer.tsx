@@ -6,12 +6,13 @@ export default function Footer() {
   return (
     <footer className="site-footer">
       <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <img src="/logo-icon.png" alt="Anvils" className="w-5 h-5 object-contain" />
           <span className="font-semibold" style={{ color: "var(--color-text-secondary)" }}>
             Anvils
           </span>
           <span style={{ color: "var(--color-text-muted)" }}>
-            &copy; {new Date().getFullYear()} Anvils
+            &copy; {new Date().getFullYear()} Companies Made Simple
           </span>
         </div>
         <div className="flex items-center gap-6">
@@ -19,7 +20,7 @@ export default function Footer() {
           <Link href="/compare" className="nav-link">Compare</Link>
           <Link href="/documents" className="nav-link">Legal Docs</Link>
           <Link href="/learn" className="nav-link">Learn</Link>
-          <a href="mailto:support@companiesmade.in" className="nav-link">Support</a>
+          <a href="mailto:support@anvils.in" className="nav-link">Support</a>
         </div>
       </div>
     </footer>

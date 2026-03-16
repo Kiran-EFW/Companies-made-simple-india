@@ -1,13 +1,19 @@
 """
 Fundraising Service — generates term sheet templates, valuation calculators,
-and post-fundraise filing requirements.
+post-fundraise filing requirements, and manages funding rounds with
+investor tracking, closing room, and share allotment.
 
 Supports equity rounds, SAFE notes, and convertible notes.
 """
 
 import logging
 from typing import Optional, List, Dict, Any
-from datetime import date
+from datetime import date, datetime, timezone
+from sqlalchemy.orm import Session
+
+from src.models.funding_round import (
+    FundingRound, RoundInvestor, FundingRoundStatus, InstrumentType,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -404,6 +410,603 @@ class FundraisingService:
                     "Consult legal counsel before use."
                 ),
             },
+        }
+
+    # ------------------------------------------------------------------
+    # Funding Round CRUD
+    # ------------------------------------------------------------------
+
+    def create_round(
+        self, db: Session, company_id: int, data: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Create a new funding round."""
+        instrument = InstrumentType.EQUITY
+        if data.get("instrument_type"):
+            instrument = InstrumentType(data["instrument_type"])
+
+        pre_money = data.get("pre_money_valuation")
+        target = data.get("target_amount")
+        post_money = None
+        price_per_share = data.get("price_per_share")
+
+        if pre_money and target:
+            post_money = pre_money + target
+
+        round_obj = FundingRound(
+            company_id=company_id,
+            round_name=data["round_name"],
+            instrument_type=instrument,
+            pre_money_valuation=pre_money,
+            post_money_valuation=post_money,
+            price_per_share=price_per_share,
+            target_amount=target,
+            valuation_cap=data.get("valuation_cap"),
+            discount_rate=data.get("discount_rate"),
+            interest_rate=data.get("interest_rate"),
+            maturity_months=data.get("maturity_months"),
+            esop_pool_expansion_pct=data.get("esop_pool_expansion_pct", 0.0),
+            notes=data.get("notes"),
+        )
+        db.add(round_obj)
+        try:
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
+        db.refresh(round_obj)
+        return self._serialize_round(round_obj)
+
+    def get_round(
+        self, db: Session, round_id: int, company_id: int
+    ) -> Optional[Dict[str, Any]]:
+        """Get round with investors and documents."""
+        round_obj = (
+            db.query(FundingRound)
+            .filter(
+                FundingRound.id == round_id,
+                FundingRound.company_id == company_id,
+            )
+            .first()
+        )
+        if not round_obj:
+            return None
+
+        investors = (
+            db.query(RoundInvestor)
+            .filter(RoundInvestor.funding_round_id == round_id)
+            .all()
+        )
+
+        result = self._serialize_round(round_obj)
+        result["investors"] = [self._serialize_investor(inv) for inv in investors]
+        return result
+
+    def list_rounds(
+        self, db: Session, company_id: int
+    ) -> List[Dict[str, Any]]:
+        """List all rounds for a company."""
+        rounds = (
+            db.query(FundingRound)
+            .filter(FundingRound.company_id == company_id)
+            .order_by(FundingRound.created_at.desc())
+            .all()
+        )
+        result = []
+        for r in rounds:
+            data = self._serialize_round(r)
+            investor_count = (
+                db.query(RoundInvestor)
+                .filter(RoundInvestor.funding_round_id == r.id)
+                .count()
+            )
+            data["investor_count"] = investor_count
+            result.append(data)
+        return result
+
+    def update_round(
+        self, db: Session, round_id: int, company_id: int, data: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Update round details and recalculate valuations."""
+        round_obj = (
+            db.query(FundingRound)
+            .filter(
+                FundingRound.id == round_id,
+                FundingRound.company_id == company_id,
+            )
+            .first()
+        )
+        if not round_obj:
+            return {"error": "Round not found"}
+
+        for field in [
+            "round_name", "pre_money_valuation", "post_money_valuation",
+            "price_per_share", "target_amount", "valuation_cap",
+            "discount_rate", "interest_rate", "maturity_months",
+            "esop_pool_expansion_pct", "notes",
+        ]:
+            if field in data and data[field] is not None:
+                setattr(round_obj, field, data[field])
+
+        if data.get("instrument_type"):
+            round_obj.instrument_type = InstrumentType(data["instrument_type"])
+        if data.get("status"):
+            round_obj.status = FundingRoundStatus(data["status"])
+
+        # Recalculate post-money if pre-money changed
+        if round_obj.pre_money_valuation and round_obj.amount_raised:
+            round_obj.post_money_valuation = (
+                round_obj.pre_money_valuation + round_obj.amount_raised
+            )
+
+        try:
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
+        db.refresh(round_obj)
+        return self._serialize_round(round_obj)
+
+    # ------------------------------------------------------------------
+    # Investor Management
+    # ------------------------------------------------------------------
+
+    def add_investor(
+        self, db: Session, round_id: int, company_id: int, data: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Add an investor to a round."""
+        round_obj = (
+            db.query(FundingRound)
+            .filter(
+                FundingRound.id == round_id,
+                FundingRound.company_id == company_id,
+            )
+            .first()
+        )
+        if not round_obj:
+            return {"error": "Round not found"}
+
+        investor = RoundInvestor(
+            funding_round_id=round_id,
+            company_id=company_id,
+            investor_name=data["investor_name"],
+            investor_email=data.get("investor_email"),
+            investor_type=data.get("investor_type", "angel"),
+            investor_entity=data.get("investor_entity"),
+            investment_amount=data["investment_amount"],
+            share_type=data.get("share_type", "equity"),
+            notes=data.get("notes"),
+        )
+        db.add(investor)
+
+        # Update amount raised
+        round_obj.amount_raised = (round_obj.amount_raised or 0) + data["investment_amount"]
+        if round_obj.pre_money_valuation:
+            round_obj.post_money_valuation = (
+                round_obj.pre_money_valuation + round_obj.amount_raised
+            )
+
+        try:
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
+        db.refresh(investor)
+        return self._serialize_investor(investor)
+
+    def update_investor(
+        self, db: Session, investor_id: int, company_id: int, data: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Update investor details and status flags."""
+        investor = (
+            db.query(RoundInvestor)
+            .filter(
+                RoundInvestor.id == investor_id,
+                RoundInvestor.company_id == company_id,
+            )
+            .first()
+        )
+        if not investor:
+            return {"error": "Investor not found"}
+
+        old_amount = investor.investment_amount
+
+        for field in [
+            "investor_name", "investor_email", "investor_type",
+            "investor_entity", "investment_amount", "share_type",
+            "committed", "funds_received", "documents_signed",
+            "shares_issued", "notes",
+        ]:
+            if field in data and data[field] is not None:
+                setattr(investor, field, data[field])
+
+        # Update amount_raised if investment_amount changed
+        if "investment_amount" in data and data["investment_amount"] is not None:
+            round_obj = db.query(FundingRound).filter(
+                FundingRound.id == investor.funding_round_id
+            ).first()
+            if round_obj:
+                round_obj.amount_raised = (
+                    (round_obj.amount_raised or 0) - old_amount + data["investment_amount"]
+                )
+                if round_obj.pre_money_valuation:
+                    round_obj.post_money_valuation = (
+                        round_obj.pre_money_valuation + round_obj.amount_raised
+                    )
+
+        try:
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
+        db.refresh(investor)
+        return self._serialize_investor(investor)
+
+    def remove_investor(
+        self, db: Session, investor_id: int, company_id: int
+    ) -> Dict[str, Any]:
+        """Remove an investor from a round."""
+        investor = (
+            db.query(RoundInvestor)
+            .filter(
+                RoundInvestor.id == investor_id,
+                RoundInvestor.company_id == company_id,
+            )
+            .first()
+        )
+        if not investor:
+            return {"error": "Investor not found"}
+
+        round_obj = db.query(FundingRound).filter(
+            FundingRound.id == investor.funding_round_id
+        ).first()
+        if round_obj:
+            round_obj.amount_raised = max(
+                0, (round_obj.amount_raised or 0) - investor.investment_amount
+            )
+            if round_obj.pre_money_valuation:
+                round_obj.post_money_valuation = (
+                    round_obj.pre_money_valuation + round_obj.amount_raised
+                )
+
+        db.delete(investor)
+        try:
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
+        return {"message": "Investor removed"}
+
+    # ------------------------------------------------------------------
+    # Document Linking & Closing Room
+    # ------------------------------------------------------------------
+
+    def link_document(
+        self, db: Session, round_id: int, company_id: int,
+        doc_type: str, document_id: int
+    ) -> Dict[str, Any]:
+        """Link a legal document (term_sheet/sha/ssa) to a round."""
+        round_obj = (
+            db.query(FundingRound)
+            .filter(
+                FundingRound.id == round_id,
+                FundingRound.company_id == company_id,
+            )
+            .first()
+        )
+        if not round_obj:
+            return {"error": "Round not found"}
+
+        if doc_type == "term_sheet":
+            round_obj.term_sheet_document_id = document_id
+        elif doc_type == "sha":
+            round_obj.sha_document_id = document_id
+        elif doc_type == "ssa":
+            round_obj.ssa_document_id = document_id
+        else:
+            return {"error": f"Unknown document type: {doc_type}"}
+
+        try:
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
+        return {"message": f"{doc_type} linked successfully", "document_id": document_id}
+
+    def initiate_closing(
+        self, db: Session, round_id: int, company_id: int,
+        user_id: int, documents_to_sign: List[str]
+    ) -> Dict[str, Any]:
+        """Start the closing room — send SHA/SSA for e-sign."""
+        from src.services.esign_service import esign_service
+        from src.schemas.esign import SignatureRequestCreate, SignatoryCreate
+
+        round_obj = (
+            db.query(FundingRound)
+            .filter(
+                FundingRound.id == round_id,
+                FundingRound.company_id == company_id,
+            )
+            .first()
+        )
+        if not round_obj:
+            return {"error": "Round not found"}
+
+        investors = (
+            db.query(RoundInvestor)
+            .filter(
+                RoundInvestor.funding_round_id == round_id,
+                RoundInvestor.committed == True,
+            )
+            .all()
+        )
+
+        if not investors:
+            return {"error": "No committed investors found"}
+
+        results = {}
+
+        for doc_type in documents_to_sign:
+            doc_id = None
+            if doc_type == "sha":
+                doc_id = round_obj.sha_document_id
+            elif doc_type == "ssa":
+                doc_id = round_obj.ssa_document_id
+
+            if not doc_id:
+                results[doc_type] = {"status": "skipped", "reason": "No document linked"}
+                continue
+
+            signatories = []
+            for idx, inv in enumerate(investors):
+                if inv.investor_email:
+                    signatories.append(
+                        SignatoryCreate(
+                            name=inv.investor_name,
+                            email=inv.investor_email,
+                            designation=inv.investor_type or "Investor",
+                            signing_order=idx + 1,
+                        )
+                    )
+
+            if not signatories:
+                results[doc_type] = {"status": "skipped", "reason": "No signatories with email"}
+                continue
+
+            sig_data = SignatureRequestCreate(
+                legal_document_id=doc_id,
+                title=f"{round_obj.round_name} - {doc_type.upper()}",
+                message=f"Please review and sign the {doc_type.upper()} for {round_obj.round_name}.",
+                signing_order="parallel",
+                expires_in_days=30,
+                signatories=signatories,
+            )
+
+            sig_request = esign_service.create_signature_request(
+                db=db, user_id=user_id, data=sig_data
+            )
+
+            if doc_type == "sha":
+                round_obj.sha_signature_request_id = sig_request.id
+            elif doc_type == "ssa":
+                round_obj.ssa_signature_request_id = sig_request.id
+
+            results[doc_type] = {
+                "status": "sent",
+                "signature_request_id": sig_request.id,
+            }
+
+        round_obj.status = FundingRoundStatus.CLOSING
+
+        try:
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
+
+        return {
+            "message": "Closing room initiated",
+            "round_id": round_id,
+            "documents": results,
+        }
+
+    def get_closing_room_status(
+        self, db: Session, round_id: int, company_id: int
+    ) -> Dict[str, Any]:
+        """Check signing status for the closing room."""
+        from src.models.esign import SignatureRequest, Signatory
+
+        round_obj = (
+            db.query(FundingRound)
+            .filter(
+                FundingRound.id == round_id,
+                FundingRound.company_id == company_id,
+            )
+            .first()
+        )
+        if not round_obj:
+            return {"error": "Round not found"}
+
+        documents = {}
+
+        for doc_type, sig_req_id in [
+            ("sha", round_obj.sha_signature_request_id),
+            ("ssa", round_obj.ssa_signature_request_id),
+        ]:
+            if not sig_req_id:
+                documents[doc_type] = {"status": "not_initiated"}
+                continue
+
+            sig_req = db.query(SignatureRequest).filter(
+                SignatureRequest.id == sig_req_id
+            ).first()
+
+            if not sig_req:
+                documents[doc_type] = {"status": "not_found"}
+                continue
+
+            signatories = db.query(Signatory).filter(
+                Signatory.signature_request_id == sig_req_id
+            ).all()
+
+            documents[doc_type] = {
+                "status": sig_req.status.value if hasattr(sig_req.status, 'value') else str(sig_req.status),
+                "signature_request_id": sig_req_id,
+                "signatories": [
+                    {
+                        "name": s.name,
+                        "email": s.email,
+                        "status": s.status.value if hasattr(s.status, 'value') else str(s.status),
+                        "signed_at": s.signed_at.isoformat() if s.signed_at else None,
+                    }
+                    for s in signatories
+                ],
+            }
+
+        return {
+            "round_id": round_id,
+            "round_name": round_obj.round_name,
+            "round_status": round_obj.status.value,
+            "documents": documents,
+        }
+
+    # ------------------------------------------------------------------
+    # Share Allotment (Post-Close)
+    # ------------------------------------------------------------------
+
+    def complete_allotment(
+        self, db: Session, round_id: int, company_id: int,
+        investor_ids: Optional[List[int]] = None
+    ) -> Dict[str, Any]:
+        """
+        Allot shares to investors after closing.
+        Creates Shareholder records via cap_table_service.
+        """
+        from src.services.cap_table_service import cap_table_service, AllotmentEntry
+
+        round_obj = (
+            db.query(FundingRound)
+            .filter(
+                FundingRound.id == round_id,
+                FundingRound.company_id == company_id,
+            )
+            .first()
+        )
+        if not round_obj:
+            return {"error": "Round not found"}
+
+        query = db.query(RoundInvestor).filter(
+            RoundInvestor.funding_round_id == round_id,
+            RoundInvestor.shares_issued == False,
+        )
+        if investor_ids:
+            query = query.filter(RoundInvestor.id.in_(investor_ids))
+
+        investors = query.all()
+        if not investors:
+            return {"error": "No investors eligible for allotment"}
+
+        price_per_share = round_obj.price_per_share or 10.0
+
+        entries = []
+        for inv in investors:
+            shares = int(inv.investment_amount / price_per_share) if price_per_share > 0 else 0
+            if shares <= 0:
+                continue
+
+            inv.shares_allotted = shares
+            entries.append(AllotmentEntry(
+                name=inv.investor_name,
+                shares=shares,
+                share_type=inv.share_type or "equity",
+                face_value=10.0,
+                paid_up_value=price_per_share,
+                price_per_share=price_per_share,
+                email=inv.investor_email,
+                is_promoter=False,
+            ))
+
+        if not entries:
+            return {"error": "No valid allotments to make (check price_per_share)"}
+
+        allotment_result = cap_table_service.record_allotment(
+            db, company_id, entries
+        )
+
+        # Mark investors as shares issued and link shareholder IDs
+        for inv in investors:
+            if inv.shares_allotted and inv.shares_allotted > 0:
+                inv.shares_issued = True
+
+        round_obj.allotment_completed = True
+        round_obj.allotment_date = datetime.now(timezone.utc)
+        round_obj.status = FundingRoundStatus.CLOSED
+
+        try:
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
+
+        return {
+            "message": f"Shares allotted to {len(entries)} investor(s)",
+            "round_id": round_id,
+            "allotment": allotment_result,
+            "post_fundraise_filings": POST_FUNDRAISE_FILINGS,
+        }
+
+    # ------------------------------------------------------------------
+    # Serializers
+    # ------------------------------------------------------------------
+
+    def _serialize_round(self, r: FundingRound) -> Dict[str, Any]:
+        """Serialize a FundingRound to dict."""
+        return {
+            "id": r.id,
+            "company_id": r.company_id,
+            "round_name": r.round_name,
+            "instrument_type": r.instrument_type.value if r.instrument_type else "equity",
+            "pre_money_valuation": r.pre_money_valuation,
+            "post_money_valuation": r.post_money_valuation,
+            "price_per_share": r.price_per_share,
+            "target_amount": r.target_amount,
+            "amount_raised": r.amount_raised or 0,
+            "valuation_cap": r.valuation_cap,
+            "discount_rate": r.discount_rate,
+            "interest_rate": r.interest_rate,
+            "maturity_months": r.maturity_months,
+            "esop_pool_expansion_pct": r.esop_pool_expansion_pct or 0,
+            "status": r.status.value if r.status else "draft",
+            "term_sheet_document_id": r.term_sheet_document_id,
+            "sha_document_id": r.sha_document_id,
+            "ssa_document_id": r.ssa_document_id,
+            "allotment_date": r.allotment_date.isoformat() if r.allotment_date else None,
+            "allotment_completed": r.allotment_completed or False,
+            "notes": r.notes,
+            "created_at": r.created_at.isoformat() if r.created_at else None,
+            "updated_at": r.updated_at.isoformat() if r.updated_at else None,
+        }
+
+    def _serialize_investor(self, inv: RoundInvestor) -> Dict[str, Any]:
+        """Serialize a RoundInvestor to dict."""
+        return {
+            "id": inv.id,
+            "funding_round_id": inv.funding_round_id,
+            "company_id": inv.company_id,
+            "investor_name": inv.investor_name,
+            "investor_email": inv.investor_email,
+            "investor_type": inv.investor_type,
+            "investor_entity": inv.investor_entity,
+            "investment_amount": inv.investment_amount,
+            "shares_allotted": inv.shares_allotted or 0,
+            "share_type": inv.share_type,
+            "committed": inv.committed or False,
+            "funds_received": inv.funds_received or False,
+            "documents_signed": inv.documents_signed or False,
+            "shares_issued": inv.shares_issued or False,
+            "shareholder_id": inv.shareholder_id,
+            "notes": inv.notes,
+            "created_at": inv.created_at.isoformat() if inv.created_at else None,
+            "updated_at": inv.updated_at.isoformat() if inv.updated_at else None,
         }
 
     # ------------------------------------------------------------------

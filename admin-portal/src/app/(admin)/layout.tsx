@@ -132,9 +132,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <aside className="w-64 glass-card border-r border-t-0 border-b-0 border-l-0 rounded-none flex flex-col">
           <div className="p-6" style={{ borderBottom: "1px solid var(--color-border)" }}>
             <Link href="/dashboard" className="flex items-center gap-2">
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ color: "var(--color-accent-purple-light)" }}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-              </svg>
+              <img src="/logo-icon.png" alt="Anvils" className="w-6 h-6 object-contain" />
               <span className="font-bold text-lg" style={{ fontFamily: "var(--font-display)" }}>Anvils Admin</span>
             </Link>
             <p className="text-xs mt-1" style={{ color: "var(--color-text-muted)" }}>Ops Command Center</p>

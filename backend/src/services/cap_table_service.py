@@ -117,11 +117,20 @@ class CapTableService:
                 "is_promoter": s.is_promoter,
             })
 
+        # ESOP pool summary (lazy import to avoid circular deps)
+        esop_pool = None
+        try:
+            from src.services.esop_service import esop_service
+            esop_pool = esop_service.get_esop_pool_summary(db, company_id)
+        except Exception:
+            pass
+
         return {
             "company_id": company_id,
             "total_shares": total_shares,
             "total_shareholders": len(shareholders),
             "shareholders": shareholder_data,
+            "esop_pool": esop_pool,
             "summary": {
                 "equity_shares": sum(
                     s.shares for s in shareholders
@@ -693,6 +702,258 @@ class CapTableService:
             "scenario_type": scenario_type,
             "scenario_data": scenario_data,
             "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+
+    # ------------------------------------------------------------------
+    # Exit waterfall & share certificates
+    # ------------------------------------------------------------------
+
+    def simulate_exit_waterfall(
+        self,
+        db: Session,
+        company_id: int,
+        exit_valuation: float,
+        liquidation_preferences: Optional[List[Dict[str, Any]]] = None,
+        participating_preferred: bool = False,
+    ) -> Dict[str, Any]:
+        """
+        Full waterfall analysis: pay liquidation preferences first,
+        then distribute remaining pro-rata among common holders (and
+        optionally participating preferred).
+
+        liquidation_preferences format:
+        [{"shareholder_id": 5, "multiple": 1.5, "invested_amount": 5000000}, ...]
+        """
+        shareholders = (
+            db.query(Shareholder)
+            .filter(Shareholder.company_id == company_id)
+            .all()
+        )
+        total_shares = sum(s.shares for s in shareholders)
+
+        if total_shares == 0:
+            return {"error": "No existing shareholders found for this company"}
+
+        if liquidation_preferences is None:
+            liquidation_preferences = []
+
+        # Build lookup of liq pref shareholders
+        lp_lookup: Dict[int, Dict[str, Any]] = {}
+        for lp in liquidation_preferences:
+            lp_lookup[lp["shareholder_id"]] = {
+                "multiple": lp.get("multiple", 1.0),
+                "invested_amount": lp.get("invested_amount", 0),
+            }
+
+        waterfall_steps = []
+        remaining = exit_valuation
+
+        # Step 1: Pay liquidation preferences
+        lp_payouts: Dict[int, float] = {}
+        total_lp_payout = 0.0
+        for lp in liquidation_preferences:
+            sh_id = lp["shareholder_id"]
+            pref_amount = round(lp.get("invested_amount", 0) * lp.get("multiple", 1.0), 2)
+            actual_payout = min(pref_amount, remaining)
+            lp_payouts[sh_id] = actual_payout
+            remaining -= actual_payout
+            total_lp_payout += actual_payout
+
+        if total_lp_payout > 0:
+            waterfall_steps.append({
+                "step": "Liquidation Preferences",
+                "amount": total_lp_payout,
+                "remaining_after": round(remaining, 2),
+                "details": [
+                    {
+                        "shareholder_id": sh_id,
+                        "name": next(
+                            (s.name for s in shareholders if s.id == sh_id), "Unknown"
+                        ),
+                        "payout": payout,
+                    }
+                    for sh_id, payout in lp_payouts.items()
+                ],
+            })
+
+        # Step 2: Pro-rata distribution of remaining
+        # If participating preferred, all holders share remaining
+        # If non-participating, lp holders already got their pref — they don't
+        #   participate further unless their pro-rata would exceed pref
+        payouts: Dict[int, float] = {}
+        pro_rata_details = []
+
+        if participating_preferred:
+            # All shareholders share remaining pro-rata
+            for s in shareholders:
+                pct = s.shares / total_shares if total_shares > 0 else 0
+                share_of_remaining = round(remaining * pct, 2)
+                payouts[s.id] = lp_payouts.get(s.id, 0) + share_of_remaining
+                pro_rata_details.append({
+                    "shareholder_id": s.id,
+                    "name": s.name,
+                    "payout": share_of_remaining,
+                })
+        else:
+            # Non-participating: lp holders take GREATER of (pref, pro-rata)
+            for s in shareholders:
+                pct = s.shares / total_shares if total_shares > 0 else 0
+                full_pro_rata = round(exit_valuation * pct, 2)
+                lp_amount = lp_payouts.get(s.id, 0)
+                if s.id in lp_lookup:
+                    # Investor takes greater of pref or pro-rata
+                    payouts[s.id] = max(lp_amount, full_pro_rata)
+                else:
+                    # Common holder gets pro-rata of remaining
+                    share_of_remaining = round(remaining * pct, 2)
+                    payouts[s.id] = share_of_remaining
+                pro_rata_details.append({
+                    "shareholder_id": s.id,
+                    "name": s.name,
+                    "payout": payouts[s.id] - lp_payouts.get(s.id, 0),
+                })
+
+        waterfall_steps.append({
+            "step": "Pro-Rata Distribution" + (" (Participating)" if participating_preferred else ""),
+            "amount": round(remaining, 2),
+            "remaining_after": 0,
+            "details": pro_rata_details,
+        })
+
+        # Build final shareholder payouts
+        final_payouts = []
+        total_distributed = 0.0
+        for s in shareholders:
+            payout_amount = round(payouts.get(s.id, 0), 2)
+            cost_basis = s.face_value * s.shares
+            roi_multiple = round(payout_amount / cost_basis, 2) if cost_basis > 0 else 0.0
+            pct = round(s.shares / total_shares * 100, 2)
+
+            final_payouts.append({
+                "shareholder_id": s.id,
+                "name": s.name,
+                "shares": s.shares,
+                "percentage": pct,
+                "lp_payout": lp_payouts.get(s.id, 0),
+                "pro_rata_payout": round(payout_amount - lp_payouts.get(s.id, 0), 2),
+                "total_payout": payout_amount,
+                "roi_multiple": roi_multiple,
+                "is_promoter": s.is_promoter,
+            })
+            total_distributed += payout_amount
+
+        return {
+            "exit_valuation": exit_valuation,
+            "participating_preferred": participating_preferred,
+            "waterfall_steps": waterfall_steps,
+            "payouts": final_payouts,
+            "summary": {
+                "total_distributed": round(total_distributed, 2),
+                "remaining": round(exit_valuation - total_distributed, 2),
+                "total_lp_amount": total_lp_payout,
+            },
+        }
+
+    def generate_share_certificate(
+        self,
+        db: Session,
+        company_id: int,
+        shareholder_id: int,
+    ) -> Dict[str, Any]:
+        """Generate HTML share certificate for a shareholder."""
+        shareholder = (
+            db.query(Shareholder)
+            .filter(
+                Shareholder.id == shareholder_id,
+                Shareholder.company_id == company_id,
+            )
+            .first()
+        )
+        if not shareholder:
+            return {"error": "Shareholder not found"}
+
+        # Fetch company name
+        try:
+            from src.models.company import Company
+            company = db.query(Company).filter(Company.id == company_id).first()
+            company_name = company.company_name if company else f"Company #{company_id}"
+            cin = getattr(company, "cin", "") or ""
+        except Exception:
+            company_name = f"Company #{company_id}"
+            cin = ""
+
+        cert_number = f"SC-{company_id:04d}-{shareholder_id:06d}"
+        allotment_date = (
+            shareholder.date_of_allotment.strftime("%d %B %Y")
+            if shareholder.date_of_allotment
+            else "N/A"
+        )
+        share_type = shareholder.share_type.value if shareholder.share_type else "equity"
+
+        html = f"""<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Share Certificate {cert_number}</title>
+<style>
+  @page {{ size: landscape; margin: 20mm; }}
+  body {{ font-family: 'Georgia', serif; margin: 0; padding: 40px; background: #fff; color: #1a1a1a; }}
+  .certificate {{ border: 3px double #333; padding: 40px 60px; max-width: 900px; margin: auto; position: relative; }}
+  .certificate::before {{ content: ''; position: absolute; inset: 8px; border: 1px solid #999; pointer-events: none; }}
+  .header {{ text-align: center; margin-bottom: 30px; }}
+  .company-name {{ font-size: 28px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; }}
+  .cin {{ font-size: 11px; color: #666; margin-top: 4px; }}
+  .cert-title {{ font-size: 18px; text-transform: uppercase; letter-spacing: 3px; margin: 20px 0; color: #555; }}
+  .cert-number {{ font-size: 13px; color: #888; }}
+  .body {{ text-align: center; margin: 30px 0; line-height: 1.8; font-size: 15px; }}
+  .highlight {{ font-size: 20px; font-weight: bold; }}
+  .details-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 10px 40px; margin: 30px auto; max-width: 600px; text-align: left; font-size: 14px; }}
+  .details-grid dt {{ color: #666; }}
+  .details-grid dd {{ font-weight: 600; margin: 0 0 10px 0; }}
+  .footer {{ text-align: center; margin-top: 40px; font-size: 12px; color: #888; }}
+  .signatures {{ display: flex; justify-content: space-between; margin-top: 50px; }}
+  .sig-block {{ text-align: center; width: 200px; }}
+  .sig-line {{ border-top: 1px solid #333; margin-top: 60px; padding-top: 5px; font-size: 12px; }}
+</style></head>
+<body>
+<div class="certificate">
+  <div class="header">
+    <div class="company-name">{company_name}</div>
+    {f'<div class="cin">CIN: {cin}</div>' if cin else ''}
+    <div class="cert-title">Share Certificate</div>
+    <div class="cert-number">Certificate No. {cert_number}</div>
+  </div>
+  <div class="body">
+    <p>This is to certify that</p>
+    <p class="highlight">{shareholder.name}</p>
+    <p>is the registered holder of</p>
+    <p class="highlight">{shareholder.shares:,} {share_type.title()} Shares</p>
+    <p>of <strong>{company_name}</strong></p>
+  </div>
+  <dl class="details-grid">
+    <dt>Face Value per Share</dt><dd>Rs {shareholder.face_value}</dd>
+    <dt>Paid-up Value per Share</dt><dd>Rs {shareholder.paid_up_value}</dd>
+    <dt>Date of Allotment</dt><dd>{allotment_date}</dd>
+    <dt>Share Type</dt><dd>{share_type.title()}</dd>
+    {f'<dt>PAN</dt><dd>{shareholder.pan_number}</dd>' if shareholder.pan_number else ''}
+    {f'<dt>Email</dt><dd>{shareholder.email}</dd>' if shareholder.email else ''}
+  </dl>
+  <div class="signatures">
+    <div class="sig-block"><div class="sig-line">Director</div></div>
+    <div class="sig-block"><div class="sig-line">Company Secretary</div></div>
+  </div>
+  <div class="footer">
+    Generated on {datetime.now(timezone.utc).strftime('%d %B %Y')} | Companies Act, 2013 — Rule 5(2)
+  </div>
+</div>
+</body></html>"""
+
+        return {
+            "certificate_number": cert_number,
+            "shareholder_id": shareholder_id,
+            "shareholder_name": shareholder.name,
+            "shares": shareholder.shares,
+            "share_type": share_type,
+            "company_name": company_name,
+            "html": html,
         }
 
     # ------------------------------------------------------------------

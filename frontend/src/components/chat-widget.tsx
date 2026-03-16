@@ -21,17 +21,25 @@ export default function ChatWidget({ companyId }: ChatWidgetProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Fetch suggested questions on mount
+  // Fetch suggested questions on mount (only if authenticated)
   useEffect(() => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
+    if (!token) {
+      setSuggestedQuestions([
+        "What type of company should I form?",
+        "How much does incorporation cost?",
+        "What documents do I need?",
+      ]);
+      return;
+    }
     const fetchSuggestions = async () => {
       try {
         const data = await getSuggestedQuestions();
         setSuggestedQuestions(data.questions || []);
       } catch (err) {
-        console.error("Failed to fetch suggested questions:", err);
         setSuggestedQuestions([
-          "What entity type is best for a startup?",
-          "How long does incorporation take?",
+          "What type of company should I form?",
+          "How much does incorporation cost?",
           "What documents do I need?",
         ]);
       }

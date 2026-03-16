@@ -38,11 +38,11 @@ _BASE_TEMPLATE = Template("""<!DOCTYPE html>
             <p style="margin:0 0 8px 0;font-weight:600;color:#64748B;">Anvils</p>
             <p style="margin:0 0 4px 0;">Making company incorporation effortless</p>
             <p style="margin:12px 0 0 0;">
-              <a href="https://companiesmade.in" style="color:#7C3AED;text-decoration:none;">Website</a>
+              <a href="https://anvils.in" style="color:#7C3AED;text-decoration:none;">Website</a>
               &nbsp;&middot;&nbsp;
-              <a href="https://companiesmade.in/support" style="color:#7C3AED;text-decoration:none;">Support</a>
+              <a href="https://anvils.in/support" style="color:#7C3AED;text-decoration:none;">Support</a>
               &nbsp;&middot;&nbsp;
-              <a href="https://companiesmade.in/privacy" style="color:#7C3AED;text-decoration:none;">Privacy</a>
+              <a href="https://anvils.in/privacy" style="color:#7C3AED;text-decoration:none;">Privacy</a>
             </p>
           </td>
         </tr>

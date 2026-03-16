@@ -7,13 +7,13 @@ import type { PricingResponse, StateOption } from "@/lib/api";
 import Footer from "@/components/footer";
 
 const ENTITY_TYPES = [
-  { value: "private_limited", label: "Private Limited", emoji: "🏢" },
-  { value: "public_limited", label: "Public Limited", emoji: "🏛️" },
-  { value: "opc", label: "OPC", emoji: "👤" },
-  { value: "llp", label: "LLP", emoji: "🤝" },
-  { value: "partnership", label: "Partnership", emoji: "👥" },
-  { value: "section_8", label: "Section 8", emoji: "💚" },
-  { value: "sole_proprietorship", label: "Sole Prop", emoji: "📋" },
+  { value: "private_limited", label: "Private Limited" },
+  { value: "public_limited", label: "Public Limited" },
+  { value: "opc", label: "OPC" },
+  { value: "llp", label: "LLP" },
+  { value: "partnership", label: "Partnership" },
+  { value: "section_8", label: "Section 8" },
+  { value: "sole_proprietorship", label: "Sole Prop" },
 ];
 
 const PLAN_TIERS = [
@@ -301,16 +301,24 @@ export default function PricingPage() {
     <div className="glow-bg min-h-screen">
       {/* Nav */}
       <nav className="relative z-10 flex items-center justify-between px-6 py-5 max-w-7xl mx-auto">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="text-2xl">⚡</span>
-          <span className="text-xl font-bold" style={{ fontFamily: "var(--font-display)" }}>
-            <span className="gradient-text">CMS</span>{" "}
-            <span style={{ color: "var(--color-text-secondary)" }}>India</span>
-          </span>
+        <Link href="/" className="flex items-center gap-2.5">
+          <img src="/logo-icon.png" alt="Anvils" className="w-6 h-6 object-contain" />
+          <span className="text-xl font-bold gradient-text" style={{ fontFamily: "var(--font-display)" }}>Anvils</span>
         </Link>
-        <Link href="/wizard" className="btn-secondary text-sm !py-2 !px-5">
-          Not sure? Try our Entity Wizard →
-        </Link>
+        <div className="hidden md:flex items-center gap-6">
+          <Link href="/compare" className="text-sm font-medium" style={{ color: "var(--color-text-secondary)" }}>
+            Compare
+          </Link>
+          <Link href="/wizard" className="text-sm font-medium" style={{ color: "var(--color-text-secondary)" }}>
+            Entity Wizard
+          </Link>
+          <Link href="/login" className="text-sm font-medium" style={{ color: "var(--color-text-secondary)" }}>
+            Log in
+          </Link>
+          <Link href="/signup" className="btn-primary text-sm !py-2 !px-5">
+            Get Started
+          </Link>
+        </div>
       </nav>
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-8">
@@ -349,8 +357,7 @@ export default function PricingPage() {
                       border: `1px solid ${entityType === e.value ? "rgba(139, 92, 246, 0.5)" : "var(--color-border)"}`,
                     }}
                   >
-                    <span className="text-lg">{e.emoji}</span>
-                    <div className="font-medium mt-1">{e.label}</div>
+                    <div className="font-medium">{e.label}</div>
                   </button>
                 ))}
               </div>
@@ -480,7 +487,7 @@ export default function PricingPage() {
           <div className="lg:col-span-3">
             <div className="glass-card p-8 sticky top-8" style={{ cursor: "default" }}>
               <h2 className="text-xl font-bold mb-6" style={{ fontFamily: "var(--font-display)" }}>
-                💰 Your {entityType === "sole_proprietorship" ? "Registration" : entityType === "partnership" ? "Registration" : "Incorporation"} Cost Breakdown
+                Your {entityType === "sole_proprietorship" ? "Registration" : entityType === "partnership" ? "Registration" : "Incorporation"} Cost Breakdown
               </h2>
 
               {pricing ? (
@@ -658,14 +665,17 @@ export default function PricingPage() {
                   {/* Guarantees */}
                   <div className="space-y-2 mt-4">
                     <div className="flex items-center gap-2 text-sm" style={{ color: "var(--color-accent-emerald-light)" }}>
-                      <span>✅</span> No hidden fees
+                      <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                      No hidden fees
                     </div>
                     <div className="flex items-center gap-2 text-sm" style={{ color: "var(--color-accent-emerald-light)" }}>
-                      <span>✅</span> Government fees at exact cost (₹0 markup)
+                      <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                      Government fees at exact cost (₹0 markup)
                     </div>
                     {config.showDSC && (
                       <div className="flex items-center gap-2 text-sm" style={{ color: "var(--color-accent-emerald-light)" }}>
-                        <span>✅</span> DSC at wholesale rate
+                        <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                        DSC at wholesale rate
                       </div>
                     )}
                   </div>
@@ -680,7 +690,7 @@ export default function PricingPage() {
                       }}
                     >
                       <div className="text-sm font-semibold mb-1" style={{ color: "var(--color-accent-amber)" }}>
-                        💡 Cost Optimization Tip
+                        Cost Optimization Tip
                       </div>
                       <div className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
                         Registering in{" "}
@@ -721,7 +731,11 @@ export default function PricingPage() {
                 </div>
               ) : (
                 <div className="text-center py-16" style={{ color: "var(--color-text-muted)" }}>
-                  <div className="text-4xl mb-4">⏳</div>
+                  <div className="mb-4">
+                    <svg className="w-10 h-10 mx-auto" style={{ color: "var(--color-text-muted)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
                   <p>Start the backend to see real-time pricing</p>
                   <code className="text-xs mt-2 block" style={{ color: "var(--color-text-muted)" }}>
                     cd backend && uvicorn src.main:app --reload --port 8000

@@ -55,6 +55,33 @@ class ComplianceTaskType(str, enum.Enum):
     ADVANCE_TAX_Q3 = "advance_tax_q3"
     ADVANCE_TAX_Q4 = "advance_tax_q4"
 
+    # MSME — Semi-annual
+    MSME_1_H1 = "msme_1_h1"  # Oct (for Apr-Sep delayed payments)
+    MSME_1_H2 = "msme_1_h2"  # Apr (for Oct-Mar delayed payments)
+
+    # FEMA / RBI — FDI tracking
+    FC_GPR = "fc_gpr"          # Within 30 days of allotment to non-resident
+    FLA_RETURN = "fla_return"  # Annual — July 15
+
+    # Post-incorporation — share certificates
+    SHARE_CERTIFICATE_ISSUE = "share_certificate_issue"
+
+    # Annual — DPT-3 (deposit return)
+    DPT_3 = "dpt_3"
+
+    # GST Annual
+    GSTR_9_ANNUAL = "gstr_9_annual"
+
+    # Labor & Payroll — Monthly
+    EPFO_MONTHLY = "epfo_monthly"
+    ESIC_MONTHLY = "esic_monthly"
+
+    # State-specific — Professional Tax & LWF
+    PT_MONTHLY = "pt_monthly"
+    PT_ANNUAL = "pt_annual"
+    LWF_H1 = "lwf_h1"  # Half-yearly
+    LWF_H2 = "lwf_h2"
+
 
 class ComplianceTaskStatus(str, enum.Enum):
     UPCOMING = "upcoming"

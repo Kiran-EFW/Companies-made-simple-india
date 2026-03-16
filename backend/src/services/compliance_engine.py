@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 # Master Compliance Rules
 # ---------------------------------------------------------------------------
 
-COMPLIANCE_RULES: Dict[str, List[Dict[str, Any]]] = {
+COMPLIANCE_RULES: Dict[str, Any] = {
     "private_limited": [
         {
             "type": "aoc_4",
@@ -319,6 +319,197 @@ COMPLIANCE_RULES: Dict[str, List[Dict[str, Any]]] = {
 
     "public_limited": [],  # extends private_limited — handled in code
 
+    # ------------------------------------------------------------------
+    # Cross-entity rules (applied based on conditions, not entity type)
+    # ------------------------------------------------------------------
+    "_universal": [
+        # MSME-1 — Semi-annual delayed payment reporting
+        {
+            "type": "msme_1_h1",
+            "title": "MSME-1 (H1: Apr-Sep delayed payments)",
+            "frequency": "semi_annual",
+            "due_rule": "october_31",
+            "description": (
+                "Report all payments to MSME vendors delayed beyond 45 days for "
+                "Apr-Sep half-year. Applicable to all companies regardless of size."
+            ),
+            "penalty_per_day": 0,
+            "penalty_note": "Interest payable at 3x bank rate on delayed amount.",
+            "condition": "has_msme_vendors",
+        },
+        {
+            "type": "msme_1_h2",
+            "title": "MSME-1 (H2: Oct-Mar delayed payments)",
+            "frequency": "semi_annual",
+            "due_rule": "april_30",
+            "description": (
+                "Report all payments to MSME vendors delayed beyond 45 days for "
+                "Oct-Mar half-year."
+            ),
+            "penalty_per_day": 0,
+            "penalty_note": "Interest payable at 3x bank rate on delayed amount.",
+            "condition": "has_msme_vendors",
+        },
+        # FEMA/RBI — FDI tracking
+        {
+            "type": "fla_return",
+            "title": "FLA Return (Foreign Liabilities & Assets)",
+            "frequency": "annual",
+            "due_rule": "july_15",
+            "description": (
+                "Annual return of foreign liabilities and assets to RBI. "
+                "Mandatory if company has any FDI or overseas investment."
+            ),
+            "penalty_note": "Non-filing may result in FEMA penalty proceedings.",
+            "condition": "has_foreign_investment",
+        },
+        # DPT-3 — Deposit return
+        {
+            "type": "dpt_3",
+            "title": "DPT-3 (Return of Deposits)",
+            "frequency": "annual",
+            "due_rule": "june_30",
+            "description": (
+                "Annual return of deposits and transactions not considered deposits. "
+                "Mandatory for companies accepting money that could be classified as deposits."
+            ),
+            "penalty_per_day": 0,
+            "penalty_note": "Company and officers liable for non-filing.",
+            "condition": "private_limited_or_public",
+        },
+        # GST Annual Return
+        {
+            "type": "gstr_9_annual",
+            "title": "GSTR-9 (Annual GST Return)",
+            "frequency": "annual",
+            "due_rule": "december_31",
+            "description": (
+                "Annual consolidated GST return. Mandatory for all regular GST registrants. "
+                "GSTR-9C (audit) required if turnover exceeds Rs 5 crore."
+            ),
+            "penalty_per_day": 200,
+            "max_penalty": None,
+            "condition": "gst_registered",
+        },
+        # Share certificate issuance (Day 0)
+        {
+            "type": "share_certificate_issue",
+            "title": "Issue Share Certificates",
+            "frequency": "one_time",
+            "due_rule": "within_60_days_of_incorporation",
+            "description": (
+                "Issue share certificates to all subscribers within 60 days of "
+                "incorporation. Statutory requirement under Companies Act, 2013."
+            ),
+            "condition": "post_incorporation",
+        },
+    ],
+
+    # ------------------------------------------------------------------
+    # State-aware rules (PT, LWF) — added dynamically based on company.state
+    # ------------------------------------------------------------------
+    "_state_rules": {
+        "Maharashtra": [
+            {
+                "type": "pt_monthly",
+                "title": "Professional Tax — Monthly Payment",
+                "frequency": "monthly",
+                "due_rule": "monthly_last_day",
+                "description": (
+                    "MH: Professional Tax deduction and payment. Rs 200/month (Rs 300 in Feb). "
+                    "Employer enrollment mandatory. PTRC for employer, PTEC for professionals."
+                ),
+            },
+            {
+                "type": "lwf_h1",
+                "title": "LWF — H1 Contribution (Jun)",
+                "frequency": "semi_annual",
+                "due_rule": "june_30",
+                "description": "Maharashtra LWF: Employer Rs 6 + Employee Rs 3 per half-year per employee.",
+            },
+            {
+                "type": "lwf_h2",
+                "title": "LWF — H2 Contribution (Dec)",
+                "frequency": "semi_annual",
+                "due_rule": "december_31",
+                "description": "Maharashtra LWF: H2 contribution.",
+            },
+        ],
+        "Karnataka": [
+            {
+                "type": "pt_monthly",
+                "title": "Professional Tax — Monthly Payment",
+                "frequency": "monthly",
+                "due_rule": "monthly_20th",
+                "description": (
+                    "KA: Professional Tax due by 20th of following month. "
+                    "Slab-based: Rs 0-200 depending on salary bracket. Feb annual spike."
+                ),
+            },
+        ],
+        "Delhi": [
+            # Delhi has no Professional Tax or LWF
+        ],
+        "Telangana": [
+            {
+                "type": "pt_monthly",
+                "title": "Professional Tax — Monthly Payment",
+                "frequency": "monthly",
+                "due_rule": "monthly_10th",
+                "description": "TS: Professional Tax due by 10th of following month. Max Rs 200/month.",
+            },
+        ],
+        "Tamil Nadu": [
+            {
+                "type": "pt_annual",
+                "title": "Professional Tax — Annual Return",
+                "frequency": "annual",
+                "due_rule": "april_30",
+                "description": "TN: Professional Tax half-yearly. Max Rs 2,500/year.",
+            },
+        ],
+        "Gujarat": [
+            {
+                "type": "pt_monthly",
+                "title": "Professional Tax — Monthly Payment",
+                "frequency": "monthly",
+                "due_rule": "monthly_15th",
+                "description": "GJ: Professional Tax due by 15th of following month. Max Rs 200/month.",
+            },
+        ],
+    },
+
+    # ------------------------------------------------------------------
+    # Labor/Payroll rules (applied based on employee count)
+    # ------------------------------------------------------------------
+    "_labor_rules": [
+        {
+            "type": "epfo_monthly",
+            "title": "EPFO — Monthly PF Deposit & Return",
+            "frequency": "monthly",
+            "due_rule": "monthly_15th",
+            "description": (
+                "Deposit employer + employee PF contribution (12% + 12%) by 15th of "
+                "following month. File ECR (Electronic Challan cum Return). "
+                "Mandatory if 20+ employees."
+            ),
+            "penalty_note": "Interest @ 12% p.a. on delayed deposits. Damages up to 100%.",
+            "condition": "employees_gte_20",
+        },
+        {
+            "type": "esic_monthly",
+            "title": "ESIC — Monthly ESI Deposit",
+            "frequency": "monthly",
+            "due_rule": "monthly_15th",
+            "description": (
+                "Deposit employer (3.25%) + employee (0.75%) ESI contribution by 15th of "
+                "following month. Mandatory if 10+ employees with salary up to Rs 21,000/month."
+            ),
+            "penalty_note": "Interest @ 12% p.a. on delayed deposits.",
+            "condition": "employees_gte_10",
+        },
+    ],
+
     "sole_proprietorship": [
         {
             "type": "itr_filing",
@@ -396,6 +587,48 @@ PENALTY_RATES: Dict[str, Dict[str, Any]] = {
     },
     "form_11": {"per_day": 100, "max": None},
     "form_8": {"per_day": 100, "max": None},
+    "msme_1_h1": {
+        "description": "MSME-1 delayed payment reporting",
+        "per_day": 0,
+        "fixed": 0,
+        "additional": "Interest at 3x bank rate payable on delayed amount to MSME vendors. Buyer company liable.",
+    },
+    "msme_1_h2": {
+        "description": "MSME-1 delayed payment reporting",
+        "per_day": 0,
+        "fixed": 0,
+        "additional": "Interest at 3x bank rate payable on delayed amount to MSME vendors.",
+    },
+    "fc_gpr": {
+        "description": "Late FC-GPR filing with RBI",
+        "per_day": 0,
+        "fixed": 0,
+        "additional": "FEMA penalty proceedings. Compounding fee by RBI. Must file within 30 days of allotment.",
+    },
+    "fla_return": {
+        "description": "Late FLA Return to RBI",
+        "per_day": 0,
+        "fixed": 0,
+        "additional": "Non-filing may attract FEMA penalty proceedings.",
+    },
+    "epfo_monthly": {
+        "description": "Late PF deposit",
+        "per_day": 0,
+        "fixed": 0,
+        "additional": "Interest @ 12% p.a. on delayed deposits. Damages up to 100% of arrears.",
+    },
+    "esic_monthly": {
+        "description": "Late ESI deposit",
+        "per_day": 0,
+        "fixed": 0,
+        "additional": "Interest @ 12% p.a. on delayed deposits.",
+    },
+    "gstr_9_annual": {
+        "description": "Late GSTR-9 annual return",
+        "per_day": 200,
+        "max": None,
+        "additional": "Rs 100 CGST + Rs 100 SGST per day, max 0.25% of turnover.",
+    },
 }
 
 
@@ -431,9 +664,32 @@ class ComplianceEngine:
         fy_end = date(financial_year + 1, 3, 31)
 
         # Get rules — public_limited uses private_limited rules
-        rules = COMPLIANCE_RULES.get(entity, [])
+        rules = list(COMPLIANCE_RULES.get(entity, []))
         if entity == "public_limited" and not rules:
-            rules = COMPLIANCE_RULES.get("private_limited", [])
+            rules = list(COMPLIANCE_RULES.get("private_limited", []))
+
+        # Add universal rules (MSME-1, FEMA/FLA, DPT-3, GSTR-9, share certs)
+        universal = COMPLIANCE_RULES.get("_universal", [])
+        for ur in universal:
+            cond = ur.get("condition", "")
+            # Filter by condition
+            if cond == "private_limited_or_public" and entity not in ("private_limited", "public_limited"):
+                continue
+            if cond == "post_incorporation" and entity in ("sole_proprietorship", "partnership"):
+                continue
+            # MSME-1, FLA, GST: apply broadly (user can mark not_applicable)
+            rules.append(ur)
+
+        # Add state-aware rules (PT, LWF)
+        state_name = getattr(company, "state", "") or ""
+        state_rules_map = COMPLIANCE_RULES.get("_state_rules", {})
+        if state_name in state_rules_map:
+            rules.extend(state_rules_map[state_name])
+
+        # Add labor rules (EPFO/ESIC) for companies
+        if entity not in ("sole_proprietorship", "partnership"):
+            labor_rules = COMPLIANCE_RULES.get("_labor_rules", [])
+            rules.extend(labor_rules)
 
         calendar: List[Dict[str, Any]] = []
         for rule in rules:
@@ -481,6 +737,7 @@ class ComplianceEngine:
             "may_31": date(fy_start.year, 5, 31),
             "june_15": date(fy_start.year, 6, 15),
             "june_30": date(fy_start.year, 6, 30),
+            "july_15": date(fy_start.year, 7, 15),
             "july_31": date(fy_start.year, 7, 31),
             "september_15": date(fy_start.year, 9, 15),
             "september_30": date(fy_start.year, 9, 30),
@@ -520,6 +777,58 @@ class ComplianceEngine:
         # Board meeting max gap
         if due_rule == "gap_max_120_days":
             return fy_start + timedelta(days=120)
+
+        # Incorporation-relative rules (Day 0 sequence)
+        if due_rule == "within_60_days_of_incorporation":
+            inc_date = getattr(company, "incorporation_date", None)
+            if inc_date:
+                if isinstance(inc_date, datetime):
+                    inc_date = inc_date.date()
+                return inc_date + timedelta(days=60)
+            return fy_start + timedelta(days=60)
+
+        # Monthly rules — return next occurrence (15th/20th/last day of current month)
+        today = date.today()
+        if due_rule == "monthly_15th":
+            target = date(today.year, today.month, 15)
+            if target < today:
+                # Next month
+                if today.month == 12:
+                    target = date(today.year + 1, 1, 15)
+                else:
+                    target = date(today.year, today.month + 1, 15)
+            return target
+
+        if due_rule == "monthly_20th":
+            target = date(today.year, today.month, 20)
+            if target < today:
+                if today.month == 12:
+                    target = date(today.year + 1, 1, 20)
+                else:
+                    target = date(today.year, today.month + 1, 20)
+            return target
+
+        if due_rule == "monthly_10th":
+            target = date(today.year, today.month, 10)
+            if target < today:
+                if today.month == 12:
+                    target = date(today.year + 1, 1, 10)
+                else:
+                    target = date(today.year, today.month + 1, 10)
+            return target
+
+        if due_rule == "monthly_last_day":
+            import calendar as cal_mod
+            last_day = cal_mod.monthrange(today.year, today.month)[1]
+            target = date(today.year, today.month, last_day)
+            if target < today:
+                if today.month == 12:
+                    last_day = cal_mod.monthrange(today.year + 1, 1)[1]
+                    target = date(today.year + 1, 1, last_day)
+                else:
+                    last_day = cal_mod.monthrange(today.year, today.month + 1)[1]
+                    target = date(today.year, today.month + 1, last_day)
+            return target
 
         logger.warning("Unknown due_rule: %s", due_rule)
         return None

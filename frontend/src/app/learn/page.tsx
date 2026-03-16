@@ -103,7 +103,7 @@ export default function LearnPage() {
     return (
       <div className="min-h-screen flex items-center justify-center glow-bg">
         <div className="animate-pulse-glow w-16 h-16 rounded-full bg-purple-500/20 flex items-center justify-center">
-          <span className="text-2xl">&#9889;</span>
+          <img src="/logo-icon.png" alt="Anvils" className="w-7 h-7 object-contain" />
         </div>
       </div>
     );
@@ -115,7 +115,7 @@ export default function LearnPage() {
         <nav className="glass-card sticky top-0 z-50 rounded-none border-t-0 border-x-0 border-b">
           <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
             <Link href="/dashboard" className="flex items-center gap-2">
-              <span className="text-xl">&#9889;</span>
+              <img src="/logo-icon.png" alt="Anvils" className="w-5 h-5 object-contain" />
               <span className="font-bold hidden md:block" style={{ fontFamily: "var(--font-display)" }}>Anvils</span>
             </Link>
             <div className="flex items-center gap-4">
@@ -148,7 +148,7 @@ export default function LearnPage() {
       <nav className="glass-card sticky top-0 z-50 rounded-none border-t-0 border-x-0 border-b">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/dashboard" className="flex items-center gap-2">
-            <span className="text-xl">&#9889;</span>
+            <img src="/logo-icon.png" alt="Anvils" className="w-5 h-5 object-contain" />
             <span className="font-bold hidden md:block" style={{ fontFamily: "var(--font-display)" }}>Anvils</span>
           </Link>
           <div className="flex items-center gap-4">

@@ -44,7 +44,10 @@ export default function LoginPage() {
   return (
     <div className="glass-card p-8 min-w-[360px]">
       <div className="text-center mb-6">
-        <Link href="/" className="inline-block text-2xl mb-2">⚡</Link>
+        <Link href="/" className="inline-flex items-center gap-2 mb-2">
+          <img src="/logo-icon.png" alt="Anvils" className="w-7 h-7 object-contain" />
+          <span className="text-xl font-bold gradient-text" style={{ fontFamily: "var(--font-display)" }}>Anvils</span>
+        </Link>
         <h1 className="text-2xl font-bold mb-1">Welcome back</h1>
         <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
           Log in to track your company incorporation.
@@ -77,7 +80,7 @@ export default function LoginPage() {
             <label className="block text-sm font-medium" style={{ color: "var(--color-text-secondary)" }}>
               Password
             </label>
-            <span className="text-xs cursor-pointer transition-colors" style={{ color: "var(--color-text-muted)" }} onClick={() => setResetMsg("Password reset coming soon. Contact support@companiesmade.in for help.")}>
+            <span className="text-xs cursor-pointer transition-colors" style={{ color: "var(--color-text-muted)" }} onClick={() => setResetMsg("Password reset coming soon. Contact support@anvils.in for help.")}>
               Forgot password?
             </span>
           </div>

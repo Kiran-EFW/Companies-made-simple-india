@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { apiCall, simulateRound, simulateExit } from "@/lib/api";
+import { apiCall, simulateRound, simulateExit, simulateExitWaterfall, getShareCertificate } from "@/lib/api";
 import Footer from "@/components/footer";
 
 interface ShareholderData {
@@ -19,11 +19,20 @@ interface ShareholderData {
   is_promoter: boolean;
 }
 
+interface ESOPPoolData {
+  total_pool_size: number;
+  allocated: number;
+  available: number;
+  active_plans: number;
+  total_grants: number;
+}
+
 interface CapTableData {
   company_id: number;
   total_shares: number;
   total_shareholders: number;
   shareholders: ShareholderData[];
+  esop_pool: ESOPPoolData | null;
   summary: {
     equity_shares: number;
     preference_shares: number;
@@ -113,7 +122,7 @@ export default function CapTablePage() {
   const [capTable, setCapTable] = useState<CapTableData | null>(null);
   const [transactions, setTransactions] = useState<TransactionData[]>([]);
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<"overview" | "add" | "transfer" | "history" | "simulator" | "exit">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "add" | "transfer" | "history" | "simulator" | "exit" | "waterfall">("overview");
 
   // Add shareholder form
   const [newName, setNewName] = useState("");
@@ -148,6 +157,16 @@ export default function CapTablePage() {
   const [exitLiqPref, setExitLiqPref] = useState("1");
   const [exitResult, setExitResult] = useState<any>(null);
   const [exitLoading, setExitLoading] = useState(false);
+
+  // Waterfall state
+  const [wfValuation, setWfValuation] = useState("50000000");
+  const [wfParticipating, setWfParticipating] = useState(false);
+  const [wfLiqPrefs, setWfLiqPrefs] = useState<{ shareholder_id: string; multiple: string; invested_amount: string }[]>([]);
+  const [wfResult, setWfResult] = useState<any>(null);
+  const [wfLoading, setWfLoading] = useState(false);
+
+  // Certificate state
+  const [certLoading, setCertLoading] = useState<number | null>(null);
 
   useEffect(() => {
     fetchCapTable();
@@ -280,6 +299,65 @@ export default function CapTablePage() {
     setSimInvestors(updated);
   }
 
+  async function handleWaterfall() {
+    setWfLoading(true);
+    setWfResult(null);
+    try {
+      const lps = wfLiqPrefs
+        .filter(lp => lp.shareholder_id && lp.invested_amount)
+        .map(lp => ({
+          shareholder_id: parseInt(lp.shareholder_id),
+          multiple: parseFloat(lp.multiple) || 1,
+          invested_amount: parseFloat(lp.invested_amount) || 0,
+        }));
+      const result = await simulateExitWaterfall(companyId, {
+        exit_valuation: parseFloat(wfValuation) || 0,
+        liquidation_preferences: lps.length > 0 ? lps : undefined,
+        participating_preferred: wfParticipating,
+      });
+      setWfResult(result);
+    } catch (err: any) {
+      setMessage(`Error: ${err.message}`);
+    }
+    setWfLoading(false);
+  }
+
+  function addLiqPref() {
+    setWfLiqPrefs([...wfLiqPrefs, { shareholder_id: "", multiple: "1", invested_amount: "" }]);
+  }
+
+  function removeLiqPref(idx: number) {
+    setWfLiqPrefs(wfLiqPrefs.filter((_, i) => i !== idx));
+  }
+
+  function updateLiqPref(idx: number, field: string, value: string) {
+    const updated = [...wfLiqPrefs];
+    updated[idx] = { ...updated[idx], [field]: value };
+    setWfLiqPrefs(updated);
+  }
+
+  async function handleCertificate(shareholderId: number) {
+    setCertLoading(shareholderId);
+    try {
+      const result = await getShareCertificate(companyId, shareholderId);
+      if (result.html) {
+        const blob = new Blob([result.html], { type: "text/html" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `share-certificate-${result.certificate_number}.html`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        setMessage("Certificate downloaded!");
+      }
+    } catch (err: any) {
+      setMessage(`Error: ${err.message}`);
+    }
+    setCertLoading(null);
+  }
+
   function formatCurrency(val: number): string {
     if (val >= 10000000) return `Rs ${(val / 10000000).toFixed(2)} Cr`;
     if (val >= 100000) return `Rs ${(val / 100000).toFixed(2)} L`;
@@ -290,12 +368,9 @@ export default function CapTablePage() {
     <div className="glow-bg min-h-screen">
       {/* Nav */}
       <nav className="relative z-10 flex items-center justify-between px-6 py-5 max-w-7xl mx-auto">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="text-2xl">&#x26A1;</span>
-          <span className="text-xl font-bold" style={{ fontFamily: "var(--font-display)" }}>
-            <span className="gradient-text">CMS</span>{" "}
-            <span style={{ color: "var(--color-text-secondary)" }}>India</span>
-          </span>
+        <Link href="/" className="flex items-center gap-2.5">
+          <img src="/logo-icon.png" alt="Anvils" className="w-6 h-6 object-contain" />
+          <span className="text-xl font-bold gradient-text" style={{ fontFamily: "var(--font-display)" }}>Anvils</span>
         </Link>
         <div className="flex gap-3">
           <Link href="/dashboard" className="btn-secondary text-sm !py-2 !px-5">
@@ -361,7 +436,7 @@ export default function CapTablePage() {
 
         {/* Tabs */}
         <div className="flex gap-2 mb-8 justify-center flex-wrap">
-          {(["overview", "add", "transfer", "history", "simulator", "exit"] as const).map((tab) => (
+          {(["overview", "add", "transfer", "history", "simulator", "exit", "waterfall"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -377,6 +452,7 @@ export default function CapTablePage() {
               {tab === "history" && "Transaction History"}
               {tab === "simulator" && "Round Simulator"}
               {tab === "exit" && "Exit Scenarios"}
+              {tab === "waterfall" && "Waterfall Analysis"}
             </button>
           ))}
         </div>
@@ -419,6 +495,57 @@ export default function CapTablePage() {
               </div>
             </div>
 
+            {/* ESOP Pool Summary */}
+            {capTable.esop_pool && capTable.esop_pool.total_pool_size > 0 && (
+              <div className="glass-card p-6 mb-8" style={{ cursor: "default" }}>
+                <h3 className="font-semibold mb-4">ESOP Pool</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="text-center">
+                    <div className="text-xl font-bold">{(capTable.esop_pool.total_pool_size || 0).toLocaleString()}</div>
+                    <div className="text-xs" style={{ color: "var(--color-text-muted)" }}>Total Pool</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xl font-bold" style={{ color: "rgb(245, 158, 11)" }}>
+                      {(capTable.esop_pool.allocated || 0).toLocaleString()}
+                    </div>
+                    <div className="text-xs" style={{ color: "var(--color-text-muted)" }}>Allocated</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xl font-bold" style={{ color: "var(--color-accent-emerald)" }}>
+                      {(capTable.esop_pool.available || 0).toLocaleString()}
+                    </div>
+                    <div className="text-xs" style={{ color: "var(--color-text-muted)" }}>Available</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xl font-bold">{capTable.esop_pool.active_plans || 0}</div>
+                    <div className="text-xs" style={{ color: "var(--color-text-muted)" }}>Active Plans</div>
+                  </div>
+                </div>
+                {/* Pool utilization bar */}
+                <div className="mt-4">
+                  <div className="flex justify-between text-xs mb-1" style={{ color: "var(--color-text-muted)" }}>
+                    <span>Pool Utilization</span>
+                    <span>
+                      {capTable.esop_pool.total_pool_size > 0
+                        ? Math.round((capTable.esop_pool.allocated / capTable.esop_pool.total_pool_size) * 100)
+                        : 0}%
+                    </span>
+                  </div>
+                  <div className="w-full h-2 rounded-full" style={{ background: "rgba(255,255,255,0.1)" }}>
+                    <div
+                      className="h-2 rounded-full transition-all"
+                      style={{
+                        width: `${capTable.esop_pool.total_pool_size > 0
+                          ? (capTable.esop_pool.allocated / capTable.esop_pool.total_pool_size) * 100
+                          : 0}%`,
+                        background: "linear-gradient(90deg, rgb(139, 92, 246), rgb(59, 130, 246))",
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Pie Chart */}
             {capTable.shareholders.length > 0 && (
               <div className="glass-card p-8 mb-8" style={{ cursor: "default" }}>
@@ -448,6 +575,7 @@ export default function CapTablePage() {
                         <th className="text-right p-3" style={{ color: "var(--color-text-muted)" }}>%</th>
                         <th className="text-center p-3" style={{ color: "var(--color-text-muted)" }}>Date</th>
                         <th className="text-center p-3" style={{ color: "var(--color-text-muted)" }}>Promoter</th>
+                        <th className="text-center p-3" style={{ color: "var(--color-text-muted)" }}>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -491,6 +619,20 @@ export default function CapTablePage() {
                             ) : (
                               <span style={{ color: "var(--color-text-muted)" }}>No</span>
                             )}
+                          </td>
+                          <td className="p-3 text-center">
+                            <button
+                              onClick={() => handleCertificate(sh.id)}
+                              disabled={certLoading === sh.id}
+                              className="text-xs px-2 py-1 rounded transition-all"
+                              style={{
+                                background: "rgba(16, 185, 129, 0.15)",
+                                color: "rgb(16, 185, 129)",
+                                border: "1px solid rgba(16, 185, 129, 0.3)",
+                              }}
+                            >
+                              {certLoading === sh.id ? "..." : "Certificate"}
+                            </button>
                           </td>
                         </tr>
                       ))}
@@ -1244,6 +1386,267 @@ export default function CapTablePage() {
                       <div className="flex justify-between items-center">
                         <span className="text-sm" style={{ color: "var(--color-text-muted)" }}>Total Distributed</span>
                         <span className="font-bold">{formatCurrency(exitResult.summary?.total_distributed || 0)}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Waterfall Analysis Tab */}
+        {activeTab === "waterfall" && (
+          <div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Input Panel */}
+              <div className="glass-card p-6" style={{ cursor: "default" }}>
+                <h3 className="font-semibold mb-4">Waterfall Parameters</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm mb-1" style={{ color: "var(--color-text-muted)" }}>
+                      Exit Valuation (Rs)
+                    </label>
+                    <input
+                      type="number"
+                      value={wfValuation}
+                      onChange={(e) => setWfValuation(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg text-sm"
+                      style={{
+                        background: "var(--color-bg-card)",
+                        border: "1px solid var(--color-border)",
+                        color: "var(--color-text-primary)",
+                      }}
+                    />
+                    <div className="text-xs mt-1" style={{ color: "var(--color-text-muted)" }}>
+                      {formatCurrency(parseFloat(wfValuation) || 0)}
+                    </div>
+                  </div>
+
+                  <label className="flex items-center gap-2 text-sm" style={{ color: "var(--color-text-secondary)" }}>
+                    <input
+                      type="checkbox"
+                      checked={wfParticipating}
+                      onChange={(e) => setWfParticipating(e.target.checked)}
+                    />
+                    Participating preferred (investors share in remaining after liq pref)
+                  </label>
+
+                  {/* Liquidation Preferences */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="text-sm" style={{ color: "var(--color-text-muted)" }}>
+                        Liquidation Preferences
+                      </label>
+                      <button
+                        onClick={addLiqPref}
+                        className="text-xs px-2 py-1 rounded"
+                        style={{ background: "rgba(139, 92, 246, 0.15)", color: "rgb(139, 92, 246)" }}
+                      >
+                        + Add Preference
+                      </button>
+                    </div>
+                    {wfLiqPrefs.length === 0 && (
+                      <div className="text-xs py-2" style={{ color: "var(--color-text-muted)" }}>
+                        No liquidation preferences. All proceeds distributed pro-rata.
+                      </div>
+                    )}
+                    <div className="space-y-2">
+                      {wfLiqPrefs.map((lp, idx) => (
+                        <div key={idx} className="flex gap-2 items-center">
+                          <select
+                            value={lp.shareholder_id}
+                            onChange={(e) => updateLiqPref(idx, "shareholder_id", e.target.value)}
+                            className="flex-1 px-2 py-2 rounded-lg text-sm"
+                            style={{
+                              background: "var(--color-bg-card)",
+                              border: "1px solid var(--color-border)",
+                              color: "var(--color-text-primary)",
+                            }}
+                          >
+                            <option value="">Shareholder</option>
+                            {capTable?.shareholders.map((sh) => (
+                              <option key={sh.id} value={sh.id}>{sh.name}</option>
+                            ))}
+                          </select>
+                          <input
+                            type="number"
+                            value={lp.multiple}
+                            onChange={(e) => updateLiqPref(idx, "multiple", e.target.value)}
+                            placeholder="1x"
+                            className="w-16 px-2 py-2 rounded-lg text-sm text-center"
+                            style={{
+                              background: "var(--color-bg-card)",
+                              border: "1px solid var(--color-border)",
+                              color: "var(--color-text-primary)",
+                            }}
+                          />
+                          <input
+                            type="number"
+                            value={lp.invested_amount}
+                            onChange={(e) => updateLiqPref(idx, "invested_amount", e.target.value)}
+                            placeholder="Invested (Rs)"
+                            className="w-32 px-2 py-2 rounded-lg text-sm"
+                            style={{
+                              background: "var(--color-bg-card)",
+                              border: "1px solid var(--color-border)",
+                              color: "var(--color-text-primary)",
+                            }}
+                          />
+                          <button
+                            onClick={() => removeLiqPref(idx)}
+                            className="text-xs px-2 py-2 rounded"
+                            style={{ color: "rgb(244, 63, 94)" }}
+                          >
+                            X
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Quick scenario buttons */}
+                  <div>
+                    <label className="block text-sm mb-2" style={{ color: "var(--color-text-muted)" }}>
+                      Quick Scenarios
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {[10000000, 25000000, 50000000, 100000000, 500000000].map((val) => (
+                        <button
+                          key={val}
+                          onClick={() => setWfValuation(String(val))}
+                          className="text-xs px-3 py-1.5 rounded-lg transition-all"
+                          style={{
+                            background: wfValuation === String(val)
+                              ? "rgba(139, 92, 246, 0.2)"
+                              : "rgba(255,255,255,0.05)",
+                            border: `1px solid ${wfValuation === String(val) ? "rgba(139, 92, 246, 0.5)" : "var(--color-border)"}`,
+                            color: "var(--color-text-secondary)",
+                          }}
+                        >
+                          {formatCurrency(val)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handleWaterfall}
+                    disabled={wfLoading}
+                    className="btn-primary w-full text-center justify-center"
+                  >
+                    {wfLoading ? "Calculating..." : "Run Waterfall Analysis"}
+                  </button>
+                </div>
+              </div>
+
+              {/* Results Panel */}
+              <div>
+                {!wfResult && !wfLoading && (
+                  <div className="glass-card p-8 text-center" style={{ cursor: "default" }}>
+                    <div className="text-4xl mb-4">&#x1F4CA;</div>
+                    <h3 className="text-lg font-semibold mb-2">Waterfall Analysis</h3>
+                    <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
+                      Model exit scenarios with liquidation preferences to see
+                      how proceeds flow through the waterfall.
+                    </p>
+                  </div>
+                )}
+
+                {wfLoading && (
+                  <div className="glass-card p-8 text-center" style={{ cursor: "default" }}>
+                    <div className="text-sm" style={{ color: "var(--color-text-muted)" }}>Calculating waterfall...</div>
+                  </div>
+                )}
+
+                {wfResult && !wfResult.error && (
+                  <div className="space-y-4">
+                    {/* Summary */}
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="glass-card p-3 text-center" style={{ cursor: "default" }}>
+                        <div className="text-xs" style={{ color: "var(--color-text-muted)" }}>Exit Valuation</div>
+                        <div className="text-sm font-bold">{formatCurrency(wfResult.exit_valuation)}</div>
+                      </div>
+                      <div className="glass-card p-3 text-center" style={{ cursor: "default" }}>
+                        <div className="text-xs" style={{ color: "var(--color-text-muted)" }}>Liq Pref Total</div>
+                        <div className="text-sm font-bold" style={{ color: "rgb(245, 158, 11)" }}>
+                          {formatCurrency(wfResult.summary?.total_lp_amount || 0)}
+                        </div>
+                      </div>
+                      <div className="glass-card p-3 text-center" style={{ cursor: "default" }}>
+                        <div className="text-xs" style={{ color: "var(--color-text-muted)" }}>Distributed</div>
+                        <div className="text-sm font-bold" style={{ color: "rgb(16, 185, 129)" }}>
+                          {formatCurrency(wfResult.summary?.total_distributed || 0)}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Waterfall Steps */}
+                    {wfResult.waterfall_steps?.map((step: any, idx: number) => (
+                      <div key={idx} className="glass-card p-4" style={{ cursor: "default" }}>
+                        <div className="flex justify-between items-center mb-2">
+                          <h4 className="text-sm font-semibold">Step {idx + 1}: {step.step}</h4>
+                          <span className="text-xs font-mono" style={{ color: "var(--color-text-muted)" }}>
+                            {formatCurrency(step.amount)}
+                          </span>
+                        </div>
+                        {step.details?.map((d: any, di: number) => (
+                          <div key={di} className="flex justify-between text-xs py-1"
+                            style={{ borderTop: di > 0 ? "1px solid var(--color-border)" : "none" }}>
+                            <span>{d.name}</span>
+                            <span className="font-mono">{formatCurrency(d.payout)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+
+                    {/* Final Payouts */}
+                    <div className="glass-card overflow-hidden" style={{ cursor: "default" }}>
+                      <div className="p-4" style={{ borderBottom: "1px solid var(--color-border)" }}>
+                        <h3 className="font-semibold text-sm">Final Payouts</h3>
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr style={{ borderBottom: "1px solid var(--color-border)" }}>
+                              <th className="text-left p-3" style={{ color: "var(--color-text-muted)" }}>Shareholder</th>
+                              <th className="text-right p-3" style={{ color: "var(--color-text-muted)" }}>Liq Pref</th>
+                              <th className="text-right p-3" style={{ color: "var(--color-text-muted)" }}>Pro-Rata</th>
+                              <th className="text-right p-3" style={{ color: "var(--color-text-muted)" }}>Total</th>
+                              <th className="text-right p-3" style={{ color: "var(--color-text-muted)" }}>ROI</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {wfResult.payouts?.map((p: any) => (
+                              <tr key={p.shareholder_id} style={{ borderBottom: "1px solid var(--color-border)" }}>
+                                <td className="p-3 font-medium">
+                                  {p.name}
+                                  {p.is_promoter && (
+                                    <span className="ml-2 text-xs px-1.5 py-0.5 rounded-full"
+                                      style={{ background: "rgba(139, 92, 246, 0.15)", color: "rgb(139, 92, 246)" }}>
+                                      Promoter
+                                    </span>
+                                  )}
+                                </td>
+                                <td className="p-3 text-right font-mono" style={{ color: "rgb(245, 158, 11)" }}>
+                                  {p.lp_payout > 0 ? formatCurrency(p.lp_payout) : "-"}
+                                </td>
+                                <td className="p-3 text-right font-mono">
+                                  {formatCurrency(p.pro_rata_payout)}
+                                </td>
+                                <td className="p-3 text-right font-mono font-bold" style={{ color: "rgb(16, 185, 129)" }}>
+                                  {formatCurrency(p.total_payout)}
+                                </td>
+                                <td className="p-3 text-right font-mono" style={{
+                                  color: p.roi_multiple >= 10 ? "rgb(16, 185, 129)" :
+                                         p.roi_multiple >= 2 ? "rgb(245, 158, 11)" : "var(--color-text-secondary)"
+                                }}>
+                                  {p.roi_multiple?.toFixed(1)}x
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
                       </div>
                     </div>
                   </div>

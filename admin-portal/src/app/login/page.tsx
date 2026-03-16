@@ -61,7 +61,7 @@ export default function AdminLoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               className="input-field w-full"
-              placeholder="admin@cmsindia.co"
+              placeholder="admin@anvils.in"
             />
           </div>
 

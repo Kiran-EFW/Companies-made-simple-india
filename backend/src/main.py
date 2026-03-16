@@ -20,6 +20,9 @@ from src.routers import founder_education
 from src.routers import messages
 from src.routers import services
 from src.routers import accounting
+from src.routers import esop
+from src.routers import fundraising
+from src.routers import stakeholders
 from src.utils.exceptions import APIError
 from src.middleware.security import (
     RateLimitMiddleware,
@@ -150,6 +153,9 @@ app.include_router(founder_education.router, prefix=settings.api_v1_prefix)
 app.include_router(messages.router, prefix=settings.api_v1_prefix)
 app.include_router(services.router, prefix=settings.api_v1_prefix)
 app.include_router(accounting.router, prefix=settings.api_v1_prefix)
+app.include_router(esop.router, prefix=settings.api_v1_prefix)
+app.include_router(fundraising.router, prefix=settings.api_v1_prefix)
+app.include_router(stakeholders.router, prefix=settings.api_v1_prefix)
 
 
 @app.get("/")

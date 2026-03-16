@@ -21,8 +21,17 @@ export async function apiCall(path: string, options: RequestInit = {}): Promise<
 
   if (!res.ok) {
     const body = await res.json().catch(() => null);
-    const message =
+    let message =
       body?.error?.message || body?.detail || `Request failed (${res.status})`;
+    // Include specific validation field errors if present
+    if (body?.error?.details && Array.isArray(body.error.details)) {
+      const fieldErrors = body.error.details
+        .map((d: any) => d.message)
+        .filter(Boolean);
+      if (fieldErrors.length > 0) {
+        message = fieldErrors.join(". ");
+      }
+    }
     throw new Error(message);
   }
 
@@ -802,6 +811,71 @@ export async function saveCapTableScenario(companyId: number, data: {
   });
 }
 
+export async function simulateExitWaterfall(companyId: number, data: {
+  exit_valuation: number;
+  liquidation_preferences?: { shareholder_id: number; multiple: number; invested_amount: number }[];
+  participating_preferred?: boolean;
+}) {
+  return apiCall(`/companies/${companyId}/cap-table/simulate-exit-waterfall`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getShareCertificate(companyId: number, shareholderId: number) {
+  return apiCall(`/companies/${companyId}/cap-table/shareholders/${shareholderId}/certificate`);
+}
+
+// ---------------------------------------------------------------------------
+// Stakeholders
+// ---------------------------------------------------------------------------
+
+export async function getStakeholderPortfolio() {
+  return apiCall("/stakeholders/me/portfolio");
+}
+
+export async function getStakeholderCompanyDetail(companyId: number) {
+  return apiCall(`/stakeholders/me/companies/${companyId}`);
+}
+
+export async function createStakeholderProfile(data: {
+  name: string;
+  email: string;
+  phone?: string;
+  stakeholder_type: string;
+  entity_name?: string;
+  entity_type?: string;
+  pan_number?: string;
+  is_foreign?: boolean;
+}) {
+  return apiCall("/stakeholders/profiles", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateStakeholderProfile(profileId: number, data: any) {
+  return apiCall(`/stakeholders/profiles/${profileId}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getStakeholderProfiles(companyId?: number) {
+  const qs = companyId ? `?company_id=${companyId}` : "";
+  return apiCall(`/stakeholders/profiles${qs}`);
+}
+
+export async function getStakeholderProfile(profileId: number) {
+  return apiCall(`/stakeholders/profiles/${profileId}`);
+}
+
+export async function linkStakeholderToShareholder(profileId: number, shareholderId: number) {
+  return apiCall(`/stakeholders/profiles/${profileId}/link/${shareholderId}`, {
+    method: "POST",
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Founder Education / Learning Journey
 // ---------------------------------------------------------------------------
@@ -1007,6 +1081,151 @@ export async function disconnectAccounting(companyId: number): Promise<void> {
 
 export async function syncAccountingData(companyId: number): Promise<any> {
   return apiCall(`/accounting/sync/${companyId}`, { method: "POST" });
+}
+
+// ---------------------------------------------------------------------------
+// ESOP Management
+// ---------------------------------------------------------------------------
+
+export async function getESOPPlans(companyId: number) {
+  return apiCall(`/companies/${companyId}/esop/plans`);
+}
+
+export async function createESOPPlan(companyId: number, data: any) {
+  return apiCall(`/companies/${companyId}/esop/plans`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getESOPPlan(companyId: number, planId: number) {
+  return apiCall(`/companies/${companyId}/esop/plans/${planId}`);
+}
+
+export async function updateESOPPlan(companyId: number, planId: number, data: any) {
+  return apiCall(`/companies/${companyId}/esop/plans/${planId}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function activateESOPPlan(companyId: number, planId: number) {
+  return apiCall(`/companies/${companyId}/esop/plans/${planId}/activate`, {
+    method: "POST",
+  });
+}
+
+export async function getESOPGrants(companyId: number, planId: number) {
+  return apiCall(`/companies/${companyId}/esop/plans/${planId}/grants`);
+}
+
+export async function createESOPGrant(companyId: number, planId: number, data: any) {
+  return apiCall(`/companies/${companyId}/esop/plans/${planId}/grants`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getCompanyESOPGrants(companyId: number) {
+  return apiCall(`/companies/${companyId}/esop/grants`);
+}
+
+export async function getESOPGrant(companyId: number, grantId: number) {
+  return apiCall(`/companies/${companyId}/esop/grants/${grantId}`);
+}
+
+export async function exerciseESOPOptions(companyId: number, grantId: number, data: { number_of_options: number }) {
+  return apiCall(`/companies/${companyId}/esop/grants/${grantId}/exercise`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function generateESOPGrantLetter(companyId: number, grantId: number) {
+  return apiCall(`/companies/${companyId}/esop/grants/${grantId}/generate-letter`, {
+    method: "POST",
+  });
+}
+
+export async function sendESOPGrantForSigning(companyId: number, grantId: number) {
+  return apiCall(`/companies/${companyId}/esop/grants/${grantId}/send-for-signing`, {
+    method: "POST",
+  });
+}
+
+export async function getESOPSummary(companyId: number) {
+  return apiCall(`/companies/${companyId}/esop/summary`);
+}
+
+// ---------------------------------------------------------------------------
+// Fundraising
+// ---------------------------------------------------------------------------
+
+export async function createFundingRound(companyId: number, data: any) {
+  return apiCall(`/companies/${companyId}/fundraising/rounds`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getFundingRounds(companyId: number) {
+  return apiCall(`/companies/${companyId}/fundraising/rounds`);
+}
+
+export async function getFundingRound(companyId: number, roundId: number) {
+  return apiCall(`/companies/${companyId}/fundraising/rounds/${roundId}`);
+}
+
+export async function updateFundingRound(companyId: number, roundId: number, data: any) {
+  return apiCall(`/companies/${companyId}/fundraising/rounds/${roundId}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function addRoundInvestor(companyId: number, roundId: number, data: any) {
+  return apiCall(`/companies/${companyId}/fundraising/rounds/${roundId}/investors`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateRoundInvestor(companyId: number, roundId: number, investorId: number, data: any) {
+  return apiCall(`/companies/${companyId}/fundraising/rounds/${roundId}/investors/${investorId}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function removeRoundInvestor(companyId: number, roundId: number, investorId: number) {
+  return apiCall(`/companies/${companyId}/fundraising/rounds/${roundId}/investors/${investorId}`, {
+    method: "DELETE",
+  });
+}
+
+export async function linkRoundDocument(companyId: number, roundId: number, data: { doc_type: string; document_id: number }) {
+  return apiCall(`/companies/${companyId}/fundraising/rounds/${roundId}/link-document`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function initiateClosing(companyId: number, roundId: number, data: { documents_to_sign: string[] }) {
+  return apiCall(`/companies/${companyId}/fundraising/rounds/${roundId}/initiate-closing`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getClosingRoom(companyId: number, roundId: number) {
+  return apiCall(`/companies/${companyId}/fundraising/rounds/${roundId}/closing-room`);
+}
+
+export async function completeAllotment(companyId: number, roundId: number, data?: { investor_ids?: number[] }) {
+  return apiCall(`/companies/${companyId}/fundraising/rounds/${roundId}/complete-allotment`, {
+    method: "POST",
+    body: JSON.stringify(data || {}),
+  });
 }
 
 // ---------------------------------------------------------------------------

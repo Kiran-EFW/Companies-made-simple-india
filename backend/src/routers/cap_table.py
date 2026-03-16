@@ -20,6 +20,8 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from src.database import get_db
+from src.models.user import User
+from src.utils.auth import get_current_user
 from src.services.cap_table_service import (
     cap_table_service,
     ShareholderEntry,
@@ -46,6 +48,18 @@ class TransferRequest(BaseModel):
 
 class AllotmentRequest(BaseModel):
     entries: List[AllotmentEntry]
+
+
+class LiquidationPreference(BaseModel):
+    shareholder_id: int
+    multiple: float = 1.0
+    invested_amount: float
+
+
+class WaterfallRequest(BaseModel):
+    exit_valuation: float
+    liquidation_preferences: Optional[List[LiquidationPreference]] = None
+    participating_preferred: bool = False
 
 
 # ---------------------------------------------------------------------------
@@ -184,3 +198,41 @@ def save_scenario(
         scenario_type=request.scenario_type,
         scenario_data=request.scenario_data,
     )
+
+
+# ---------------------------------------------------------------------------
+# Waterfall analysis & share certificates
+# ---------------------------------------------------------------------------
+
+@router.post("/{company_id}/cap-table/simulate-exit-waterfall")
+def simulate_exit_waterfall(
+    company_id: int,
+    request: WaterfallRequest,
+    db: Session = Depends(get_db),
+):
+    """Full exit waterfall with liquidation preferences."""
+    lp_dicts = None
+    if request.liquidation_preferences:
+        lp_dicts = [lp.model_dump() for lp in request.liquidation_preferences]
+    return cap_table_service.simulate_exit_waterfall(
+        db,
+        company_id,
+        exit_valuation=request.exit_valuation,
+        liquidation_preferences=lp_dicts,
+        participating_preferred=request.participating_preferred,
+    )
+
+
+@router.get("/{company_id}/cap-table/shareholders/{shareholder_id}/certificate")
+def get_share_certificate(
+    company_id: int,
+    shareholder_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Generate a share certificate for a shareholder."""
+    result = cap_table_service.generate_share_certificate(db, company_id, shareholder_id)
+    if "error" in result:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail=result["error"])
+    return result

@@ -46,7 +46,10 @@ export default function SignupPage() {
   return (
     <div className="glass-card p-8">
       <div className="text-center mb-8">
-        <Link href="/" className="inline-block text-2xl mb-4">⚡</Link>
+        <Link href="/" className="inline-flex items-center gap-2 mb-4">
+          <img src="/logo-icon.png" alt="Anvils" className="w-7 h-7 object-contain" />
+          <span className="text-xl font-bold gradient-text" style={{ fontFamily: "var(--font-display)" }}>Anvils</span>
+        </Link>
         <h1 className="text-2xl font-bold mb-2">Create your account</h1>
         <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
           Start incorporating your company today.
@@ -112,7 +115,29 @@ export default function SignupPage() {
             value={formData.password}
             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
             placeholder="••••••••"
+            minLength={8}
           />
+          <div className="mt-1.5 space-y-0.5">
+            {[
+              { test: formData.password.length >= 8, label: "At least 8 characters" },
+              { test: /[A-Z]/.test(formData.password), label: "One uppercase letter" },
+              { test: /[a-z]/.test(formData.password), label: "One lowercase letter" },
+              { test: /\d/.test(formData.password), label: "One digit" },
+            ].map((rule) => (
+              <div key={rule.label} className="flex items-center gap-1.5 text-xs" style={{ color: formData.password ? (rule.test ? "var(--color-accent-emerald)" : "var(--color-text-muted)") : "var(--color-text-muted)" }}>
+                {formData.password ? (
+                  rule.test ? (
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                  ) : (
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                  )
+                ) : (
+                  <span className="w-3 h-3 flex items-center justify-center">-</span>
+                )}
+                {rule.label}
+              </div>
+            ))}
+          </div>
         </div>
 
         <button

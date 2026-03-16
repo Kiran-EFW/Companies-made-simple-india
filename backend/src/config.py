@@ -51,7 +51,7 @@ class Settings(BaseSettings):
 
     # Email (SendGrid)
     sendgrid_api_key: str = ""
-    from_email: str = "hello@companiesmade.in"
+    from_email: str = "hello@anvils.in"
     from_name: str = "Anvils"
 
     # Twilio (SMS / WhatsApp)

@@ -60,13 +60,13 @@ interface ComparisonRow {
 }
 
 const ALL_ENTITY_TYPES = [
-  { key: "private_limited", label: "Private Limited", emoji: "🏢" },
-  { key: "opc", label: "OPC", emoji: "👤" },
-  { key: "llp", label: "LLP", emoji: "🤝" },
-  { key: "section_8", label: "Section 8", emoji: "💚" },
-  { key: "sole_proprietorship", label: "Sole Prop", emoji: "🧑‍💼" },
-  { key: "partnership", label: "Partnership", emoji: "👥" },
-  { key: "public_limited", label: "Public Ltd", emoji: "🏛️" },
+  { key: "private_limited", label: "Private Limited" },
+  { key: "opc", label: "OPC" },
+  { key: "llp", label: "LLP" },
+  { key: "section_8", label: "Section 8" },
+  { key: "sole_proprietorship", label: "Sole Prop" },
+  { key: "partnership", label: "Partnership" },
+  { key: "public_limited", label: "Public Ltd" },
 ];
 
 const DISPLAY_ROWS = [
@@ -152,19 +152,22 @@ export default function ComparePage() {
     <div className="glow-bg min-h-screen">
       {/* Nav */}
       <nav className="relative z-10 flex items-center justify-between px-6 py-5 max-w-7xl mx-auto">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="text-2xl">&#x26A1;</span>
-          <span className="text-xl font-bold" style={{ fontFamily: "var(--font-display)" }}>
-            <span className="gradient-text">CMS</span>{" "}
-            <span style={{ color: "var(--color-text-secondary)" }}>India</span>
-          </span>
+        <Link href="/" className="flex items-center gap-2.5">
+          <img src="/logo-icon.png" alt="Anvils" className="w-6 h-6 object-contain" />
+          <span className="text-xl font-bold gradient-text" style={{ fontFamily: "var(--font-display)" }}>Anvils</span>
         </Link>
-        <div className="flex gap-3">
-          <Link href="/wizard" className="btn-secondary text-sm !py-2 !px-5">
+        <div className="hidden md:flex items-center gap-6">
+          <Link href="/pricing" className="text-sm font-medium" style={{ color: "var(--color-text-secondary)" }}>
+            Pricing
+          </Link>
+          <Link href="/wizard" className="text-sm font-medium" style={{ color: "var(--color-text-secondary)" }}>
             Entity Wizard
           </Link>
-          <Link href="/pricing" className="btn-secondary text-sm !py-2 !px-5">
-            Pricing
+          <Link href="/login" className="text-sm font-medium" style={{ color: "var(--color-text-secondary)" }}>
+            Log in
+          </Link>
+          <Link href="/signup" className="btn-primary text-sm !py-2 !px-5">
+            Get Started
           </Link>
         </div>
       </nav>
@@ -199,7 +202,6 @@ export default function ComparePage() {
                   background: isSelected ? "rgba(139, 92, 246, 0.15)" : "transparent",
                 }}
               >
-                <span className="mr-2">{entity.emoji}</span>
                 {entity.label}
                 {isSelected && <span className="ml-2 text-xs">&#x2713;</span>}
               </button>
@@ -233,9 +235,6 @@ export default function ComparePage() {
                           color: "var(--color-text-primary)",
                         }}
                       >
-                        <div className="text-base mb-1">
-                          {ALL_ENTITY_TYPES.find((e) => e.key === et)?.emoji}
-                        </div>
                         {comparison.entities[et]?.name || et}
                       </th>
                     ))}
@@ -295,7 +294,7 @@ export default function ComparePage() {
               className="text-center text-sm font-semibold mb-4"
               style={{ color: "var(--color-text-muted)" }}
             >
-              READY TO START? CHOOSE YOUR ENTITY TYPE
+              READY TO GET STARTED?
             </h3>
             <div className="flex flex-wrap gap-4 justify-center">
               {comparison.entity_types.map((et) => (
@@ -304,7 +303,7 @@ export default function ComparePage() {
                   href={`/pricing?entity=${et}`}
                   className="btn-primary text-sm !py-2.5 !px-6"
                 >
-                  Register {comparison.entities[et]?.name || et} &rarr;
+                  View {comparison.entities[et]?.name || et} Pricing &rarr;
                 </Link>
               ))}
             </div>
@@ -370,7 +369,7 @@ export default function ComparePage() {
                     href={`/pricing?entity=${et}`}
                     className="btn-primary w-full text-center justify-center text-sm mt-2"
                   >
-                    Start Registration &rarr;
+                    View Pricing &rarr;
                   </Link>
                 </div>
               );
