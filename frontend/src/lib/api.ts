@@ -1429,39 +1429,5 @@ export async function getLatestValuation(companyId: number) {
 }
 
 // ---------------------------------------------------------------------------
-// CA Portal
-// ---------------------------------------------------------------------------
-
-export async function getCADashboardSummary() {
-  return apiCall("/ca/dashboard-summary");
-}
-
-export async function getCACompanies() {
-  return apiCall("/ca/companies");
-}
-
-export async function getCACompanyCompliance(companyId: number) {
-  return apiCall(`/ca/companies/${companyId}/compliance`);
-}
-
-export async function getCACompanyDocuments(companyId: number) {
-  return apiCall(`/ca/companies/${companyId}/documents`);
-}
-
-export async function markFilingDone(companyId: number, taskId: number, data: { filing_reference?: string; notes?: string }) {
-  return apiCall(`/ca/companies/${companyId}/filings/${taskId}`, {
-    method: "PUT",
-    body: JSON.stringify(data),
-  });
-}
-
-export async function inviteCA(companyId: number, data: { name: string; email: string; phone?: string }) {
-  return apiCall(`/companies/${companyId}/invite-ca`, {
-    method: "POST",
-    body: JSON.stringify(data),
-  });
-}
-
-// ---------------------------------------------------------------------------
 // Admin/Ops functions have been moved to the separate admin-portal app.
 // ---------------------------------------------------------------------------

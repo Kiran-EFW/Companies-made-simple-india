@@ -15,7 +15,6 @@ import {
   FileText,
   Rocket,
   Eye,
-  Briefcase,
   Compass,
   GitCompare,
   Table2,
@@ -78,7 +77,7 @@ const HOW_IT_WORKS = [
   {
     step: "03",
     title: "Grow With the Platform",
-    desc: "Add ESOP plans, run funding rounds, invite your CA, share investor portals, and model valuations as your company scales.",
+    desc: "Add ESOP plans, run funding rounds, track compliance deadlines, share investor portals, and model valuations as your company scales.",
   },
 ];
 
@@ -143,9 +142,9 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-6">
           <SectionHeader
             title={<>Built for everyone in the <span className="gradient-text">ecosystem</span></>}
-            subtitle="Whether you're a founder, investor, or chartered accountant, Anvils has a dedicated experience for you."
+            subtitle="Whether you're a founder or investor, Anvils has a dedicated experience for you."
           />
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             <PersonaCard
               icon={<Rocket className="w-6 h-6" />}
               persona="Founders"
@@ -175,20 +174,6 @@ export default function HomePage() {
               ]}
               href="/for/investors"
               accentColor="blue"
-            />
-            <PersonaCard
-              icon={<Briefcase className="w-6 h-6" />}
-              persona="CAs & CSs"
-              headline="Manage all your clients in one dashboard"
-              bullets={[
-                "Multi-client compliance view",
-                "Filing tracking with reference numbers",
-                "Document access (read-only)",
-                "Invited by founders, no setup needed",
-                "Compliance task management",
-              ]}
-              href="/for/cas"
-              accentColor="emerald"
             />
           </div>
         </div>

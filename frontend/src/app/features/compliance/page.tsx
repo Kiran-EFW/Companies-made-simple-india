@@ -16,7 +16,7 @@ const FEATURES = [
   { icon: <FileText className="w-5 h-5" />, title: "ROC Annual Returns", desc: "Track all MCA/ROC filings including annual returns, financial statements, and change notifications." },
   { icon: <Shield className="w-5 h-5" />, title: "Board Meeting Scheduling", desc: "Schedule board meetings with notice generation, attendance tracking, and minutes drafting." },
   { icon: <Bell className="w-5 h-5" />, title: "GST Deadline Tracking", desc: "Never miss a GST return deadline. Track GSTR-1, GSTR-3B, and annual returns." },
-  { icon: <AlertTriangle className="w-5 h-5" />, title: "Escalation Alerts", desc: "Automatic alerts when deadlines approach. Escalation to your CA when tasks are overdue." },
+  { icon: <AlertTriangle className="w-5 h-5" />, title: "Escalation Alerts", desc: "Automatic alerts when deadlines approach. Upgrade to have our team handle the filings for you." },
   { icon: <BarChart3 className="w-5 h-5" />, title: "Compliance Scoring", desc: "Real-time compliance score that shows your company's regulatory health at a glance." },
 ];
 
@@ -28,7 +28,7 @@ export default function ComplianceFeaturePage() {
       <HeroSection
         badge="Product"
         title={<>Automated compliance for <span className="gradient-text">Indian companies</span></>}
-        subtitle="ROC filings, board meetings, GST deadlines, statutory audit reminders, and escalation alerts. Never miss a deadline again."
+        subtitle="Never miss a filing. Anvils tracks every ROC, GST, and TDS deadline — and our team can handle the filing for you."
         primaryCTA={{ label: "Automate Your Compliance", href: "/signup" }}
         secondaryCTA={{ label: "See Pricing", href: "/pricing" }}
       />
@@ -55,9 +55,9 @@ export default function ComplianceFeaturePage() {
 
       <CTASection
         title="Zero missed deadlines, zero penalties"
-        subtitle="Let Anvils track your compliance so you can focus on building your company."
+        subtitle="See every deadline. Know your penalty exposure. Let our team file for you."
         primaryCTA={{ label: "Get Started", href: "/signup" }}
-        secondaryCTA={{ label: "Invite Your CA", href: "/for/cas" }}
+        secondaryCTA={{ label: "See Pricing", href: "/pricing" }}
       />
 
       <Footer />

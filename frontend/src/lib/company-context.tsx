@@ -8,9 +8,8 @@ import {
   useCallback,
   type ReactNode,
 } from "react";
-import { getCompanies, getCACompanies } from "./api";
+import { getCompanies } from "./api";
 import { useAuth } from "./auth-context";
-import { isCARole } from "./roles";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -45,7 +44,6 @@ interface CompanyContextValue {
   selectCompany: (id: number) => void;
   loading: boolean;
   refreshCompanies: () => Promise<void>;
-  isCA: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -58,7 +56,6 @@ const CompanyContext = createContext<CompanyContextValue>({
   selectCompany: () => {},
   loading: true,
   refreshCompanies: async () => {},
-  isCA: false,
 });
 
 export function useCompany(): CompanyContextValue {
@@ -76,7 +73,6 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isCA, setIsCA] = useState(false);
 
   const fetchCompanies = useCallback(async () => {
     if (!user) {
@@ -86,40 +82,8 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const caUser = isCARole(user.role);
-    setIsCA(caUser);
-
     try {
-      let data: Company[];
-
-      if (caUser) {
-        // CA/CS users: fetch assigned client companies and normalize shape
-        const caCompanies = await getCACompanies();
-        data = (Array.isArray(caCompanies) ? caCompanies : []).map(
-          (c: any) =>
-            ({
-              id: c.id,
-              entity_type: c.entity_type || "",
-              plan_tier: "",
-              proposed_names: [],
-              approved_name: c.name || null,
-              state: "",
-              authorized_capital: 0,
-              num_directors: 0,
-              status: c.status || "",
-              priority: "",
-              cin: c.cin || null,
-              pan: null,
-              tan: null,
-              data: { pending_tasks: c.pending_tasks || 0 },
-              created_at: "",
-              updated_at: "",
-            }) as Company
-        );
-      } else {
-        data = await getCompanies();
-      }
-
+      const data = await getCompanies();
       setCompanies(data);
 
       // Restore previously selected company or pick the first one
@@ -166,7 +130,6 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
         selectCompany,
         loading,
         refreshCompanies: fetchCompanies,
-        isCA,
       }}
     >
       {children}

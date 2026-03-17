@@ -28,13 +28,11 @@ export default function SignupPage() {
         method: "POST",
         body: JSON.stringify(formData),
       });
-      const userData = await login(res.access_token);
+      await login(res.access_token);
 
       // If they came from pricing with saved configuration, redirect to onboarding
       if (typeof window !== "undefined" && localStorage.getItem("pending_company_draft")) {
         router.push("/onboarding");
-      } else if (userData?.role === "ca_lead" || userData?.role === "cs_lead") {
-        router.push("/ca-dashboard");
       } else {
         router.push("/dashboard");
       }

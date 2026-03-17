@@ -326,7 +326,7 @@ export default function ConnectCompanyPage() {
         >
           <li>Your company will appear on the dashboard immediately</li>
           <li>Set up your cap table, add directors & shareholders</li>
-          <li>Invite your CA/CS to manage compliance filings</li>
+          <li>Track compliance deadlines and filings automatically</li>
           <li>Explore ESOP, fundraising, and governance tools</li>
         </ul>
       </div>

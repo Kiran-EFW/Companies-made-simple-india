@@ -56,7 +56,6 @@ const PRODUCTS = [
     heading: "Portals",
     items: [
       { label: "Investor Portal", desc: "Token-based portfolio dashboard", href: "/for/investors", icon: Eye },
-      { label: "CA Dashboard", desc: "Multi-client compliance view", href: "/for/cas", icon: Briefcase },
       { label: "Incorporation", desc: "AI entity wizard & filing", href: "/wizard", icon: Rocket },
       { label: "Services Marketplace", desc: "GST, trademark, DPIIT & more", href: "/features/services", icon: ShoppingBag },
     ],
@@ -66,7 +65,6 @@ const PRODUCTS = [
 const SOLUTIONS = [
   { label: "For Founders", desc: "Cap table, ESOP, fundraising, compliance", href: "/for/founders", icon: Rocket },
   { label: "For Investors", desc: "Portfolio dashboard & company discovery", href: "/for/investors", icon: Eye },
-  { label: "For CAs & CSs", desc: "Multi-client compliance management", href: "/for/cas", icon: Briefcase },
 ];
 
 const RESOURCES = [

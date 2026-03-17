@@ -16,7 +16,7 @@ const FEATURES = [
   { icon: <Calendar className="w-5 h-5" />, title: "TDS Filing Calendar", desc: "Monthly and quarterly TDS return deadlines. Track Form 26Q, 24Q, and 27Q filing status." },
   { icon: <IndianRupee className="w-5 h-5" />, title: "Advance Tax Reminders", desc: "Quarterly advance tax installment reminders for June, September, December, and March deadlines." },
   { icon: <BarChart3 className="w-5 h-5" />, title: "Tax Overview Dashboard", desc: "See all tax obligations in one view — GST, TDS, advance tax, and income tax filing status." },
-  { icon: <AlertTriangle className="w-5 h-5" />, title: "Deadline Alerts", desc: "Automatic alerts before due dates. Escalation to your CA when filings are approaching or overdue." },
+  { icon: <AlertTriangle className="w-5 h-5" />, title: "Deadline Alerts", desc: "Automatic alerts before due dates. Upgrade to have our team handle the filings for you." },
   { icon: <FileText className="w-5 h-5" />, title: "Filing History", desc: "Complete record of all filings with dates, amounts, and acknowledgment numbers for audit readiness." },
 ];
 
@@ -57,7 +57,7 @@ export default function GstTaxFeaturePage() {
         title="Zero missed tax deadlines"
         subtitle="Let Anvils track your GST and tax obligations automatically."
         primaryCTA={{ label: "Get Started", href: "/signup" }}
-        secondaryCTA={{ label: "Invite Your CA", href: "/for/cas" }}
+        secondaryCTA={{ label: "See Pricing", href: "/pricing" }}
       />
 
       <Footer />

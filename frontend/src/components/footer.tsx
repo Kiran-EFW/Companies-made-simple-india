@@ -15,7 +15,6 @@ const PRODUCT_LINKS = [
 const SOLUTIONS_LINKS = [
   { label: "For Founders", href: "/for/founders" },
   { label: "For Investors", href: "/for/investors" },
-  { label: "For CAs & CSs", href: "/for/cas" },
   { label: "Pricing", href: "/pricing" },
   { label: "Compare Entities", href: "/compare" },
 ];

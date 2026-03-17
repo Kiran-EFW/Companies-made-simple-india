@@ -15,17 +15,16 @@ interface NavItem {
   href: string;
   label: string;
   icon: string;
-  roles?: string[]; // undefined = all roles
+  roles?: readonly string[]; // undefined = all roles
 }
 
 interface NavGroup {
   label: string;
   items: NavItem[];
-  roles?: string[]; // undefined = all roles
+  roles?: readonly string[]; // undefined = all roles
 }
 
-const FOUNDER_ROLES = ["user", "admin", "super_admin"];
-const CA_ROLES = ["ca_lead", "cs_lead"];
+import { FOUNDER_ROLES } from "@/lib/roles";
 
 const NAV_GROUPS: NavGroup[] = [
   {

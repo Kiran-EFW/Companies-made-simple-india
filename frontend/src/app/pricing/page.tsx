@@ -40,7 +40,6 @@ const PLATFORM_FEATURES = [
 const USER_TYPES = [
   { label: "Founders", desc: "Full access to all platform features. Manage your company's equity, compliance, and back-office.", href: "/for/founders" },
   { label: "Investors", desc: "Token-based portal. View portfolio companies, cap tables, funding rounds, and documents — no login needed.", href: "/for/investors" },
-  { label: "CAs & CSs", desc: "Multi-client dashboard. Track compliance tasks, filings, and deadlines across all your clients.", href: "/for/cas" },
 ];
 
 // ─── Compliance Subscription Plans ──────────────────────────────────────────
@@ -100,7 +99,7 @@ const SUBSCRIPTION_PLANS = [
       "Bookkeeping (up to 500 txns/month)",
       "Board meeting documentation (4/year)",
       "Compliance autopilot with penalty alerts",
-      "Dedicated CA + relationship manager",
+      "Dedicated compliance manager",
     ],
   },
   {
@@ -120,7 +119,7 @@ const SUBSCRIPTION_PLANS = [
       "Bookkeeping (unlimited transactions)",
       "Payroll processing (up to 25 employees)",
       "Quarterly board meeting packs",
-      "Dedicated CS + CA + relationship manager",
+      "Dedicated compliance + governance manager",
     ],
   },
   {
@@ -149,7 +148,7 @@ const SUBSCRIPTION_PLANS = [
       "Penalty protection (up to ₹25,000/yr)",
       "Same-day response SLA",
       "Quarterly compliance health reports",
-      "Dedicated CA + CS + relationship manager",
+      "Dedicated compliance + governance manager",
     ],
     note: "Bookkeeping, payroll, and trademark available as add-ons",
   },
@@ -298,7 +297,7 @@ const SERVICES_BY_CATEGORY: Record<string, { label: string; services: Service[] 
       { name: "GST Monthly Return Filing", desc: "GSTR-1 + GSTR-3B monthly", platformFee: 1999, govtFee: 0, frequency: "monthly", badge: "popular" },
       { name: "TDS Quarterly Return Filing", desc: "Form 24Q/26Q quarterly", platformFee: 2499, govtFee: 0, frequency: "quarterly" },
       { name: "GST Annual Return (GSTR-9)", desc: "Annual GST consolidation", platformFee: 4999, govtFee: 0, frequency: "annual" },
-      { name: "Statutory Audit", desc: "Annual financial audit by CA", platformFee: 14999, govtFee: 0, frequency: "annual" },
+      { name: "Statutory Audit", desc: "Annual financial audit coordination", platformFee: 14999, govtFee: 0, frequency: "annual" },
     ],
   },
   accounting: {
@@ -467,7 +466,7 @@ export default function PricingPage() {
               Built for everyone in the ecosystem
             </h3>
           </div>
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid md:grid-cols-2 gap-4 max-w-3xl mx-auto">
             {USER_TYPES.map((u) => (
               <a key={u.label} href={u.href} className="card-static p-5 group">
                 <h4 className="text-sm font-bold text-gray-900 mb-1 group-hover:text-purple-600 transition-colors">{u.label}</h4>
@@ -488,7 +487,7 @@ export default function PricingPage() {
               Compliance <span className="gradient-text">Subscription Plans</span>
             </h2>
             <p className="text-sm mb-6" style={{ color: "var(--color-text-muted)" }}>
-              Ongoing compliance handled by verified CAs. Filings, returns, bookkeeping — on autopilot.
+              Ongoing compliance handled by our team. Filings, returns, bookkeeping — on autopilot.
             </p>
 
             {/* Billing toggle */}
@@ -943,7 +942,7 @@ export default function PricingPage() {
           {/* Bottom note */}
           <div className="text-center mt-8 p-6 rounded-xl" style={{ backgroundColor: "var(--color-bg-card)", border: "1px solid var(--color-border)" }}>
             <p className="text-sm text-gray-500">
-              All services are handled by verified CAs, CSs, and legal professionals.
+              All services are handled by our verified compliance team.
               Government fees are passed through at exact cost with zero markup.
             </p>
             <a href="/services" className="inline-block mt-3 text-sm font-semibold" style={{ color: "var(--color-accent-purple)" }}>
