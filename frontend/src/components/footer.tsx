@@ -7,9 +7,9 @@ const PRODUCT_LINKS = [
   { label: "ESOP", href: "/features/esop" },
   { label: "Fundraising", href: "/features/fundraising" },
   { label: "Compliance", href: "/features/compliance" },
-  { label: "Valuations", href: "/dashboard/valuations" },
-  { label: "Legal Documents", href: "/documents" },
-  { label: "Data Room", href: "/dashboard/data-room" },
+  { label: "Valuations", href: "/features/valuations" },
+  { label: "Legal Documents", href: "/features/legal-docs" },
+  { label: "Data Room", href: "/features/data-room" },
 ];
 
 const SOLUTIONS_LINKS = [

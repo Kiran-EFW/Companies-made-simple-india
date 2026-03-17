@@ -27,8 +27,8 @@ export default function ChatWidget({ companyId }: ChatWidgetProps) {
     if (!token) {
       setSuggestedQuestions([
         "What type of company should I form?",
-        "How much does incorporation cost?",
-        "What documents do I need?",
+        "How does cap table management work?",
+        "What compliance filings are required?",
       ]);
       return;
     }
@@ -38,9 +38,9 @@ export default function ChatWidget({ companyId }: ChatWidgetProps) {
         setSuggestedQuestions(data.questions || []);
       } catch (err) {
         setSuggestedQuestions([
-          "What type of company should I form?",
-          "How much does incorporation cost?",
-          "What documents do I need?",
+          "How do I set up my cap table?",
+          "What ESOP plans can I create?",
+          "What compliance deadlines are coming up?",
         ]);
       }
     };
@@ -98,6 +98,105 @@ export default function ChatWidget({ companyId }: ChatWidgetProps) {
     }
   };
 
+  // Simple content renderer: handles newlines, **bold**, `code`, and URLs
+  function renderContent(text: string) {
+    return text.split("\n").map((line, lineIdx) => {
+      // Process inline formatting within each line
+      const parts: React.ReactNode[] = [];
+      let remaining = line;
+      let partKey = 0;
+
+      while (remaining.length > 0) {
+        // Check for inline code: `code`
+        const codeMatch = remaining.match(/^`([^`]+)`/);
+        if (codeMatch) {
+          parts.push(
+            <code
+              key={partKey++}
+              className="px-1 py-0.5 rounded text-xs font-mono"
+              style={{
+                background: "rgba(124, 58, 237, 0.1)",
+                color: "var(--color-accent-purple, #7c3aed)",
+              }}
+            >
+              {codeMatch[1]}
+            </code>
+          );
+          remaining = remaining.slice(codeMatch[0].length);
+          continue;
+        }
+
+        // Check for bold: **text**
+        const boldMatch = remaining.match(/^\*\*([^*]+)\*\*/);
+        if (boldMatch) {
+          parts.push(<strong key={partKey++}>{boldMatch[1]}</strong>);
+          remaining = remaining.slice(boldMatch[0].length);
+          continue;
+        }
+
+        // Check for URLs
+        const urlMatch = remaining.match(/^(https?:\/\/[^\s)]+)/);
+        if (urlMatch) {
+          parts.push(
+            <a
+              key={partKey++}
+              href={urlMatch[1]}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline"
+              style={{ color: "var(--color-accent-purple, #7c3aed)" }}
+            >
+              {urlMatch[1]}
+            </a>
+          );
+          remaining = remaining.slice(urlMatch[0].length);
+          continue;
+        }
+
+        // Check for bullet points: lines starting with - or *
+        // (handled at the line level below)
+
+        // Take the next character as plain text
+        const nextSpecial = remaining.search(/[`*]|https?:\/\//);
+        if (nextSpecial === -1) {
+          parts.push(remaining);
+          remaining = "";
+        } else if (nextSpecial === 0) {
+          // No match for formatting, treat as literal
+          parts.push(remaining[0]);
+          remaining = remaining.slice(1);
+        } else {
+          parts.push(remaining.slice(0, nextSpecial));
+          remaining = remaining.slice(nextSpecial);
+        }
+      }
+
+      // Detect bullet points
+      const bulletMatch = line.match(/^(\s*[-*•])\s/);
+      const numberedMatch = line.match(/^(\s*\d+[.)]\s)/);
+
+      if (bulletMatch || numberedMatch) {
+        return (
+          <div key={lineIdx} className="flex gap-1.5 ml-1">
+            <span className="shrink-0" style={{ color: "var(--color-accent-purple, #7c3aed)" }}>
+              {bulletMatch ? "•" : line.match(/^\s*(\d+)/)?.[1] + "."}
+            </span>
+            <span>{parts.slice(0).map((p, i) =>
+              typeof p === "string" ? p.replace(/^(\s*[-*•]\s|\s*\d+[.)]\s)/, "") : p
+            )}</span>
+          </div>
+        );
+      }
+
+      return (
+        <span key={lineIdx}>
+          {parts}
+          {lineIdx < text.split("\n").length - 1 && <br />}
+        </span>
+      );
+    });
+  }
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -111,17 +210,16 @@ export default function ChatWidget({ companyId }: ChatWidgetProps) {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110"
+          className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110 hover:shadow-xl"
           style={{
-            background:
-              "linear-gradient(135deg, var(--color-accent-purple, #8b5cf6), var(--color-primary-purple, #7c3aed))",
-            boxShadow: "0 4px 20px rgba(139, 92, 246, 0.4)",
+            background: "var(--color-accent-purple, #7c3aed)",
+            boxShadow: "0 4px 20px rgba(124, 58, 237, 0.35)",
           }}
           aria-label="Open chat"
         >
           <svg
-            width="22"
-            height="22"
+            width="24"
+            height="24"
             viewBox="0 0 24 24"
             fill="none"
             stroke="white"
@@ -140,40 +238,50 @@ export default function ChatWidget({ companyId }: ChatWidgetProps) {
           className="fixed bottom-6 right-6 z-50 flex flex-col overflow-hidden animate-fade-in-up"
           style={{
             width: "380px",
-            height: "500px",
+            height: "520px",
             maxHeight: "calc(100vh - 48px)",
             maxWidth: "calc(100vw - 48px)",
-            background: "var(--color-bg-card, rgba(17, 17, 27, 0.95))",
-            border: "1px solid var(--color-border, rgba(255, 255, 255, 0.08))",
+            background: "var(--color-bg-card, #ffffff)",
+            border: "1px solid var(--color-border, #e5e7eb)",
             borderRadius: "16px",
-            backdropFilter: "blur(20px)",
             boxShadow:
-              "0 8px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(139, 92, 246, 0.1)",
+              "0 8px 40px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(124, 58, 237, 0.08)",
           }}
         >
           {/* Header */}
           <div
             className="flex items-center justify-between px-4 py-3 shrink-0"
             style={{
-              borderBottom:
-                "1px solid var(--color-border, rgba(255, 255, 255, 0.08))",
-              background: "rgba(139, 92, 246, 0.05)",
+              borderBottom: "1px solid var(--color-border, #e5e7eb)",
+              background: "var(--color-accent-purple, #7c3aed)",
             }}
           >
-            <div className="flex items-center gap-2">
-              <div
-                className="w-2 h-2 rounded-full"
-                style={{
-                  background: "var(--color-accent-emerald, #10b981)",
-                  boxShadow: "0 0 6px rgba(16, 185, 129, 0.5)",
-                }}
-              />
-              <span className="text-sm font-semibold">AI Assistant</span>
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="white"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+              </div>
+              <div>
+                <span className="text-sm font-semibold text-white">Anvils Assistant</span>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-300" />
+                  <span className="text-[10px] text-white/70">Online</span>
+                </div>
+              </div>
             </div>
             <button
               onClick={() => setIsOpen(false)}
-              className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors hover:bg-white/10"
-              style={{ color: "var(--color-text-secondary, #9ca3af)" }}
+              className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors hover:bg-white/20 text-white/80 hover:text-white"
               aria-label="Close chat"
             >
               <svg
@@ -197,8 +305,7 @@ export default function ChatWidget({ companyId }: ChatWidgetProps) {
             className="flex-1 overflow-y-auto px-4 py-4 space-y-3"
             style={{
               scrollbarWidth: "thin",
-              scrollbarColor:
-                "rgba(139, 92, 246, 0.3) transparent",
+              scrollbarColor: "rgba(124, 58, 237, 0.2) transparent",
             }}
           >
             {/* Welcome Message & Suggested Questions */}
@@ -207,15 +314,14 @@ export default function ChatWidget({ companyId }: ChatWidgetProps) {
                 <div
                   className="p-3 rounded-xl text-sm leading-relaxed"
                   style={{
-                    background: "rgba(255, 255, 255, 0.04)",
-                    border:
-                      "1px solid var(--color-border, rgba(255, 255, 255, 0.06))",
-                    color: "var(--color-text-secondary, #9ca3af)",
+                    background: "var(--color-bg-secondary, #f9fafb)",
+                    border: "1px solid var(--color-border, #e5e7eb)",
+                    color: "var(--color-text-secondary, #6b7280)",
                   }}
                 >
-                  Hi! I can help you with questions about company
-                  incorporation, entity types, pricing, documents, and more.
-                  Ask me anything!
+                  Hi! I can help you with cap table management, ESOP plans,
+                  fundraising, compliance, incorporation, and more.
+                  Ask me anything about managing your company on Anvils.
                 </div>
 
                 {suggestedQuestions.length > 0 && (
@@ -223,25 +329,24 @@ export default function ChatWidget({ companyId }: ChatWidgetProps) {
                     <p
                       className="text-[11px] font-medium uppercase tracking-wider"
                       style={{
-                        color: "var(--color-text-muted, #6b7280)",
+                        color: "var(--color-text-muted, #9ca3af)",
                       }}
                     >
-                      Suggested Questions
+                      Try asking
                     </p>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-col gap-2">
                       {suggestedQuestions.map((q, idx) => (
                         <button
                           key={idx}
                           onClick={() => handleSend(q)}
-                          className="text-left text-xs px-3 py-2 rounded-lg transition-all duration-200 hover:scale-[1.02]"
+                          className="text-left text-xs px-3 py-2.5 rounded-lg transition-all duration-200 hover:shadow-sm"
                           style={{
-                            background: "rgba(139, 92, 246, 0.08)",
-                            border:
-                              "1px solid rgba(139, 92, 246, 0.2)",
-                            color:
-                              "var(--color-accent-purple-light, #c4b5fd)",
+                            background: "var(--color-bg-secondary, #f9fafb)",
+                            border: "1px solid var(--color-border, #e5e7eb)",
+                            color: "var(--color-text-primary, #374151)",
                           }}
                         >
+                          <span style={{ color: "var(--color-accent-purple, #7c3aed)" }}>→ </span>
                           {q}
                         </button>
                       ))}
@@ -262,23 +367,19 @@ export default function ChatWidget({ companyId }: ChatWidgetProps) {
                   style={
                     msg.role === "user"
                       ? {
-                          background:
-                            "var(--color-primary-purple, #7c3aed)",
+                          background: "var(--color-accent-purple, #7c3aed)",
                           color: "white",
                           borderBottomRightRadius: "4px",
                         }
                       : {
-                          background:
-                            "rgba(255, 255, 255, 0.05)",
-                          border:
-                            "1px solid var(--color-border, rgba(255, 255, 255, 0.06))",
-                          color:
-                            "var(--color-text-secondary, #d1d5db)",
+                          background: "var(--color-bg-secondary, #f9fafb)",
+                          border: "1px solid var(--color-border, #e5e7eb)",
+                          color: "var(--color-text-primary, #374151)",
                           borderBottomLeftRadius: "4px",
                         }
                   }
                 >
-                  {msg.content}
+                  {msg.role === "assistant" ? renderContent(msg.content) : msg.content}
                 </div>
               </div>
             ))}
@@ -287,35 +388,31 @@ export default function ChatWidget({ companyId }: ChatWidgetProps) {
             {loading && (
               <div className="flex justify-start">
                 <div
-                  className="px-4 py-3 rounded-xl flex items-center gap-1"
+                  className="px-4 py-3 rounded-xl flex items-center gap-1.5"
                   style={{
-                    background: "rgba(255, 255, 255, 0.05)",
-                    border:
-                      "1px solid var(--color-border, rgba(255, 255, 255, 0.06))",
+                    background: "var(--color-bg-secondary, #f9fafb)",
+                    border: "1px solid var(--color-border, #e5e7eb)",
                     borderBottomLeftRadius: "4px",
                   }}
                 >
                   <span
-                    className="w-1.5 h-1.5 rounded-full animate-bounce"
+                    className="w-2 h-2 rounded-full animate-bounce"
                     style={{
-                      background:
-                        "var(--color-accent-purple, #8b5cf6)",
+                      background: "var(--color-accent-purple, #7c3aed)",
                       animationDelay: "0ms",
                     }}
                   />
                   <span
-                    className="w-1.5 h-1.5 rounded-full animate-bounce"
+                    className="w-2 h-2 rounded-full animate-bounce"
                     style={{
-                      background:
-                        "var(--color-accent-purple, #8b5cf6)",
+                      background: "var(--color-accent-purple, #7c3aed)",
                       animationDelay: "150ms",
                     }}
                   />
                   <span
-                    className="w-1.5 h-1.5 rounded-full animate-bounce"
+                    className="w-2 h-2 rounded-full animate-bounce"
                     style={{
-                      background:
-                        "var(--color-accent-purple, #8b5cf6)",
+                      background: "var(--color-accent-purple, #7c3aed)",
                       animationDelay: "300ms",
                     }}
                   />
@@ -330,16 +427,14 @@ export default function ChatWidget({ companyId }: ChatWidgetProps) {
           <div
             className="px-3 py-3 shrink-0"
             style={{
-              borderTop:
-                "1px solid var(--color-border, rgba(255, 255, 255, 0.08))",
+              borderTop: "1px solid var(--color-border, #e5e7eb)",
             }}
           >
             <div
               className="flex items-center gap-2 rounded-xl px-3 py-2"
               style={{
-                background: "rgba(255, 255, 255, 0.04)",
-                border:
-                  "1px solid var(--color-border, rgba(255, 255, 255, 0.08))",
+                background: "var(--color-bg-secondary, #f9fafb)",
+                border: "1px solid var(--color-border, #e5e7eb)",
               }}
             >
               <input
@@ -348,10 +443,10 @@ export default function ChatWidget({ companyId }: ChatWidgetProps) {
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask about incorporation..."
+                placeholder="Ask anything about Anvils..."
                 disabled={loading}
-                className="flex-1 bg-transparent text-sm outline-none"
-                style={{ color: "var(--color-text-primary, #f3f4f6)" }}
+                className="flex-1 bg-transparent text-sm outline-none placeholder:text-gray-400"
+                style={{ color: "var(--color-text-primary, #111827)" }}
               />
               <button
                 onClick={() => handleSend()}
@@ -360,7 +455,7 @@ export default function ChatWidget({ companyId }: ChatWidgetProps) {
                 style={{
                   background:
                     inputValue.trim() && !loading
-                      ? "var(--color-primary-purple, #7c3aed)"
+                      ? "var(--color-accent-purple, #7c3aed)"
                       : "transparent",
                 }}
                 aria-label="Send message"
@@ -370,10 +465,13 @@ export default function ChatWidget({ companyId }: ChatWidgetProps) {
                   height="16"
                   viewBox="0 0 24 24"
                   fill="none"
-                  stroke="white"
+                  stroke={inputValue.trim() && !loading ? "white" : "currentColor"}
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
+                  style={{
+                    color: inputValue.trim() && !loading ? undefined : "var(--color-text-muted, #9ca3af)",
+                  }}
                 >
                   <line x1="22" y1="2" x2="11" y2="13" />
                   <polygon points="22 2 15 22 11 13 2 9 22 2" />

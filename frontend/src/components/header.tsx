@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTheme } from "@/lib/theme-context";
 import {
   BarChart3,
   Users,
@@ -25,6 +26,8 @@ import {
   Menu,
   X,
   ChevronDown,
+  Sun,
+  Moon,
 } from "lucide-react";
 
 const PRODUCTS = [
@@ -34,19 +37,19 @@ const PRODUCTS = [
       { label: "Cap Table", desc: "Shareholders, dilution, certificates", href: "/features/cap-table", icon: BarChart3 },
       { label: "ESOP", desc: "Plans, grants, vesting & exercise", href: "/features/esop", icon: Users },
       { label: "Fundraising", desc: "Rounds, closing room, filings", href: "/features/fundraising", icon: TrendingUp },
-      { label: "Valuations", desc: "NAV & DCF for Rule 11UA FMV", href: "/dashboard/valuations", icon: Calculator },
-      { label: "Stakeholders", desc: "Investor & employee profiles", href: "/dashboard/stakeholders", icon: Briefcase },
+      { label: "Valuations", desc: "NAV & DCF for Rule 11UA FMV", href: "/features/valuations", icon: Calculator },
+      { label: "Stakeholders", desc: "Investor & employee profiles", href: "/features/stakeholders", icon: Briefcase },
     ],
   },
   {
     heading: "Compliance & Operations",
     items: [
       { label: "Compliance Calendar", desc: "ROC, board meetings, GST deadlines", href: "/features/compliance", icon: Shield },
-      { label: "Board Meetings", desc: "Scheduling, minutes, resolutions", href: "/dashboard/meetings", icon: Calendar },
-      { label: "Legal Documents", desc: "AI-drafted contracts & e-signatures", href: "/documents", icon: FileText },
-      { label: "Data Room", desc: "Secure document sharing", href: "/dashboard/data-room", icon: FolderLock },
-      { label: "GST & Tax", desc: "Returns, TDS, tax overview", href: "/dashboard/gst", icon: Receipt },
-      { label: "Accounting", desc: "Zoho Books & Tally integration", href: "/settings/accounting", icon: BookOpen },
+      { label: "Board Meetings", desc: "Scheduling, minutes, resolutions", href: "/features/board-meetings", icon: Calendar },
+      { label: "Legal Documents", desc: "AI-drafted contracts & e-signatures", href: "/features/legal-docs", icon: FileText },
+      { label: "Data Room", desc: "Secure document sharing", href: "/features/data-room", icon: FolderLock },
+      { label: "GST & Tax", desc: "Returns, TDS, tax overview", href: "/features/gst-tax", icon: Receipt },
+      { label: "Accounting", desc: "Zoho Books & Tally integration", href: "/features/accounting", icon: BookOpen },
     ],
   },
   {
@@ -55,7 +58,7 @@ const PRODUCTS = [
       { label: "Investor Portal", desc: "Token-based portfolio dashboard", href: "/for/investors", icon: Eye },
       { label: "CA Dashboard", desc: "Multi-client compliance view", href: "/for/cas", icon: Briefcase },
       { label: "Incorporation", desc: "AI entity wizard & filing", href: "/wizard", icon: Rocket },
-      { label: "Services Marketplace", desc: "GST, trademark, DPIIT & more", href: "/services", icon: ShoppingBag },
+      { label: "Services Marketplace", desc: "GST, trademark, DPIIT & more", href: "/features/services", icon: ShoppingBag },
     ],
   },
 ];
@@ -82,6 +85,7 @@ export default function Header() {
   const pathname = usePathname();
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const navRef = useRef<HTMLDivElement>(null);
+  const { theme, toggleTheme } = useTheme();
 
   // Close dropdowns on route change
   useEffect(() => {
@@ -111,13 +115,22 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100">
+    <header
+      className="sticky top-0 z-50 backdrop-blur-sm border-b"
+      style={{
+        backgroundColor: theme === "dark" ? "rgba(26, 31, 53, 0.95)" : "rgba(255, 255, 255, 0.95)",
+        borderColor: "var(--color-border)",
+      }}
+    >
       <div className="max-w-7xl mx-auto px-6" ref={navRef}>
         <nav className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 shrink-0">
             <img src="/logo-icon.png" alt="Anvils" className="w-7 h-7 object-contain" />
-            <span className="text-lg font-bold text-gray-900" style={{ fontFamily: "var(--font-display)" }}>
+            <span
+              className="text-lg font-bold"
+              style={{ fontFamily: "var(--font-display)", color: "var(--color-text-primary)" }}
+            >
               Anvils
             </span>
           </Link>
@@ -132,21 +145,29 @@ export default function Header() {
             >
               <button
                 onClick={() => setOpenDropdown(openDropdown === "products" ? null : "products")}
-                className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-lg transition-colors"
+                style={{ color: "var(--color-text-secondary)" }}
               >
                 Products
                 <ChevronDown className={`w-3.5 h-3.5 transition-transform ${openDropdown === "products" ? "rotate-180" : ""}`} />
               </button>
               {openDropdown === "products" && (
                 <div
-                  className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-[780px] bg-white rounded-xl border border-gray-200 shadow-lg p-6"
+                  className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-[780px] rounded-xl shadow-lg p-6"
+                  style={{
+                    backgroundColor: "var(--color-bg-card)",
+                    border: "1px solid var(--color-border)",
+                  }}
                   onMouseEnter={() => handleMouseEnter("products")}
                   onMouseLeave={handleMouseLeave}
                 >
                   <div className="grid grid-cols-3 gap-6">
                     {PRODUCTS.map((group) => (
                       <div key={group.heading}>
-                        <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                        <div
+                          className="text-xs font-semibold uppercase tracking-wider mb-3"
+                          style={{ color: "var(--color-text-muted)" }}
+                        >
                           {group.heading}
                         </div>
                         <div className="space-y-1">
@@ -154,12 +175,13 @@ export default function Header() {
                             <Link
                               key={item.href}
                               href={item.href}
-                              className="flex items-start gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors group"
+                              className="flex items-start gap-3 p-2 rounded-lg transition-colors group"
+                              style={{ color: "var(--color-text-primary)" }}
                             >
-                              <item.icon className="w-4 h-4 text-purple-600 mt-0.5 shrink-0" />
+                              <item.icon className="w-4 h-4 mt-0.5 shrink-0" style={{ color: "var(--color-accent-purple)" }} />
                               <div>
-                                <div className="text-sm font-medium text-gray-900 group-hover:text-purple-700">{item.label}</div>
-                                <div className="text-xs text-gray-500">{item.desc}</div>
+                                <div className="text-sm font-medium">{item.label}</div>
+                                <div className="text-xs" style={{ color: "var(--color-text-muted)" }}>{item.desc}</div>
                               </div>
                             </Link>
                           ))}
@@ -179,14 +201,19 @@ export default function Header() {
             >
               <button
                 onClick={() => setOpenDropdown(openDropdown === "solutions" ? null : "solutions")}
-                className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-lg transition-colors"
+                style={{ color: "var(--color-text-secondary)" }}
               >
                 Solutions
                 <ChevronDown className={`w-3.5 h-3.5 transition-transform ${openDropdown === "solutions" ? "rotate-180" : ""}`} />
               </button>
               {openDropdown === "solutions" && (
                 <div
-                  className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-[320px] bg-white rounded-xl border border-gray-200 shadow-lg p-3"
+                  className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-[320px] rounded-xl shadow-lg p-3"
+                  style={{
+                    backgroundColor: "var(--color-bg-card)",
+                    border: "1px solid var(--color-border)",
+                  }}
                   onMouseEnter={() => handleMouseEnter("solutions")}
                   onMouseLeave={handleMouseLeave}
                 >
@@ -194,12 +221,13 @@ export default function Header() {
                     <Link
                       key={item.href}
                       href={item.href}
-                      className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group"
+                      className="flex items-start gap-3 p-3 rounded-lg transition-colors group"
+                      style={{ color: "var(--color-text-primary)" }}
                     >
-                      <item.icon className="w-4 h-4 text-purple-600 mt-0.5 shrink-0" />
+                      <item.icon className="w-4 h-4 mt-0.5 shrink-0" style={{ color: "var(--color-accent-purple)" }} />
                       <div>
-                        <div className="text-sm font-medium text-gray-900 group-hover:text-purple-700">{item.label}</div>
-                        <div className="text-xs text-gray-500">{item.desc}</div>
+                        <div className="text-sm font-medium">{item.label}</div>
+                        <div className="text-xs" style={{ color: "var(--color-text-muted)" }}>{item.desc}</div>
                       </div>
                     </Link>
                   ))}
@@ -215,14 +243,19 @@ export default function Header() {
             >
               <button
                 onClick={() => setOpenDropdown(openDropdown === "resources" ? null : "resources")}
-                className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-lg transition-colors"
+                style={{ color: "var(--color-text-secondary)" }}
               >
                 Resources
                 <ChevronDown className={`w-3.5 h-3.5 transition-transform ${openDropdown === "resources" ? "rotate-180" : ""}`} />
               </button>
               {openDropdown === "resources" && (
                 <div
-                  className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-[320px] bg-white rounded-xl border border-gray-200 shadow-lg p-3"
+                  className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-[320px] rounded-xl shadow-lg p-3"
+                  style={{
+                    backgroundColor: "var(--color-bg-card)",
+                    border: "1px solid var(--color-border)",
+                  }}
                   onMouseEnter={() => handleMouseEnter("resources")}
                   onMouseLeave={handleMouseLeave}
                 >
@@ -230,12 +263,13 @@ export default function Header() {
                     <Link
                       key={item.href}
                       href={item.href}
-                      className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group"
+                      className="flex items-start gap-3 p-3 rounded-lg transition-colors group"
+                      style={{ color: "var(--color-text-primary)" }}
                     >
-                      <item.icon className="w-4 h-4 text-purple-600 mt-0.5 shrink-0" />
+                      <item.icon className="w-4 h-4 mt-0.5 shrink-0" style={{ color: "var(--color-accent-purple)" }} />
                       <div>
-                        <div className="text-sm font-medium text-gray-900 group-hover:text-purple-700">{item.label}</div>
-                        <div className="text-xs text-gray-500">{item.desc}</div>
+                        <div className="text-sm font-medium">{item.label}</div>
+                        <div className="text-xs" style={{ color: "var(--color-text-muted)" }}>{item.desc}</div>
                       </div>
                     </Link>
                   ))}
@@ -246,7 +280,8 @@ export default function Header() {
             {/* Pricing direct link */}
             <Link
               href="/pricing"
-              className="px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 rounded-lg hover:bg-gray-50 transition-colors"
+              className="px-3 py-2 text-sm font-medium rounded-lg transition-colors"
+              style={{ color: "var(--color-text-secondary)" }}
             >
               Pricing
             </Link>
@@ -254,7 +289,23 @@ export default function Header() {
 
           {/* Right side */}
           <div className="hidden lg:flex items-center gap-3">
-            <Link href="/login" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+            {/* Theme toggle */}
+            <button
+              onClick={toggleTheme}
+              className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+              style={{
+                color: "var(--color-text-secondary)",
+                backgroundColor: "transparent",
+              }}
+              aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+            >
+              {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+            <Link
+              href="/login"
+              className="text-sm font-medium transition-colors"
+              style={{ color: "var(--color-text-secondary)" }}
+            >
               Log in
             </Link>
             <Link href="/signup" className="btn-primary btn-sm">
@@ -263,21 +314,36 @@ export default function Header() {
           </div>
 
           {/* Mobile hamburger */}
-          <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="lg:hidden p-2 text-gray-600 hover:text-gray-900 rounded-lg hover:bg-gray-50"
-          >
-            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
+          <div className="lg:hidden flex items-center gap-2">
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-lg transition-colors"
+              style={{ color: "var(--color-text-secondary)" }}
+              aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+            >
+              {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="p-2 rounded-lg"
+              style={{ color: "var(--color-text-secondary)" }}
+            >
+              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
         </nav>
 
         {/* Mobile Menu */}
         {mobileOpen && (
-          <div className="lg:hidden border-t border-gray-100 py-4 space-y-1 max-h-[80vh] overflow-y-auto">
+          <div
+            className="lg:hidden py-4 space-y-1 max-h-[80vh] overflow-y-auto"
+            style={{ borderTop: "1px solid var(--color-border)" }}
+          >
             {/* Products accordion */}
             <button
               onClick={() => setMobileSection(mobileSection === "products" ? null : "products")}
-              className="flex items-center justify-between w-full px-3 py-2.5 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50"
+              className="flex items-center justify-between w-full px-3 py-2.5 text-sm font-medium rounded-lg"
+              style={{ color: "var(--color-text-primary)" }}
             >
               Products
               <ChevronDown className={`w-4 h-4 transition-transform ${mobileSection === "products" ? "rotate-180" : ""}`} />
@@ -286,14 +352,20 @@ export default function Header() {
               <div className="pl-4 space-y-3 py-2">
                 {PRODUCTS.map((group) => (
                   <div key={group.heading}>
-                    <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-1">{group.heading}</div>
+                    <div
+                      className="text-xs font-semibold uppercase tracking-wider px-3 mb-1"
+                      style={{ color: "var(--color-text-muted)" }}
+                    >
+                      {group.heading}
+                    </div>
                     {group.items.map((item) => (
                       <Link
                         key={item.href}
                         href={item.href}
-                        className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50"
+                        className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg"
+                        style={{ color: "var(--color-text-secondary)" }}
                       >
-                        <item.icon className="w-4 h-4 text-purple-600 shrink-0" />
+                        <item.icon className="w-4 h-4 shrink-0" style={{ color: "var(--color-accent-purple)" }} />
                         {item.label}
                       </Link>
                     ))}
@@ -305,7 +377,8 @@ export default function Header() {
             {/* Solutions accordion */}
             <button
               onClick={() => setMobileSection(mobileSection === "solutions" ? null : "solutions")}
-              className="flex items-center justify-between w-full px-3 py-2.5 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50"
+              className="flex items-center justify-between w-full px-3 py-2.5 text-sm font-medium rounded-lg"
+              style={{ color: "var(--color-text-primary)" }}
             >
               Solutions
               <ChevronDown className={`w-4 h-4 transition-transform ${mobileSection === "solutions" ? "rotate-180" : ""}`} />
@@ -316,9 +389,10 @@ export default function Header() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50"
+                    className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg"
+                    style={{ color: "var(--color-text-secondary)" }}
                   >
-                    <item.icon className="w-4 h-4 text-purple-600 shrink-0" />
+                    <item.icon className="w-4 h-4 shrink-0" style={{ color: "var(--color-accent-purple)" }} />
                     {item.label}
                   </Link>
                 ))}
@@ -328,7 +402,8 @@ export default function Header() {
             {/* Resources accordion */}
             <button
               onClick={() => setMobileSection(mobileSection === "resources" ? null : "resources")}
-              className="flex items-center justify-between w-full px-3 py-2.5 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50"
+              className="flex items-center justify-between w-full px-3 py-2.5 text-sm font-medium rounded-lg"
+              style={{ color: "var(--color-text-primary)" }}
             >
               Resources
               <ChevronDown className={`w-4 h-4 transition-transform ${mobileSection === "resources" ? "rotate-180" : ""}`} />
@@ -339,21 +414,30 @@ export default function Header() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50"
+                    className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg"
+                    style={{ color: "var(--color-text-secondary)" }}
                   >
-                    <item.icon className="w-4 h-4 text-purple-600 shrink-0" />
+                    <item.icon className="w-4 h-4 shrink-0" style={{ color: "var(--color-accent-purple)" }} />
                     {item.label}
                   </Link>
                 ))}
               </div>
             )}
 
-            <Link href="/pricing" className="block px-3 py-2.5 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50">
+            <Link
+              href="/pricing"
+              className="block px-3 py-2.5 text-sm font-medium rounded-lg"
+              style={{ color: "var(--color-text-primary)" }}
+            >
               Pricing
             </Link>
 
-            <div className="pt-3 border-t border-gray-100 space-y-2 px-3">
-              <Link href="/login" className="block text-center text-sm font-medium text-gray-700 py-2 rounded-lg hover:bg-gray-50">
+            <div className="pt-3 space-y-2 px-3" style={{ borderTop: "1px solid var(--color-border)" }}>
+              <Link
+                href="/login"
+                className="block text-center text-sm font-medium py-2 rounded-lg"
+                style={{ color: "var(--color-text-primary)" }}
+              >
                 Log in
               </Link>
               <Link href="/signup" className="btn-primary w-full text-center text-sm">

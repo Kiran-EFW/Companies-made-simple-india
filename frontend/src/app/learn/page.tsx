@@ -345,7 +345,7 @@ export default function LearnPage() {
                                       style={{
                                         cursor: "default",
                                         borderColor: "var(--color-border)",
-                                        background: "rgba(0, 0, 0, 0.2)",
+                                        background: "var(--color-bg-card)",
                                       }}
                                       onClick={(e) => e.stopPropagation()}
                                     >

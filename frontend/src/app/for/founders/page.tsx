@@ -17,6 +17,7 @@ import {
   Receipt,
   ShoppingBag,
   ClipboardList,
+  UserCheck,
 } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -26,6 +27,7 @@ export const metadata: Metadata = {
 
 const MAIN_FEATURES = [
   {
+    id: "cap-table",
     icon: <BarChart3 className="w-6 h-6" />,
     title: "Cap Table Management",
     desc: "Track every shareholder, share type, and transaction. Model dilution before you raise. Compare multiple funding scenarios side by side. Generate share certificates and maintain a clean audit trail.",
@@ -34,6 +36,7 @@ const MAIN_FEATURES = [
     href: "/features/cap-table",
   },
   {
+    id: "esop",
     icon: <Users className="w-6 h-6" />,
     title: "ESOP Management",
     desc: "Create stock option plans with board resolution tracking. Manage individual grants with cliff periods and vesting schedules. Handle exercise workflows with automatic cap table updates and FMV compliance.",
@@ -42,6 +45,7 @@ const MAIN_FEATURES = [
     href: "/features/esop",
   },
   {
+    id: "fundraising",
     icon: <TrendingUp className="w-6 h-6" />,
     title: "Fundraising",
     desc: "Create funding rounds for equity, SAFEs, or convertible notes. Track investors and manage closing rooms with document checklists. Auto-generate post-raise filings like PAS-3 and MGT-14.",
@@ -50,6 +54,7 @@ const MAIN_FEATURES = [
     href: "/features/fundraising",
   },
   {
+    id: "compliance",
     icon: <Shield className="w-6 h-6" />,
     title: "Compliance Calendar",
     desc: "Automated compliance task generation based on your incorporation date. Track ROC filings, board meetings, GST returns, and statutory audit deadlines. Escalation alerts when deadlines approach.",
@@ -58,6 +63,7 @@ const MAIN_FEATURES = [
     href: "/features/compliance",
   },
   {
+    id: "valuations",
     icon: <Calculator className="w-6 h-6" />,
     title: "Valuations",
     desc: "Rule 11UA-compliant fair market valuations using NAV and simplified DCF methods. Essential for ESOP exercise pricing, FEMA compliance, and investor reporting.",
@@ -67,13 +73,14 @@ const MAIN_FEATURES = [
 ];
 
 const MORE_TOOLS = [
-  { icon: <Calendar className="w-5 h-5" />, title: "Board Meetings", desc: "Schedule, track attendance, generate minutes" },
-  { icon: <ClipboardList className="w-5 h-5" />, title: "Statutory Registers", desc: "Members, directors, shares, charges" },
-  { icon: <FileText className="w-5 h-5" />, title: "Legal Documents", desc: "AI-drafted contracts with e-signatures" },
-  { icon: <FolderLock className="w-5 h-5" />, title: "Data Room", desc: "Secure, time-limited document sharing" },
-  { icon: <BookOpen className="w-5 h-5" />, title: "Accounting Integration", desc: "Zoho Books & Tally sync" },
-  { icon: <Receipt className="w-5 h-5" />, title: "GST & Tax", desc: "Returns, TDS, and tax overview" },
-  { icon: <ShoppingBag className="w-5 h-5" />, title: "Services Marketplace", desc: "GST registration, trademark, DPIIT" },
+  { id: "stakeholders", icon: <UserCheck className="w-5 h-5" />, title: "Stakeholders", desc: "Manage shareholders, directors, and auditors" },
+  { id: "board-meetings", icon: <Calendar className="w-5 h-5" />, title: "Board Meetings", desc: "Schedule, track attendance, generate minutes" },
+  { id: "registers", icon: <ClipboardList className="w-5 h-5" />, title: "Statutory Registers", desc: "Members, directors, shares, charges" },
+  { id: "legal-docs", icon: <FileText className="w-5 h-5" />, title: "Legal Documents", desc: "AI-drafted contracts with e-signatures" },
+  { id: "data-room", icon: <FolderLock className="w-5 h-5" />, title: "Data Room", desc: "Secure, time-limited document sharing" },
+  { id: "accounting", icon: <BookOpen className="w-5 h-5" />, title: "Accounting Integration", desc: "Zoho Books & Tally sync" },
+  { id: "gst-tax", icon: <Receipt className="w-5 h-5" />, title: "GST & Tax", desc: "Returns, TDS, and tax overview" },
+  { id: "services", icon: <ShoppingBag className="w-5 h-5" />, title: "Services Marketplace", desc: "GST registration, trademark, DPIIT" },
 ];
 
 const COLOR_MAP: Record<string, { bg: string; text: string; bullet: string }> = {
@@ -102,7 +109,7 @@ export default function ForFoundersPage() {
             const colors = COLOR_MAP[feature.color];
             const isReversed = i % 2 === 1;
             return (
-              <div key={feature.title} className={`flex flex-col ${isReversed ? "md:flex-row-reverse" : "md:flex-row"} gap-10 items-center`}>
+              <div id={feature.id} key={feature.title} className={`flex flex-col ${isReversed ? "md:flex-row-reverse" : "md:flex-row"} gap-10 items-center scroll-mt-24`}>
                 <div className="flex-1">
                   <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${colors.bg}`}>
                     <div className={colors.text}>{feature.icon}</div>
@@ -150,7 +157,7 @@ export default function ForFoundersPage() {
           />
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {MORE_TOOLS.map((tool) => (
-              <div key={tool.title} className="card-static p-5">
+              <div id={tool.id} key={tool.title} className="card-static p-5 scroll-mt-24">
                 <div className="w-9 h-9 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600 mb-3">
                   {tool.icon}
                 </div>

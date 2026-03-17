@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
+import { ThemeProvider } from "@/lib/theme-context";
 import { ErrorBoundary } from "@/components/error-boundary";
 import ToastContainer from "@/components/toast";
 
@@ -39,12 +40,14 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen antialiased">
-        <AuthProvider>
-          <ErrorBoundary>
-            {children}
-          </ErrorBoundary>
-          <ToastContainer />
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <ErrorBoundary>
+              {children}
+            </ErrorBoundary>
+            <ToastContainer />
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

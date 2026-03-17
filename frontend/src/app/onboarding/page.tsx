@@ -201,7 +201,7 @@ export default function OnboardingPage() {
            </div>
            <div className="text-right">
              <div className="text-sm" style={{ color: "var(--color-text-secondary)" }}>Total Due</div>
-             <div className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-200">
+             <div className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-emerald-400">
                ₹{draftConfig.pricing_snapshot.grand_total.toLocaleString()}
              </div>
            </div>

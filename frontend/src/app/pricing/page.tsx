@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { PricingResponse, StateOption } from "@/lib/api";
+import Header from "@/components/header";
 import Footer from "@/components/footer";
 
 const ENTITY_TYPES = [
@@ -298,30 +298,10 @@ export default function PricingPage() {
   }
 
   return (
-    <div className="glow-bg min-h-screen">
-      {/* Nav */}
-      <nav className="relative z-10 flex items-center justify-between px-6 py-5 max-w-7xl mx-auto">
-        <Link href="/" className="flex items-center gap-2.5">
-          <img src="/logo-icon.png" alt="Anvils" className="w-6 h-6 object-contain" />
-          <span className="text-xl font-bold gradient-text" style={{ fontFamily: "var(--font-display)" }}>Anvils</span>
-        </Link>
-        <div className="hidden md:flex items-center gap-6">
-          <Link href="/compare" className="text-sm font-medium" style={{ color: "var(--color-text-secondary)" }}>
-            Compare
-          </Link>
-          <Link href="/wizard" className="text-sm font-medium" style={{ color: "var(--color-text-secondary)" }}>
-            Entity Wizard
-          </Link>
-          <Link href="/login" className="text-sm font-medium" style={{ color: "var(--color-text-secondary)" }}>
-            Log in
-          </Link>
-          <Link href="/signup" className="btn-primary text-sm !py-2 !px-5">
-            Get Started
-          </Link>
-        </div>
-      </nav>
+    <div className="min-h-screen">
+      <Header />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-8">
+      <div className="max-w-7xl mx-auto px-6 py-8">
         <h1
           className="text-4xl md:text-5xl font-bold text-center mb-3"
           style={{ fontFamily: "var(--font-display)" }}
