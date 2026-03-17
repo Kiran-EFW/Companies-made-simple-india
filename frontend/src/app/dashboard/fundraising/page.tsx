@@ -2,8 +2,10 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
+import { useAuth } from "@/lib/auth-context";
 
 import {
+  getCompanies,
   getFundingRounds,
   getFundingRound,
   createFundingRound,
@@ -181,7 +183,7 @@ function StepStatusIcon({ status }: { status: "complete" | "in_progress" | "not_
     return (
       <div
         className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
-        style={{ background: "rgba(16, 185, 129, 0.2)", color: "rgb(16, 185, 129)" }}
+        style={{ background: "var(--color-success-light)", color: "var(--color-accent-emerald-light)" }}
       >
         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
@@ -193,7 +195,7 @@ function StepStatusIcon({ status }: { status: "complete" | "in_progress" | "not_
     return (
       <div
         className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
-        style={{ background: "rgba(245, 158, 11, 0.2)", color: "rgb(245, 158, 11)" }}
+        style={{ background: "var(--color-warning-light)", color: "var(--color-accent-amber)" }}
       >
         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5" />
@@ -224,9 +226,9 @@ function MiniCheckbox({
       disabled={disabled}
       className="w-4 h-4 rounded border inline-flex items-center justify-center transition-all flex-shrink-0"
       style={{
-        borderColor: checked ? "rgb(16, 185, 129)" : "var(--color-border)",
-        background: checked ? "rgba(16, 185, 129, 0.15)" : "transparent",
-        color: checked ? "rgb(16, 185, 129)" : "transparent",
+        borderColor: checked ? "var(--color-accent-emerald-light)" : "var(--color-border)",
+        background: checked ? "var(--color-success-light)" : "transparent",
+        color: checked ? "var(--color-accent-emerald-light)" : "transparent",
         opacity: disabled ? 0.4 : 1,
         cursor: disabled ? "not-allowed" : "pointer",
       }}
@@ -252,9 +254,9 @@ function SmallActionButton({
   disabled?: boolean;
 }) {
   const colors = {
-    purple: { bg: "rgba(139, 92, 246, 0.1)", border: "rgba(139, 92, 246, 0.3)", text: "rgb(139, 92, 246)" },
-    green: { bg: "rgba(16, 185, 129, 0.1)", border: "rgba(16, 185, 129, 0.3)", text: "rgb(16, 185, 129)" },
-    amber: { bg: "rgba(245, 158, 11, 0.1)", border: "rgba(245, 158, 11, 0.3)", text: "rgb(245, 158, 11)" },
+    purple: { bg: "var(--color-purple-bg)", border: "var(--color-purple-bg)", text: "var(--color-accent-purple-light)" },
+    green: { bg: "var(--color-success-light)", border: "var(--color-success-light)", text: "var(--color-accent-emerald-light)" },
+    amber: { bg: "var(--color-warning-light)", border: "var(--color-warning-light)", text: "var(--color-accent-amber)" },
   };
   const c = colors[variant];
   return (
@@ -277,9 +279,9 @@ function SmallActionButton({
 
 function TransactionDocStatusBadge({ status }: { status: TransactionDocStatus }) {
   const map: Record<TransactionDocStatus, { bg: string; text: string; label: string }> = {
-    draft: { bg: "rgba(156, 163, 175, 0.15)", text: "rgb(156, 163, 175)", label: "Draft" },
-    in_review: { bg: "rgba(245, 158, 11, 0.15)", text: "rgb(245, 158, 11)", label: "In Review" },
-    signed: { bg: "rgba(16, 185, 129, 0.15)", text: "rgb(16, 185, 129)", label: "Signed" },
+    draft: { bg: "var(--color-hover-overlay)", text: "var(--color-text-muted)", label: "Draft" },
+    in_review: { bg: "var(--color-warning-light)", text: "var(--color-accent-amber)", label: "In Review" },
+    signed: { bg: "var(--color-success-light)", text: "var(--color-accent-emerald-light)", label: "Signed" },
   };
   const s = map[status];
   return (
@@ -291,9 +293,9 @@ function TransactionDocStatusBadge({ status }: { status: TransactionDocStatus })
 
 function FilingStatusBadge({ status }: { status: FilingStatus }) {
   const map: Record<FilingStatus, { bg: string; text: string; label: string }> = {
-    not_filed: { bg: "rgba(156, 163, 175, 0.15)", text: "rgb(156, 163, 175)", label: "Not Filed" },
-    filed: { bg: "rgba(245, 158, 11, 0.15)", text: "rgb(245, 158, 11)", label: "Filed" },
-    acknowledged: { bg: "rgba(16, 185, 129, 0.15)", text: "rgb(16, 185, 129)", label: "Acknowledged" },
+    not_filed: { bg: "var(--color-hover-overlay)", text: "var(--color-text-muted)", label: "Not Filed" },
+    filed: { bg: "var(--color-warning-light)", text: "var(--color-accent-amber)", label: "Filed" },
+    acknowledged: { bg: "var(--color-success-light)", text: "var(--color-accent-emerald-light)", label: "Acknowledged" },
   };
   const s = map[status];
   return (
@@ -430,17 +432,17 @@ function DocumentChecklist({
       <div className="p-4" style={{ borderBottom: "1px solid var(--color-border)" }}>
         <div className="flex justify-between items-center mb-2">
           <h3 className="font-semibold text-sm">Document & Compliance Checklist</h3>
-          <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: "rgba(139, 92, 246, 0.15)", color: "rgb(139, 92, 246)" }}>
+          <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: "var(--color-purple-bg)", color: "var(--color-accent-purple-light)" }}>
             {completedCount} of 7 complete
           </span>
         </div>
         {/* Progress bar */}
-        <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.05)" }}>
+        <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: "var(--color-hover-overlay)" }}>
           <div
             className="h-full rounded-full transition-all duration-300"
             style={{
               width: `${Math.round((completedCount / 7) * 100)}%`,
-              background: completedCount === 7 ? "rgb(16, 185, 129)" : "rgb(139, 92, 246)",
+              background: completedCount === 7 ? "var(--color-accent-emerald-light)" : "var(--color-accent-purple-light)",
             }}
           />
         </div>
@@ -462,7 +464,7 @@ function DocumentChecklist({
                 className="w-full flex items-center gap-2.5 px-4 py-2.5 text-left transition-colors"
                 style={{
                   opacity: blocked ? 0.5 : 1,
-                  background: isExpanded ? "rgba(255,255,255,0.02)" : "transparent",
+                  background: isExpanded ? "var(--color-stripe-alt)" : "transparent",
                 }}
               >
                 <StepStatusIcon status={iconStatus} />
@@ -504,7 +506,7 @@ function DocumentChecklist({
                           onChange={(e) => updateChecklist({ valuation_status: e.target.value as DocStatus })}
                           className="text-[10px] px-2 py-1 rounded-md"
                           style={{
-                            background: "rgba(255,255,255,0.04)",
+                            background: "var(--color-hover-overlay)",
                             border: "1px solid var(--color-border)",
                             color: "var(--color-text-primary)",
                           }}
@@ -517,9 +519,9 @@ function DocumentChecklist({
                           href="/dashboard/valuations"
                           className="text-[10px] px-2 py-1 rounded-md"
                           style={{
-                            background: "rgba(139, 92, 246, 0.1)",
-                            border: "1px solid rgba(139, 92, 246, 0.3)",
-                            color: "rgb(139, 92, 246)",
+                            background: "var(--color-purple-bg)",
+                            border: "1px solid var(--color-purple-bg)",
+                            color: "var(--color-accent-purple-light)",
                           }}
                         >
                           Go to Valuations
@@ -631,12 +633,12 @@ function DocumentChecklist({
                           style={{
                             background:
                               checklist.shareholder_approval_status === "sr_passed"
-                                ? "rgba(16, 185, 129, 0.15)"
-                                : "rgba(245, 158, 11, 0.15)",
+                                ? "var(--color-success-light)"
+                                : "var(--color-warning-light)",
                             color:
                               checklist.shareholder_approval_status === "sr_passed"
-                                ? "rgb(16, 185, 129)"
-                                : "rgb(245, 158, 11)",
+                                ? "var(--color-accent-emerald-light)"
+                                : "var(--color-accent-amber)",
                           }}
                         >
                           {checklist.shareholder_approval_status === "sr_passed" ? "SR Passed" : "Pending"}
@@ -734,7 +736,7 @@ function DocumentChecklist({
                               placeholder="Capital increase amount"
                               className="text-[10px] px-2 py-0.5 rounded-md flex-1"
                               style={{
-                                background: "rgba(255,255,255,0.04)",
+                                background: "var(--color-hover-overlay)",
                                 border: "1px solid var(--color-border)",
                                 color: "var(--color-text-primary)",
                                 maxWidth: "160px",
@@ -805,7 +807,7 @@ function DocumentChecklist({
                         ) : (
                           <span
                             className="text-[10px] px-2 py-1 rounded-md"
-                            style={{ background: "rgba(16, 185, 129, 0.1)", color: "rgb(16, 185, 129)" }}
+                            style={{ background: "var(--color-success-light)", color: "var(--color-accent-emerald-light)" }}
                           >
                             Allotment Complete
                           </span>
@@ -859,13 +861,13 @@ function DocumentChecklist({
 }
 
 const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
-  draft: { bg: "rgba(156, 163, 175, 0.15)", text: "rgb(156, 163, 175)" },
-  term_sheet: { bg: "rgba(139, 92, 246, 0.15)", text: "rgb(139, 92, 246)" },
-  due_diligence: { bg: "rgba(59, 130, 246, 0.15)", text: "rgb(59, 130, 246)" },
+  draft: { bg: "var(--color-hover-overlay)", text: "var(--color-text-muted)" },
+  term_sheet: { bg: "var(--color-purple-bg)", text: "var(--color-accent-purple-light)" },
+  due_diligence: { bg: "var(--color-info-light)", text: "var(--color-accent-blue)" },
   documentation: { bg: "rgba(99, 102, 241, 0.15)", text: "rgb(99, 102, 241)" },
-  closing: { bg: "rgba(245, 158, 11, 0.15)", text: "rgb(245, 158, 11)" },
-  closed: { bg: "rgba(16, 185, 129, 0.15)", text: "rgb(16, 185, 129)" },
-  cancelled: { bg: "rgba(244, 63, 94, 0.15)", text: "rgb(244, 63, 94)" },
+  closing: { bg: "var(--color-warning-light)", text: "var(--color-accent-amber)" },
+  closed: { bg: "var(--color-success-light)", text: "var(--color-accent-emerald-light)" },
+  cancelled: { bg: "var(--color-error-light)", text: "var(--color-accent-rose)" },
 };
 
 const INSTRUMENT_LABELS: Record<string, string> = {
@@ -895,11 +897,13 @@ function formatCurrency(val: number): string {
 }
 
 export default function FundraisingPage() {
-  const [companyId, setCompanyId] = useState<number>(1);
+  const { user, loading: authLoading } = useAuth();
+  const [companies, setCompanies] = useState<any[]>([]);
+  const [companyId, setCompanyId] = useState<number | null>(null);
   const [rounds, setRounds] = useState<FundingRound[]>([]);
   const [selectedRound, setSelectedRound] = useState<FundingRound | null>(null);
   const [closingRoom, setClosingRoom] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
 
   // Create round modal
@@ -930,11 +934,24 @@ export default function FundraisingPage() {
     share_type: "equity",
   });
 
+  // Fetch companies
+  useEffect(() => {
+    if (authLoading || !user) return;
+    getCompanies()
+      .then((comps) => {
+        setCompanies(comps);
+        if (comps.length > 0) setCompanyId(comps[0].id);
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [user, authLoading]);
+
   useEffect(() => {
     fetchRounds();
   }, [companyId]);
 
   async function fetchRounds() {
+    if (!companyId) return;
     setLoading(true);
     try {
       const data = await getFundingRounds(companyId);
@@ -946,6 +963,7 @@ export default function FundraisingPage() {
   }
 
   async function fetchRoundDetail(roundId: number) {
+    if (!companyId) return;
     try {
       const data = await getFundingRound(companyId, roundId);
       setSelectedRound(data);
@@ -967,6 +985,7 @@ export default function FundraisingPage() {
 
   async function handleCreateRound(e: React.FormEvent) {
     e.preventDefault();
+    if (!companyId) return;
     setMessage("");
     try {
       await createFundingRound(companyId, {
@@ -995,7 +1014,7 @@ export default function FundraisingPage() {
 
   async function handleAddInvestor(e: React.FormEvent) {
     e.preventDefault();
-    if (!selectedRound) return;
+    if (!selectedRound || !companyId) return;
     setMessage("");
     try {
       await addRoundInvestor(companyId, selectedRound.id, {
@@ -1024,7 +1043,7 @@ export default function FundraisingPage() {
   }
 
   async function handleToggleFlag(investorId: number, field: string, value: boolean) {
-    if (!selectedRound) return;
+    if (!selectedRound || !companyId) return;
     try {
       await updateRoundInvestor(companyId, selectedRound.id, investorId, {
         [field]: value,
@@ -1036,7 +1055,7 @@ export default function FundraisingPage() {
   }
 
   async function handleRemoveInvestor(investorId: number) {
-    if (!selectedRound) return;
+    if (!selectedRound || !companyId) return;
     try {
       await removeRoundInvestor(companyId, selectedRound.id, investorId);
       setMessage("Investor removed");
@@ -1048,7 +1067,7 @@ export default function FundraisingPage() {
   }
 
   async function handleInitiateClosing() {
-    if (!selectedRound) return;
+    if (!selectedRound || !companyId) return;
     setMessage("");
     try {
       await initiateClosing(companyId, selectedRound.id, {
@@ -1062,7 +1081,7 @@ export default function FundraisingPage() {
   }
 
   async function handleCompleteAllotment() {
-    if (!selectedRound) return;
+    if (!selectedRound || !companyId) return;
     setMessage("");
     try {
       await completeAllotment(companyId, selectedRound.id);
@@ -1082,7 +1101,7 @@ export default function FundraisingPage() {
   );
 
   async function handlePreviewConversion() {
-    if (!selectedRound) return;
+    if (!selectedRound || !companyId) return;
     setMessage("");
     try {
       const data = await previewConversion(
@@ -1097,7 +1116,7 @@ export default function FundraisingPage() {
   }
 
   async function handleExecuteConversion() {
-    if (!selectedRound) return;
+    if (!selectedRound || !companyId) return;
     setConverting(true);
     setMessage("");
     try {
@@ -1130,25 +1149,28 @@ export default function FundraisingPage() {
         </div>
 
         {/* Company selector */}
-        <div className="flex justify-center mb-6">
-          <div className="flex items-center gap-3">
-            <label className="text-sm" style={{ color: "var(--color-text-muted)" }}>Company ID:</label>
-            <input
-              type="number"
-              value={companyId}
-              onChange={(e) => { setCompanyId(parseInt(e.target.value) || 1); setSelectedRound(null); }}
-              className="glass-card px-3 py-1.5 text-sm w-20 text-center"
-              style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)", cursor: "text" }}
-              min={1}
-            />
+        {companies.length > 1 && (
+          <div className="flex justify-center mb-6">
+            <select
+              className="glass-card text-sm px-3 py-2 rounded-lg border-none outline-none"
+              style={{ background: "var(--color-bg-card)", color: "var(--color-text-primary)" }}
+              value={companyId || ""}
+              onChange={(e) => { setCompanyId(Number(e.target.value)); setSelectedRound(null); }}
+            >
+              {companies.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.approved_name || c.proposed_names?.[0] || `Company #${c.id}`}
+                </option>
+              ))}
+            </select>
           </div>
-        </div>
+        )}
 
         {message && (
           <div
             className="glass-card p-3 mb-6 text-center text-sm"
             style={{
-              borderColor: message.startsWith("Error") ? "rgba(244, 63, 94, 0.5)" : "rgba(16, 185, 129, 0.5)",
+              borderColor: message.startsWith("Error") ? "var(--color-accent-rose)" : "var(--color-accent-emerald-light)",
               cursor: "default",
             }}
           >
@@ -1167,7 +1189,7 @@ export default function FundraisingPage() {
             <div className="lg:col-span-1">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="font-semibold">Rounds</h2>
-                <button onClick={() => setShowCreateRound(true)} className="text-xs px-3 py-1.5 rounded-lg" style={{ background: "rgba(139, 92, 246, 0.1)", border: "1px solid rgba(139, 92, 246, 0.3)", color: "rgb(139, 92, 246)" }}>
+                <button onClick={() => setShowCreateRound(true)} className="text-xs px-3 py-1.5 rounded-lg" style={{ background: "var(--color-purple-bg)", border: "1px solid var(--color-purple-bg)", color: "var(--color-accent-purple-light)" }}>
                   + New Round
                 </button>
               </div>
@@ -1189,8 +1211,8 @@ export default function FundraisingPage() {
                         onClick={() => fetchRoundDetail(round.id)}
                         className="glass-card p-4 w-full text-left transition-all"
                         style={{
-                          borderColor: selectedRound?.id === round.id ? "rgba(139, 92, 246, 0.6)" : "var(--color-border)",
-                          background: selectedRound?.id === round.id ? "rgba(139, 92, 246, 0.08)" : undefined,
+                          borderColor: selectedRound?.id === round.id ? "var(--color-accent-purple-light)" : "var(--color-border)",
+                          background: selectedRound?.id === round.id ? "var(--color-purple-bg)" : undefined,
                         }}
                       >
                         <div className="flex justify-between items-start mb-2">
@@ -1209,8 +1231,8 @@ export default function FundraisingPage() {
                               <span>{formatCurrency(round.amount_raised)}</span>
                               <span>{formatCurrency(round.target_amount)}</span>
                             </div>
-                            <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.05)" }}>
-                              <div className="h-full rounded-full" style={{ width: `${progressPct}%`, background: "rgb(139, 92, 246)" }} />
+                            <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: "var(--color-hover-overlay)" }}>
+                              <div className="h-full rounded-full" style={{ width: `${progressPct}%`, background: "var(--color-accent-purple-light)" }} />
                             </div>
                           </div>
                         )}
@@ -1239,7 +1261,7 @@ export default function FundraisingPage() {
                       <div>
                         <h2 className="text-xl font-bold">{selectedRound.round_name}</h2>
                         <div className="flex items-center gap-2 mt-1">
-                          <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "rgba(139, 92, 246, 0.15)", color: "rgb(139, 92, 246)" }}>
+                          <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "var(--color-purple-bg)", color: "var(--color-accent-purple-light)" }}>
                             {INSTRUMENT_LABELS[selectedRound.instrument_type] || selectedRound.instrument_type}
                           </span>
                           <StatusBadge status={selectedRound.status} />
@@ -1256,7 +1278,7 @@ export default function FundraisingPage() {
                       )}
                       <div className="text-center">
                         <div className="text-xs" style={{ color: "var(--color-text-muted)" }}>Raised</div>
-                        <div className="text-sm font-bold" style={{ color: "rgb(16, 185, 129)" }}>
+                        <div className="text-sm font-bold" style={{ color: "var(--color-accent-emerald-light)" }}>
                           {formatCurrency(selectedRound.amount_raised)}
                         </div>
                       </div>
@@ -1280,13 +1302,13 @@ export default function FundraisingPage() {
                     <div className="glass-card p-5" style={{ cursor: "default" }}>
                       <div className="flex items-center gap-2 mb-4">
                         <h3 className="font-semibold">Convert to Equity</h3>
-                        <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: "rgba(245, 158, 11, 0.15)", color: "rgb(245, 158, 11)" }}>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: "var(--color-warning-light)", color: "var(--color-accent-amber)" }}>
                           {INSTRUMENT_LABELS[selectedRound.instrument_type]}
                         </span>
                       </div>
 
                       {/* Convertible terms summary */}
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 p-3 rounded-lg" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid var(--color-border)" }}>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 p-3 rounded-lg" style={{ background: "var(--color-stripe-alt)", border: "1px solid var(--color-border)" }}>
                         {selectedRound.valuation_cap != null && (
                           <div className="text-center">
                             <div className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>Valuation Cap</div>
@@ -1328,7 +1350,7 @@ export default function FundraisingPage() {
                             value={triggerRoundId}
                             onChange={(e) => { setTriggerRoundId(e.target.value); setConversionPreview(null); }}
                             className="w-full px-3 py-2 rounded-lg text-sm"
-                            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                            style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                           >
                             <option value="">None (use valuation cap only)</option>
                             {equityRounds.map((r) => (
@@ -1341,7 +1363,7 @@ export default function FundraisingPage() {
                         <button
                           onClick={handlePreviewConversion}
                           className="text-sm px-4 py-2 rounded-lg"
-                          style={{ background: "rgba(139, 92, 246, 0.1)", border: "1px solid rgba(139, 92, 246, 0.3)", color: "rgb(139, 92, 246)" }}
+                          style={{ background: "var(--color-purple-bg)", border: "1px solid var(--color-purple-bg)", color: "var(--color-accent-purple-light)" }}
                         >
                           Preview Conversion
                         </button>
@@ -1351,17 +1373,17 @@ export default function FundraisingPage() {
                       {conversionPreview && (
                         <div>
                           <div className="grid grid-cols-3 gap-3 mb-4">
-                            <div className="p-3 rounded-lg text-center" style={{ background: "rgba(139, 92, 246, 0.08)", border: "1px solid rgba(139, 92, 246, 0.2)" }}>
+                            <div className="p-3 rounded-lg text-center" style={{ background: "var(--color-purple-bg)", border: "1px solid var(--color-purple-bg)" }}>
                               <div className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>Trigger Price</div>
                               <div className="text-sm font-bold">
                                 {conversionPreview.trigger_price_per_share ? `Rs ${conversionPreview.trigger_price_per_share}` : "N/A"}
                               </div>
                             </div>
-                            <div className="p-3 rounded-lg text-center" style={{ background: "rgba(139, 92, 246, 0.08)", border: "1px solid rgba(139, 92, 246, 0.2)" }}>
+                            <div className="p-3 rounded-lg text-center" style={{ background: "var(--color-purple-bg)", border: "1px solid var(--color-purple-bg)" }}>
                               <div className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>Existing Shares</div>
                               <div className="text-sm font-bold">{conversionPreview.total_existing_shares?.toLocaleString()}</div>
                             </div>
-                            <div className="p-3 rounded-lg text-center" style={{ background: "rgba(139, 92, 246, 0.08)", border: "1px solid rgba(139, 92, 246, 0.2)" }}>
+                            <div className="p-3 rounded-lg text-center" style={{ background: "var(--color-purple-bg)", border: "1px solid var(--color-purple-bg)" }}>
                               <div className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>Total New Shares</div>
                               <div className="text-sm font-bold">
                                 {conversionPreview.conversions?.reduce((s: number, c: any) => s + c.shares_issued, 0)?.toLocaleString()}
@@ -1372,7 +1394,7 @@ export default function FundraisingPage() {
                           <div className="overflow-x-auto rounded-lg" style={{ border: "1px solid var(--color-border)" }}>
                             <table className="w-full text-sm">
                               <thead>
-                                <tr style={{ borderBottom: "1px solid var(--color-border)", background: "rgba(255,255,255,0.02)" }}>
+                                <tr style={{ borderBottom: "1px solid var(--color-border)", background: "var(--color-stripe-alt)" }}>
                                   <th className="text-left p-3" style={{ color: "var(--color-text-muted)" }}>Investor</th>
                                   <th className="text-right p-3" style={{ color: "var(--color-text-muted)" }}>Principal</th>
                                   <th className="text-right p-3" style={{ color: "var(--color-text-muted)" }}>Interest</th>
@@ -1391,11 +1413,11 @@ export default function FundraisingPage() {
                                     <td className="p-3 text-right font-mono">{formatCurrency(c.total_amount)}</td>
                                     <td className="p-3 text-right font-mono">Rs {c.conversion_price}</td>
                                     <td className="p-3">
-                                      <span className="text-xs px-2 py-0.5 rounded-full capitalize" style={{ background: "rgba(139, 92, 246, 0.15)", color: "rgb(139, 92, 246)" }}>
+                                      <span className="text-xs px-2 py-0.5 rounded-full capitalize" style={{ background: "var(--color-purple-bg)", color: "var(--color-accent-purple-light)" }}>
                                         {c.conversion_method?.replace(/_/g, " ")}
                                       </span>
                                     </td>
-                                    <td className="p-3 text-right font-bold" style={{ color: "rgb(16, 185, 129)" }}>{c.shares_issued?.toLocaleString()}</td>
+                                    <td className="p-3 text-right font-bold" style={{ color: "var(--color-accent-emerald-light)" }}>{c.shares_issued?.toLocaleString()}</td>
                                   </tr>
                                 ))}
                               </tbody>
@@ -1404,7 +1426,7 @@ export default function FundraisingPage() {
 
                           {/* All available conversion prices per investor */}
                           {conversionPreview.conversions?.length > 0 && conversionPreview.conversions[0].all_prices && (
-                            <div className="mt-3 p-3 rounded-lg text-xs" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--color-border)" }}>
+                            <div className="mt-3 p-3 rounded-lg text-xs" style={{ background: "var(--color-stripe-alt)", border: "1px solid var(--color-border)" }}>
                               <span style={{ color: "var(--color-text-muted)" }}>Available prices: </span>
                               {Object.entries(conversionPreview.conversions[0].all_prices as Record<string, number>).map(([method, price]) => (
                                 <span key={method} className="mr-3">
@@ -1425,14 +1447,14 @@ export default function FundraisingPage() {
                               </button>
                             ) : (
                               <>
-                                <span className="text-sm" style={{ color: "rgb(245, 158, 11)" }}>
+                                <span className="text-sm" style={{ color: "var(--color-accent-amber)" }}>
                                   This will create new shareholders on the cap table. Continue?
                                 </span>
                                 <button
                                   onClick={handleExecuteConversion}
                                   disabled={converting}
                                   className="text-sm px-4 py-2 rounded-lg"
-                                  style={{ background: "rgba(16, 185, 129, 0.15)", border: "1px solid rgba(16, 185, 129, 0.4)", color: "rgb(16, 185, 129)" }}
+                                  style={{ background: "var(--color-success-light)", border: "1px solid var(--color-accent-emerald-light)", color: "var(--color-accent-emerald-light)" }}
                                 >
                                   {converting ? "Converting..." : "Confirm Conversion"}
                                 </button>
@@ -1459,7 +1481,7 @@ export default function FundraisingPage() {
                         <button
                           onClick={() => setShowAddInvestor(true)}
                           className="text-xs px-3 py-1.5 rounded-lg"
-                          style={{ background: "rgba(139, 92, 246, 0.1)", border: "1px solid rgba(139, 92, 246, 0.3)", color: "rgb(139, 92, 246)" }}
+                          style={{ background: "var(--color-purple-bg)", border: "1px solid var(--color-purple-bg)", color: "var(--color-accent-purple-light)" }}
                         >
                           + Add Investor
                         </button>
@@ -1500,9 +1522,9 @@ export default function FundraisingPage() {
                                       onClick={() => handleToggleFlag(inv.id, field, !inv[field])}
                                       className="w-5 h-5 rounded border inline-flex items-center justify-center transition-all"
                                       style={{
-                                        borderColor: inv[field] ? "rgb(16, 185, 129)" : "var(--color-border)",
-                                        background: inv[field] ? "rgba(16, 185, 129, 0.15)" : "transparent",
-                                        color: inv[field] ? "rgb(16, 185, 129)" : "transparent",
+                                        borderColor: inv[field] ? "var(--color-accent-emerald-light)" : "var(--color-border)",
+                                        background: inv[field] ? "var(--color-success-light)" : "transparent",
+                                        color: inv[field] ? "var(--color-accent-emerald-light)" : "transparent",
                                       }}
                                     >
                                       {inv[field] && (
@@ -1518,7 +1540,7 @@ export default function FundraisingPage() {
                                     <button
                                       onClick={() => handleRemoveInvestor(inv.id)}
                                       className="text-[11px] px-2 py-1 rounded"
-                                      style={{ color: "rgb(244, 63, 94)" }}
+                                      style={{ color: "var(--color-accent-rose)" }}
                                     >
                                       Remove
                                     </button>
@@ -1541,7 +1563,7 @@ export default function FundraisingPage() {
                           <div
                             key={docType}
                             className="p-3 rounded-lg"
-                            style={{ background: "rgba(255,255,255,0.03)", border: "1px solid var(--color-border)" }}
+                            style={{ background: "var(--color-stripe-alt)", border: "1px solid var(--color-border)" }}
                           >
                             <div className="flex justify-between items-center mb-2">
                               <span className="text-sm font-semibold uppercase">{docType}</span>
@@ -1553,8 +1575,8 @@ export default function FundraisingPage() {
                                   <div key={idx} className="flex justify-between text-xs">
                                     <span style={{ color: "var(--color-text-secondary)" }}>{s.name}</span>
                                     <span style={{
-                                      color: s.status === "signed" ? "rgb(16, 185, 129)"
-                                        : s.status === "declined" ? "rgb(244, 63, 94)"
+                                      color: s.status === "signed" ? "var(--color-accent-emerald-light)"
+                                        : s.status === "declined" ? "var(--color-accent-rose)"
                                         : "var(--color-text-muted)",
                                     }}>
                                       {s.status}{s.signed_at && ` (${new Date(s.signed_at).toLocaleDateString()})`}
@@ -1572,7 +1594,7 @@ export default function FundraisingPage() {
                   {/* Document & Compliance Checklist */}
                   <DocumentChecklist
                     round={selectedRound}
-                    companyId={companyId}
+                    companyId={companyId!}
                     onAllotment={handleCompleteAllotment}
                     onMessage={setMessage}
                   />
@@ -1585,12 +1607,12 @@ export default function FundraisingPage() {
                       </button>
                     )}
                     {(selectedRound.status === "closing" || selectedRound.status === "documentation") && !selectedRound.allotment_completed && (
-                      <button onClick={handleCompleteAllotment} className="text-sm px-4 py-2 rounded-lg" style={{ background: "rgba(16, 185, 129, 0.1)", border: "1px solid rgba(16, 185, 129, 0.3)", color: "rgb(16, 185, 129)" }}>
+                      <button onClick={handleCompleteAllotment} className="text-sm px-4 py-2 rounded-lg" style={{ background: "var(--color-success-light)", border: "1px solid var(--color-accent-emerald-light)", color: "var(--color-accent-emerald-light)" }}>
                         Complete Allotment
                       </button>
                     )}
                     {selectedRound.allotment_completed && (
-                      <div className="text-xs px-3 py-2 rounded-lg" style={{ background: "rgba(16, 185, 129, 0.1)", color: "rgb(16, 185, 129)" }}>
+                      <div className="text-xs px-3 py-2 rounded-lg" style={{ background: "var(--color-success-light)", color: "var(--color-accent-emerald-light)" }}>
                         Allotment Complete - PAS-3 filing required within 15 days
                       </div>
                     )}
@@ -1604,7 +1626,7 @@ export default function FundraisingPage() {
 
       {/* Create Round Modal */}
       {showCreateRound && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.6)" }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "var(--color-overlay)" }}>
           <div className="glass-card p-6 w-full max-w-lg" style={{ cursor: "default", background: "var(--color-bg-card)" }}>
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold">New Funding Round</h3>
@@ -1619,7 +1641,7 @@ export default function FundraisingPage() {
                   value={roundForm.round_name}
                   onChange={(e) => setRoundForm({ ...roundForm, round_name: e.target.value })}
                   className="w-full px-3 py-2 rounded-lg text-sm"
-                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                  style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                   placeholder="e.g., Seed Round, Series A"
                 />
               </div>
@@ -1629,7 +1651,7 @@ export default function FundraisingPage() {
                   value={roundForm.instrument_type}
                   onChange={(e) => setRoundForm({ ...roundForm, instrument_type: e.target.value })}
                   className="w-full px-3 py-2 rounded-lg text-sm"
-                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                  style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                 >
                   <option value="equity">Equity</option>
                   <option value="ccps">CCPS (Compulsorily Convertible Preference Shares)</option>
@@ -1646,7 +1668,7 @@ export default function FundraisingPage() {
                     value={roundForm.pre_money_valuation}
                     onChange={(e) => setRoundForm({ ...roundForm, pre_money_valuation: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg text-sm"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                    style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                     placeholder="10000000"
                   />
                   {roundForm.pre_money_valuation && (
@@ -1662,7 +1684,7 @@ export default function FundraisingPage() {
                     value={roundForm.target_amount}
                     onChange={(e) => setRoundForm({ ...roundForm, target_amount: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg text-sm"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                    style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                     placeholder="2500000"
                   />
                 </div>
@@ -1675,7 +1697,7 @@ export default function FundraisingPage() {
                   value={roundForm.price_per_share}
                   onChange={(e) => setRoundForm({ ...roundForm, price_per_share: e.target.value })}
                   className="w-full px-3 py-2 rounded-lg text-sm"
-                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                  style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                   placeholder="100"
                 />
               </div>
@@ -1689,7 +1711,7 @@ export default function FundraisingPage() {
 
       {/* Add Investor Modal */}
       {showAddInvestor && selectedRound && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.6)" }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "var(--color-overlay)" }}>
           <div className="glass-card p-6 w-full max-w-lg" style={{ cursor: "default", background: "var(--color-bg-card)" }}>
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold">Add Investor to {selectedRound.round_name}</h3>
@@ -1705,7 +1727,7 @@ export default function FundraisingPage() {
                     value={investorForm.investor_name}
                     onChange={(e) => setInvestorForm({ ...investorForm, investor_name: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg text-sm"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                    style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                     placeholder="Investor name"
                   />
                 </div>
@@ -1716,7 +1738,7 @@ export default function FundraisingPage() {
                     value={investorForm.investor_email}
                     onChange={(e) => setInvestorForm({ ...investorForm, investor_email: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg text-sm"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                    style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                     placeholder="investor@fund.com"
                   />
                 </div>
@@ -1728,7 +1750,7 @@ export default function FundraisingPage() {
                     value={investorForm.investor_type}
                     onChange={(e) => setInvestorForm({ ...investorForm, investor_type: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg text-sm"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                    style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                   >
                     <option value="angel">Angel</option>
                     <option value="vc">VC</option>
@@ -1743,7 +1765,7 @@ export default function FundraisingPage() {
                     value={investorForm.investor_entity}
                     onChange={(e) => setInvestorForm({ ...investorForm, investor_entity: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg text-sm"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                    style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                     placeholder="Fund name"
                   />
                 </div>
@@ -1757,7 +1779,7 @@ export default function FundraisingPage() {
                   value={investorForm.investment_amount}
                   onChange={(e) => setInvestorForm({ ...investorForm, investment_amount: e.target.value })}
                   className="w-full px-3 py-2 rounded-lg text-sm"
-                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                  style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                   placeholder="2500000"
                 />
                 {investorForm.investment_amount && (

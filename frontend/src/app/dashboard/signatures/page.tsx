@@ -398,7 +398,7 @@ export default function SignaturesPage() {
                         onClick={() => handleCancel(req.id)}
                         disabled={actionLoading === `cancel-${req.id}`}
                         className="px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors disabled:opacity-50 flex items-center gap-1.5"
-                        style={{ borderColor: "rgba(244, 63, 94, 0.3)", color: "var(--color-error)" }}
+                        style={{ borderColor: "var(--color-error-light)", color: "var(--color-error)" }}
                       >
                         {actionLoading === `cancel-${req.id}` ? (
                           <div className="w-3 h-3 border-2 border-red-400/30 border-t-red-400 rounded-full animate-spin" />

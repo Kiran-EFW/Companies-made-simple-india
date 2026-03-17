@@ -87,7 +87,7 @@ function PieChart({ shareholders }: { shareholders: ShareholderData[] }) {
 
   // Fill remaining if percentages don't sum to 100
   if (cumulative < 100) {
-    gradientParts.push(`rgba(255,255,255,0.1) ${cumulative}% 100%`);
+    gradientParts.push(`var(--color-hover-overlay) ${cumulative}% 100%`);
   }
 
   const gradient = `conic-gradient(${gradientParts.join(", ")})`;
@@ -100,7 +100,7 @@ function PieChart({ shareholders }: { shareholders: ShareholderData[] }) {
           height: "200px",
           borderRadius: "50%",
           background: gradient,
-          boxShadow: "0 0 30px rgba(139, 92, 246, 0.2)",
+          boxShadow: "var(--shadow-glow-purple, 0 0 30px rgba(139, 92, 246, 0.2))",
         }}
       />
       <div className="flex flex-wrap gap-3 justify-center max-w-md">
@@ -414,7 +414,7 @@ export default function CapTablePage() {
               Select a company from the sidebar to view the cap table.
             </p>
             <div className="flex items-center justify-center gap-3">
-              <Link href="/pricing" className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white" style={{ background: "#8B5CF6" }}>
+              <Link href="/pricing" className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white" style={{ background: "var(--color-accent-purple-light)" }}>
                 Incorporate a New Company
               </Link>
               <Link href="/dashboard/connect" className="px-5 py-2.5 rounded-lg text-sm font-semibold border" style={{ borderColor: "var(--color-border)", color: "var(--color-text-primary)" }}>
@@ -426,7 +426,7 @@ export default function CapTablePage() {
 
         {companyLoading && (
           <div className="flex items-center justify-center py-24">
-            <div className="animate-pulse-glow w-16 h-16 rounded-full flex items-center justify-center" style={{ background: "rgba(139, 92, 246, 0.2)" }}>
+            <div className="animate-pulse-glow w-16 h-16 rounded-full flex items-center justify-center" style={{ background: "var(--color-purple-bg)" }}>
               <img src="/logo-icon.png" alt="Anvils" className="w-7 h-7 object-contain" />
             </div>
           </div>
@@ -440,8 +440,8 @@ export default function CapTablePage() {
             className="glass-card p-3 mb-6 text-center text-sm"
             style={{
               borderColor: message.startsWith("Error")
-                ? "rgba(244, 63, 94, 0.5)"
-                : "rgba(16, 185, 129, 0.5)",
+                ? "var(--color-accent-rose)"
+                : "var(--color-accent-emerald-light)",
               cursor: "default",
             }}
           >
@@ -457,8 +457,8 @@ export default function CapTablePage() {
               onClick={() => setActiveTab(tab)}
               className="glass-card px-4 py-2 text-sm font-medium transition-all"
               style={{
-                borderColor: activeTab === tab ? "rgba(139, 92, 246, 0.6)" : "var(--color-border)",
-                background: activeTab === tab ? "rgba(139, 92, 246, 0.15)" : "transparent",
+                borderColor: activeTab === tab ? "var(--color-accent-purple-light)" : "var(--color-border)",
+                background: activeTab === tab ? "var(--color-purple-bg)" : "transparent",
               }}
             >
               {tab === "overview" && "Overview"}
@@ -521,7 +521,7 @@ export default function CapTablePage() {
                     <div className="text-xs" style={{ color: "var(--color-text-muted)" }}>Total Pool</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-xl font-bold" style={{ color: "rgb(245, 158, 11)" }}>
+                    <div className="text-xl font-bold" style={{ color: "var(--color-accent-amber)" }}>
                       {(capTable.esop_pool.allocated || 0).toLocaleString()}
                     </div>
                     <div className="text-xs" style={{ color: "var(--color-text-muted)" }}>Allocated</div>
@@ -547,14 +547,14 @@ export default function CapTablePage() {
                         : 0}%
                     </span>
                   </div>
-                  <div className="w-full h-2 rounded-full" style={{ background: "rgba(255,255,255,0.1)" }}>
+                  <div className="w-full h-2 rounded-full" style={{ background: "var(--color-hover-overlay)" }}>
                     <div
                       className="h-2 rounded-full transition-all"
                       style={{
                         width: `${capTable.esop_pool.total_pool_size > 0
                           ? (capTable.esop_pool.allocated / capTable.esop_pool.total_pool_size) * 100
                           : 0}%`,
-                        background: "linear-gradient(90deg, rgb(139, 92, 246), rgb(59, 130, 246))",
+                        background: "linear-gradient(90deg, var(--color-accent-purple-light), var(--color-accent-blue))",
                       }}
                     />
                   </div>
@@ -614,11 +614,11 @@ export default function CapTablePage() {
                               className="text-xs px-2 py-0.5 rounded-full"
                               style={{
                                 background: sh.share_type === "equity"
-                                  ? "rgba(139, 92, 246, 0.15)"
-                                  : "rgba(245, 158, 11, 0.15)",
+                                  ? "var(--color-purple-bg)"
+                                  : "var(--color-warning-light)",
                                 color: sh.share_type === "equity"
-                                  ? "rgb(139, 92, 246)"
-                                  : "rgb(245, 158, 11)",
+                                  ? "var(--color-accent-purple-light)"
+                                  : "var(--color-accent-amber)",
                               }}
                             >
                               {sh.share_type}
@@ -642,9 +642,9 @@ export default function CapTablePage() {
                               disabled={certLoading === sh.id}
                               className="text-xs px-2 py-1 rounded transition-all"
                               style={{
-                                background: "rgba(16, 185, 129, 0.15)",
-                                color: "rgb(16, 185, 129)",
-                                border: "1px solid rgba(16, 185, 129, 0.3)",
+                                background: "var(--color-success-light)",
+                                color: "var(--color-accent-emerald-light)",
+                                border: "1px solid var(--color-accent-emerald-light)",
                               }}
                             >
                               {certLoading === sh.id ? "..." : "Certificate"}
@@ -952,16 +952,16 @@ export default function CapTablePage() {
                             style={{
                               background:
                                 tx.type === "allotment"
-                                  ? "rgba(16, 185, 129, 0.15)"
+                                  ? "var(--color-success-light)"
                                   : tx.type === "transfer"
-                                    ? "rgba(59, 130, 246, 0.15)"
-                                    : "rgba(244, 63, 94, 0.15)",
+                                    ? "var(--color-info-light)"
+                                    : "var(--color-error-light)",
                               color:
                                 tx.type === "allotment"
-                                  ? "rgb(16, 185, 129)"
+                                  ? "var(--color-accent-emerald-light)"
                                   : tx.type === "transfer"
-                                    ? "rgb(59, 130, 246)"
-                                    : "rgb(244, 63, 94)",
+                                    ? "var(--color-accent-blue)"
+                                    : "var(--color-accent-rose)",
                             }}
                           >
                             {tx.type}
@@ -1041,7 +1041,7 @@ export default function CapTablePage() {
                         value={simEsopPct}
                         onChange={(e) => setSimEsopPct(e.target.value)}
                         className="flex-1"
-                        style={{ accentColor: "rgb(139, 92, 246)" }}
+                        style={{ accentColor: "var(--color-accent-purple-light)" }}
                       />
                       <span className="text-sm font-mono w-12 text-right">{simEsopPct}%</span>
                     </div>
@@ -1054,7 +1054,7 @@ export default function CapTablePage() {
                       <button
                         onClick={addInvestor}
                         className="text-xs px-2 py-1 rounded"
-                        style={{ background: "rgba(139, 92, 246, 0.15)", color: "rgb(139, 92, 246)" }}
+                        style={{ background: "var(--color-purple-bg)", color: "var(--color-accent-purple-light)" }}
                       >
                         + Add Investor
                       </button>
@@ -1090,7 +1090,7 @@ export default function CapTablePage() {
                             <button
                               onClick={() => removeInvestor(idx)}
                               className="text-xs px-2 py-2 rounded"
-                              style={{ color: "rgb(244, 63, 94)" }}
+                              style={{ color: "var(--color-accent-rose)" }}
                             >
                               X
                             </button>
@@ -1142,7 +1142,7 @@ export default function CapTablePage() {
                       </div>
                       <div className="glass-card p-3 text-center" style={{ cursor: "default" }}>
                         <div className="text-xs" style={{ color: "var(--color-text-muted)" }}>Investment</div>
-                        <div className="text-sm font-bold" style={{ color: "rgb(16, 185, 129)" }}>
+                        <div className="text-sm font-bold" style={{ color: "var(--color-accent-emerald-light)" }}>
                           {formatCurrency(simResult.investment_amount)}
                         </div>
                       </div>
@@ -1183,7 +1183,7 @@ export default function CapTablePage() {
                                   </td>
                                   <td className="p-3 text-right font-mono">{holder.percentage.toFixed(1)}%</td>
                                   <td className="p-3 text-right font-mono" style={{
-                                    color: holder.dilution_pct > 0 ? "rgb(244, 63, 94)" : "rgb(16, 185, 129)"
+                                    color: holder.dilution_pct > 0 ? "var(--color-accent-rose)" : "var(--color-accent-emerald-light)"
                                   }}>
                                     {holder.dilution_pct > 0 ? `-${holder.dilution_pct.toFixed(1)}%` : holder.dilution_pct === 0 ? "New" : `+${Math.abs(holder.dilution_pct).toFixed(1)}%`}
                                   </td>
@@ -1214,7 +1214,7 @@ export default function CapTablePage() {
                                 const cumBefore = simResult.after_round.slice(0, i).reduce((s: number, x: any) => s + x.percentage, 0);
                                 return `${colors[i % colors.length]} ${cumBefore}% ${cumBefore + h.percentage}%`;
                               }).join(", ")})`,
-                              boxShadow: "0 0 30px rgba(139, 92, 246, 0.2)",
+                              boxShadow: "var(--shadow-glow-purple, 0 0 30px rgba(139, 92, 246, 0.2))",
                             }}
                           />
                           <div className="flex flex-wrap gap-3 justify-center max-w-md">
@@ -1308,9 +1308,9 @@ export default function CapTablePage() {
                           className="text-xs px-3 py-1.5 rounded-lg transition-all"
                           style={{
                             background: exitValuation === String(val)
-                              ? "rgba(139, 92, 246, 0.2)"
-                              : "rgba(255,255,255,0.05)",
-                            border: `1px solid ${exitValuation === String(val) ? "rgba(139, 92, 246, 0.5)" : "var(--color-border)"}`,
+                              ? "var(--color-purple-bg)"
+                              : "var(--color-hover-overlay)",
+                            border: `1px solid ${exitValuation === String(val) ? "var(--color-accent-purple-light)" : "var(--color-border)"}`,
                             color: "var(--color-text-secondary)",
                           }}
                         >
@@ -1387,7 +1387,7 @@ export default function CapTablePage() {
                                   {p.is_promoter && (
                                     <span
                                       className="ml-2 text-xs px-1.5 py-0.5 rounded-full"
-                                      style={{ background: "rgba(139, 92, 246, 0.15)", color: "rgb(139, 92, 246)" }}
+                                      style={{ background: "var(--color-purple-bg)", color: "var(--color-accent-purple-light)" }}
                                     >
                                       Promoter
                                     </span>
@@ -1395,12 +1395,12 @@ export default function CapTablePage() {
                                 </td>
                                 <td className="p-3 text-right font-mono">{p.shares?.toLocaleString()}</td>
                                 <td className="p-3 text-right font-mono">{p.percentage?.toFixed(1)}%</td>
-                                <td className="p-3 text-right font-mono font-bold" style={{ color: "rgb(16, 185, 129)" }}>
+                                <td className="p-3 text-right font-mono font-bold" style={{ color: "var(--color-accent-emerald-light)" }}>
                                   {formatCurrency(p.payout_amount)}
                                 </td>
                                 <td className="p-3 text-right font-mono" style={{
-                                  color: p.roi_multiple >= 10 ? "rgb(16, 185, 129)" :
-                                         p.roi_multiple >= 2 ? "rgb(245, 158, 11)" : "var(--color-text-secondary)"
+                                  color: p.roi_multiple >= 10 ? "var(--color-accent-emerald-light)" :
+                                         p.roi_multiple >= 2 ? "var(--color-accent-amber)" : "var(--color-text-secondary)"
                                 }}>
                                   {p.roi_multiple?.toFixed(1)}x
                                 </td>
@@ -1471,7 +1471,7 @@ export default function CapTablePage() {
                       <button
                         onClick={addLiqPref}
                         className="text-xs px-2 py-1 rounded"
-                        style={{ background: "rgba(139, 92, 246, 0.15)", color: "rgb(139, 92, 246)" }}
+                        style={{ background: "var(--color-purple-bg)", color: "var(--color-accent-purple-light)" }}
                       >
                         + Add Preference
                       </button>
@@ -1526,7 +1526,7 @@ export default function CapTablePage() {
                           <button
                             onClick={() => removeLiqPref(idx)}
                             className="text-xs px-2 py-2 rounded"
-                            style={{ color: "rgb(244, 63, 94)" }}
+                            style={{ color: "var(--color-accent-rose)" }}
                           >
                             X
                           </button>
@@ -1548,9 +1548,9 @@ export default function CapTablePage() {
                           className="text-xs px-3 py-1.5 rounded-lg transition-all"
                           style={{
                             background: wfValuation === String(val)
-                              ? "rgba(139, 92, 246, 0.2)"
-                              : "rgba(255,255,255,0.05)",
-                            border: `1px solid ${wfValuation === String(val) ? "rgba(139, 92, 246, 0.5)" : "var(--color-border)"}`,
+                              ? "var(--color-purple-bg)"
+                              : "var(--color-hover-overlay)",
+                            border: `1px solid ${wfValuation === String(val) ? "var(--color-accent-purple-light)" : "var(--color-border)"}`,
                             color: "var(--color-text-secondary)",
                           }}
                         >
@@ -1599,13 +1599,13 @@ export default function CapTablePage() {
                       </div>
                       <div className="glass-card p-3 text-center" style={{ cursor: "default" }}>
                         <div className="text-xs" style={{ color: "var(--color-text-muted)" }}>Liq Pref Total</div>
-                        <div className="text-sm font-bold" style={{ color: "rgb(245, 158, 11)" }}>
+                        <div className="text-sm font-bold" style={{ color: "var(--color-accent-amber)" }}>
                           {formatCurrency(wfResult.summary?.total_lp_amount || 0)}
                         </div>
                       </div>
                       <div className="glass-card p-3 text-center" style={{ cursor: "default" }}>
                         <div className="text-xs" style={{ color: "var(--color-text-muted)" }}>Distributed</div>
-                        <div className="text-sm font-bold" style={{ color: "rgb(16, 185, 129)" }}>
+                        <div className="text-sm font-bold" style={{ color: "var(--color-accent-emerald-light)" }}>
                           {formatCurrency(wfResult.summary?.total_distributed || 0)}
                         </div>
                       </div>
@@ -1653,23 +1653,23 @@ export default function CapTablePage() {
                                   {p.name}
                                   {p.is_promoter && (
                                     <span className="ml-2 text-xs px-1.5 py-0.5 rounded-full"
-                                      style={{ background: "rgba(139, 92, 246, 0.15)", color: "rgb(139, 92, 246)" }}>
+                                      style={{ background: "var(--color-purple-bg)", color: "var(--color-accent-purple-light)" }}>
                                       Promoter
                                     </span>
                                   )}
                                 </td>
-                                <td className="p-3 text-right font-mono" style={{ color: "rgb(245, 158, 11)" }}>
+                                <td className="p-3 text-right font-mono" style={{ color: "var(--color-accent-amber)" }}>
                                   {p.lp_payout > 0 ? formatCurrency(p.lp_payout) : "-"}
                                 </td>
                                 <td className="p-3 text-right font-mono">
                                   {formatCurrency(p.pro_rata_payout)}
                                 </td>
-                                <td className="p-3 text-right font-mono font-bold" style={{ color: "rgb(16, 185, 129)" }}>
+                                <td className="p-3 text-right font-mono font-bold" style={{ color: "var(--color-accent-emerald-light)" }}>
                                   {formatCurrency(p.total_payout)}
                                 </td>
                                 <td className="p-3 text-right font-mono" style={{
-                                  color: p.roi_multiple >= 10 ? "rgb(16, 185, 129)" :
-                                         p.roi_multiple >= 2 ? "rgb(245, 158, 11)" : "var(--color-text-secondary)"
+                                  color: p.roi_multiple >= 10 ? "var(--color-accent-emerald-light)" :
+                                         p.roi_multiple >= 2 ? "var(--color-accent-amber)" : "var(--color-text-secondary)"
                                 }}>
                                   {p.roi_multiple?.toFixed(1)}x
                                 </td>

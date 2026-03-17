@@ -30,14 +30,14 @@ const FILTER_TABS = [
 
 function NotificationTypeIcon({ type }: { type: string }) {
   const styleMap: Record<string, { color: string; background: string }> = {
-    status_update: { color: "var(--color-info)", background: "rgba(59,130,246,0.1)" },
+    status_update: { color: "var(--color-info)", background: "var(--color-info-light)" },
     payment: { color: "var(--color-success)", background: "var(--color-success-light)" },
-    document: { color: "var(--color-accent-purple-light)", background: "rgba(139,92,246,0.1)" },
-    compliance: { color: "var(--color-warning)", background: "rgba(245,158,11,0.1)" },
-    message: { color: "#22d3ee", background: "rgba(34,211,238,0.1)" },
+    document: { color: "var(--color-accent-purple-light)", background: "var(--color-purple-bg)" },
+    compliance: { color: "var(--color-warning)", background: "var(--color-warning-light)" },
+    message: { color: "var(--color-accent-cyan)", background: "rgba(34,211,238,0.1)" },
   };
 
-  const defaultStyle = { color: "var(--color-text-secondary)", background: "rgba(107,114,128,0.1)" };
+  const defaultStyle = { color: "var(--color-text-secondary)", background: "var(--color-hover-overlay)" };
   const s = styleMap[type] || defaultStyle;
 
   const icons: Record<string, React.ReactNode> = {

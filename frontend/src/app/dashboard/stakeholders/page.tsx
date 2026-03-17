@@ -44,21 +44,21 @@ interface Portfolio {
 }
 
 const STAKEHOLDER_TYPE_COLORS: Record<string, { bg: string; text: string }> = {
-  founder: { bg: "rgba(139, 92, 246, 0.15)", text: "rgb(139, 92, 246)" },
-  investor: { bg: "rgba(59, 130, 246, 0.15)", text: "rgb(59, 130, 246)" },
-  employee: { bg: "rgba(16, 185, 129, 0.15)", text: "rgb(16, 185, 129)" },
-  advisor: { bg: "rgba(245, 158, 11, 0.15)", text: "rgb(245, 158, 11)" },
+  founder: { bg: "var(--color-purple-bg)", text: "var(--color-accent-purple-light)" },
+  investor: { bg: "var(--color-info-light)", text: "var(--color-accent-blue)" },
+  employee: { bg: "var(--color-success-light)", text: "var(--color-accent-emerald-light)" },
+  advisor: { bg: "var(--color-warning-light)", text: "var(--color-accent-amber)" },
 };
 
 const ENTITY_TYPE_COLORS: Record<string, { bg: string; text: string }> = {
   fund: { bg: "rgba(99, 102, 241, 0.15)", text: "rgb(99, 102, 241)" },
   llp: { bg: "rgba(236, 72, 153, 0.15)", text: "rgb(236, 72, 153)" },
-  company: { bg: "rgba(34, 211, 238, 0.15)", text: "rgb(34, 211, 238)" },
+  company: { bg: "rgba(34, 211, 238, 0.15)", text: "var(--color-accent-cyan)" },
   individual: { bg: "rgba(163, 230, 53, 0.15)", text: "rgb(163, 230, 53)" },
 };
 
 function TypeBadge({ type, colorMap }: { type: string; colorMap: Record<string, { bg: string; text: string }> }) {
-  const colors = colorMap[type] || { bg: "rgba(156, 163, 175, 0.15)", text: "rgb(156, 163, 175)" };
+  const colors = colorMap[type] || { bg: "rgba(156, 163, 175, 0.15)", text: "var(--color-text-muted)" };
   return (
     <span
       className="text-xs px-2 py-0.5 rounded-full capitalize"
@@ -229,7 +229,7 @@ export default function StakeholderDashboardPage() {
               Select a company from the sidebar to view stakeholder management.
             </p>
             <div className="flex items-center justify-center gap-3">
-              <Link href="/pricing" className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white" style={{ background: "#8B5CF6" }}>
+              <Link href="/pricing" className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white" style={{ background: "var(--color-accent-purple-light)" }}>
                 Incorporate a New Company
               </Link>
               <Link href="/dashboard/connect" className="px-5 py-2.5 rounded-lg text-sm font-semibold border" style={{ borderColor: "var(--color-border)", color: "var(--color-text-primary)" }}>
@@ -241,7 +241,7 @@ export default function StakeholderDashboardPage() {
 
         {companyLoading && (
           <div className="flex items-center justify-center py-24">
-            <div className="animate-pulse-glow w-16 h-16 rounded-full flex items-center justify-center" style={{ background: "rgba(139, 92, 246, 0.2)" }}>
+            <div className="animate-pulse-glow w-16 h-16 rounded-full flex items-center justify-center" style={{ background: "var(--color-purple-bg)" }}>
               <img src="/logo-icon.png" alt="Anvils" className="w-7 h-7 object-contain" />
             </div>
           </div>
@@ -255,8 +255,8 @@ export default function StakeholderDashboardPage() {
             className="glass-card p-3 mb-6 text-center text-sm"
             style={{
               borderColor: message.startsWith("Error")
-                ? "rgba(244, 63, 94, 0.5)"
-                : "rgba(16, 185, 129, 0.5)",
+                ? "var(--color-error-light)"
+                : "var(--color-success-light)",
               cursor: "default",
             }}
           >
@@ -272,8 +272,8 @@ export default function StakeholderDashboardPage() {
               onClick={() => setActiveTab(tab)}
               className="glass-card px-4 py-2 text-sm font-medium transition-all"
               style={{
-                borderColor: activeTab === tab ? "rgba(139, 92, 246, 0.6)" : "var(--color-border)",
-                background: activeTab === tab ? "rgba(139, 92, 246, 0.15)" : "transparent",
+                borderColor: activeTab === tab ? "var(--color-accent-purple-light)" : "var(--color-border)",
+                background: activeTab === tab ? "var(--color-purple-bg)" : "transparent",
               }}
             >
               {tab === "profiles" && "Profiles"}
@@ -373,7 +373,7 @@ export default function StakeholderDashboardPage() {
                           </td>
                           <td className="p-3 text-center">
                             {profile.is_foreign ? (
-                              <span style={{ color: "rgb(245, 158, 11)" }}>Yes</span>
+                              <span style={{ color: "var(--color-accent-amber)" }}>Yes</span>
                             ) : (
                               <span style={{ color: "var(--color-text-muted)" }}>No</span>
                             )}
@@ -403,7 +403,7 @@ export default function StakeholderDashboardPage() {
                                   <button
                                     type="submit"
                                     className="text-[11px] px-2 py-1 rounded"
-                                    style={{ background: "rgba(16, 185, 129, 0.1)", color: "rgb(16, 185, 129)" }}
+                                    style={{ background: "var(--color-success-light)", color: "var(--color-accent-emerald-light)" }}
                                   >
                                     Link
                                   </button>
@@ -421,7 +421,7 @@ export default function StakeholderDashboardPage() {
                                   <button
                                     onClick={() => setLinkingProfileId(profile.id)}
                                     className="text-[11px] px-2 py-1 rounded"
-                                    style={{ background: "rgba(139, 92, 246, 0.1)", color: "rgb(139, 92, 246)" }}
+                                    style={{ background: "var(--color-purple-bg)", color: "var(--color-accent-purple-light)" }}
                                   >
                                     Link Shareholder
                                   </button>
@@ -430,8 +430,8 @@ export default function StakeholderDashboardPage() {
                                       onClick={() => handleCopyInvestorLink(profile)}
                                       className="text-[11px] px-2 py-1 rounded"
                                       style={{
-                                        background: copiedId === profile.id ? "rgba(16, 185, 129, 0.1)" : "rgba(59, 130, 246, 0.1)",
-                                        color: copiedId === profile.id ? "rgb(16, 185, 129)" : "rgb(59, 130, 246)",
+                                        background: copiedId === profile.id ? "var(--color-success-light)" : "var(--color-info-light)",
+                                        color: copiedId === profile.id ? "var(--color-accent-emerald-light)" : "var(--color-accent-blue)",
                                       }}
                                     >
                                       {copiedId === profile.id ? "Copied!" : "Share Portal Link"}
@@ -516,11 +516,11 @@ export default function StakeholderDashboardPage() {
                                 className="text-xs px-2 py-0.5 rounded-full"
                                 style={{
                                   background: company.share_type === "equity"
-                                    ? "rgba(139, 92, 246, 0.15)"
-                                    : "rgba(245, 158, 11, 0.15)",
+                                    ? "var(--color-purple-bg)"
+                                    : "var(--color-warning-light)",
                                   color: company.share_type === "equity"
-                                    ? "rgb(139, 92, 246)"
-                                    : "rgb(245, 158, 11)",
+                                    ? "var(--color-accent-purple-light)"
+                                    : "var(--color-accent-amber)",
                                 }}
                               >
                                 {company.share_type}
@@ -545,7 +545,7 @@ export default function StakeholderDashboardPage() {
 
       {/* Create Profile Modal */}
       {showCreateProfile && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.6)" }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "var(--color-overlay)" }}>
           <div
             className="glass-card p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto"
             style={{ cursor: "default", background: "var(--color-bg-card)" }}
@@ -566,7 +566,7 @@ export default function StakeholderDashboardPage() {
                     value={profileForm.name}
                     onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg text-sm"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                    style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                     placeholder="Full name"
                   />
                 </div>
@@ -578,7 +578,7 @@ export default function StakeholderDashboardPage() {
                     value={profileForm.email}
                     onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg text-sm"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                    style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                     placeholder="email@example.com"
                   />
                 </div>
@@ -591,7 +591,7 @@ export default function StakeholderDashboardPage() {
                     value={profileForm.phone}
                     onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg text-sm"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                    style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                     placeholder="+91 9876543210"
                   />
                 </div>
@@ -601,7 +601,7 @@ export default function StakeholderDashboardPage() {
                     value={profileForm.stakeholder_type}
                     onChange={(e) => setProfileForm({ ...profileForm, stakeholder_type: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg text-sm"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                    style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                   >
                     <option value="founder">Founder</option>
                     <option value="investor">Investor</option>
@@ -618,7 +618,7 @@ export default function StakeholderDashboardPage() {
                     value={profileForm.entity_name}
                     onChange={(e) => setProfileForm({ ...profileForm, entity_name: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg text-sm"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                    style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                     placeholder="Fund or entity name"
                   />
                 </div>
@@ -628,7 +628,7 @@ export default function StakeholderDashboardPage() {
                     value={profileForm.entity_type}
                     onChange={(e) => setProfileForm({ ...profileForm, entity_type: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg text-sm"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                    style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                   >
                     <option value="individual">Individual</option>
                     <option value="fund">Fund</option>
@@ -645,7 +645,7 @@ export default function StakeholderDashboardPage() {
                   onChange={(e) => setProfileForm({ ...profileForm, pan_number: e.target.value.toUpperCase() })}
                   maxLength={10}
                   className="w-full px-3 py-2 rounded-lg text-sm"
-                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                  style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                   placeholder="ABCDE1234F"
                 />
               </div>

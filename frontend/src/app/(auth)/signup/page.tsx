@@ -1,16 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { apiCall } from "@/lib/api";
+import { useRouter, useSearchParams } from "next/navigation";
+import { apiCall, acceptInvite } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
-export default function SignupPage() {
+
+function SignupForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const inviteToken = searchParams.get("invite");
   const { login } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  
+
   const [formData, setFormData] = useState({
     full_name: "",
     email: "",
@@ -30,8 +33,15 @@ export default function SignupPage() {
       });
       await login(res.access_token);
 
-      // If they came from pricing with saved configuration, redirect to onboarding
-      if (typeof window !== "undefined" && localStorage.getItem("pending_company_draft")) {
+      // If they signed up via an invite link, accept the invite first
+      if (inviteToken) {
+        try {
+          await acceptInvite(inviteToken);
+        } catch {
+          // Invite may have already been accepted or expired — continue to dashboard
+        }
+        router.push("/dashboard");
+      } else if (typeof window !== "undefined" && localStorage.getItem("pending_company_draft")) {
         router.push("/onboarding");
       } else {
         router.push("/dashboard");
@@ -76,7 +86,7 @@ export default function SignupPage() {
             placeholder="John Doe"
           />
         </div>
-        
+
         <div>
           <label className="block text-sm font-medium mb-1" style={{ color: "var(--color-text-secondary)" }}>
             Email Address
@@ -157,5 +167,13 @@ export default function SignupPage() {
       </div>
 
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense>
+      <SignupForm />
+    </Suspense>
   );
 }

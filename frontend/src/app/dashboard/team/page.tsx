@@ -44,20 +44,20 @@ const ROLES = [
 ];
 
 const ROLE_COLORS: Record<string, { bg: string; text: string }> = {
-  owner: { bg: "rgba(139, 92, 246, 0.15)", text: "rgb(139, 92, 246)" },
-  director: { bg: "rgba(59, 130, 246, 0.15)", text: "rgb(59, 130, 246)" },
-  shareholder: { bg: "rgba(16, 185, 129, 0.15)", text: "rgb(16, 185, 129)" },
-  company_secretary: { bg: "rgba(6, 182, 212, 0.15)", text: "rgb(6, 182, 212)" },
-  auditor: { bg: "rgba(245, 158, 11, 0.15)", text: "rgb(245, 158, 11)" },
+  owner: { bg: "var(--color-purple-bg)", text: "var(--color-accent-purple-light)" },
+  director: { bg: "var(--color-info-light)", text: "var(--color-accent-blue)" },
+  shareholder: { bg: "var(--color-success-light)", text: "var(--color-accent-emerald-light)" },
+  company_secretary: { bg: "rgba(6, 182, 212, 0.15)", text: "var(--color-accent-cyan)" },
+  auditor: { bg: "var(--color-warning-light)", text: "var(--color-accent-amber)" },
   advisor: { bg: "rgba(99, 102, 241, 0.15)", text: "rgb(99, 102, 241)" },
-  viewer: { bg: "rgba(156, 163, 175, 0.15)", text: "rgb(156, 163, 175)" },
+  viewer: { bg: "rgba(156, 163, 175, 0.15)", text: "var(--color-text-muted)" },
 };
 
 const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
-  pending: { bg: "rgba(245, 158, 11, 0.15)", text: "rgb(245, 158, 11)" },
-  accepted: { bg: "rgba(16, 185, 129, 0.15)", text: "rgb(16, 185, 129)" },
-  declined: { bg: "rgba(244, 63, 94, 0.15)", text: "rgb(244, 63, 94)" },
-  revoked: { bg: "rgba(156, 163, 175, 0.15)", text: "rgb(156, 163, 175)" },
+  pending: { bg: "var(--color-warning-light)", text: "var(--color-accent-amber)" },
+  accepted: { bg: "var(--color-success-light)", text: "var(--color-accent-emerald-light)" },
+  declined: { bg: "var(--color-error-light)", text: "var(--color-accent-rose)" },
+  revoked: { bg: "rgba(156, 163, 175, 0.15)", text: "var(--color-text-muted)" },
 };
 
 // ---------------------------------------------------------------------------
@@ -281,7 +281,7 @@ export default function TeamManagementPage() {
               <Link
                 href="/pricing"
                 className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white"
-                style={{ background: "#8B5CF6" }}
+                style={{ background: "var(--color-accent-purple-light)" }}
               >
                 Incorporate a New Company
               </Link>
@@ -303,8 +303,8 @@ export default function TeamManagementPage() {
               <div
                 className="p-3 rounded-lg mb-6 text-sm"
                 style={{
-                  background: messageType === "success" ? "rgba(16, 185, 129, 0.1)" : "rgba(244, 63, 94, 0.1)",
-                  color: messageType === "success" ? "rgb(16, 185, 129)" : "var(--color-accent-rose)",
+                  background: messageType === "success" ? "var(--color-success-light)" : "var(--color-error-light)",
+                  color: messageType === "success" ? "var(--color-accent-emerald-light)" : "var(--color-accent-rose)",
                 }}
               >
                 {message}
@@ -323,7 +323,7 @@ export default function TeamManagementPage() {
                   </div>
                 </div>
                 <div className="glass-card px-4 py-3 text-center min-w-[120px]" style={{ cursor: "default" }}>
-                  <div className="text-2xl font-bold" style={{ color: "rgb(59, 130, 246)" }}>
+                  <div className="text-2xl font-bold" style={{ color: "var(--color-accent-blue)" }}>
                     {directors}
                   </div>
                   <div className="text-xs" style={{ color: "var(--color-text-muted)" }}>
@@ -331,7 +331,7 @@ export default function TeamManagementPage() {
                   </div>
                 </div>
                 <div className="glass-card px-4 py-3 text-center min-w-[120px]" style={{ cursor: "default" }}>
-                  <div className="text-2xl font-bold" style={{ color: "rgb(245, 158, 11)" }}>
+                  <div className="text-2xl font-bold" style={{ color: "var(--color-accent-amber)" }}>
                     {pending}
                   </div>
                   <div className="text-xs" style={{ color: "var(--color-text-muted)" }}>
@@ -354,7 +354,7 @@ export default function TeamManagementPage() {
             {/* Members list */}
             {loading ? (
               <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: "rgb(139, 92, 246)" }} />
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: "var(--color-accent-purple-light)" }} />
               </div>
             ) : members.length === 0 ? (
               <div className="glass-card p-12 text-center" style={{ cursor: "default" }}>
@@ -399,7 +399,7 @@ export default function TeamManagementPage() {
                         <div
                           className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
                           style={{
-                            background: ROLE_COLORS[member.role]?.text || "rgb(156, 163, 175)",
+                            background: ROLE_COLORS[member.role]?.text || "var(--color-text-muted)",
                           }}
                         >
                           {member.name?.charAt(0).toUpperCase() || "?"}
@@ -450,7 +450,7 @@ export default function TeamManagementPage() {
                         {member.status === "pending" && (
                           <button
                             className="text-xs px-3 py-1.5 rounded-lg border transition-colors hover:bg-gray-50"
-                            style={{ borderColor: "var(--color-border)", color: "rgb(245, 158, 11)" }}
+                            style={{ borderColor: "var(--color-border)", color: "var(--color-accent-amber)" }}
                             onClick={() => handleResend(member)}
                           >
                             Resend Invite
@@ -477,7 +477,7 @@ export default function TeamManagementPage() {
 
       {/* ── Invite Modal ─────────────────────────────────────────── */}
       {showInviteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.4)" }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "var(--color-overlay)" }}>
           <div
             className="w-full max-w-lg rounded-2xl shadow-xl p-6 max-h-[90vh] overflow-y-auto"
             style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)" }}
@@ -501,13 +501,13 @@ export default function TeamManagementPage() {
             {inviteLink && (
               <div
                 className="p-4 rounded-lg mb-5"
-                style={{ background: "rgba(16, 185, 129, 0.08)", border: "1px solid rgba(16, 185, 129, 0.2)" }}
+                style={{ background: "var(--color-success-light)", border: "1px solid var(--color-success-light)" }}
               >
                 <div className="flex items-center gap-2 mb-2">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="rgb(16, 185, 129)" strokeWidth={2}>
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="var(--color-accent-emerald-light)" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <span className="text-sm font-semibold" style={{ color: "rgb(16, 185, 129)" }}>
+                  <span className="text-sm font-semibold" style={{ color: "var(--color-accent-emerald-light)" }}>
                     Invite sent!
                   </span>
                 </div>
@@ -523,7 +523,7 @@ export default function TeamManagementPage() {
                   />
                   <button
                     className="text-xs px-3 py-2 rounded-lg font-medium text-white flex-shrink-0"
-                    style={{ background: copiedLink ? "rgb(16, 185, 129)" : "rgb(139, 92, 246)" }}
+                    style={{ background: copiedLink ? "var(--color-accent-emerald-light)" : "var(--color-accent-purple-light)" }}
                     onClick={() => handleCopyLink(inviteLink)}
                   >
                     {copiedLink ? "Copied!" : "Copy"}
@@ -656,7 +656,7 @@ export default function TeamManagementPage() {
 
       {/* ── Edit Role Modal ──────────────────────────────────────── */}
       {editingMember && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.4)" }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "var(--color-overlay)" }}>
           <div
             className="w-full max-w-md rounded-2xl shadow-xl p-6"
             style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)" }}
@@ -716,7 +716,7 @@ export default function TeamManagementPage() {
 
       {/* ── Remove Confirmation Modal ────────────────────────────── */}
       {removingMember && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.4)" }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "var(--color-overlay)" }}>
           <div
             className="w-full max-w-sm rounded-2xl shadow-xl p-6"
             style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)" }}
@@ -737,7 +737,7 @@ export default function TeamManagementPage() {
               </button>
               <button
                 className="px-5 py-2 rounded-lg text-sm font-semibold text-white transition-colors"
-                style={{ background: "rgb(244, 63, 94)" }}
+                style={{ background: "var(--color-accent-rose)" }}
                 onClick={handleRemove}
               >
                 Remove Member

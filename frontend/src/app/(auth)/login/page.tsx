@@ -1,17 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { apiCall } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
-export default function LoginPage() {
+
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect");
   const { login } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [resetMsg, setResetMsg] = useState("");
-  
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -29,7 +32,9 @@ export default function LoginPage() {
       });
       await login(res.access_token);
 
-      if (typeof window !== "undefined" && localStorage.getItem("pending_company_draft")) {
+      if (redirectTo) {
+        router.push(redirectTo);
+      } else if (typeof window !== "undefined" && localStorage.getItem("pending_company_draft")) {
         router.push("/onboarding");
       } else {
         router.push("/dashboard");
@@ -148,5 +153,13 @@ export default function LoginPage() {
       </div>
 
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   );
 }

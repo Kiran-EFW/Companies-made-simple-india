@@ -25,13 +25,13 @@ interface InviteDetails {
 // ---------------------------------------------------------------------------
 
 const ROLE_COLORS: Record<string, { bg: string; text: string }> = {
-  owner: { bg: "rgba(139, 92, 246, 0.15)", text: "rgb(139, 92, 246)" },
-  director: { bg: "rgba(59, 130, 246, 0.15)", text: "rgb(59, 130, 246)" },
-  shareholder: { bg: "rgba(16, 185, 129, 0.15)", text: "rgb(16, 185, 129)" },
-  company_secretary: { bg: "rgba(6, 182, 212, 0.15)", text: "rgb(6, 182, 212)" },
-  auditor: { bg: "rgba(245, 158, 11, 0.15)", text: "rgb(245, 158, 11)" },
+  owner: { bg: "var(--color-purple-bg)", text: "var(--color-accent-purple-light)" },
+  director: { bg: "var(--color-info-light)", text: "var(--color-info)" },
+  shareholder: { bg: "var(--color-success-light)", text: "var(--color-accent-emerald-light)" },
+  company_secretary: { bg: "rgba(6, 182, 212, 0.15)", text: "var(--color-accent-cyan)" },
+  auditor: { bg: "var(--color-warning-light)", text: "var(--color-warning)" },
   advisor: { bg: "rgba(99, 102, 241, 0.15)", text: "rgb(99, 102, 241)" },
-  viewer: { bg: "rgba(156, 163, 175, 0.15)", text: "rgb(156, 163, 175)" },
+  viewer: { bg: "var(--color-hover-overlay)", text: "var(--color-text-muted)" },
 };
 
 // ---------------------------------------------------------------------------
@@ -113,7 +113,7 @@ export default function InviteAcceptPage() {
   if (loading) {
     return (
       <div className="glow-bg min-h-screen flex items-center justify-center p-6">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: "rgb(139, 92, 246)" }} />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: "var(--color-accent-purple-light)" }} />
       </div>
     );
   }
@@ -138,7 +138,7 @@ export default function InviteAcceptPage() {
               className="w-14 h-14 mx-auto mb-4"
               fill="none"
               viewBox="0 0 24 24"
-              stroke="rgb(244, 63, 94)"
+              stroke="var(--color-accent-rose)"
               strokeWidth={1.5}
             >
               <path
@@ -254,7 +254,7 @@ export default function InviteAcceptPage() {
               className="w-14 h-14 mx-auto mb-4"
               fill="none"
               viewBox="0 0 24 24"
-              stroke="rgb(156, 163, 175)"
+              stroke="var(--color-text-muted)"
               strokeWidth={1.5}
             >
               <path
@@ -308,7 +308,7 @@ export default function InviteAcceptPage() {
             </h1>
             <div
               className="text-xl font-bold mb-3"
-              style={{ color: "rgb(139, 92, 246)", fontFamily: "var(--font-display)" }}
+              style={{ color: "var(--color-accent-purple-light)", fontFamily: "var(--font-display)" }}
             >
               {invite?.company_name}
             </div>
@@ -325,8 +325,8 @@ export default function InviteAcceptPage() {
             <div
               className="rounded-lg p-4 mb-6"
               style={{
-                background: "rgba(139, 92, 246, 0.04)",
-                borderLeft: "3px solid rgb(139, 92, 246)",
+                background: "var(--color-purple-bg)",
+                borderLeft: "3px solid var(--color-accent-purple-light)",
               }}
             >
               <p className="text-sm italic" style={{ color: "var(--color-text-secondary)" }}>
@@ -339,7 +339,7 @@ export default function InviteAcceptPage() {
           {error && (
             <div
               className="p-3 rounded-lg mb-4 text-sm"
-              style={{ background: "rgba(244, 63, 94, 0.1)", color: "var(--color-accent-rose)" }}
+              style={{ background: "var(--color-error-light)", color: "var(--color-accent-rose)" }}
             >
               {error}
             </div>
@@ -391,7 +391,7 @@ export default function InviteAcceptPage() {
                 <Link
                   href={`/login?redirect=/invite/${token}`}
                   className="text-sm font-medium transition-colors hover:opacity-80"
-                  style={{ color: "rgb(139, 92, 246)" }}
+                  style={{ color: "var(--color-accent-purple-light)" }}
                 >
                   Already have an account? Log in
                 </Link>

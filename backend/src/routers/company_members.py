@@ -3,7 +3,7 @@ import secrets
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from sqlalchemy import or_
+
 from pydantic import BaseModel
 from typing import Optional, List
 
@@ -202,7 +202,10 @@ def list_members(
     if company.user_id != current_user.id and not current_user.is_admin and not is_member:
         raise HTTPException(status_code=403, detail="Not authorized to view members of this company")
 
-    members = db.query(CompanyMember).filter(CompanyMember.company_id == company_id).all()
+    members = db.query(CompanyMember).filter(
+        CompanyMember.company_id == company_id,
+        CompanyMember.invite_status.in_([InviteStatus.PENDING, InviteStatus.ACCEPTED]),
+    ).all()
     result = [_member_to_out(m) for m in members]
 
     # Include the owner as a virtual "owner" entry
@@ -368,6 +371,13 @@ def accept_invite(
         raise HTTPException(
             status_code=400,
             detail=f"Invite is no longer pending (current status: {member.invite_status.value})",
+        )
+
+    # Verify the authenticated user's email matches the invite
+    if member.invite_email.lower() != current_user.email.lower():
+        raise HTTPException(
+            status_code=403,
+            detail="Your email does not match the invited email address",
         )
 
     member.user_id = current_user.id

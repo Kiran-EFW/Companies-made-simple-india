@@ -214,7 +214,7 @@ export default function DashboardPage() {
   if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center glow-bg">
-        <div className="animate-pulse-glow w-16 h-16 rounded-full flex items-center justify-center" style={{ background: "rgba(139, 92, 246, 0.2)" }}>
+        <div className="animate-pulse-glow w-16 h-16 rounded-full flex items-center justify-center" style={{ background: "var(--color-purple-bg)" }}>
            <img src="/logo-icon.png" alt="Anvils" className="w-7 h-7 object-contain" />
         </div>
       </div>
@@ -248,9 +248,9 @@ export default function DashboardPage() {
               <Link
                 href="/pricing"
                 className="flex items-start gap-4 p-6 rounded-xl border transition-colors hover:border-purple-300"
-                style={{ background: "white", borderColor: "var(--color-border)" }}
+                style={{ background: "var(--color-bg-card)", borderColor: "var(--color-border)" }}
               >
-                <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: "rgba(139, 92, 246, 0.1)" }}>
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: "var(--color-purple-bg)" }}>
                   <svg className="w-5 h-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                   </svg>
@@ -263,9 +263,9 @@ export default function DashboardPage() {
               <Link
                 href="/dashboard/connect"
                 className="flex items-start gap-4 p-6 rounded-xl border transition-colors hover:border-purple-300"
-                style={{ background: "white", borderColor: "var(--color-border)" }}
+                style={{ background: "var(--color-bg-card)", borderColor: "var(--color-border)" }}
               >
-                <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: "rgba(16, 185, 129, 0.1)" }}>
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: "var(--color-success-light)" }}>
                   <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.86-2.556a4.5 4.5 0 00-1.242-7.244l-4.5-4.5a4.5 4.5 0 00-6.364 6.364L4.343 8.28" />
                   </svg>
@@ -290,7 +290,7 @@ export default function DashboardPage() {
                      <div>
                        <div className="flex items-center gap-3 mb-1">
                          <h2 className="text-xl font-bold">{displayName}</h2>
-                         <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: "rgba(16, 185, 129, 0.1)", color: "var(--color-accent-emerald-light)" }}>
+                         <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: "var(--color-success-light)", color: "var(--color-accent-emerald-light)" }}>
                            {comp.entity_type.replace(/_/g, " ").toUpperCase()}
                          </span>
                        </div>
@@ -335,7 +335,7 @@ export default function DashboardPage() {
                   
                   {/* Next Step CTA */}
                   {comp.status === "payment_completed" && (
-                    <div className="mt-6 p-4 rounded-xl border flex justify-between items-center" style={{ background: "rgba(139, 92, 246, 0.05)", borderColor: "rgba(139, 92, 246, 0.2)" }}>
+                    <div className="mt-6 p-4 rounded-xl border flex justify-between items-center" style={{ background: "var(--color-purple-bg)", borderColor: "var(--color-purple-bg)" }}>
                        <div>
                          <h4 className="text-sm font-semibold mb-1">Upload Documents</h4>
                          <p className="text-xs" style={{ color: "var(--color-text-secondary)" }}>Your payment was successful. Please upload PAN/Aadhaar for the {comp.num_directors} directors.</p>
@@ -392,7 +392,7 @@ export default function DashboardPage() {
                           const parsed = JSON.parse(doc.extracted_data);
                           const isCOI = parsed.display_name?.includes("COI") || parsed.display_name?.includes("Incorporation");
                           return (
-                            <div key={doc.id} className="p-3 rounded-lg border flex justify-between items-center group" style={isCOI ? { borderColor: "rgba(16, 185, 129, 0.3)", background: "rgba(16, 185, 129, 0.05)" } : { borderColor: "var(--color-border)", background: "var(--color-bg-secondary)" }}>
+                            <div key={doc.id} className="p-3 rounded-lg border flex justify-between items-center group" style={isCOI ? { borderColor: "var(--color-success-light)", background: "var(--color-success-light)" } : { borderColor: "var(--color-border)", background: "var(--color-bg-secondary)" }}>
                                <div>
                                  <p className="text-xs font-medium" style={{ color: isCOI ? "var(--color-success)" : "var(--color-text-primary)" }}>{parsed.display_name || doc.original_filename}</p>
                                  <p className="text-[10px] uppercase" style={{ color: "var(--color-text-muted)" }}>{isCOI ? 'Certificate' : 'PDF Draft'}</p>
@@ -622,7 +622,7 @@ export default function DashboardPage() {
                                   {interest.investor_name || "Anonymous Investor"}
                                 </span>
                                 {interest.investor_entity && (
-                                  <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: "rgba(139, 92, 246, 0.1)", color: "var(--color-accent-purple-light)" }}>
+                                  <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: "var(--color-purple-bg)", color: "var(--color-accent-purple-light)" }}>
                                     {interest.investor_entity}
                                   </span>
                                 )}
@@ -696,7 +696,7 @@ export default function DashboardPage() {
                       <button
                         onClick={() => toggleMessages(comp.id)}
                         className="w-full flex items-center justify-between p-4 rounded-xl border transition-colors"
-                        style={{ background: openMessageId === comp.id ? "rgba(139, 92, 246, 0.05)" : "var(--color-overlay)", borderColor: openMessageId === comp.id ? "rgba(139, 92, 246, 0.2)" : "var(--color-border)" }}
+                        style={{ background: openMessageId === comp.id ? "var(--color-purple-bg)" : "var(--color-overlay)", borderColor: openMessageId === comp.id ? "var(--color-purple-bg)" : "var(--color-border)" }}
                       >
                         <div className="flex items-center gap-3">
                           <span className="text-lg">💬</span>
@@ -707,7 +707,7 @@ export default function DashboardPage() {
                         </div>
                         <div className="flex items-center gap-2">
                           {(msgUnread[comp.id] || 0) > 0 && (
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: "rgba(239, 68, 68, 0.15)", color: "var(--color-error)" }}>
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: "var(--color-error-light)", color: "var(--color-error)" }}>
                               {msgUnread[comp.id]} new
                             </span>
                           )}
@@ -727,7 +727,7 @@ export default function DashboardPage() {
                                     <div
                                       className="max-w-[75%] rounded-xl px-4 py-3"
                                       style={isMe
-                                        ? { background: "rgba(139, 92, 246, 0.1)", border: "1px solid rgba(139, 92, 246, 0.2)" }
+                                        ? { background: "var(--color-purple-bg)", border: "1px solid var(--color-purple-bg)" }
                                         : { background: "var(--color-bg-secondary)", border: "1px solid var(--color-border)" }
                                       }
                                     >
@@ -778,7 +778,7 @@ export default function DashboardPage() {
                   )}
 
                   {comp.status === "payment_pending" && (
-                    <div className="mt-6 p-4 rounded-xl border flex justify-between items-center" style={{ background: "rgba(245, 158, 11, 0.05)", borderColor: "rgba(245, 158, 11, 0.2)" }}>
+                    <div className="mt-6 p-4 rounded-xl border flex justify-between items-center" style={{ background: "var(--color-warning-light)", borderColor: "var(--color-warning-light)" }}>
                        <div>
                          <h4 className="text-sm font-semibold mb-1">Complete Payment</h4>
                          <p className="text-xs" style={{ color: "var(--color-text-secondary)" }}>Secure your slot to begin the process.</p>

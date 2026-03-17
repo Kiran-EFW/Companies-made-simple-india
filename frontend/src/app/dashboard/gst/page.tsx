@@ -6,10 +6,10 @@ import { getCompanies, getGstDashboard } from "@/lib/api";
 import Link from "next/link";
 
 const STATUS_STYLES: Record<string, { bg: string; color: string }> = {
-  completed: { bg: "rgba(16, 185, 129, 0.1)", color: "var(--color-success)" },
-  due_soon: { bg: "rgba(245, 158, 11, 0.1)", color: "var(--color-warning)" },
-  upcoming: { bg: "rgba(139, 92, 246, 0.08)", color: "var(--color-text-secondary)" },
-  overdue: { bg: "rgba(239, 68, 68, 0.1)", color: "var(--color-error)" },
+  completed: { bg: "var(--color-success-light)", color: "var(--color-success)" },
+  due_soon: { bg: "var(--color-warning-light)", color: "var(--color-warning)" },
+  upcoming: { bg: "var(--color-purple-bg)", color: "var(--color-text-secondary)" },
+  overdue: { bg: "var(--color-error-light)", color: "var(--color-error)" },
 };
 
 export default function GstDashboardPage() {
@@ -62,7 +62,7 @@ export default function GstDashboardPage() {
   if (authLoading || (!user && loading)) {
     return (
       <div className="min-h-screen flex items-center justify-center glow-bg">
-        <div className="animate-pulse-glow w-16 h-16 rounded-full flex items-center justify-center" style={{ background: "rgba(139, 92, 246, 0.2)" }}>
+        <div className="animate-pulse-glow w-16 h-16 rounded-full flex items-center justify-center" style={{ background: "var(--color-purple-bg)" }}>
           <img src="/logo-icon.png" alt="Anvils" className="w-7 h-7 object-contain" />
         </div>
       </div>

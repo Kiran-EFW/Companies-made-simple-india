@@ -210,7 +210,7 @@ function CompanySelector() {
                   key={c.id}
                   onClick={() => { selectCompany(c.id); setOpen(false); }}
                   className="w-full text-left px-4 py-2.5 flex items-center gap-3 transition-colors hover:bg-gray-50"
-                  style={{ background: isSelected ? "rgba(139, 92, 246, 0.06)" : "transparent" }}
+                  style={{ background: isSelected ? "var(--color-purple-bg)" : "transparent" }}
                 >
                   <div className={`w-2 h-2 rounded-full ${isSelected ? "bg-purple-500" : "bg-gray-300"}`} />
                   <div className="flex-1 min-w-0">
@@ -227,7 +227,7 @@ function CompanySelector() {
                 href="/onboarding"
                 onClick={() => setOpen(false)}
                 className="w-full text-left px-4 py-2 flex items-center gap-3 text-sm transition-colors hover:bg-gray-50"
-                style={{ color: "rgb(139, 92, 246)" }}
+                style={{ color: "var(--color-accent-purple-light)" }}
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -329,7 +329,7 @@ function RightSidebar() {
         <div className="flex items-center gap-2 text-[11px]" style={{ color: "var(--color-text-secondary)" }}>
           <span
             className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium capitalize"
-            style={{ background: "rgba(139,92,246,0.08)", color: "rgb(139,92,246)" }}
+            style={{ background: "var(--color-purple-bg)", color: "var(--color-accent-purple-light)" }}
           >
             {statusLabel}
           </span>
@@ -394,7 +394,7 @@ function RightSidebar() {
           <div className="flex flex-col gap-2">
             {deadlines.map((task: any, i: number) => (
               <div key={i} className="flex items-start gap-2">
-                <div className="w-1 h-1 rounded-full mt-1.5 flex-shrink-0" style={{ background: "rgb(139,92,246)" }} />
+                <div className="w-1 h-1 rounded-full mt-1.5 flex-shrink-0" style={{ background: "var(--color-accent-purple-light)" }} />
                 <div className="flex-1 min-w-0">
                   <div className="text-[11px] font-medium truncate" style={{ color: "var(--color-text-primary)" }}>
                     {task.title || task.task_type?.replace(/_/g, " ")}
@@ -523,7 +523,7 @@ function DashboardInner({ children }: { children: React.ReactNode }) {
             >
               <div
                 className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white"
-                style={{ background: "rgb(139, 92, 246)" }}
+                style={{ background: "var(--color-accent-purple-light)" }}
               >
                 {user?.full_name?.charAt(0).toUpperCase() || "U"}
               </div>
@@ -617,10 +617,10 @@ function DashboardInner({ children }: { children: React.ReactNode }) {
                     className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm mb-0.5 transition-colors"
                     style={{
                       background: isActive(item.href)
-                        ? "rgba(139, 92, 246, 0.08)"
+                        ? "var(--color-purple-bg)"
                         : "transparent",
                       color: isActive(item.href)
-                        ? "rgb(139, 92, 246)"
+                        ? "var(--color-accent-purple-light)"
                         : "var(--color-text-secondary)",
                       fontWeight: isActive(item.href) ? 600 : 400,
                     }}
@@ -697,7 +697,7 @@ export default function DashboardLayout({
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--color-bg-secondary)" }}>
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: "rgb(139, 92, 246)" }} />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: "var(--color-accent-purple-light)" }} />
       </div>
     );
   }

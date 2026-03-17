@@ -124,8 +124,8 @@ function InfoBox({ children }: { children: React.ReactNode }) {
     <div
       className="rounded-lg p-3 text-xs leading-relaxed"
       style={{
-        background: "rgba(59, 130, 246, 0.08)",
-        border: "1px solid rgba(59, 130, 246, 0.2)",
+        background: "var(--color-info-light)",
+        border: "1px solid var(--color-accent-blue)",
         color: "var(--color-text-secondary)",
       }}
     >
@@ -137,12 +137,12 @@ function InfoBox({ children }: { children: React.ReactNode }) {
 
 function StepStatusBadge({ status }: { status: string }) {
   const map: Record<string, { bg: string; text: string }> = {
-    pending: { bg: "rgba(156, 163, 175, 0.15)", text: "rgb(156, 163, 175)" },
-    generated: { bg: "rgba(59, 130, 246, 0.15)", text: "rgb(59, 130, 246)" },
-    sent_for_signing: { bg: "rgba(245, 158, 11, 0.15)", text: "rgb(245, 158, 11)" },
-    signed: { bg: "rgba(16, 185, 129, 0.15)", text: "rgb(16, 185, 129)" },
-    filed: { bg: "rgba(59, 130, 246, 0.15)", text: "rgb(59, 130, 246)" },
-    acknowledged: { bg: "rgba(16, 185, 129, 0.15)", text: "rgb(16, 185, 129)" },
+    pending: { bg: "var(--color-hover-overlay)", text: "var(--color-text-muted)" },
+    generated: { bg: "var(--color-info-light)", text: "var(--color-accent-blue)" },
+    sent_for_signing: { bg: "var(--color-warning-light)", text: "var(--color-accent-amber)" },
+    signed: { bg: "var(--color-success-light)", text: "var(--color-accent-emerald-light)" },
+    filed: { bg: "var(--color-info-light)", text: "var(--color-accent-blue)" },
+    acknowledged: { bg: "var(--color-success-light)", text: "var(--color-accent-emerald-light)" },
   };
   const colors = map[status] || map.pending;
   return (
@@ -177,7 +177,7 @@ function CheckItem({
         onChange={(e) => !disabled && onChange(e.target.checked)}
         disabled={disabled}
         className="mt-0.5"
-        style={{ accentColor: "rgb(139, 92, 246)", width: 16, height: 16 }}
+        style={{ accentColor: "var(--color-accent-purple-light)", width: 16, height: 16 }}
       />
       <span className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
         {label}
@@ -468,21 +468,21 @@ export default function ESOPApprovalWizard({
                     className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all"
                     style={{
                       background: complete
-                        ? "rgba(16, 185, 129, 0.2)"
+                        ? "var(--color-success-light)"
                         : isActive
-                          ? "rgba(139, 92, 246, 0.25)"
-                          : "rgba(255, 255, 255, 0.05)",
+                          ? "var(--color-purple-bg)"
+                          : "var(--color-hover-overlay)",
                       border: `2px solid ${
                         complete
-                          ? "rgb(16, 185, 129)"
+                          ? "var(--color-accent-emerald-light)"
                           : isActive
-                            ? "rgb(139, 92, 246)"
+                            ? "var(--color-accent-purple-light)"
                             : "var(--color-border)"
                       }`,
                       color: complete
-                        ? "rgb(16, 185, 129)"
+                        ? "var(--color-accent-emerald-light)"
                         : isActive
-                          ? "rgb(139, 92, 246)"
+                          ? "var(--color-accent-purple-light)"
                           : "var(--color-text-muted)",
                     }}
                   >
@@ -492,9 +492,9 @@ export default function ESOPApprovalWizard({
                     className="text-[10px] font-medium text-center leading-tight"
                     style={{
                       color: isActive
-                        ? "rgb(139, 92, 246)"
+                        ? "var(--color-accent-purple-light)"
                         : complete
-                          ? "rgb(16, 185, 129)"
+                          ? "var(--color-accent-emerald-light)"
                           : "var(--color-text-muted)",
                     }}
                   >
@@ -508,7 +508,7 @@ export default function ESOPApprovalWizard({
                     className="flex-1 h-px mx-1"
                     style={{
                       background: isStepComplete(step.number)
-                        ? "rgb(16, 185, 129)"
+                        ? "var(--color-accent-emerald-light)"
                         : "var(--color-border)",
                     }}
                   />
@@ -525,8 +525,8 @@ export default function ESOPApprovalWizard({
           className="glass-card p-3 text-center text-sm"
           style={{
             borderColor: message.startsWith("Error")
-              ? "rgba(244, 63, 94, 0.5)"
-              : "rgba(16, 185, 129, 0.5)",
+              ? "var(--color-accent-rose)"
+              : "var(--color-accent-emerald-light)",
             cursor: "default",
           }}
         >
@@ -551,7 +551,7 @@ export default function ESOPApprovalWizard({
             {/* Plan Details */}
             <div
               className="rounded-lg p-4 space-y-3"
-              style={{ background: "rgba(139, 92, 246, 0.05)", border: "1px solid rgba(139, 92, 246, 0.15)" }}
+              style={{ background: "var(--color-purple-bg)", border: "1px solid var(--color-accent-purple-light)" }}
             >
               <h4 className="text-sm font-semibold" style={{ color: "var(--color-text-primary)" }}>
                 {plan.plan_name}
@@ -651,7 +651,7 @@ export default function ESOPApprovalWizard({
             {/* Resolution status */}
             <div
               className="rounded-lg p-4 space-y-4"
-              style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--color-border)" }}
+              style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)" }}
             >
               <div className="flex items-center justify-between">
                 <h4 className="text-sm font-semibold" style={{ color: "var(--color-text-primary)" }}>
@@ -667,12 +667,12 @@ export default function ESOPApprovalWizard({
                   style={{
                     background:
                       state.boardResolutionStatus === "pending"
-                        ? "rgba(139, 92, 246, 0.15)"
-                        : "rgba(16, 185, 129, 0.1)",
+                        ? "var(--color-purple-bg)"
+                        : "var(--color-success-light)",
                     color:
                       state.boardResolutionStatus === "pending"
-                        ? "rgb(139, 92, 246)"
-                        : "rgb(16, 185, 129)",
+                        ? "var(--color-accent-purple-light)"
+                        : "var(--color-accent-emerald-light)",
                   }}
                 >
                   Draft
@@ -683,15 +683,15 @@ export default function ESOPApprovalWizard({
                   style={{
                     background:
                       state.boardResolutionStatus === "generated"
-                        ? "rgba(139, 92, 246, 0.15)"
+                        ? "var(--color-purple-bg)"
                         : state.boardResolutionStatus === "sent_for_signing" || state.boardResolutionStatus === "signed"
-                          ? "rgba(16, 185, 129, 0.1)"
-                          : "rgba(255,255,255,0.05)",
+                          ? "var(--color-success-light)"
+                          : "var(--color-hover-overlay)",
                     color:
                       state.boardResolutionStatus === "generated"
-                        ? "rgb(139, 92, 246)"
+                        ? "var(--color-accent-purple-light)"
                         : state.boardResolutionStatus === "sent_for_signing" || state.boardResolutionStatus === "signed"
-                          ? "rgb(16, 185, 129)"
+                          ? "var(--color-accent-emerald-light)"
                           : "var(--color-text-muted)",
                   }}
                 >
@@ -703,15 +703,15 @@ export default function ESOPApprovalWizard({
                   style={{
                     background:
                       state.boardResolutionStatus === "sent_for_signing"
-                        ? "rgba(139, 92, 246, 0.15)"
+                        ? "var(--color-purple-bg)"
                         : state.boardResolutionStatus === "signed"
-                          ? "rgba(16, 185, 129, 0.1)"
-                          : "rgba(255,255,255,0.05)",
+                          ? "var(--color-success-light)"
+                          : "var(--color-hover-overlay)",
                     color:
                       state.boardResolutionStatus === "sent_for_signing"
-                        ? "rgb(139, 92, 246)"
+                        ? "var(--color-accent-purple-light)"
                         : state.boardResolutionStatus === "signed"
-                          ? "rgb(16, 185, 129)"
+                          ? "var(--color-accent-emerald-light)"
                           : "var(--color-text-muted)",
                   }}
                 >
@@ -736,16 +736,16 @@ export default function ESOPApprovalWizard({
                     disabled={loading}
                     className="text-sm px-4 py-2 rounded-lg font-semibold transition-all"
                     style={{
-                      background: "rgba(139, 92, 246, 0.15)",
-                      border: "1px solid rgba(139, 92, 246, 0.4)",
-                      color: "rgb(139, 92, 246)",
+                      background: "var(--color-purple-bg)",
+                      border: "1px solid var(--color-accent-purple-light)",
+                      color: "var(--color-accent-purple-light)",
                     }}
                   >
                     {loading ? "Sending..." : "Send for E-Sign"}
                   </button>
                 )}
                 {(state.boardResolutionStatus === "sent_for_signing" || state.boardResolutionStatus === "signed") && (
-                  <div className="flex items-center gap-2 text-sm" style={{ color: "rgb(16, 185, 129)" }}>
+                  <div className="flex items-center gap-2 text-sm" style={{ color: "var(--color-accent-emerald-light)" }}>
                     <span>&#10003;</span>
                     <span>Board resolution {state.boardResolutionStatus === "signed" ? "signed" : "sent for signing"}</span>
                   </div>
@@ -793,7 +793,7 @@ export default function ESOPApprovalWizard({
             {/* EGM Notice */}
             <div
               className="rounded-lg p-4 space-y-4"
-              style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--color-border)" }}
+              style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)" }}
             >
               <div className="flex items-center justify-between">
                 <h4 className="text-sm font-semibold" style={{ color: "var(--color-text-primary)" }}>
@@ -818,16 +818,16 @@ export default function ESOPApprovalWizard({
                     disabled={loading}
                     className="text-sm px-4 py-2 rounded-lg font-semibold transition-all"
                     style={{
-                      background: "rgba(139, 92, 246, 0.15)",
-                      border: "1px solid rgba(139, 92, 246, 0.4)",
-                      color: "rgb(139, 92, 246)",
+                      background: "var(--color-purple-bg)",
+                      border: "1px solid var(--color-accent-purple-light)",
+                      color: "var(--color-accent-purple-light)",
                     }}
                   >
                     {loading ? "Sending..." : "Send for E-Sign"}
                   </button>
                 )}
                 {(state.egmNoticeStatus === "sent_for_signing" || state.egmNoticeStatus === "signed") && (
-                  <div className="flex items-center gap-2 text-sm" style={{ color: "rgb(16, 185, 129)" }}>
+                  <div className="flex items-center gap-2 text-sm" style={{ color: "var(--color-accent-emerald-light)" }}>
                     <span>&#10003;</span>
                     <span>EGM notice {state.egmNoticeStatus === "signed" ? "signed" : "sent for signing"}</span>
                   </div>
@@ -838,7 +838,7 @@ export default function ESOPApprovalWizard({
             {/* Special Resolution Checkbox */}
             <div
               className="rounded-lg p-4"
-              style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--color-border)" }}
+              style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)" }}
             >
               <h4 className="text-sm font-semibold mb-2" style={{ color: "var(--color-text-primary)" }}>
                 Special Resolution Status
@@ -890,7 +890,7 @@ export default function ESOPApprovalWizard({
 
             <div
               className="rounded-lg p-4 space-y-4"
-              style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--color-border)" }}
+              style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)" }}
             >
               <h4 className="text-sm font-semibold" style={{ color: "var(--color-text-primary)" }}>
                 MGT-14 Filing Checklist
@@ -902,9 +902,9 @@ export default function ESOPApprovalWizard({
                     <span
                       className="w-5 h-5 rounded-full flex items-center justify-center text-xs"
                       style={{
-                        background: state.mgt14Status !== "pending" ? "rgba(16, 185, 129, 0.2)" : "rgba(255,255,255,0.05)",
-                        color: state.mgt14Status !== "pending" ? "rgb(16, 185, 129)" : "var(--color-text-muted)",
-                        border: `1px solid ${state.mgt14Status !== "pending" ? "rgb(16, 185, 129)" : "var(--color-border)"}`,
+                        background: state.mgt14Status !== "pending" ? "var(--color-success-light)" : "var(--color-hover-overlay)",
+                        color: state.mgt14Status !== "pending" ? "var(--color-accent-emerald-light)" : "var(--color-text-muted)",
+                        border: `1px solid ${state.mgt14Status !== "pending" ? "var(--color-accent-emerald-light)" : "var(--color-border)"}`,
                       }}
                     >
                       {state.mgt14Status !== "pending" ? "\u2713" : "1"}
@@ -920,9 +920,9 @@ export default function ESOPApprovalWizard({
                     <span
                       className="w-5 h-5 rounded-full flex items-center justify-center text-xs"
                       style={{
-                        background: state.mgt14Status === "filed" || state.mgt14Status === "acknowledged" ? "rgba(16, 185, 129, 0.2)" : "rgba(255,255,255,0.05)",
-                        color: state.mgt14Status === "filed" || state.mgt14Status === "acknowledged" ? "rgb(16, 185, 129)" : "var(--color-text-muted)",
-                        border: `1px solid ${state.mgt14Status === "filed" || state.mgt14Status === "acknowledged" ? "rgb(16, 185, 129)" : "var(--color-border)"}`,
+                        background: state.mgt14Status === "filed" || state.mgt14Status === "acknowledged" ? "var(--color-success-light)" : "var(--color-hover-overlay)",
+                        color: state.mgt14Status === "filed" || state.mgt14Status === "acknowledged" ? "var(--color-accent-emerald-light)" : "var(--color-text-muted)",
+                        border: `1px solid ${state.mgt14Status === "filed" || state.mgt14Status === "acknowledged" ? "var(--color-accent-emerald-light)" : "var(--color-border)"}`,
                       }}
                     >
                       {state.mgt14Status === "filed" || state.mgt14Status === "acknowledged" ? "\u2713" : "2"}
@@ -938,9 +938,9 @@ export default function ESOPApprovalWizard({
                     <span
                       className="w-5 h-5 rounded-full flex items-center justify-center text-xs"
                       style={{
-                        background: state.mgt14Status === "acknowledged" ? "rgba(16, 185, 129, 0.2)" : "rgba(255,255,255,0.05)",
-                        color: state.mgt14Status === "acknowledged" ? "rgb(16, 185, 129)" : "var(--color-text-muted)",
-                        border: `1px solid ${state.mgt14Status === "acknowledged" ? "rgb(16, 185, 129)" : "var(--color-border)"}`,
+                        background: state.mgt14Status === "acknowledged" ? "var(--color-success-light)" : "var(--color-hover-overlay)",
+                        color: state.mgt14Status === "acknowledged" ? "var(--color-accent-emerald-light)" : "var(--color-text-muted)",
+                        border: `1px solid ${state.mgt14Status === "acknowledged" ? "var(--color-accent-emerald-light)" : "var(--color-border)"}`,
                       }}
                     >
                       {state.mgt14Status === "acknowledged" ? "\u2713" : "3"}
@@ -963,9 +963,9 @@ export default function ESOPApprovalWizard({
                     onClick={() => setState({ ...state, mgt14Status: s })}
                     className="text-xs px-3 py-1.5 rounded-lg transition-all capitalize"
                     style={{
-                      background: state.mgt14Status === s ? "rgba(139, 92, 246, 0.2)" : "rgba(255,255,255,0.03)",
-                      border: `1px solid ${state.mgt14Status === s ? "rgba(139, 92, 246, 0.5)" : "var(--color-border)"}`,
-                      color: state.mgt14Status === s ? "rgb(139, 92, 246)" : "var(--color-text-muted)",
+                      background: state.mgt14Status === s ? "var(--color-purple-bg)" : "var(--color-hover-overlay)",
+                      border: `1px solid ${state.mgt14Status === s ? "var(--color-accent-purple-light)" : "var(--color-border)"}`,
+                      color: state.mgt14Status === s ? "var(--color-accent-purple-light)" : "var(--color-text-muted)",
                     }}
                   >
                     {s}
@@ -1009,7 +1009,7 @@ export default function ESOPApprovalWizard({
             {/* Completed steps summary */}
             <div
               className="rounded-lg p-4 space-y-3"
-              style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--color-border)" }}
+              style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)" }}
             >
               <h4 className="text-sm font-semibold mb-2" style={{ color: "var(--color-text-primary)" }}>
                 Compliance Review
@@ -1019,9 +1019,9 @@ export default function ESOPApprovalWizard({
                   <span
                     className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold"
                     style={{
-                      background: isStepComplete(step.number) ? "rgba(16, 185, 129, 0.2)" : "rgba(244, 63, 94, 0.2)",
-                      color: isStepComplete(step.number) ? "rgb(16, 185, 129)" : "rgb(244, 63, 94)",
-                      border: `1px solid ${isStepComplete(step.number) ? "rgb(16, 185, 129)" : "rgb(244, 63, 94)"}`,
+                      background: isStepComplete(step.number) ? "var(--color-success-light)" : "var(--color-error-light)",
+                      color: isStepComplete(step.number) ? "var(--color-accent-emerald-light)" : "var(--color-accent-rose)",
+                      border: `1px solid ${isStepComplete(step.number) ? "var(--color-accent-emerald-light)" : "var(--color-accent-rose)"}`,
                     }}
                   >
                     {isStepComplete(step.number) ? "\u2713" : "!"}
@@ -1036,10 +1036,10 @@ export default function ESOPApprovalWizard({
             {state.planActivated || plan.status === "active" ? (
               <div
                 className="rounded-lg p-5 text-center space-y-2"
-                style={{ background: "rgba(16, 185, 129, 0.08)", border: "1px solid rgba(16, 185, 129, 0.3)" }}
+                style={{ background: "var(--color-success-light)", border: "1px solid var(--color-accent-emerald-light)" }}
               >
                 <div className="text-3xl">&#10003;</div>
-                <h4 className="text-base font-bold" style={{ color: "rgb(16, 185, 129)" }}>
+                <h4 className="text-base font-bold" style={{ color: "var(--color-accent-emerald-light)" }}>
                   Plan Activated
                 </h4>
                 <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
@@ -1123,7 +1123,7 @@ export default function ESOPApprovalWizard({
                     <div
                       key={grant.id}
                       className="rounded-lg p-4 space-y-3"
-                      style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--color-border)" }}
+                      style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)" }}
                     >
                       <div className="flex items-center justify-between">
                         <div>
@@ -1139,15 +1139,15 @@ export default function ESOPApprovalWizard({
                           className="text-xs px-2 py-0.5 rounded-full capitalize"
                           style={{
                             background: grant.status === "accepted"
-                              ? "rgba(16, 185, 129, 0.15)"
+                              ? "var(--color-success-light)"
                               : grant.status === "offered"
-                                ? "rgba(245, 158, 11, 0.15)"
-                                : "rgba(156, 163, 175, 0.15)",
+                                ? "var(--color-warning-light)"
+                                : "var(--color-hover-overlay)",
                             color: grant.status === "accepted"
-                              ? "rgb(16, 185, 129)"
+                              ? "var(--color-accent-emerald-light)"
                               : grant.status === "offered"
-                                ? "rgb(245, 158, 11)"
-                                : "rgb(156, 163, 175)",
+                                ? "var(--color-accent-amber)"
+                                : "var(--color-text-muted)",
                           }}
                         >
                           {grant.status.replace(/_/g, " ")}
@@ -1162,10 +1162,10 @@ export default function ESOPApprovalWizard({
                             className="w-4 h-4 rounded-full flex items-center justify-center text-[10px]"
                             style={{
                               background: gw.letterGenerated || grant.grant_letter_document_id
-                                ? "rgba(16, 185, 129, 0.2)" : "rgba(255,255,255,0.05)",
+                                ? "var(--color-success-light)" : "var(--color-hover-overlay)",
                               color: gw.letterGenerated || grant.grant_letter_document_id
-                                ? "rgb(16, 185, 129)" : "var(--color-text-muted)",
-                              border: `1px solid ${gw.letterGenerated || grant.grant_letter_document_id ? "rgb(16, 185, 129)" : "var(--color-border)"}`,
+                                ? "var(--color-accent-emerald-light)" : "var(--color-text-muted)",
+                              border: `1px solid ${gw.letterGenerated || grant.grant_letter_document_id ? "var(--color-accent-emerald-light)" : "var(--color-border)"}`,
                             }}
                           >
                             {gw.letterGenerated || grant.grant_letter_document_id ? "\u2713" : "1"}
@@ -1181,10 +1181,10 @@ export default function ESOPApprovalWizard({
                             className="w-4 h-4 rounded-full flex items-center justify-center text-[10px]"
                             style={{
                               background: gw.sentForSigning || grant.status === "offered" || grant.status === "accepted"
-                                ? "rgba(16, 185, 129, 0.2)" : "rgba(255,255,255,0.05)",
+                                ? "var(--color-success-light)" : "var(--color-hover-overlay)",
                               color: gw.sentForSigning || grant.status === "offered" || grant.status === "accepted"
-                                ? "rgb(16, 185, 129)" : "var(--color-text-muted)",
-                              border: `1px solid ${gw.sentForSigning || grant.status === "offered" || grant.status === "accepted" ? "rgb(16, 185, 129)" : "var(--color-border)"}`,
+                                ? "var(--color-accent-emerald-light)" : "var(--color-text-muted)",
+                              border: `1px solid ${gw.sentForSigning || grant.status === "offered" || grant.status === "accepted" ? "var(--color-accent-emerald-light)" : "var(--color-border)"}`,
                             }}
                           >
                             {gw.sentForSigning || grant.status === "offered" || grant.status === "accepted" ? "\u2713" : "2"}
@@ -1200,10 +1200,10 @@ export default function ESOPApprovalWizard({
                             className="w-4 h-4 rounded-full flex items-center justify-center text-[10px]"
                             style={{
                               background: gw.accepted || grant.status === "accepted"
-                                ? "rgba(16, 185, 129, 0.2)" : "rgba(255,255,255,0.05)",
+                                ? "var(--color-success-light)" : "var(--color-hover-overlay)",
                               color: gw.accepted || grant.status === "accepted"
-                                ? "rgb(16, 185, 129)" : "var(--color-text-muted)",
-                              border: `1px solid ${gw.accepted || grant.status === "accepted" ? "rgb(16, 185, 129)" : "var(--color-border)"}`,
+                                ? "var(--color-accent-emerald-light)" : "var(--color-text-muted)",
+                              border: `1px solid ${gw.accepted || grant.status === "accepted" ? "var(--color-accent-emerald-light)" : "var(--color-border)"}`,
                             }}
                           >
                             {gw.accepted || grant.status === "accepted" ? "\u2713" : "3"}
@@ -1220,9 +1220,9 @@ export default function ESOPApprovalWizard({
                             disabled={loading}
                             className="text-xs px-3 py-1.5 rounded-lg transition-all"
                             style={{
-                              background: "rgba(139, 92, 246, 0.1)",
-                              border: "1px solid rgba(139, 92, 246, 0.3)",
-                              color: "rgb(139, 92, 246)",
+                              background: "var(--color-purple-bg)",
+                              border: "1px solid var(--color-accent-purple-light)",
+                              color: "var(--color-accent-purple-light)",
                             }}
                           >
                             Generate Letter
@@ -1234,9 +1234,9 @@ export default function ESOPApprovalWizard({
                             disabled={loading}
                             className="text-xs px-3 py-1.5 rounded-lg transition-all"
                             style={{
-                              background: "rgba(59, 130, 246, 0.1)",
-                              border: "1px solid rgba(59, 130, 246, 0.3)",
-                              color: "rgb(59, 130, 246)",
+                              background: "var(--color-info-light)",
+                              border: "1px solid var(--color-accent-blue)",
+                              color: "var(--color-accent-blue)",
                             }}
                           >
                             Send for Employee Signing

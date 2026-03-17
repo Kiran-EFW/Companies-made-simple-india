@@ -84,18 +84,18 @@ interface PoolSummary {
 }
 
 const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
-  draft: { bg: "rgba(156, 163, 175, 0.15)", text: "rgb(156, 163, 175)" },
-  board_approved: { bg: "rgba(59, 130, 246, 0.15)", text: "rgb(59, 130, 246)" },
+  draft: { bg: "var(--color-text-muted)", text: "var(--color-text-muted)" },
+  board_approved: { bg: "var(--color-info-light)", text: "var(--color-accent-blue)" },
   shareholder_approved: { bg: "rgba(99, 102, 241, 0.15)", text: "rgb(99, 102, 241)" },
-  active: { bg: "rgba(16, 185, 129, 0.15)", text: "rgb(16, 185, 129)" },
-  frozen: { bg: "rgba(245, 158, 11, 0.15)", text: "rgb(245, 158, 11)" },
-  terminated: { bg: "rgba(244, 63, 94, 0.15)", text: "rgb(244, 63, 94)" },
-  offered: { bg: "rgba(139, 92, 246, 0.15)", text: "rgb(139, 92, 246)" },
-  accepted: { bg: "rgba(59, 130, 246, 0.15)", text: "rgb(59, 130, 246)" },
-  partially_exercised: { bg: "rgba(245, 158, 11, 0.15)", text: "rgb(245, 158, 11)" },
-  fully_exercised: { bg: "rgba(16, 185, 129, 0.15)", text: "rgb(16, 185, 129)" },
-  lapsed: { bg: "rgba(244, 63, 94, 0.15)", text: "rgb(244, 63, 94)" },
-  cancelled: { bg: "rgba(244, 63, 94, 0.15)", text: "rgb(244, 63, 94)" },
+  active: { bg: "var(--color-success-light)", text: "var(--color-accent-emerald-light)" },
+  frozen: { bg: "var(--color-warning-light)", text: "var(--color-accent-amber)" },
+  terminated: { bg: "var(--color-error-light)", text: "var(--color-accent-rose)" },
+  offered: { bg: "var(--color-purple-bg)", text: "var(--color-accent-purple-light)" },
+  accepted: { bg: "var(--color-info-light)", text: "var(--color-accent-blue)" },
+  partially_exercised: { bg: "var(--color-warning-light)", text: "var(--color-accent-amber)" },
+  fully_exercised: { bg: "var(--color-success-light)", text: "var(--color-accent-emerald-light)" },
+  lapsed: { bg: "var(--color-error-light)", text: "var(--color-accent-rose)" },
+  cancelled: { bg: "var(--color-error-light)", text: "var(--color-accent-rose)" },
 };
 
 function StatusBadge({ status }: { status: string }) {
@@ -129,7 +129,7 @@ function PoolDonut({ summary }: { summary: PoolSummary }) {
   });
 
   if (cumulative < 100) {
-    gradientParts.push(`rgba(255,255,255,0.05) ${cumulative}% 100%`);
+    gradientParts.push(`var(--color-hover-overlay) ${cumulative}% 100%`);
   }
 
   return (
@@ -141,7 +141,7 @@ function PoolDonut({ summary }: { summary: PoolSummary }) {
             height: "180px",
             borderRadius: "50%",
             background: `conic-gradient(${gradientParts.join(", ")})`,
-            boxShadow: "0 0 30px rgba(139, 92, 246, 0.2)",
+            boxShadow: "0 0 30px var(--color-purple-bg)",
           }}
         />
         <div
@@ -409,7 +409,7 @@ export default function ESOPPage() {
               Select a company from the sidebar to view ESOP management.
             </p>
             <div className="flex items-center justify-center gap-3">
-              <Link href="/pricing" className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white" style={{ background: "#8B5CF6" }}>
+              <Link href="/pricing" className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white" style={{ background: "var(--color-accent-purple-light)" }}>
                 Incorporate a New Company
               </Link>
               <Link href="/dashboard/connect" className="px-5 py-2.5 rounded-lg text-sm font-semibold border" style={{ borderColor: "var(--color-border)", color: "var(--color-text-primary)" }}>
@@ -421,7 +421,7 @@ export default function ESOPPage() {
 
         {companyLoading && (
           <div className="flex items-center justify-center py-24">
-            <div className="animate-pulse-glow w-16 h-16 rounded-full flex items-center justify-center" style={{ background: "rgba(139, 92, 246, 0.2)" }}>
+            <div className="animate-pulse-glow w-16 h-16 rounded-full flex items-center justify-center" style={{ background: "var(--color-purple-bg)" }}>
               <img src="/logo-icon.png" alt="Anvils" className="w-7 h-7 object-contain" />
             </div>
           </div>
@@ -435,8 +435,8 @@ export default function ESOPPage() {
             className="glass-card p-3 mb-6 text-center text-sm"
             style={{
               borderColor: message.startsWith("Error")
-                ? "rgba(244, 63, 94, 0.5)"
-                : "rgba(16, 185, 129, 0.5)",
+                ? "var(--color-accent-rose)"
+                : "var(--color-accent-emerald-light)",
               cursor: "default",
             }}
           >
@@ -452,8 +452,8 @@ export default function ESOPPage() {
               onClick={() => setActiveTab(tab)}
               className="glass-card px-4 py-2 text-sm font-medium transition-all"
               style={{
-                borderColor: activeTab === tab ? "rgba(139, 92, 246, 0.6)" : "var(--color-border)",
-                background: activeTab === tab ? "rgba(139, 92, 246, 0.15)" : "transparent",
+                borderColor: activeTab === tab ? "var(--color-accent-purple-light)" : "var(--color-border)",
+                background: activeTab === tab ? "var(--color-purple-bg)" : "transparent",
               }}
             >
               {tab === "plans" && "ESOP Plans"}
@@ -516,17 +516,17 @@ export default function ESOPPage() {
                         </div>
                         <div
                           className="w-full h-2 rounded-full overflow-hidden"
-                          style={{ background: "rgba(255,255,255,0.05)" }}
+                          style={{ background: "var(--color-hover-overlay)" }}
                         >
                           <div
                             className="h-full rounded-full transition-all"
                             style={{
                               width: `${usagePct}%`,
                               background: usagePct > 90
-                                ? "rgb(244, 63, 94)"
+                                ? "var(--color-accent-rose)"
                                 : usagePct > 70
-                                  ? "rgb(245, 158, 11)"
-                                  : "rgb(139, 92, 246)",
+                                  ? "var(--color-accent-amber)"
+                                  : "var(--color-accent-purple-light)",
                             }}
                           />
                         </div>
@@ -557,9 +557,9 @@ export default function ESOPPage() {
                               }}
                               className="text-xs px-3 py-1.5 rounded-lg transition-all"
                               style={{
-                                background: "rgba(139, 92, 246, 0.1)",
-                                border: "1px solid rgba(139, 92, 246, 0.3)",
-                                color: "rgb(139, 92, 246)",
+                                background: "var(--color-purple-bg)",
+                                border: "1px solid var(--color-purple-bg)",
+                                color: "var(--color-accent-purple-light)",
                               }}
                             >
                               Start Approval Flow
@@ -568,9 +568,9 @@ export default function ESOPPage() {
                               onClick={() => handleActivatePlan(plan.id)}
                               className="text-xs px-3 py-1.5 rounded-lg transition-all"
                               style={{
-                                background: "rgba(16, 185, 129, 0.1)",
-                                border: "1px solid rgba(16, 185, 129, 0.3)",
-                                color: "rgb(16, 185, 129)",
+                                background: "var(--color-success-light)",
+                                border: "1px solid var(--color-success-light)",
+                                color: "var(--color-accent-emerald-light)",
                               }}
                             >
                               Activate Plan
@@ -586,9 +586,9 @@ export default function ESOPPage() {
                               }}
                               className="text-xs px-3 py-1.5 rounded-lg transition-all"
                               style={{
-                                background: "rgba(139, 92, 246, 0.1)",
-                                border: "1px solid rgba(139, 92, 246, 0.3)",
-                                color: "rgb(139, 92, 246)",
+                                background: "var(--color-purple-bg)",
+                                border: "1px solid var(--color-purple-bg)",
+                                color: "var(--color-accent-purple-light)",
                               }}
                             >
                               View Approval Flow
@@ -600,9 +600,9 @@ export default function ESOPPage() {
                               }}
                               className="text-xs px-3 py-1.5 rounded-lg transition-all"
                               style={{
-                                background: "rgba(16, 185, 129, 0.1)",
-                                border: "1px solid rgba(16, 185, 129, 0.3)",
-                                color: "rgb(16, 185, 129)",
+                                background: "var(--color-success-light)",
+                                border: "1px solid var(--color-success-light)",
+                                color: "var(--color-accent-emerald-light)",
                               }}
                             >
                               Issue Grant
@@ -670,7 +670,7 @@ export default function ESOPPage() {
                             <td className="p-3 text-center font-mono">{grant.options_vested.toLocaleString()}</td>
                             <td className="p-3 text-center font-mono">{grant.options_exercised.toLocaleString()}</td>
                             <td className="p-3 text-center font-mono font-bold" style={{
-                              color: grant.options_exercisable > 0 ? "rgb(16, 185, 129)" : "var(--color-text-muted)",
+                              color: grant.options_exercisable > 0 ? "var(--color-accent-emerald-light)" : "var(--color-text-muted)",
                             }}>
                               {grant.options_exercisable.toLocaleString()}
                             </td>
@@ -686,7 +686,7 @@ export default function ESOPPage() {
                                       setShowExercise(true);
                                     }}
                                     className="text-[11px] px-2 py-1 rounded"
-                                    style={{ background: "rgba(16, 185, 129, 0.1)", color: "rgb(16, 185, 129)" }}
+                                    style={{ background: "var(--color-success-light)", color: "var(--color-accent-emerald-light)" }}
                                   >
                                     Exercise
                                   </button>
@@ -695,7 +695,7 @@ export default function ESOPPage() {
                                   <button
                                     onClick={() => handleGenerateLetter(grant.id)}
                                     className="text-[11px] px-2 py-1 rounded"
-                                    style={{ background: "rgba(139, 92, 246, 0.1)", color: "rgb(139, 92, 246)" }}
+                                    style={{ background: "var(--color-purple-bg)", color: "var(--color-accent-purple-light)" }}
                                   >
                                     Gen Letter
                                   </button>
@@ -704,7 +704,7 @@ export default function ESOPPage() {
                                   <button
                                     onClick={() => handleSendForSigning(grant.id)}
                                     className="text-[11px] px-2 py-1 rounded"
-                                    style={{ background: "rgba(59, 130, 246, 0.1)", color: "rgb(59, 130, 246)" }}
+                                    style={{ background: "var(--color-info-light)", color: "var(--color-accent-blue)" }}
                                   >
                                     Send for Sign
                                   </button>
@@ -719,7 +719,7 @@ export default function ESOPPage() {
                               <td colSpan={7} className="p-0">
                                 <div
                                   className="px-6 py-4"
-                                  style={{ background: "rgba(139, 92, 246, 0.03)" }}
+                                  style={{ background: "var(--color-hover-overlay)" }}
                                 >
                                   <div className="flex items-center gap-3 mb-3">
                                     <h4 className="text-sm font-semibold">Vesting Schedule</h4>
@@ -734,14 +734,14 @@ export default function ESOPPage() {
                                       <span>Vesting Progress</span>
                                       <span>{grant.options_vested} / {grant.number_of_options} ({Math.round((grant.options_vested / grant.number_of_options) * 100)}%)</span>
                                     </div>
-                                    <div className="w-full h-3 rounded-full overflow-hidden flex" style={{ background: "rgba(255,255,255,0.05)" }}>
+                                    <div className="w-full h-3 rounded-full overflow-hidden flex" style={{ background: "var(--color-hover-overlay)" }}>
                                       {/* Exercised portion */}
                                       {grant.options_exercised > 0 && (
                                         <div
                                           className="h-full"
                                           style={{
                                             width: `${(grant.options_exercised / grant.number_of_options) * 100}%`,
-                                            background: "rgb(245, 158, 11)",
+                                            background: "var(--color-accent-amber)",
                                           }}
                                         />
                                       )}
@@ -751,7 +751,7 @@ export default function ESOPPage() {
                                           className="h-full"
                                           style={{
                                             width: `${(grant.options_exercisable / grant.number_of_options) * 100}%`,
-                                            background: "rgb(16, 185, 129)",
+                                            background: "var(--color-accent-emerald-light)",
                                           }}
                                         />
                                       )}
@@ -761,7 +761,7 @@ export default function ESOPPage() {
                                           className="h-full"
                                           style={{
                                             width: `${(grant.options_unvested / grant.number_of_options) * 100}%`,
-                                            background: "rgba(139, 92, 246, 0.3)",
+                                            background: "var(--color-purple-bg)",
                                           }}
                                         />
                                       )}
@@ -769,14 +769,14 @@ export default function ESOPPage() {
                                     <div className="flex gap-4 mt-1">
                                       {grant.options_exercised > 0 && (
                                         <span className="flex items-center gap-1 text-[10px]" style={{ color: "var(--color-text-muted)" }}>
-                                          <span className="w-2 h-2 rounded-sm" style={{ background: "rgb(245, 158, 11)" }} /> Exercised
+                                          <span className="w-2 h-2 rounded-sm" style={{ background: "var(--color-accent-amber)" }} /> Exercised
                                         </span>
                                       )}
                                       <span className="flex items-center gap-1 text-[10px]" style={{ color: "var(--color-text-muted)" }}>
-                                        <span className="w-2 h-2 rounded-sm" style={{ background: "rgb(16, 185, 129)" }} /> Exercisable
+                                        <span className="w-2 h-2 rounded-sm" style={{ background: "var(--color-accent-emerald-light)" }} /> Exercisable
                                       </span>
                                       <span className="flex items-center gap-1 text-[10px]" style={{ color: "var(--color-text-muted)" }}>
-                                        <span className="w-2 h-2 rounded-sm" style={{ background: "rgba(139, 92, 246, 0.3)" }} /> Unvested
+                                        <span className="w-2 h-2 rounded-sm" style={{ background: "var(--color-purple-bg)" }} /> Unvested
                                       </span>
                                     </div>
                                   </div>
@@ -807,7 +807,7 @@ export default function ESOPPage() {
                                                 <td className="p-2">
                                                   {new Date(entry.date).toLocaleDateString()}
                                                   {isPast && (
-                                                    <span className="ml-1" style={{ color: "rgb(16, 185, 129)" }}>&#10003;</span>
+                                                    <span className="ml-1" style={{ color: "var(--color-accent-emerald-light)" }}>&#10003;</span>
                                                   )}
                                                 </td>
                                                 <td className="p-2 text-right font-mono">{entry.options_vesting.toLocaleString()}</td>
@@ -861,7 +861,7 @@ export default function ESOPPage() {
                       <div className="text-xs" style={{ color: "var(--color-text-muted)" }}>Total Pool</div>
                     </div>
                     <div className="glass-card p-4 text-center" style={{ cursor: "default" }}>
-                      <div className="text-2xl font-bold" style={{ color: "rgb(16, 185, 129)" }}>
+                      <div className="text-2xl font-bold" style={{ color: "var(--color-accent-emerald-light)" }}>
                         {poolSummary.available.toLocaleString()}
                       </div>
                       <div className="text-xs" style={{ color: "var(--color-text-muted)" }}>Available</div>
@@ -885,13 +885,13 @@ export default function ESOPPage() {
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="glass-card p-3 text-center" style={{ cursor: "default" }}>
-                      <div className="text-lg font-bold" style={{ color: "rgb(245, 158, 11)" }}>
+                      <div className="text-lg font-bold" style={{ color: "var(--color-accent-amber)" }}>
                         {poolSummary.exercised.toLocaleString()}
                       </div>
                       <div className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>Exercised</div>
                     </div>
                     <div className="glass-card p-3 text-center" style={{ cursor: "default" }}>
-                      <div className="text-lg font-bold" style={{ color: "rgb(244, 63, 94)" }}>
+                      <div className="text-lg font-bold" style={{ color: "var(--color-accent-rose)" }}>
                         {poolSummary.lapsed.toLocaleString()}
                       </div>
                       <div className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>Lapsed</div>
@@ -965,8 +965,8 @@ export default function ESOPPage() {
                             <span
                               className="text-xs px-2 py-0.5 rounded-full capitalize"
                               style={{
-                                background: p.status === "active" ? "rgba(16, 185, 129, 0.15)" : "rgba(156, 163, 175, 0.15)",
-                                color: p.status === "active" ? "rgb(16, 185, 129)" : "rgb(156, 163, 175)",
+                                background: p.status === "active" ? "var(--color-success-light)" : "var(--color-text-muted)",
+                                color: p.status === "active" ? "var(--color-accent-emerald-light)" : "var(--color-text-muted)",
                               }}
                             >
                               {p.status}
@@ -988,7 +988,7 @@ export default function ESOPPage() {
 
       {/* Create Plan Modal */}
       {showCreatePlan && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.6)" }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "var(--color-overlay)" }}>
           <div
             className="glass-card p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto"
             style={{ cursor: "default", background: "var(--color-bg-card)" }}
@@ -1008,7 +1008,7 @@ export default function ESOPPage() {
                   value={planForm.plan_name}
                   onChange={(e) => setPlanForm({ ...planForm, plan_name: e.target.value })}
                   className="w-full px-3 py-2 rounded-lg text-sm"
-                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                  style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                   placeholder="e.g., ESOP Plan 2024"
                 />
               </div>
@@ -1022,7 +1022,7 @@ export default function ESOPPage() {
                     value={planForm.pool_size}
                     onChange={(e) => setPlanForm({ ...planForm, pool_size: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg text-sm"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                    style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                     placeholder="100000"
                   />
                 </div>
@@ -1034,7 +1034,7 @@ export default function ESOPPage() {
                     value={planForm.exercise_price}
                     onChange={(e) => setPlanForm({ ...planForm, exercise_price: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg text-sm"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                    style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                   />
                 </div>
               </div>
@@ -1046,7 +1046,7 @@ export default function ESOPPage() {
                     value={planForm.default_vesting_months}
                     onChange={(e) => setPlanForm({ ...planForm, default_vesting_months: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg text-sm"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                    style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                   />
                 </div>
                 <div>
@@ -1056,7 +1056,7 @@ export default function ESOPPage() {
                     value={planForm.default_cliff_months}
                     onChange={(e) => setPlanForm({ ...planForm, default_cliff_months: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg text-sm"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                    style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                   />
                 </div>
                 <div>
@@ -1065,7 +1065,7 @@ export default function ESOPPage() {
                     value={planForm.default_vesting_type}
                     onChange={(e) => setPlanForm({ ...planForm, default_vesting_type: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg text-sm"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                    style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                   >
                     <option value="monthly">Monthly</option>
                     <option value="quarterly">Quarterly</option>
@@ -1081,7 +1081,7 @@ export default function ESOPPage() {
                     value={planForm.effective_date}
                     onChange={(e) => setPlanForm({ ...planForm, effective_date: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg text-sm"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                    style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                   />
                 </div>
                 <div>
@@ -1091,7 +1091,7 @@ export default function ESOPPage() {
                     value={planForm.expiry_date}
                     onChange={(e) => setPlanForm({ ...planForm, expiry_date: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg text-sm"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                    style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                   />
                 </div>
               </div>
@@ -1101,7 +1101,7 @@ export default function ESOPPage() {
                   value={planForm.exercise_price_basis}
                   onChange={(e) => setPlanForm({ ...planForm, exercise_price_basis: e.target.value })}
                   className="w-full px-3 py-2 rounded-lg text-sm"
-                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                  style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                 >
                   <option value="face_value">Face Value</option>
                   <option value="fmv">Fair Market Value</option>
@@ -1118,7 +1118,7 @@ export default function ESOPPage() {
 
       {/* Create Grant Modal */}
       {showCreateGrant && selectedPlanId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.6)" }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "var(--color-overlay)" }}>
           <div
             className="glass-card p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto"
             style={{ cursor: "default", background: "var(--color-bg-card)" }}
@@ -1139,7 +1139,7 @@ export default function ESOPPage() {
                     value={grantForm.grantee_name}
                     onChange={(e) => setGrantForm({ ...grantForm, grantee_name: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg text-sm"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                    style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                     placeholder="Employee Name"
                   />
                 </div>
@@ -1151,7 +1151,7 @@ export default function ESOPPage() {
                     value={grantForm.grantee_email}
                     onChange={(e) => setGrantForm({ ...grantForm, grantee_email: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg text-sm"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                    style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                     placeholder="employee@company.com"
                   />
                 </div>
@@ -1164,7 +1164,7 @@ export default function ESOPPage() {
                     value={grantForm.grantee_employee_id}
                     onChange={(e) => setGrantForm({ ...grantForm, grantee_employee_id: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg text-sm"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                    style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                     placeholder="EMP001"
                   />
                 </div>
@@ -1175,7 +1175,7 @@ export default function ESOPPage() {
                     value={grantForm.grantee_designation}
                     onChange={(e) => setGrantForm({ ...grantForm, grantee_designation: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg text-sm"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                    style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                     placeholder="Software Engineer"
                   />
                 </div>
@@ -1189,7 +1189,7 @@ export default function ESOPPage() {
                     value={grantForm.grant_date}
                     onChange={(e) => setGrantForm({ ...grantForm, grant_date: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg text-sm"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                    style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                   />
                 </div>
                 <div>
@@ -1201,7 +1201,7 @@ export default function ESOPPage() {
                     value={grantForm.number_of_options}
                     onChange={(e) => setGrantForm({ ...grantForm, number_of_options: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg text-sm"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                    style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                     placeholder="10000"
                   />
                 </div>
@@ -1218,7 +1218,7 @@ export default function ESOPPage() {
                     value={grantForm.exercise_price}
                     onChange={(e) => setGrantForm({ ...grantForm, exercise_price: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg text-sm"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                    style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                     placeholder="Plan default"
                   />
                 </div>
@@ -1229,7 +1229,7 @@ export default function ESOPPage() {
                     value={grantForm.vesting_months}
                     onChange={(e) => setGrantForm({ ...grantForm, vesting_months: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg text-sm"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                    style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                     placeholder="Plan default"
                   />
                 </div>
@@ -1240,7 +1240,7 @@ export default function ESOPPage() {
                     value={grantForm.cliff_months}
                     onChange={(e) => setGrantForm({ ...grantForm, cliff_months: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg text-sm"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                    style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                     placeholder="Plan default"
                   />
                 </div>
@@ -1255,7 +1255,7 @@ export default function ESOPPage() {
 
       {/* Exercise Modal */}
       {showExercise && exerciseGrantId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.6)" }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "var(--color-overlay)" }}>
           <div
             className="glass-card p-6 w-full max-w-sm"
             style={{ cursor: "default", background: "var(--color-bg-card)" }}
@@ -1287,7 +1287,7 @@ export default function ESOPPage() {
                   value={exerciseCount}
                   onChange={(e) => setExerciseCount(e.target.value)}
                   className="w-full px-3 py-2 rounded-lg text-sm"
-                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                  style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
                   placeholder="Number of options"
                 />
               </div>

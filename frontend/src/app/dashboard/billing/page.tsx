@@ -33,15 +33,15 @@ function statusColor(status: string): { bg: string; color: string } {
     case "active":
     case "completed":
     case "paid":
-      return { bg: "rgba(16, 185, 129, 0.1)", color: "#10B981" };
+      return { bg: "var(--color-success-light)", color: "var(--color-success)" };
     case "pending":
     case "in_progress":
-      return { bg: "rgba(245, 158, 11, 0.1)", color: "#F59E0B" };
+      return { bg: "var(--color-warning-light)", color: "var(--color-warning)" };
     case "cancelled":
     case "failed":
-      return { bg: "rgba(239, 68, 68, 0.1)", color: "#EF4444" };
+      return { bg: "var(--color-error-light)", color: "var(--color-error)" };
     default:
-      return { bg: "rgba(139, 92, 246, 0.08)", color: "var(--color-text-secondary)" };
+      return { bg: "var(--color-purple-bg)", color: "var(--color-text-secondary)" };
   }
 }
 
@@ -156,7 +156,7 @@ export default function BillingPage() {
             style={{
               fontSize: 13,
               color: "var(--color-text-secondary, #6B7280)",
-              borderLeft: "2px solid #8B5CF6",
+              borderLeft: "2px solid var(--color-accent-purple-light)",
               paddingLeft: 12,
             }}
           >
@@ -196,7 +196,7 @@ export default function BillingPage() {
                 fontWeight: 600,
                 padding: "10px 24px",
                 borderRadius: 8,
-                background: "#8B5CF6",
+                background: "var(--color-accent-purple-light)",
                 color: "#fff",
                 textDecoration: "none",
               }}
@@ -328,7 +328,7 @@ export default function BillingPage() {
                       fontWeight: 600,
                       padding: "10px 24px",
                       borderRadius: 8,
-                      background: "#8B5CF6",
+                      background: "var(--color-accent-purple-light)",
                       color: "#fff",
                       textDecoration: "none",
                     }}
@@ -521,7 +521,7 @@ export default function BillingPage() {
                                 style={{
                                   fontSize: 12,
                                   fontWeight: 600,
-                                  color: "#8B5CF6",
+                                  color: "var(--color-accent-purple-light)",
                                   background: "none",
                                   border: "none",
                                   cursor: downloading === req.id ? "wait" : "pointer",

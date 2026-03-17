@@ -69,10 +69,10 @@ interface PenaltyDetail {
 
 function ScoreGauge({ score, grade }: { score: number; grade: string }) {
   const getColor = (s: number) => {
-    if (s >= 90) return "#10B981";
-    if (s >= 70) return "#F59E0B";
-    if (s >= 50) return "#F97316";
-    return "#EF4444";
+    if (s >= 90) return "var(--color-accent-emerald-light)";
+    if (s >= 70) return "var(--color-accent-amber)";
+    if (s >= 50) return "var(--color-accent-amber)";
+    return "var(--color-accent-rose)";
   };
 
   const color = getColor(score);
@@ -85,7 +85,7 @@ function ScoreGauge({ score, grade }: { score: number; grade: string }) {
         <circle
           cx="60" cy="60" r="54"
           fill="none"
-          stroke="rgba(255,255,255,0.05)"
+          stroke="var(--color-hover-overlay)"
           strokeWidth="10"
         />
         <circle
@@ -262,7 +262,7 @@ export default function ComplianceDashboard() {
   if (authLoading || (loading && !scoreData)) {
     return (
       <div className="flex items-center justify-center py-24">
-        <div className="animate-pulse-glow w-16 h-16 rounded-full flex items-center justify-center" style={{ background: "rgba(139, 92, 246, 0.2)" }}>
+        <div className="animate-pulse-glow w-16 h-16 rounded-full flex items-center justify-center" style={{ background: "var(--color-purple-bg)" }}>
           <img src="/logo-icon.png" alt="Anvils" className="w-7 h-7 object-contain" />
         </div>
       </div>
@@ -315,7 +315,7 @@ export default function ComplianceDashboard() {
               Select a company from the sidebar to view compliance calendar and deadlines.
             </p>
             <div className="flex items-center justify-center gap-3">
-              <Link href="/pricing" className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white" style={{ background: "#8B5CF6" }}>
+              <Link href="/pricing" className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white" style={{ background: "var(--color-accent-purple-light)" }}>
                 Incorporate a New Company
               </Link>
               <Link href="/dashboard/connect" className="px-5 py-2.5 rounded-lg text-sm font-semibold border" style={{ borderColor: "var(--color-border)", color: "var(--color-text-primary)" }}>

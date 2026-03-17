@@ -194,22 +194,22 @@ function StepIndicator({
                 style={{
                   background:
                     status === "completed"
-                      ? "rgba(16, 185, 129, 0.2)"
+                      ? "var(--color-success-light)"
                       : status === "current"
-                        ? "rgba(139, 92, 246, 0.2)"
-                        : "rgba(255, 255, 255, 0.05)",
+                        ? "var(--color-purple-bg)"
+                        : "var(--color-hover-overlay)",
                   border: `2px solid ${
                     status === "completed"
-                      ? "rgb(16, 185, 129)"
+                      ? "var(--color-accent-emerald-light)"
                       : status === "current"
-                        ? "rgb(139, 92, 246)"
-                        : "rgba(255, 255, 255, 0.15)"
+                        ? "var(--color-accent-purple-light)"
+                        : "var(--color-hover-overlay)"
                   }`,
                   color:
                     status === "completed"
-                      ? "rgb(16, 185, 129)"
+                      ? "var(--color-accent-emerald-light)"
                       : status === "current"
-                        ? "rgb(139, 92, 246)"
+                        ? "var(--color-accent-purple-light)"
                         : "var(--color-text-muted)",
                 }}
               >
@@ -226,9 +226,9 @@ function StepIndicator({
                 style={{
                   color:
                     status === "completed"
-                      ? "rgb(16, 185, 129)"
+                      ? "var(--color-accent-emerald-light)"
                       : status === "current"
-                        ? "rgb(139, 92, 246)"
+                        ? "var(--color-accent-purple-light)"
                         : "var(--color-text-muted)",
                 }}
               >
@@ -241,8 +241,8 @@ function StepIndicator({
                 style={{
                   background:
                     idx < currentStep
-                      ? "rgb(16, 185, 129)"
-                      : "rgba(255, 255, 255, 0.1)",
+                      ? "var(--color-accent-emerald-light)"
+                      : "var(--color-hover-overlay)",
                 }}
               />
             )}
@@ -255,10 +255,10 @@ function StepIndicator({
 
 function StatusBadge({ status, label }: { status: "completed" | "current" | "pending" | "warning"; label: string }) {
   const colorMap = {
-    completed: { bg: "rgba(16, 185, 129, 0.15)", color: "rgb(16, 185, 129)" },
-    current: { bg: "rgba(139, 92, 246, 0.15)", color: "rgb(139, 92, 246)" },
-    pending: { bg: "rgba(255, 255, 255, 0.05)", color: "var(--color-text-muted)" },
-    warning: { bg: "rgba(245, 158, 11, 0.15)", color: "rgb(245, 158, 11)" },
+    completed: { bg: "var(--color-success-light)", color: "var(--color-accent-emerald-light)" },
+    current: { bg: "var(--color-purple-bg)", color: "var(--color-accent-purple-light)" },
+    pending: { bg: "var(--color-hover-overlay)", color: "var(--color-text-muted)" },
+    warning: { bg: "var(--color-warning-light)", color: "var(--color-accent-amber)" },
   };
   const c = colorMap[status];
   return (
@@ -287,7 +287,7 @@ function ChecklistItem({
         checked={checked}
         onChange={(e) => onChange?.(e.target.checked)}
         className="rounded"
-        style={{ accentColor: "rgb(139, 92, 246)" }}
+        style={{ accentColor: "var(--color-accent-purple-light)" }}
       />
       <span style={{ textDecoration: checked ? "line-through" : "none", opacity: checked ? 0.6 : 1 }}>
         {label}
@@ -311,19 +311,19 @@ function ActionButton({
 }) {
   const styles = {
     primary: {
-      background: loading || disabled ? "rgba(139, 92, 246, 0.3)" : "rgba(139, 92, 246, 0.8)",
+      background: loading || disabled ? "var(--color-purple-bg)" : "var(--color-accent-purple-light)",
       color: "#fff",
-      border: "1px solid rgba(139, 92, 246, 0.6)",
+      border: "1px solid var(--color-accent-purple-light)",
     },
     secondary: {
-      background: loading || disabled ? "rgba(255, 255, 255, 0.03)" : "rgba(255, 255, 255, 0.05)",
+      background: loading || disabled ? "var(--color-hover-overlay)" : "var(--color-hover-overlay)",
       color: "var(--color-text-secondary)",
       border: "1px solid var(--color-border)",
     },
     success: {
-      background: loading || disabled ? "rgba(16, 185, 129, 0.3)" : "rgba(16, 185, 129, 0.8)",
+      background: loading || disabled ? "var(--color-success-light)" : "var(--color-accent-emerald-light)",
       color: "#fff",
-      border: "1px solid rgba(16, 185, 129, 0.6)",
+      border: "1px solid var(--color-accent-emerald-light)",
     },
   };
   const s = styles[variant];
@@ -360,9 +360,9 @@ function StepCard({ stepNumber, title, status, expanded, onToggle, children }: S
         cursor: "default",
         borderColor:
           status === "current"
-            ? "rgba(139, 92, 246, 0.4)"
+            ? "var(--color-accent-purple-light)"
             : status === "completed"
-              ? "rgba(16, 185, 129, 0.3)"
+              ? "var(--color-accent-emerald-light)"
               : "var(--color-border)",
       }}
     >
@@ -377,15 +377,15 @@ function StepCard({ stepNumber, title, status, expanded, onToggle, children }: S
             style={{
               background:
                 status === "completed"
-                  ? "rgba(16, 185, 129, 0.2)"
+                  ? "var(--color-success-light)"
                   : status === "current"
-                    ? "rgba(139, 92, 246, 0.2)"
-                    : "rgba(255, 255, 255, 0.05)",
+                    ? "var(--color-purple-bg)"
+                    : "var(--color-hover-overlay)",
               color:
                 status === "completed"
-                  ? "rgb(16, 185, 129)"
+                  ? "var(--color-accent-emerald-light)"
                   : status === "current"
-                    ? "rgb(139, 92, 246)"
+                    ? "var(--color-accent-purple-light)"
                     : "var(--color-text-muted)",
             }}
           >
@@ -776,7 +776,7 @@ export default function ShareIssuanceWizard({
               <div className="text-xs mb-1" style={{ color: "var(--color-text-muted)" }}>
                 Current Issued Capital
               </div>
-              <div className="text-lg font-bold" style={{ color: "rgb(59, 130, 246)" }}>
+              <div className="text-lg font-bold" style={{ color: "var(--color-accent-blue)" }}>
                 {formatCurrency(currentIssuedCapital)}
               </div>
               <div className="text-xs mt-1" style={{ color: "var(--color-text-muted)" }}>
@@ -789,7 +789,7 @@ export default function ShareIssuanceWizard({
               </div>
               <div
                 className="text-lg font-bold"
-                style={{ color: capitalSufficient ? "rgb(16, 185, 129)" : "rgb(244, 63, 94)" }}
+                style={{ color: capitalSufficient ? "var(--color-accent-emerald-light)" : "var(--color-accent-rose)" }}
               >
                 {formatCurrency(totalAfterIssuance)}
               </div>
@@ -805,12 +805,12 @@ export default function ShareIssuanceWizard({
               className="glass-card p-4"
               style={{
                 cursor: "default",
-                borderColor: "rgba(245, 158, 11, 0.5)",
-                background: "rgba(245, 158, 11, 0.05)",
+                borderColor: "var(--color-accent-amber)",
+                background: "var(--color-warning-light)",
               }}
             >
               <div className="flex items-start gap-3">
-                <div className="text-lg shrink-0" style={{ color: "rgb(245, 158, 11)" }}>
+                <div className="text-lg shrink-0" style={{ color: "var(--color-accent-amber)" }}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
                     <line x1="12" y1="9" x2="12" y2="13" />
@@ -818,7 +818,7 @@ export default function ShareIssuanceWizard({
                   </svg>
                 </div>
                 <div>
-                  <div className="font-semibold text-sm" style={{ color: "rgb(245, 158, 11)" }}>
+                  <div className="font-semibold text-sm" style={{ color: "var(--color-accent-amber)" }}>
                     Authorized Capital Increase Needed (SH-7)
                   </div>
                   <p className="text-xs mt-1" style={{ color: "var(--color-text-secondary)" }}>
@@ -883,7 +883,7 @@ export default function ShareIssuanceWizard({
               <div className="text-xs" style={{ color: "var(--color-text-muted)" }}>
                 Total Issue Price
               </div>
-              <div className="text-lg font-bold" style={{ color: "rgb(139, 92, 246)" }}>
+              <div className="text-lg font-bold" style={{ color: "var(--color-accent-purple-light)" }}>
                 {formatCurrency(newSharesCount * (faceValue + premium))}
               </div>
               <div className="text-xs" style={{ color: "var(--color-text-muted)" }}>
@@ -903,11 +903,11 @@ export default function ShareIssuanceWizard({
                 style={{
                   borderColor:
                     state.preCheck.issueType === "rights_issue"
-                      ? "rgba(139, 92, 246, 0.5)"
+                      ? "var(--color-accent-purple-light)"
                       : "var(--color-border)",
                   background:
                     state.preCheck.issueType === "rights_issue"
-                      ? "rgba(139, 92, 246, 0.05)"
+                      ? "var(--color-purple-bg)"
                       : "transparent",
                 }}
               >
@@ -917,7 +917,7 @@ export default function ShareIssuanceWizard({
                   value="rights_issue"
                   checked={state.preCheck.issueType === "rights_issue"}
                   onChange={() => updatePreCheck({ issueType: "rights_issue" })}
-                  style={{ accentColor: "rgb(139, 92, 246)", marginTop: "2px" }}
+                  style={{ accentColor: "var(--color-accent-purple-light)", marginTop: "2px" }}
                 />
                 <div>
                   <div className="font-medium text-sm">Rights Issue</div>
@@ -931,11 +931,11 @@ export default function ShareIssuanceWizard({
                 style={{
                   borderColor:
                     state.preCheck.issueType === "private_placement"
-                      ? "rgba(139, 92, 246, 0.5)"
+                      ? "var(--color-accent-purple-light)"
                       : "var(--color-border)",
                   background:
                     state.preCheck.issueType === "private_placement"
-                      ? "rgba(139, 92, 246, 0.05)"
+                      ? "var(--color-purple-bg)"
                       : "transparent",
                 }}
               >
@@ -945,7 +945,7 @@ export default function ShareIssuanceWizard({
                   value="private_placement"
                   checked={state.preCheck.issueType === "private_placement"}
                   onChange={() => updatePreCheck({ issueType: "private_placement" })}
-                  style={{ accentColor: "rgb(139, 92, 246)", marginTop: "2px" }}
+                  style={{ accentColor: "var(--color-accent-purple-light)", marginTop: "2px" }}
                 />
                 <div>
                   <div className="font-medium text-sm">Private Placement</div>
@@ -966,7 +966,7 @@ export default function ShareIssuanceWizard({
               <button
                 onClick={addAllottee}
                 className="text-xs px-3 py-1.5 rounded-lg transition-all"
-                style={{ background: "rgba(139, 92, 246, 0.15)", color: "rgb(139, 92, 246)" }}
+                style={{ background: "var(--color-purple-bg)", color: "var(--color-accent-purple-light)" }}
               >
                 + Add Allottee
               </button>
@@ -986,7 +986,7 @@ export default function ShareIssuanceWizard({
                       <button
                         onClick={() => removeAllottee(idx)}
                         className="text-xs px-2 py-1 rounded"
-                        style={{ color: "rgb(244, 63, 94)" }}
+                        style={{ color: "var(--color-accent-rose)" }}
                       >
                         Remove
                       </button>
@@ -1059,7 +1059,7 @@ export default function ShareIssuanceWizard({
                 </span>
                 {newSharesCount > 0 &&
                   state.preCheck.allottees.reduce((s, a) => s + a.shares, 0) !== newSharesCount && (
-                    <span style={{ color: "rgb(244, 63, 94)" }}>
+                    <span style={{ color: "var(--color-accent-rose)" }}>
                       {" "}(does not match total shares to issue: {newSharesCount.toLocaleString("en-IN")})
                     </span>
                   )}
@@ -1140,9 +1140,9 @@ export default function ShareIssuanceWizard({
               className="glass-card p-3 text-sm"
               style={{
                 cursor: "default",
-                borderColor: "rgba(16, 185, 129, 0.4)",
-                background: "rgba(16, 185, 129, 0.05)",
-                color: "rgb(16, 185, 129)",
+                borderColor: "var(--color-accent-emerald-light)",
+                background: "var(--color-success-light)",
+                color: "var(--color-accent-emerald-light)",
               }}
             >
               Resolution sent to directors for e-signature.
@@ -1476,12 +1476,12 @@ export default function ShareIssuanceWizard({
                             style={{
                               background:
                                 allottee.type === "new"
-                                  ? "rgba(59, 130, 246, 0.15)"
-                                  : "rgba(139, 92, 246, 0.15)",
+                                  ? "var(--color-info-light)"
+                                  : "var(--color-purple-bg)",
                               color:
                                 allottee.type === "new"
-                                  ? "rgb(59, 130, 246)"
-                                  : "rgb(139, 92, 246)",
+                                  ? "var(--color-accent-blue)"
+                                  : "var(--color-accent-purple-light)",
                             }}
                           >
                             {allottee.type === "new" ? "New" : "Existing"}
@@ -1517,9 +1517,9 @@ export default function ShareIssuanceWizard({
               className="glass-card p-3 text-sm"
               style={{
                 cursor: "default",
-                borderColor: "rgba(16, 185, 129, 0.4)",
-                background: "rgba(16, 185, 129, 0.05)",
-                color: "rgb(16, 185, 129)",
+                borderColor: "var(--color-accent-emerald-light)",
+                background: "var(--color-success-light)",
+                color: "var(--color-accent-emerald-light)",
               }}
             >
               Offer letters sent to all allottees for acceptance.
@@ -1559,17 +1559,17 @@ export default function ShareIssuanceWizard({
             className="glass-card p-4"
             style={{
               cursor: "default",
-              borderColor: "rgba(245, 158, 11, 0.5)",
-              background: "rgba(245, 158, 11, 0.05)",
+              borderColor: "var(--color-accent-amber)",
+              background: "var(--color-warning-light)",
             }}
           >
             <div className="flex items-start gap-3">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgb(245, 158, 11)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent-amber)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5">
                 <circle cx="12" cy="12" r="10" />
                 <line x1="12" y1="8" x2="12" y2="12" />
                 <line x1="12" y1="16" x2="12.01" y2="16" />
               </svg>
-              <div className="text-sm" style={{ color: "rgb(245, 158, 11)" }}>
+              <div className="text-sm" style={{ color: "var(--color-accent-amber)" }}>
                 <span className="font-semibold">Important:</span> Allotment must happen within 60 days
                 of receiving the application money. If allotment is not made within 60 days, the money
                 must be refunded within 15 days thereafter.
@@ -1616,7 +1616,7 @@ export default function ShareIssuanceWizard({
                                 fundReceivedDate: e.target.checked ? new Date().toISOString() : null,
                               });
                             }}
-                            style={{ accentColor: "rgb(16, 185, 129)" }}
+                            style={{ accentColor: "var(--color-accent-emerald-light)" }}
                           />
                         </td>
                       </tr>
@@ -1645,7 +1645,7 @@ export default function ShareIssuanceWizard({
                 </div>
                 <div
                   className="text-lg font-bold"
-                  style={{ color: "rgb(16, 185, 129)" }}
+                  style={{ color: "var(--color-accent-emerald-light)" }}
                 >
                   {formatCurrency(
                     state.preCheck.allottees
@@ -1737,7 +1737,7 @@ export default function ShareIssuanceWizard({
                 <div className="text-xs" style={{ color: "var(--color-text-muted)" }}>
                   Total Amount
                 </div>
-                <div className="text-lg font-bold font-mono" style={{ color: "rgb(16, 185, 129)" }}>
+                <div className="text-lg font-bold font-mono" style={{ color: "var(--color-accent-emerald-light)" }}>
                   {formatCurrency(newSharesCount * (faceValue + premium))}
                 </div>
               </div>
@@ -1749,11 +1749,11 @@ export default function ShareIssuanceWizard({
               className="glass-card p-4"
               style={{
                 cursor: "default",
-                borderColor: "rgba(16, 185, 129, 0.4)",
-                background: "rgba(16, 185, 129, 0.05)",
+                borderColor: "var(--color-accent-emerald-light)",
+                background: "var(--color-success-light)",
               }}
             >
-              <div className="flex items-center gap-2 text-sm font-medium" style={{ color: "rgb(16, 185, 129)" }}>
+              <div className="flex items-center gap-2 text-sm font-medium" style={{ color: "var(--color-accent-emerald-light)" }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                   <polyline points="22 4 12 14.01 9 11.01" />
@@ -1895,22 +1895,22 @@ export default function ShareIssuanceWizard({
                 className="glass-card p-6 text-center"
                 style={{
                   cursor: "default",
-                  borderColor: "rgba(16, 185, 129, 0.4)",
-                  background: "rgba(16, 185, 129, 0.05)",
+                  borderColor: "var(--color-accent-emerald-light)",
+                  background: "var(--color-success-light)",
                 }}
               >
                 <div className="flex flex-col items-center gap-3">
                   <div
                     className="w-14 h-14 rounded-full flex items-center justify-center"
-                    style={{ background: "rgba(16, 185, 129, 0.2)" }}
+                    style={{ background: "var(--color-success-light)" }}
                   >
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgb(16, 185, 129)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent-emerald-light)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                       <polyline points="22 4 12 14.01 9 11.01" />
                     </svg>
                   </div>
                   <div>
-                    <h3 className="font-bold text-lg" style={{ color: "rgb(16, 185, 129)" }}>
+                    <h3 className="font-bold text-lg" style={{ color: "var(--color-accent-emerald-light)" }}>
                       Share Issuance Complete
                     </h3>
                     <p className="text-sm mt-1" style={{ color: "var(--color-text-secondary)" }}>

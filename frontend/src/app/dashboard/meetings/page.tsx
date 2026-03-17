@@ -262,7 +262,7 @@ export default function MeetingsPage() {
   if (authLoading || (loading && meetings.length === 0)) {
     return (
       <div className="flex items-center justify-center py-24">
-        <div className="animate-pulse-glow w-16 h-16 rounded-full flex items-center justify-center" style={{ background: "rgba(139, 92, 246, 0.2)" }}>
+        <div className="animate-pulse-glow w-16 h-16 rounded-full flex items-center justify-center" style={{ background: "var(--color-purple-bg)" }}>
           <img src="/logo-icon.png" alt="Anvils" className="w-7 h-7 object-contain" />
         </div>
       </div>
@@ -391,7 +391,7 @@ export default function MeetingsPage() {
               Select a company from the sidebar to view board meetings and resolutions.
             </p>
             <div className="flex items-center justify-center gap-3">
-              <Link href="/pricing" className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white" style={{ background: "#8B5CF6" }}>
+              <Link href="/pricing" className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white" style={{ background: "var(--color-accent-purple-light)" }}>
                 Incorporate a New Company
               </Link>
               <Link href="/dashboard/connect" className="px-5 py-2.5 rounded-lg text-sm font-semibold border" style={{ borderColor: "var(--color-border)", color: "var(--color-text-primary)" }}>

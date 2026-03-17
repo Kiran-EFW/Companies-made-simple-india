@@ -94,9 +94,9 @@ export default function ProfilePage() {
           <div
             className="mb-4 px-4 py-3 rounded-lg text-sm font-medium"
             style={{
-              background: profileMessage.type === "success" ? "rgba(16, 185, 129, 0.1)" : "rgba(239, 68, 68, 0.1)",
-              border: `1px solid ${profileMessage.type === "success" ? "rgba(16, 185, 129, 0.3)" : "rgba(239, 68, 68, 0.3)"}`,
-              color: profileMessage.type === "success" ? "rgb(52, 211, 153)" : "rgb(252, 165, 165)",
+              background: profileMessage.type === "success" ? "var(--color-success-light)" : "var(--color-error-light)",
+              border: `1px solid ${profileMessage.type === "success" ? "var(--color-success)" : "var(--color-error)"}`,
+              color: profileMessage.type === "success" ? "var(--color-accent-emerald-light)" : "var(--color-accent-rose)",
             }}
           >
             {profileMessage.text}
@@ -182,9 +182,9 @@ export default function ProfilePage() {
           <div
             className="mb-4 px-4 py-3 rounded-lg text-sm font-medium"
             style={{
-              background: passwordMessage.type === "success" ? "rgba(16, 185, 129, 0.1)" : "rgba(239, 68, 68, 0.1)",
-              border: `1px solid ${passwordMessage.type === "success" ? "rgba(16, 185, 129, 0.3)" : "rgba(239, 68, 68, 0.3)"}`,
-              color: passwordMessage.type === "success" ? "rgb(52, 211, 153)" : "rgb(252, 165, 165)",
+              background: passwordMessage.type === "success" ? "var(--color-success-light)" : "var(--color-error-light)",
+              border: `1px solid ${passwordMessage.type === "success" ? "var(--color-success)" : "var(--color-error)"}`,
+              color: passwordMessage.type === "success" ? "var(--color-accent-emerald-light)" : "var(--color-accent-rose)",
             }}
           >
             {passwordMessage.text}

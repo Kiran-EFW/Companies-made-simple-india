@@ -143,8 +143,8 @@ export default function ValuationsPage() {
               onClick={() => { setMethod(m); setResult(null); }}
               className="glass-card px-4 py-2 text-sm font-medium transition-all uppercase"
               style={{
-                borderColor: method === m ? "rgba(139, 92, 246, 0.6)" : "var(--color-border)",
-                background: method === m ? "rgba(139, 92, 246, 0.15)" : "transparent",
+                borderColor: method === m ? "var(--color-accent-purple-light)" : "var(--color-border)",
+                background: method === m ? "var(--color-purple-bg)" : "transparent",
               }}
             >
               {m === "nav" ? "Net Asset Value" : "Discounted Cash Flow"}
@@ -275,7 +275,7 @@ export default function ValuationsPage() {
           <div
             className="glass-card p-3 mb-6 text-sm text-center"
             style={{
-              borderColor: "rgba(244, 63, 94, 0.5)",
+              borderColor: "var(--color-accent-rose)",
               color: "var(--color-accent-rose)",
               cursor: "default",
             }}
@@ -299,9 +299,9 @@ export default function ValuationsPage() {
                 disabled={saving}
                 className="text-sm px-4 py-2 rounded-lg font-medium transition-all"
                 style={{
-                  background: "rgba(16, 185, 129, 0.15)",
+                  background: "var(--color-success-light)",
                   color: "var(--color-accent-emerald)",
-                  border: "1px solid rgba(16, 185, 129, 0.3)",
+                  border: "1px solid var(--color-accent-emerald-light)",
                 }}
               >
                 {saving ? "Saving..." : "Save as Finalized"}
@@ -408,7 +408,7 @@ export default function ValuationsPage() {
                           className="text-xs px-2 py-0.5 rounded-full"
                           style={{
                             background: v.status === "finalized"
-                              ? "rgba(16, 185, 129, 0.15)"
+                              ? "var(--color-success-light)"
                               : "var(--color-overlay)",
                             color: v.status === "finalized"
                               ? "var(--color-accent-emerald)"
