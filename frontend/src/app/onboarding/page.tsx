@@ -235,7 +235,7 @@ export default function OnboardingPage() {
               <div className="space-y-6 animate-fade-in-up">
                 <h2 className="text-2xl font-semibold mb-2 font-heading">Company Names</h2>
                 <p className="text-sm mb-6" style={{ color: "var(--color-text-secondary)" }}>
-                  Provide up to 2 creative names for your new company. We will run an AI clash-check against the MCA database before filing.
+                  Provide up to 2 creative names for your new company. We will check name availability against the MCA database before filing.
                 </p>
                 
                 {[0, 1].map((idx) => (

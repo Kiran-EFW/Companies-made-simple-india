@@ -56,7 +56,7 @@ const PRODUCTS = [
     heading: "Portals",
     items: [
       { label: "Investor Portal", desc: "Token-based portfolio dashboard", href: "/for/investors", icon: Eye },
-      { label: "Incorporation", desc: "AI entity wizard & filing", href: "/wizard", icon: Rocket },
+      { label: "Incorporation", desc: "Guided entity wizard & filing", href: "/wizard", icon: Rocket },
       { label: "Services Marketplace", desc: "GST, trademark, DPIIT & more", href: "/features/services", icon: ShoppingBag },
     ],
   },

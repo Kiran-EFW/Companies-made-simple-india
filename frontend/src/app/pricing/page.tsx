@@ -169,7 +169,7 @@ const ENTITY_TYPES = [
 const PLAN_TIERS = [
   {
     value: "launch", label: "Launch",
-    desc: "AI-guided incorporation + CS review",
+    desc: "Guided incorporation + CS review",
     descByEntity: {
       sole_proprietorship: "GST + Udyam + Shop & Establishment registration",
       partnership: "Deed drafting + ROF registration + PAN",

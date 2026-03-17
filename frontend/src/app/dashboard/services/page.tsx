@@ -370,7 +370,7 @@ export default function ServicesPage() {
                       {plan.target}
                     </p>
                     <p className="text-[var(--color-text-secondary)] text-sm mb-5 max-w-2xl">
-                      Never worry about compliance again. We handle every filing, every deadline, every audit — so you can focus on building your business. Connects with your Zoho Books or Tally for auto-filing.
+                      Never worry about compliance again. We handle every filing, every deadline, every audit — so you can focus on building your business. Connects with your Zoho Books or Tally for financial sync.
                     </p>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-2">
                       {plan.features.map((f, i) => (

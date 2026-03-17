@@ -153,7 +153,7 @@ export default function AccountingPage() {
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Accounting Integration</h1>
         <p className="text-[var(--color-text-secondary)] text-sm mt-1">
-          Connect your accounting software for automated compliance filing
+          Connect your accounting software for seamless financial sync
         </p>
       </div>
 
@@ -270,7 +270,7 @@ export default function AccountingPage() {
               Connect Your Accounting Software
             </h2>
             <p className="text-[var(--color-text-secondary)] text-sm mb-6">
-              Link your books of accounts for automated GST filing, ITR preparation, and compliance monitoring.
+              Link your books of accounts for financial reporting, valuation inputs, and compliance tracking.
               Your data stays secure with OAuth2 read-only access.
             </p>
 

@@ -27,9 +27,9 @@ export default function ComplianceFeaturePage() {
 
       <HeroSection
         badge="Product"
-        title={<>Automated compliance for <span className="gradient-text">Indian companies</span></>}
+        title={<>Compliance tracking for <span className="gradient-text">Indian companies</span></>}
         subtitle="Never miss a filing. Anvils tracks every ROC, GST, and TDS deadline — and our team can handle the filing for you."
-        primaryCTA={{ label: "Automate Your Compliance", href: "/signup" }}
+        primaryCTA={{ label: "Track Your Compliance", href: "/signup" }}
         secondaryCTA={{ label: "See Pricing", href: "/pricing" }}
       />
 
