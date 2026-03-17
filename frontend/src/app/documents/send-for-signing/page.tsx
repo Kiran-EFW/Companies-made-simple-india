@@ -184,7 +184,7 @@ function SendForSigningContent() {
       if (result?.id) {
         await sendSigningEmails(result.id);
       }
-      router.push("/documents/signatures");
+      router.push("/dashboard/signatures");
     } catch (err: any) {
       setError(err.message || "Failed to create signature request");
     } finally {
@@ -216,7 +216,7 @@ function SendForSigningContent() {
       {/* Header */}
       <div className="flex items-center gap-4">
         <button
-          onClick={() => router.push("/documents")}
+          onClick={() => router.push("/dashboard/documents")}
           className="transition-colors"
           style={{ color: "var(--color-text-secondary)" }}
         >
@@ -305,7 +305,7 @@ function SendForSigningContent() {
                 <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>No finalized documents available</p>
                 <p className="text-xs mt-1" style={{ color: "var(--color-text-muted)" }}>Create and finalize a document first</p>
                 <button
-                  onClick={() => router.push("/documents")}
+                  onClick={() => router.push("/dashboard/documents")}
                   className="mt-4 px-4 py-2 rounded-lg text-xs font-medium transition-colors"
                   style={{ background: "var(--color-accent-purple)", color: "var(--color-text-primary)" }}
                 >

@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
+
 import {
   getStakeholderPortfolio,
   getStakeholderProfiles,
   createStakeholderProfile,
   linkStakeholderToShareholder,
 } from "@/lib/api";
-import Footer from "@/components/footer";
+
 
 interface StakeholderProfile {
   id: number;
@@ -183,20 +183,8 @@ export default function StakeholderDashboardPage() {
   }
 
   return (
-    <div className="glow-bg min-h-screen">
-      {/* Nav */}
-      <nav className="relative z-10 flex items-center justify-between px-6 py-5 max-w-7xl mx-auto">
-        <Link href="/" className="flex items-center gap-2.5">
-          <img src="/logo-icon.png" alt="Anvils" className="w-6 h-6 object-contain" />
-          <span className="text-xl font-bold gradient-text" style={{ fontFamily: "var(--font-display)" }}>Anvils</span>
-        </Link>
-        <div className="flex gap-3">
-          <Link href="/dashboard" className="btn-secondary text-sm !py-2 !px-5">Dashboard</Link>
-          <Link href="/dashboard/cap-table" className="btn-secondary text-sm !py-2 !px-5">Cap Table</Link>
-        </div>
-      </nav>
-
-      <div className="relative z-10 max-w-6xl mx-auto px-6 py-8">
+    <div>
+      <div className="max-w-6xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="badge badge-purple mb-4 mx-auto w-fit">Stakeholder Management</div>
@@ -645,7 +633,6 @@ export default function StakeholderDashboardPage() {
         </div>
       )}
 
-      <Footer />
     </div>
   );
 }

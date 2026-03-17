@@ -152,7 +152,7 @@ export default function DocumentWizardPage() {
     try {
       await finalizeLegalDocument(draftId);
       await downloadLegalDocument(draftId);
-      router.push("/documents");
+      router.push("/dashboard/documents");
     } catch (err: any) {
       setError(err.message || "Failed to finalize document");
     }
@@ -185,7 +185,7 @@ export default function DocumentWizardPage() {
           </svg>
           <p className="text-sm mb-4" style={{ color: "var(--color-error)" }}>{error}</p>
           <button
-            onClick={() => router.push("/documents")}
+            onClick={() => router.push("/dashboard/documents")}
             className="text-sm font-medium"
             style={{ color: "var(--color-accent-purple-light)" }}
           >
@@ -214,7 +214,7 @@ export default function DocumentWizardPage() {
       {/* Header */}
       <div className="flex items-center gap-4">
         <button
-          onClick={() => router.push("/documents")}
+          onClick={() => router.push("/dashboard/documents")}
           className="transition-colors"
           style={{ color: "var(--color-text-secondary)" }}
         >

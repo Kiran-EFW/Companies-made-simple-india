@@ -5,8 +5,6 @@ import { useAuth } from "@/lib/auth-context";
 import { getCompanies, uploadDocument, getCompanyLogs, getCompanyMessages, sendMessage, markMessagesRead, getUpsellItems, inviteCA, uploadPitchDeck, getInvestorInterests, type UpsellItem } from "@/lib/api";
 import Link from "next/link";
 import ChatWidget from "@/components/chat-widget";
-import NotificationBell from "@/components/notification-bell";
-import Footer from "@/components/footer";
 
 const PIPELINE_STEPS = [
   { key: "draft_to_payment", label: "Draft & Payment", statuses: ["draft", "entity_selected", "payment_pending", "payment_completed"] },
@@ -17,7 +15,7 @@ const PIPELINE_STEPS = [
 ];
 
 export default function DashboardPage() {
-  const { user, loading: authLoading, logout } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [companies, setCompanies] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploadingId, setUploadingId] = useState<number | null>(null);
@@ -244,79 +242,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen glow-bg">
-      <nav className="glass-card sticky top-0 z-50 rounded-none border-t-0 border-x-0 border-b">
-          <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-            <Link href="/dashboard" className="flex items-center gap-2">
-              <img src="/logo-icon.png" alt="Anvils" className="w-5 h-5 object-contain" />
-              <span className="font-bold hidden md:block" style={{ fontFamily: "var(--font-display)" }}>Anvils</span>
-            </Link>
-            
-            <div className="flex items-center gap-6">
-              {isRefreshing && (
-                <div className="flex items-center gap-2 text-[10px] font-mono text-purple-400 animate-pulse">
-                  <span className="w-1.5 h-1.5 bg-purple-500 rounded-full"></span>
-                  LIVE SYNCING
-                </div>
-              )}
-              {user && (
-                <div className="flex items-center gap-4">
-                  <NotificationBell />
-                  <Link
-                    href="/documents"
-                    className="text-xs font-medium transition-colors hover:text-purple-400"
-                    style={{ color: "var(--color-text-secondary)" }}
-                  >
-                    Legal Docs
-                  </Link>
-                  <Link
-                    href="/learn"
-                    className="text-xs font-medium transition-colors hover:text-purple-400"
-                    style={{ color: "var(--color-text-secondary)" }}
-                  >
-                    Learn
-                  </Link>
-                  <Link
-                    href="/services"
-                    className="text-xs font-medium transition-colors hover:text-purple-400"
-                    style={{ color: "var(--color-text-secondary)" }}
-                  >
-                    Services
-                  </Link>
-                  <Link
-                    href="/settings/accounting"
-                    className="text-xs font-medium transition-colors hover:text-purple-400"
-                    style={{ color: "var(--color-text-secondary)" }}
-                  >
-                    Accounting
-                  </Link>
-                  <Link
-                    href="/compare"
-                    className="text-xs font-medium transition-colors hover:text-purple-400"
-                    style={{ color: "var(--color-text-secondary)" }}
-                  >
-                    Compare
-                  </Link>
-                  <Link
-                    href="/profile"
-                    className="text-xs font-medium transition-colors hover:text-purple-400"
-                    style={{ color: "var(--color-text-secondary)" }}
-                  >
-                    Profile
-                  </Link>
-                  <div className="text-right hidden sm:block">
-                    <p className="text-sm font-medium leading-none">{user.full_name}</p>
-                    <p className="text-[10px] mt-1" style={{ color: "var(--color-text-secondary)" }}>Founder Account</p>
-                  </div>
-                  <button onClick={logout} className="text-xs p-2 rounded transition-colors" style={{ color: "var(--color-text-muted)" }}>
-                    Log Out
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-      </nav>
-
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="flex justify-between items-end mb-8 animate-fade-in-up">
            <div>
@@ -333,13 +259,43 @@ export default function DashboardPage() {
         </div>
 
         {companies.length === 0 ? (
-          <div className="glass-card p-12 text-center animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
-             <div className="text-5xl mb-4">🚀</div>
-             <h2 className="text-2xl font-bold mb-2">No active incorporations</h2>
-             <p className="mb-8 max-w-sm mx-auto" style={{ color: "var(--color-text-secondary)" }}>
-               You are one step away from forming your dream company. Pricing is transparent, and AI helps us move 10x faster.
-             </p>
-             <Link href="/pricing" className="btn-primary">Calculate Pricing and Start →</Link>
+          <div className="max-w-2xl mx-auto">
+            <div className="text-center mb-10">
+              <h2 className="text-2xl font-bold mb-2" style={{ color: "var(--color-text-primary)" }}>Welcome to Anvils</h2>
+              <p style={{ color: "var(--color-text-secondary)" }}>Get started by adding your company to the platform.</p>
+            </div>
+            <div className="grid gap-4">
+              <Link
+                href="/pricing"
+                className="flex items-start gap-4 p-6 rounded-xl border transition-colors hover:border-purple-300"
+                style={{ background: "white", borderColor: "var(--color-border)" }}
+              >
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: "rgba(139, 92, 246, 0.1)" }}>
+                  <svg className="w-5 h-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-semibold mb-1" style={{ color: "var(--color-text-primary)" }}>Incorporate a New Company</h3>
+                  <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>Start from scratch — we handle MCA filing, DSC, name reservation, and everything in between.</p>
+                </div>
+              </Link>
+              <Link
+                href="/dashboard/connect"
+                className="flex items-start gap-4 p-6 rounded-xl border transition-colors hover:border-purple-300"
+                style={{ background: "white", borderColor: "var(--color-border)" }}
+              >
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: "rgba(16, 185, 129, 0.1)" }}>
+                  <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.86-2.556a4.5 4.5 0 00-1.242-7.244l-4.5-4.5a4.5 4.5 0 00-6.364 6.364L4.343 8.28" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-semibold mb-1" style={{ color: "var(--color-text-primary)" }}>Connect an Existing Company</h3>
+                  <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>Already incorporated? Add your company details and start managing equity, compliance, and more.</p>
+                </div>
+              </Link>
+            </div>
           </div>
         ) : (
           <div className="space-y-6">
@@ -936,7 +892,6 @@ export default function DashboardPage() {
       )}
 
       {companies.length > 0 && <ChatWidget companyId={companies[0]?.id} />}
-      <Footer />
     </div>
   );
 }

@@ -14,8 +14,7 @@ import {
   getPenaltyEstimate,
   calculateTds,
 } from "@/lib/api";
-import NotificationBell from "@/components/notification-bell";
-import Footer from "@/components/footer";
+
 
 // ---------------------------------------------------------------------------
 // Types
@@ -262,7 +261,7 @@ export default function ComplianceDashboard() {
   // ── Loading / Auth ────────────────────────────────────────────────
   if (authLoading || (loading && !scoreData)) {
     return (
-      <div className="min-h-screen flex items-center justify-center glow-bg">
+      <div className="flex items-center justify-center py-24">
         <div className="animate-pulse-glow w-16 h-16 rounded-full flex items-center justify-center" style={{ background: "rgba(139, 92, 246, 0.2)" }}>
           <img src="/logo-icon.png" alt="Anvils" className="w-7 h-7 object-contain" />
         </div>
@@ -272,23 +271,7 @@ export default function ComplianceDashboard() {
 
   // ── Render ────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen glow-bg">
-      {/* Nav */}
-      <nav className="glass-card sticky top-0 z-50 rounded-none border-t-0 border-x-0 border-b">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <img src="/logo-icon.png" alt="Anvils" className="w-5 h-5 object-contain" />
-            <span className="font-bold hidden md:block" style={{ fontFamily: "var(--font-display)" }}>Anvils</span>
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="text-xs font-medium transition-colors hover:text-purple-400" style={{ color: "var(--color-text-secondary)" }}>
-              Dashboard
-            </Link>
-            {user && <NotificationBell />}
-          </div>
-        </div>
-      </nav>
-
+    <div>
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4 animate-fade-in-up">
@@ -326,13 +309,19 @@ export default function ComplianceDashboard() {
         </div>
 
         {companies.length === 0 ? (
-          <div className="glass-card p-12 text-center animate-fade-in-up">
-            <div className="text-5xl mb-4">&#128203;</div>
-            <h2 className="text-2xl font-bold mb-2">No companies found</h2>
-            <p className="mb-8 max-w-sm mx-auto" style={{ color: "var(--color-text-secondary)" }}>
-              Create a company first to start tracking compliance.
+          <div className="p-12 text-center" style={{ background: "var(--color-bg-card)" }}>
+            <h2 className="text-xl font-bold mb-2" style={{ color: "var(--color-text-primary)" }}>No company selected</h2>
+            <p className="text-sm mb-6" style={{ color: "var(--color-text-secondary)" }}>
+              Select a company from the sidebar to view compliance calendar and deadlines.
             </p>
-            <Link href="/pricing" className="btn-primary">Get Started</Link>
+            <div className="flex items-center justify-center gap-3">
+              <Link href="/pricing" className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white" style={{ background: "#8B5CF6" }}>
+                Incorporate a New Company
+              </Link>
+              <Link href="/dashboard/connect" className="px-5 py-2.5 rounded-lg text-sm font-semibold border" style={{ borderColor: "var(--color-border)", color: "var(--color-text-primary)" }}>
+                Connect Existing Company
+              </Link>
+            </div>
           </div>
         ) : (
           <>
@@ -692,7 +681,6 @@ export default function ComplianceDashboard() {
           </>
         )}
       </div>
-      <Footer />
     </div>
   );
 }
