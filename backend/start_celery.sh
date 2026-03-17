@@ -3,16 +3,15 @@
 # Cloud Run requires all services to respond on PORT; Celery doesn't serve HTTP.
 
 python3 -c "
-import http.server, threading, os
+import http.server, os
 port = int(os.environ.get('PORT', 8080))
-handler = http.server.BaseHTTPRequestHandler
-class H(handler):
+class H(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
         self.end_headers()
         self.wfile.write(b'ok')
     def log_message(self, *a): pass
-threading.Thread(target=http.server.HTTPServer(('0.0.0.0', port), H).serve_forever, daemon=True).start()
+http.server.HTTPServer(('0.0.0.0', port), H).serve_forever()
 " &
 
 # Run the celery command passed as arguments
