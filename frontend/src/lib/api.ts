@@ -1429,5 +1429,61 @@ export async function getLatestValuation(companyId: number) {
 }
 
 // ---------------------------------------------------------------------------
+// Company Members / Team Collaboration
+// ---------------------------------------------------------------------------
+
+export async function inviteCompanyMember(companyId: number, data: {
+  email: string;
+  name: string;
+  role: string;
+  din?: string;
+  designation?: string;
+  message?: string;
+}) {
+  return apiCall(`/companies/${companyId}/members/invite`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getCompanyMembers(companyId: number) {
+  return apiCall(`/companies/${companyId}/members`);
+}
+
+export async function updateCompanyMember(companyId: number, memberId: number, data: {
+  role?: string;
+  designation?: string;
+}) {
+  return apiCall(`/companies/${companyId}/members/${memberId}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function removeCompanyMember(companyId: number, memberId: number) {
+  return apiCall(`/companies/${companyId}/members/${memberId}`, {
+    method: "DELETE",
+  });
+}
+
+export async function resendMemberInvite(companyId: number, memberId: number) {
+  return apiCall(`/companies/${companyId}/members/${memberId}/resend`, {
+    method: "POST",
+  });
+}
+
+export async function getInviteInfo(token: string) {
+  return apiCall(`/invites/${token}`);
+}
+
+export async function acceptInvite(token: string) {
+  return apiCall(`/invites/${token}/accept`, { method: "POST" });
+}
+
+export async function declineInvite(token: string) {
+  return apiCall(`/invites/${token}/decline`, { method: "POST" });
+}
+
+// ---------------------------------------------------------------------------
 // Admin/Ops functions have been moved to the separate admin-portal app.
 // ---------------------------------------------------------------------------

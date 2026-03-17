@@ -9,6 +9,7 @@ from src.models.director import Director
 from src.models.task import Task, AgentLog
 from src.models.ca_assignment import CAAssignment
 from src.schemas.company import CompanyCreate, CompanyOnboardDetails, CompanyOut
+from src.models.company_member import CompanyMember, InviteStatus
 from src.utils.security import get_current_user, get_password_hash
 
 router = APIRouter(prefix="/companies", tags=["Companies"])
@@ -93,23 +94,53 @@ def update_company_onboarding(
 
 @router.get("", response_model=List[CompanyOut])
 def list_my_companies(
-    db: Session = Depends(get_db), 
+    db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """List all companies owned by the user for the dashboard."""
-    comps = db.query(Company).filter(Company.user_id == current_user.id).all()
-    return comps
+    """List all companies owned by the user or where the user is an accepted member."""
+    owned = db.query(Company).filter(Company.user_id == current_user.id).all()
+    owned_ids = {c.id for c in owned}
+
+    # Also include companies where the user is an accepted member
+    member_company_ids = (
+        db.query(CompanyMember.company_id)
+        .filter(
+            CompanyMember.user_id == current_user.id,
+            CompanyMember.invite_status == InviteStatus.ACCEPTED,
+        )
+        .all()
+    )
+    extra_ids = [cid for (cid,) in member_company_ids if cid not in owned_ids]
+
+    if extra_ids:
+        member_comps = db.query(Company).filter(Company.id.in_(extra_ids)).all()
+        return owned + member_comps
+
+    return owned
 
 
 @router.get("/{company_id}", response_model=CompanyOut)
 def get_company(
-    company_id: int, 
-    db: Session = Depends(get_db), 
+    company_id: int,
+    db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    comp = db.query(Company).filter(Company.id == company_id, Company.user_id == current_user.id).first()
+    comp = db.query(Company).filter(Company.id == company_id).first()
     if not comp:
         raise HTTPException(status_code=404, detail="Company not found")
+    # Allow owner, admins, or accepted members
+    if comp.user_id != current_user.id and not current_user.is_admin:
+        is_member = (
+            db.query(CompanyMember)
+            .filter(
+                CompanyMember.company_id == company_id,
+                CompanyMember.user_id == current_user.id,
+                CompanyMember.invite_status == InviteStatus.ACCEPTED,
+            )
+            .first()
+        )
+        if not is_member:
+            raise HTTPException(status_code=404, detail="Company not found")
     return comp
 
 

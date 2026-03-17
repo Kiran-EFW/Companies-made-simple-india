@@ -24,6 +24,7 @@ from src.models.funding_round import (
     FundingRound, RoundInvestor, FundingRoundStatus, InstrumentType,
 )
 from src.models.stakeholder import StakeholderProfile, StakeholderType
+from src.models.company_member import CompanyMember, CompanyRole, InviteStatus
 
 __all__ = [
     "User", "UserRole",
@@ -44,4 +45,5 @@ __all__ = [
     "ESOPPlan", "ESOPGrant", "ESOPPlanStatus", "ESOPGrantStatus", "VestingType",
     "FundingRound", "RoundInvestor", "FundingRoundStatus", "InstrumentType",
     "StakeholderProfile", "StakeholderType",
+    "CompanyMember", "CompanyRole", "InviteStatus",
 ]
