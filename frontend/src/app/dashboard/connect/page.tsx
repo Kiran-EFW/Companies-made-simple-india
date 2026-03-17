@@ -120,7 +120,7 @@ export default function ConnectCompanyPage() {
           style={{
             fontSize: 13,
             color: "var(--color-text-secondary, #6B7280)",
-            borderLeft: "2px solid #8B5CF6",
+            borderLeft: "2px solid var(--color-accent-purple-light)",
             paddingLeft: 12,
           }}
         >
@@ -285,7 +285,7 @@ export default function ConnectCompanyPage() {
                 padding: "10px 24px",
                 borderRadius: 8,
                 border: "none",
-                background: submitting ? "#C4B5FD" : "#8B5CF6",
+                background: submitting ? "var(--color-accent-purple)" : "var(--color-accent-purple-light)",
                 color: "#fff",
                 cursor: submitting ? "not-allowed" : "pointer",
               }}
@@ -300,8 +300,8 @@ export default function ConnectCompanyPage() {
       <div
         style={{
           marginTop: 24,
-          background: "rgba(139, 92, 246, 0.05)",
-          border: "1px solid rgba(139, 92, 246, 0.15)",
+          background: "var(--color-purple-bg)",
+          border: "1px solid var(--color-accent-purple-light)",
           borderRadius: 12,
           padding: "16px 20px",
         }}

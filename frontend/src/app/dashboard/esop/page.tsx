@@ -16,6 +16,16 @@ import {
   getESOPSummary,
 } from "@/lib/api";
 import ESOPApprovalWizard from "./ESOPApprovalWizard";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  ReferenceLine,
+} from "recharts";
 
 
 interface ESOPPlan {
@@ -780,6 +790,113 @@ export default function ESOPPage() {
                                       </span>
                                     </div>
                                   </div>
+
+                                  {/* Vesting Schedule Area Chart */}
+                                  {grant.vesting_schedule.length >= 2 && (() => {
+                                    const chartData = grant.vesting_schedule.map((entry) => {
+                                      const d = new Date(entry.date);
+                                      const label = d.toLocaleDateString("en-US", { month: "short", year: "2-digit" });
+                                      return {
+                                        date: label,
+                                        fullDate: d.toLocaleDateString(),
+                                        options_vesting: entry.options_vesting,
+                                        cumulative_vested: entry.cumulative_vested,
+                                      };
+                                    });
+                                    // Cliff date = first entry where options_vesting > 0
+                                    const cliffEntry = chartData.find((d) => d.options_vesting > 0);
+                                    const cliffDate = cliffEntry?.date;
+                                    return (
+                                      <div
+                                        className="glass-card p-4 mb-4"
+                                        style={{ cursor: "default" }}
+                                      >
+                                        <h5
+                                          className="text-xs font-semibold mb-3"
+                                          style={{ color: "#9CA3AF" }}
+                                        >
+                                          Vesting Timeline
+                                        </h5>
+                                        <ResponsiveContainer width="100%" height={220}>
+                                          <AreaChart
+                                            data={chartData}
+                                            margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+                                          >
+                                            <defs>
+                                              <linearGradient id={`purpleGradient-${grant.id}`} x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="0%" stopColor="#8B5CF6" stopOpacity={0.4} />
+                                                <stop offset="100%" stopColor="#8B5CF6" stopOpacity={0.05} />
+                                              </linearGradient>
+                                            </defs>
+                                            <CartesianGrid
+                                              strokeDasharray="3 3"
+                                              stroke="#374151"
+                                              vertical={false}
+                                            />
+                                            <XAxis
+                                              dataKey="date"
+                                              tick={{ fill: "#9CA3AF", fontSize: 11 }}
+                                              axisLine={{ stroke: "#374151" }}
+                                              tickLine={{ stroke: "#374151" }}
+                                            />
+                                            <YAxis
+                                              tick={{ fill: "#9CA3AF", fontSize: 11 }}
+                                              axisLine={{ stroke: "#374151" }}
+                                              tickLine={{ stroke: "#374151" }}
+                                              tickFormatter={(v: number) =>
+                                                v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v)
+                                              }
+                                            />
+                                            <Tooltip
+                                              contentStyle={{
+                                                background: "#1a1a2e",
+                                                border: "1px solid rgba(255,255,255,0.1)",
+                                                borderRadius: 8,
+                                              }}
+                                              labelStyle={{ color: "#9CA3AF" }}
+                                              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                              formatter={(value: any, name: any) => {
+                                                const displayLabel =
+                                                  name === "cumulative_vested"
+                                                    ? "Cumulative Vested"
+                                                    : name;
+                                                return [Number(value).toLocaleString(), displayLabel];
+                                              }}
+                                              labelFormatter={(label) => `Date: ${label}`}
+                                              itemStyle={{ color: "#8B5CF6" }}
+                                            />
+                                            {cliffDate && (
+                                              <ReferenceLine
+                                                x={cliffDate}
+                                                stroke="#10B981"
+                                                strokeDasharray="4 4"
+                                                label={{
+                                                  value: "Cliff",
+                                                  position: "top",
+                                                  fill: "#10B981",
+                                                  fontSize: 11,
+                                                }}
+                                              />
+                                            )}
+                                            <Area
+                                              type="monotone"
+                                              dataKey="cumulative_vested"
+                                              stroke="#8B5CF6"
+                                              strokeWidth={2}
+                                              fill={`url(#purpleGradient-${grant.id})`}
+                                              dot={false}
+                                              activeDot={{
+                                                r: 4,
+                                                stroke: "#8B5CF6",
+                                                strokeWidth: 2,
+                                                fill: "#1a1a2e",
+                                              }}
+                                            />
+                                          </AreaChart>
+                                        </ResponsiveContainer>
+                                      </div>
+                                    );
+                                  })()}
 
                                   {/* Schedule table */}
                                   {grant.vesting_schedule.length > 0 && (

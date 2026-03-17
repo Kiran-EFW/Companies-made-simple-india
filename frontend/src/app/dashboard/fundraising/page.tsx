@@ -3,6 +3,10 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell,
+} from "recharts";
 
 import {
   getCompanies,
@@ -1295,6 +1299,54 @@ export default function FundraisingPage() {
                         </div>
                       )}
                     </div>
+
+                    {/* Funding Progress Ring */}
+                    {selectedRound.target_amount != null && selectedRound.target_amount > 0 && (() => {
+                      const fundedPct = Math.min(100, Math.round((selectedRound.amount_raised / selectedRound.target_amount!) * 100));
+                      const progressData = [
+                        { name: "Funded", value: fundedPct },
+                        { name: "Remaining", value: 100 - fundedPct },
+                      ];
+                      return (
+                        <div className="mt-4 pt-4" style={{ borderTop: "1px solid var(--color-border)" }}>
+                          <div className="flex items-center gap-4">
+                            <div className="relative" style={{ width: 80, height: 80 }}>
+                              <PieChart width={80} height={80}>
+                                <Pie
+                                  data={progressData}
+                                  cx={35}
+                                  cy={35}
+                                  innerRadius={24}
+                                  outerRadius={35}
+                                  startAngle={90}
+                                  endAngle={-270}
+                                  dataKey="value"
+                                  stroke="none"
+                                >
+                                  <Cell fill="#8B5CF6" />
+                                  <Cell fill="#374151" />
+                                </Pie>
+                              </PieChart>
+                              <div
+                                className="absolute inset-0 flex items-center justify-center text-xs font-bold"
+                                style={{ color: "#8B5CF6" }}
+                              >
+                                {fundedPct}%
+                              </div>
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex justify-between text-xs mb-1" style={{ color: "#9CA3AF" }}>
+                                <span>Raised: {formatCurrency(selectedRound.amount_raised)}</span>
+                                <span>Target: {formatCurrency(selectedRound.target_amount!)}</span>
+                              </div>
+                              <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: "#374151" }}>
+                                <div className="h-full rounded-full transition-all" style={{ width: `${fundedPct}%`, background: "#8B5CF6" }} />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   {/* Convertible Conversion Section */}
@@ -1472,6 +1524,53 @@ export default function FundraisingPage() {
                       )}
                     </div>
                   )}
+
+                  {/* Investor Contribution Bar Chart */}
+                  {selectedRound.investors && selectedRound.investors.length >= 2 && (() => {
+                    const chartData = selectedRound.investors!
+                      .map((inv) => ({
+                        name: inv.investor_name,
+                        amount: inv.investment_amount,
+                      }))
+                      .sort((a, b) => b.amount - a.amount);
+                    return (
+                      <div className="glass-card p-5" style={{ cursor: "default" }}>
+                        <h3 className="font-semibold mb-4">Investor Contributions</h3>
+                        <ResponsiveContainer width="100%" height={Math.max(200, chartData.length * 44)}>
+                          <BarChart data={chartData} layout="vertical" margin={{ top: 0, right: 20, bottom: 0, left: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#374151" horizontal={false} />
+                            <XAxis
+                              type="number"
+                              tick={{ fill: "#9CA3AF", fontSize: 11 }}
+                              axisLine={{ stroke: "#374151" }}
+                              tickLine={{ stroke: "#374151" }}
+                              tickFormatter={(v: number) => {
+                                if (v >= 10000000) return `${(v / 10000000).toFixed(1)}Cr`;
+                                if (v >= 100000) return `${(v / 100000).toFixed(1)}L`;
+                                if (v >= 1000) return `${(v / 1000).toFixed(0)}K`;
+                                return String(v);
+                              }}
+                            />
+                            <YAxis
+                              type="category"
+                              dataKey="name"
+                              width={120}
+                              tick={{ fill: "#9CA3AF", fontSize: 12 }}
+                              axisLine={{ stroke: "#374151" }}
+                              tickLine={false}
+                            />
+                            <Tooltip
+                              contentStyle={{ background: "#1a1a2e", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8 }}
+                              labelStyle={{ color: "#9CA3AF" }}
+                              formatter={(value) => [formatCurrency(Number(value)), "Investment"]}
+                              cursor={{ fill: "rgba(139,92,246,0.1)" }}
+                            />
+                            <Bar dataKey="amount" fill="#8B5CF6" radius={[0, 4, 4, 0]} barSize={24} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    );
+                  })()}
 
                   {/* Investors Table */}
                   <div className="glass-card overflow-hidden" style={{ cursor: "default" }}>

@@ -4,6 +4,16 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import Link from "next/link";
 import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+} from "recharts";
+import {
   getCompanies,
   getComplianceScore,
   getComplianceCalendar,
@@ -378,6 +388,65 @@ export default function ComplianceDashboard() {
               </div>
             </div>
 
+            {/* Task Status Distribution Chart */}
+            {scoreData && (
+              <div className="glass-card p-6 mb-8 animate-fade-in-up" style={{ animationDelay: "0.15s" }}>
+                <h3 className="text-xs font-semibold uppercase tracking-wider mb-4" style={{ color: "var(--color-text-muted)" }}>
+                  Task Status Distribution
+                </h3>
+                <ResponsiveContainer width="100%" height={220}>
+                  <BarChart
+                    layout="vertical"
+                    data={[
+                      { name: "Completed", value: scoreData.completed, fill: "#10B981" },
+                      { name: "Overdue", value: scoreData.overdue, fill: "#F43F5E" },
+                      { name: "Due Soon", value: scoreData.due_soon, fill: "#F59E0B" },
+                      { name: "In Progress", value: scoreData.in_progress, fill: "#3B82F6" },
+                      { name: "Upcoming", value: scoreData.upcoming, fill: "#8B5CF6" },
+                    ]}
+                    margin={{ top: 0, right: 30, left: 20, bottom: 0 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" horizontal={false} />
+                    <XAxis
+                      type="number"
+                      allowDecimals={false}
+                      tick={{ fill: "#9CA3AF", fontSize: 12 }}
+                      axisLine={{ stroke: "#374151" }}
+                      tickLine={{ stroke: "#374151" }}
+                    />
+                    <YAxis
+                      type="category"
+                      dataKey="name"
+                      width={90}
+                      tick={{ fill: "#9CA3AF", fontSize: 12 }}
+                      axisLine={{ stroke: "#374151" }}
+                      tickLine={false}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        background: "#1a1a2e",
+                        border: "1px solid rgba(255,255,255,0.1)",
+                        borderRadius: 8,
+                      }}
+                      labelStyle={{ color: "#9CA3AF" }}
+                      cursor={{ fill: "rgba(255,255,255,0.05)" }}
+                    />
+                    <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={24}>
+                      {[
+                        { name: "Completed", fill: "#10B981" },
+                        { name: "Overdue", fill: "#F43F5E" },
+                        { name: "Due Soon", fill: "#F59E0B" },
+                        { name: "In Progress", fill: "#3B82F6" },
+                        { name: "Upcoming", fill: "#8B5CF6" },
+                      ].map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+
             {/* Tabs */}
             <div className="flex gap-1 mb-6 animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
               {(["calendar", "overdue", "penalties", "tds"] as const).map((tab) => (
@@ -528,6 +597,72 @@ export default function ComplianceDashboard() {
                           Rs {penaltyData.total.toLocaleString("en-IN")}
                         </p>
                       </div>
+                      {/* Penalty Exposure Bar Chart */}
+                      <div className="glass-card p-6 mb-6">
+                        <h4 className="text-xs font-semibold uppercase tracking-wider mb-4" style={{ color: "var(--color-text-muted)" }}>
+                          Penalty Exposure by Task
+                        </h4>
+                        <ResponsiveContainer width="100%" height={Math.max(180, penaltyData.details.length * 50)}>
+                          <BarChart
+                            layout="vertical"
+                            data={penaltyData.details.map((p) => ({
+                              name: p.task_title.length > 30 ? p.task_title.slice(0, 27) + "..." : p.task_title,
+                              fullName: p.task_title,
+                              penalty: p.estimated_penalty,
+                              daysOverdue: p.days_overdue,
+                            }))}
+                            margin={{ top: 0, right: 30, left: 20, bottom: 0 }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" stroke="#374151" horizontal={false} />
+                            <XAxis
+                              type="number"
+                              tick={{ fill: "#9CA3AF", fontSize: 12 }}
+                              axisLine={{ stroke: "#374151" }}
+                              tickLine={{ stroke: "#374151" }}
+                              tickFormatter={(v: number) => `Rs ${v.toLocaleString("en-IN")}`}
+                            />
+                            <YAxis
+                              type="category"
+                              dataKey="name"
+                              width={160}
+                              tick={{ fill: "#9CA3AF", fontSize: 11 }}
+                              axisLine={{ stroke: "#374151" }}
+                              tickLine={false}
+                            />
+                            <Tooltip
+                              contentStyle={{
+                                background: "#1a1a2e",
+                                border: "1px solid rgba(255,255,255,0.1)",
+                                borderRadius: 8,
+                              }}
+                              labelStyle={{ color: "#9CA3AF" }}
+                              formatter={(value: any, _name: any, props: any) => [
+                                `Rs ${Number(value).toLocaleString("en-IN")}`,
+                                `${props.payload.daysOverdue} days overdue`,
+                              ]}
+                              labelFormatter={(_label: any, payload: any) =>
+                                payload?.[0]?.payload?.fullName || _label
+                              }
+                              cursor={{ fill: "rgba(255,255,255,0.05)" }}
+                            />
+                            <Bar dataKey="penalty" radius={[0, 6, 6, 0]} barSize={24}>
+                              {penaltyData.details.map((p, index) => {
+                                const severity = Math.min(p.days_overdue / 90, 1);
+                                const r = Math.round(244 + (220 - 244) * severity);
+                                const g = Math.round(63 - 63 * severity);
+                                const b = Math.round(94 - 60 * severity);
+                                return (
+                                  <Cell
+                                    key={`penalty-cell-${index}`}
+                                    fill={`rgb(${r}, ${g}, ${b})`}
+                                  />
+                                );
+                              })}
+                            </Bar>
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+
                       <div className="space-y-3">
                         {penaltyData.details.map((p, idx) => (
                           <div key={idx} className="p-4 rounded-lg border flex justify-between items-center" style={{ borderColor: "var(--color-border)", background: "var(--color-bg-secondary)" }}>

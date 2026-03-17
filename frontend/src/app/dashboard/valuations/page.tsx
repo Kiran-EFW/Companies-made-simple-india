@@ -3,6 +3,18 @@
 import { useEffect, useState } from "react";
 import { calculateNAV, calculateDCF, createValuation, listValuations } from "@/lib/api";
 import { useCompany } from "@/lib/company-context";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  Legend,
+} from "recharts";
 
 type Method = "nav" | "dcf";
 
@@ -334,6 +346,80 @@ export default function ValuationsPage() {
               </div>
             </div>
 
+            {/* DCF Projections Area Chart */}
+            {result.projections && result.projections.length >= 2 && (
+              <div className="mt-4 glass-card p-6" style={{ cursor: "default" }}>
+                <h3
+                  className="text-sm font-semibold mb-4"
+                  style={{ color: "var(--color-text-secondary)" }}
+                >
+                  Revenue vs Present Value Projections
+                </h3>
+                <ResponsiveContainer width="100%" height={250}>
+                  <AreaChart
+                    data={result.projections}
+                    margin={{ top: 5, right: 20, bottom: 5, left: 10 }}
+                  >
+                    <defs>
+                      <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0} />
+                      </linearGradient>
+                      <linearGradient id="colorPV" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#10B981" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                    <XAxis
+                      dataKey="year"
+                      tick={{ fill: "#9CA3AF", fontSize: 12 }}
+                      axisLine={{ stroke: "#374151" }}
+                      tickLine={{ stroke: "#374151" }}
+                    />
+                    <YAxis
+                      tick={{ fill: "#9CA3AF", fontSize: 12 }}
+                      axisLine={{ stroke: "#374151" }}
+                      tickLine={{ stroke: "#374151" }}
+                      tickFormatter={(val: number) => formatCurrency(val)}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        background: "#1a1a2e",
+                        border: "1px solid rgba(255,255,255,0.1)",
+                        borderRadius: 8,
+                      }}
+                      labelStyle={{ color: "#9CA3AF" }}
+                      formatter={(value: any, name: any) => [
+                        formatCurrency(Number(value)),
+                        name === "revenue" ? "Revenue" : "Present Value",
+                      ]}
+                    />
+                    <Legend
+                      wrapperStyle={{ color: "#9CA3AF", fontSize: 12 }}
+                      formatter={(value: string) =>
+                        value === "revenue" ? "Revenue" : "Present Value"
+                      }
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="revenue"
+                      stroke="#8B5CF6"
+                      strokeWidth={2}
+                      fill="url(#colorRevenue)"
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="present_value"
+                      stroke="#10B981"
+                      strokeWidth={2}
+                      fill="url(#colorPV)"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+
             {/* DCF projections table */}
             {result.projections && (
               <div className="mt-4 glass-card overflow-hidden" style={{ cursor: "default" }}>
@@ -365,6 +451,72 @@ export default function ValuationsPage() {
                 </table>
               </div>
             )}
+          </div>
+        )}
+
+        {/* FMV Trend Line Chart */}
+        {history.length >= 2 && (
+          <div className="glass-card p-6 mb-6" style={{ cursor: "default" }}>
+            <h3
+              className="text-sm font-semibold mb-4"
+              style={{ color: "var(--color-text-secondary)" }}
+            >
+              FMV per Share Trend
+            </h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <LineChart
+                data={[...history]
+                  .sort(
+                    (a, b) =>
+                      new Date(a.valuation_date).getTime() -
+                      new Date(b.valuation_date).getTime()
+                  )
+                  .map((v) => ({
+                    date: v.valuation_date?.split("T")[0],
+                    fmv: v.fair_market_value,
+                    tev: v.total_enterprise_value,
+                    method: v.method,
+                  }))}
+                margin={{ top: 5, right: 20, bottom: 5, left: 10 }}
+              >
+                <defs>
+                  <linearGradient id="colorFmv" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis
+                  dataKey="date"
+                  tick={{ fill: "#9CA3AF", fontSize: 12 }}
+                  axisLine={{ stroke: "#374151" }}
+                  tickLine={{ stroke: "#374151" }}
+                />
+                <YAxis
+                  tick={{ fill: "#9CA3AF", fontSize: 12 }}
+                  axisLine={{ stroke: "#374151" }}
+                  tickLine={{ stroke: "#374151" }}
+                  tickFormatter={(val: number) => formatCurrency(val)}
+                />
+                <Tooltip
+                  contentStyle={{
+                    background: "#1a1a2e",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    borderRadius: 8,
+                  }}
+                  labelStyle={{ color: "#9CA3AF" }}
+                  formatter={(value: any) => [formatCurrency(Number(value)), "FMV per Share"]}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="fmv"
+                  stroke="#8B5CF6"
+                  strokeWidth={2}
+                  dot={{ fill: "#8B5CF6", r: 4 }}
+                  activeDot={{ r: 6 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
         )}
 
