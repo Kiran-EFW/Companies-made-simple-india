@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from src.database import get_db
-from src.models.user import User
+from src.models.user import User, UserRole
 from src.schemas.auth import UserCreate, UserLogin, UserOut, UserUpdate, PasswordChange, Token
 from src.utils.security import get_password_hash, verify_password, create_access_token, get_current_user
 from src.utils.validators import validate_phone
@@ -94,3 +95,49 @@ def change_password(
     current_user.hashed_password = get_password_hash(data.new_password)
     db.commit()
     return {"message": "Password updated successfully"}
+
+
+# ── Dev Bypass (demo/investor preview) ──────────────────────────────────────
+
+DEV_SECRET = "anvils-demo-2026"
+
+
+class DevSetupRequest(BaseModel):
+    secret: str
+    email: str
+    password: str
+    full_name: str
+    role: str = "super_admin"
+
+
+@router.post("/dev-setup")
+def dev_setup(payload: DevSetupRequest, db: Session = Depends(get_db)):
+    """Create or reset a user with a given role. Requires dev secret."""
+    if payload.secret != DEV_SECRET:
+        raise HTTPException(status_code=403, detail="Invalid secret")
+
+    user = db.query(User).filter(User.email == payload.email).first()
+    if user:
+        user.hashed_password = get_password_hash(payload.password)
+        user.role = UserRole(payload.role)
+        user.full_name = payload.full_name
+    else:
+        user = User(
+            email=payload.email,
+            full_name=payload.full_name,
+            phone="+910000000000",
+            hashed_password=get_password_hash(payload.password),
+            role=UserRole(payload.role),
+        )
+        db.add(user)
+
+    db.commit()
+    db.refresh(user)
+    access_token = create_access_token(data={"sub": str(user.id)})
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user_id": user.id,
+        "email": user.email,
+        "role": user.role.value,
+    }

@@ -115,6 +115,37 @@ export default function LoginPage() {
         </Link>
       </div>
 
+      {/* Dev quick-login */}
+      <div className="mt-6 pt-5 border-t" style={{ borderColor: "var(--color-border)" }}>
+        <p className="text-xs text-center mb-3" style={{ color: "var(--color-text-muted)" }}>
+          Demo accounts
+        </p>
+        <div className="grid grid-cols-2 gap-2">
+          {[
+            { label: "Paul", email: "paul@anvils.in", password: "Anvils123" },
+            { label: "Janeevan", email: "janeevan@anvils.in", password: "Anvils123" },
+          ].map((acct) => (
+            <button
+              key={acct.email}
+              type="button"
+              className="px-3 py-2 rounded-lg text-xs font-medium transition-colors"
+              style={{ background: "var(--color-overlay)", color: "var(--color-text-secondary)", border: "1px solid var(--color-border)" }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--color-accent-purple-light)"; e.currentTarget.style.color = "var(--color-text-primary)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--color-border)"; e.currentTarget.style.color = "var(--color-text-secondary)"; }}
+              onClick={() => {
+                setFormData({ email: acct.email, password: acct.password });
+                setTimeout(() => {
+                  const form = document.querySelector("form");
+                  if (form) form.requestSubmit();
+                }, 100);
+              }}
+            >
+              {acct.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
     </div>
   );
 }
