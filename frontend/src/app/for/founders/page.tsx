@@ -22,7 +22,7 @@ import {
 
 export const metadata: Metadata = {
   title: "Anvils for Founders — Equity, Compliance & Growth Tools",
-  description: "Cap table management, ESOP administration, fundraising tools, compliance automation, valuations, and more. Purpose-built for Indian startup founders.",
+  description: "Cap table management, ESOP administration, fundraising tools, compliance tracking, valuations, and more. Purpose-built for Indian startup founders.",
 };
 
 const MAIN_FEATURES = [
@@ -48,7 +48,7 @@ const MAIN_FEATURES = [
     id: "fundraising",
     icon: <TrendingUp className="w-6 h-6" />,
     title: "Fundraising",
-    desc: "Create funding rounds for equity, SAFEs, or convertible notes. Track investors and manage closing rooms with document checklists. Auto-generate post-raise filings like PAS-3 and MGT-14.",
+    desc: "Create funding rounds for equity, SAFEs, or convertible notes. Track investors and manage closing rooms with document checklists. Generate draft post-raise forms like PAS-3 and MGT-14.",
     bullets: ["Round management", "Investor tracking", "Closing room", "SHA/SSA generation", "Post-raise filings"],
     color: "emerald",
     href: "/features/fundraising",
@@ -57,7 +57,7 @@ const MAIN_FEATURES = [
     id: "compliance",
     icon: <Shield className="w-6 h-6" />,
     title: "Compliance Calendar",
-    desc: "Automated compliance task generation based on your incorporation date. Track ROC filings, board meetings, GST returns, and statutory audit deadlines. Escalation alerts when deadlines approach.",
+    desc: "Compliance tasks generated automatically based on your incorporation date. Track ROC filings, board meetings, GST returns, and statutory audit deadlines. Upgrade to have our team file for you.",
     bullets: ["Auto-generated tasks", "ROC annual returns", "Board meeting scheduling", "GST deadline tracking", "Compliance scoring"],
     color: "purple",
     href: "/features/compliance",
@@ -76,7 +76,7 @@ const MORE_TOOLS = [
   { id: "stakeholders", icon: <UserCheck className="w-5 h-5" />, title: "Stakeholders", desc: "Manage shareholders, directors, and auditors" },
   { id: "board-meetings", icon: <Calendar className="w-5 h-5" />, title: "Board Meetings", desc: "Schedule, track attendance, generate minutes" },
   { id: "registers", icon: <ClipboardList className="w-5 h-5" />, title: "Statutory Registers", desc: "Members, directors, shares, charges" },
-  { id: "legal-docs", icon: <FileText className="w-5 h-5" />, title: "Legal Documents", desc: "AI-drafted contracts with e-signatures" },
+  { id: "legal-docs", icon: <FileText className="w-5 h-5" />, title: "Legal Documents", desc: "Legal templates with e-signatures" },
   { id: "data-room", icon: <FolderLock className="w-5 h-5" />, title: "Data Room", desc: "Secure, time-limited document sharing" },
   { id: "accounting", icon: <BookOpen className="w-5 h-5" />, title: "Accounting Integration", desc: "Zoho Books & Tally sync" },
   { id: "gst-tax", icon: <Receipt className="w-5 h-5" />, title: "GST & Tax", desc: "Returns, TDS, and tax overview" },
@@ -96,7 +96,7 @@ export default function ForFoundersPage() {
 
       <HeroSection
         badge="For Founders"
-        title={<>Everything your startup needs to <span className="gradient-text">stay compliant and grow</span></>}
+        title={<>Everything your startup needs to <span className="gradient-text">stay organized and grow</span></>}
         subtitle="Cap table, ESOP, fundraising, compliance, valuations, legal documents, and more -- in one platform built for Indian startups."
         primaryCTA={{ label: "Get Started Free", href: "/signup" }}
         secondaryCTA={{ label: "See Pricing", href: "/pricing" }}

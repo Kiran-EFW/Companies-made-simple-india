@@ -46,7 +46,7 @@ const PRODUCTS = [
     items: [
       { label: "Compliance Calendar", desc: "ROC, board meetings, GST deadlines", href: "/features/compliance", icon: Shield },
       { label: "Board Meetings", desc: "Scheduling, minutes, resolutions", href: "/features/board-meetings", icon: Calendar },
-      { label: "Legal Documents", desc: "AI-drafted contracts & e-signatures", href: "/features/legal-docs", icon: FileText },
+      { label: "Legal Documents", desc: "Professional contracts & e-signatures", href: "/features/legal-docs", icon: FileText },
       { label: "Data Room", desc: "Secure document sharing", href: "/features/data-room", icon: FolderLock },
       { label: "GST & Tax", desc: "Returns, TDS, tax overview", href: "/features/gst-tax", icon: Receipt },
       { label: "Accounting", desc: "Zoho Books & Tally integration", href: "/features/accounting", icon: BookOpen },

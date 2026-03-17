@@ -277,7 +277,7 @@ export default function ComplianceDashboard() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4 animate-fade-in-up">
           <div>
             <h1 className="text-3xl font-bold mb-2" style={{ fontFamily: "var(--font-display)" }}>
-              Compliance Autopilot
+              Compliance Dashboard
             </h1>
             <p className="text-sm border-l-2 pl-3 border-purple-500" style={{ color: "var(--color-text-secondary)" }}>
               Track deadlines, filings, and compliance health for your companies.

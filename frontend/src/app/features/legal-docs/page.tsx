@@ -8,11 +8,11 @@ import { FileText, PenTool, Sparkles, FolderOpen, Clock, Shield } from "lucide-r
 
 export const metadata: Metadata = {
   title: "Legal Documents & E-Signatures — Anvils",
-  description: "AI-drafted legal documents with e-signatures. NDAs, employment agreements, SHA/SSA, board resolutions, and more for Indian companies.",
+  description: "Professional legal documents with e-signatures. NDAs, employment agreements, SHA/SSA, board resolutions, and more for Indian companies.",
 };
 
 const FEATURES = [
-  { icon: <Sparkles className="w-5 h-5" />, title: "AI-Drafted Documents", desc: "Generate NDAs, employment agreements, SHA/SSA, and board resolutions tailored to your company details and Indian law." },
+  { icon: <Sparkles className="w-5 h-5" />, title: "Smart Document Drafting", desc: "Choose from 15+ templates — NDAs, employment agreements, SHA/SSA, board resolutions. Customize clause-by-clause with plain-English explanations." },
   { icon: <PenTool className="w-5 h-5" />, title: "E-Signatures", desc: "Send documents for signing with secure, timestamped electronic signatures. Track signing status in real time." },
   { icon: <FileText className="w-5 h-5" />, title: "Template Library", desc: "Pre-built templates for common startup documents — founder agreements, consulting contracts, IP assignment, and more." },
   { icon: <FolderOpen className="w-5 h-5" />, title: "Document Storage", desc: "All generated and signed documents stored securely. Searchable archive with version history." },
@@ -28,7 +28,7 @@ export default function LegalDocsFeaturePage() {
       <HeroSection
         badge="Product"
         title={<>Legal documents, <span className="gradient-text">drafted and signed</span></>}
-        subtitle="AI-generated contracts tailored to Indian law. Send for e-signatures, track status, and store everything securely."
+        subtitle="Professionally drafted contracts tailored to Indian law. Customize clause-by-clause, send for e-signatures, and store everything securely."
         primaryCTA={{ label: "Get Started", href: "/signup" }}
         secondaryCTA={{ label: "See Pricing", href: "/pricing" }}
       />

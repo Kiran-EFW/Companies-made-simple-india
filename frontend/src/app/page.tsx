@@ -38,14 +38,14 @@ const PRODUCT_PILLARS = [
   {
     icon: <TrendingUp className="w-5 h-5" />,
     title: "Fundraising",
-    description: "Run funding rounds, manage closing rooms, track investors, and auto-generate post-raise filings like PAS-3 and MGT-14.",
+    description: "Run funding rounds, manage closing rooms, track investors, and generate post-raise forms like PAS-3 and MGT-14.",
     href: "/features/fundraising",
     accentColor: "emerald" as const,
   },
   {
     icon: <Shield className="w-5 h-5" />,
     title: "Compliance Calendar",
-    description: "Automated ROC filings, board meeting scheduling, GST deadlines, statutory audit reminders, and real-time compliance scoring.",
+    description: "Track ROC filings, board meetings, GST deadlines, and statutory audit reminders. Real-time compliance scoring and penalty alerts.",
     href: "/features/compliance",
     accentColor: "purple" as const,
   },
@@ -58,7 +58,7 @@ const PRODUCT_PILLARS = [
   {
     icon: <FileText className="w-5 h-5" />,
     title: "Legal Documents & E-Signatures",
-    description: "AI-drafted board resolutions, contracts, and statutory forms. Send for e-signature with full audit trail.",
+    description: "Professionally drafted board resolutions, contracts, and statutory forms. Customize clause-by-clause, send for e-signature with full audit trail.",
     accentColor: "emerald" as const,
   },
 ];
@@ -67,12 +67,12 @@ const HOW_IT_WORKS = [
   {
     step: "01",
     title: "Connect or Incorporate",
-    desc: "Enter your CIN to import an existing company, or use our AI wizard to pick the right entity type and file with MCA.",
+    desc: "Enter your CIN to import an existing company, or use our guided wizard to pick the right entity type and start your incorporation.",
   },
   {
     step: "02",
     title: "Your Dashboard Goes Live",
-    desc: "Cap table, compliance calendar, document vault, board meetings, statutory registers, and GST tracker -- all automated.",
+    desc: "Cap table, compliance calendar, document vault, board meetings, statutory registers, and GST tracker -- ready to use.",
   },
   {
     step: "03",
@@ -108,8 +108,8 @@ export default function HomePage() {
           </h1>
           <p className="text-lg md:text-xl text-gray-500 leading-relaxed mb-10">
             Cap table management, ESOP administration, fundraising tools,
-            compliance automation, and investor portals &mdash; purpose-built
-            for Indian startups and the professionals who advise them.
+            compliance tracking, and investor portals &mdash; purpose-built
+            for Indian startups.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/signup" className="btn-primary text-lg !py-3.5 !px-8">
@@ -148,12 +148,12 @@ export default function HomePage() {
             <PersonaCard
               icon={<Rocket className="w-6 h-6" />}
               persona="Founders"
-              headline="Run your back-office on autopilot"
+              headline="Your company's back-office, organized"
               bullets={[
                 "Cap table & shareholder management",
                 "ESOP plans, grants & vesting",
                 "Fundraising with closing room",
-                "Automated compliance calendar",
+                "Compliance calendar & alerts",
                 "Valuations & legal documents",
                 "Data room & accounting integration",
               ]}

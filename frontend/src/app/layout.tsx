@@ -8,7 +8,7 @@ import ToastContainer from "@/components/toast";
 export const metadata: Metadata = {
   title: "Anvils — Equity & Governance for Indian Startups",
   description:
-    "Cap table management, ESOP administration, fundraising tools, compliance automation, and investor portals. Purpose-built for Indian startups and the professionals who advise them.",
+    "Cap table management, ESOP administration, fundraising tools, compliance tracking, and investor portals. Purpose-built for Indian startups.",
   keywords: [
     "cap table management India",
     "ESOP management",

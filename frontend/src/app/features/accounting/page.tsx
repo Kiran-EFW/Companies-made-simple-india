@@ -15,7 +15,7 @@ const FEATURES = [
   { icon: <LinkIcon className="w-5 h-5" />, title: "Zoho Books Integration", desc: "Connect your Zoho Books account and pull in financial data automatically. Balance sheets and P&L sync for valuations." },
   { icon: <Database className="w-5 h-5" />, title: "Tally Sync", desc: "Import data from Tally ERP for companies using desktop accounting. Upload Tally exports for seamless data flow." },
   { icon: <RefreshCw className="w-5 h-5" />, title: "Auto-Sync", desc: "Financial data refreshes automatically. Valuations and reports always use your latest numbers." },
-  { icon: <BarChart3 className="w-5 h-5" />, title: "Financial Dashboard", desc: "See key financial metrics pulled from your accounting software — revenue, expenses, cash position, and runway." },
+  { icon: <BarChart3 className="w-5 h-5" />, title: "Financial Dashboard", desc: "View your connection status and synced financial data. Key metrics feed into valuations and compliance tracking." },
   { icon: <FileText className="w-5 h-5" />, title: "Valuation Input", desc: "Accounting data feeds directly into NAV and DCF valuations. No manual data entry between systems." },
   { icon: <BookOpen className="w-5 h-5" />, title: "Audit Preparation", desc: "Financial records organized alongside corporate documents. Everything your auditor needs, in one place." },
 ];
@@ -28,7 +28,7 @@ export default function AccountingFeaturePage() {
       <HeroSection
         badge="Product"
         title={<>Your books, <span className="gradient-text">connected</span></>}
-        subtitle="Sync Zoho Books or Tally with Anvils. Financial data flows into valuations, compliance, and investor reporting automatically."
+        subtitle="Sync Zoho Books or Tally with Anvils. Financial data syncs with your valuations, compliance tracking, and investor reports."
         primaryCTA={{ label: "Get Started", href: "/signup" }}
         secondaryCTA={{ label: "See Pricing", href: "/pricing" }}
       />

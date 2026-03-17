@@ -30,7 +30,7 @@ const PLATFORM_FEATURES = [
   { icon: <Calculator className="w-5 h-5" />, title: "Valuations", desc: "Rule 11UA NAV & DCF methods, ESOP FMV integration", color: "blue" },
   { icon: <UserCheck className="w-5 h-5" />, title: "Stakeholder Management", desc: "Shareholders, directors, auditors, KYC documents", color: "emerald" },
   { icon: <Calendar className="w-5 h-5" />, title: "Board Meetings", desc: "Scheduling, notices, attendance, minutes, resolutions", color: "purple" },
-  { icon: <FileText className="w-5 h-5" />, title: "Legal Documents & E-Sign", desc: "AI-drafted contracts, e-signatures, template library", color: "blue" },
+  { icon: <FileText className="w-5 h-5" />, title: "Legal Documents & E-Sign", desc: "Professional contracts, e-signatures, template library", color: "blue" },
   { icon: <FolderLock className="w-5 h-5" />, title: "Data Room", desc: "Secure sharing, time-limited links, access tracking", color: "emerald" },
   { icon: <Receipt className="w-5 h-5" />, title: "GST & Tax Dashboard", desc: "Returns tracking, TDS, advance tax, filing status", color: "purple" },
   { icon: <BookOpen className="w-5 h-5" />, title: "Accounting Integration", desc: "Zoho Books & Tally sync, financial dashboards", color: "blue" },
@@ -98,7 +98,7 @@ const SUBSCRIPTION_PLANS = [
       "Statutory audit coordination",
       "Bookkeeping (up to 500 txns/month)",
       "Board meeting documentation (4/year)",
-      "Compliance autopilot with penalty alerts",
+      "Full compliance management with penalty alerts",
       "Dedicated compliance manager",
     ],
   },
@@ -143,7 +143,7 @@ const SUBSCRIPTION_PLANS = [
       "MSME / Udyam registration included",
       "2 free event-based filings per year",
       "Zoho Books / Tally integration",
-      "Compliance autopilot",
+      "Full compliance management",
       "Tax planning advisory (quarterly)",
       "Penalty protection (up to ₹25,000/yr)",
       "Same-day response SLA",
@@ -487,7 +487,7 @@ export default function PricingPage() {
               Compliance <span className="gradient-text">Subscription Plans</span>
             </h2>
             <p className="text-sm mb-6" style={{ color: "var(--color-text-muted)" }}>
-              Ongoing compliance handled by our team. Filings, returns, bookkeeping — on autopilot.
+              Ongoing compliance handled by our team. Filings, returns, and bookkeeping — managed for you.
             </p>
 
             {/* Billing toggle */}
