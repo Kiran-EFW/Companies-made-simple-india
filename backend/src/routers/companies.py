@@ -20,17 +20,32 @@ def create_draft_company(
     db: Session = Depends(get_db), 
     current_user: User = Depends(get_current_user)
 ):
-    """Create a draft company instance using the generated pricing quote."""
-    new_comp = Company(
-        user_id=current_user.id,
-        entity_type=comp_data.entity_type,
-        plan_tier=comp_data.plan_tier,
-        state=comp_data.state,
-        authorized_capital=comp_data.authorized_capital,
-        num_directors=comp_data.num_directors,
-        pricing_snapshot=comp_data.pricing_snapshot,
-        status=CompanyStatus.DRAFT
-    )
+    """Create a draft company from pricing, or connect an existing incorporated company."""
+    if comp_data.is_existing:
+        # Connecting an existing company — set status to INCORPORATED
+        new_comp = Company(
+            user_id=current_user.id,
+            entity_type=comp_data.entity_type,
+            plan_tier=comp_data.plan_tier,
+            state=comp_data.state,
+            authorized_capital=comp_data.authorized_capital,
+            num_directors=comp_data.num_directors,
+            pricing_snapshot=comp_data.pricing_snapshot,
+            approved_name=comp_data.approved_name,
+            cin=comp_data.cin,
+            status=CompanyStatus.INCORPORATED,
+        )
+    else:
+        new_comp = Company(
+            user_id=current_user.id,
+            entity_type=comp_data.entity_type,
+            plan_tier=comp_data.plan_tier,
+            state=comp_data.state,
+            authorized_capital=comp_data.authorized_capital,
+            num_directors=comp_data.num_directors,
+            pricing_snapshot=comp_data.pricing_snapshot,
+            status=CompanyStatus.DRAFT,
+        )
     db.add(new_comp)
     db.commit()
     db.refresh(new_comp)

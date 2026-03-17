@@ -50,7 +50,7 @@ export default function LoginPage() {
         </Link>
         <h1 className="text-2xl font-bold mb-1">Welcome back</h1>
         <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
-          Log in to track your company incorporation.
+          Log in to manage your company.
         </p>
       </div>
 
@@ -133,6 +133,7 @@ export default function LoginPage() {
               onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--color-accent-purple-light)"; e.currentTarget.style.color = "var(--color-text-primary)"; }}
               onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--color-border)"; e.currentTarget.style.color = "var(--color-text-secondary)"; }}
               onClick={() => {
+                localStorage.removeItem("pending_company_draft");
                 setFormData({ email: acct.email, password: acct.password });
                 setTimeout(() => {
                   const form = document.querySelector("form");

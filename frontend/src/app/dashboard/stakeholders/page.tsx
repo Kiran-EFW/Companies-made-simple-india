@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useCompany } from "@/lib/company-context";
+import Link from "next/link";
 
 import {
   getStakeholderPortfolio,
@@ -68,7 +70,7 @@ function TypeBadge({ type, colorMap }: { type: string; colorMap: Record<string, 
 }
 
 export default function StakeholderDashboardPage() {
-  const [companyId, setCompanyId] = useState<number>(1);
+  const { companies, selectedCompany, selectCompany, loading: companyLoading } = useCompany();
   const [activeTab, setActiveTab] = useState<"profiles" | "portfolio">("profiles");
   const [profiles, setProfiles] = useState<StakeholderProfile[]>([]);
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
@@ -104,8 +106,10 @@ export default function StakeholderDashboardPage() {
   };
 
   useEffect(() => {
-    fetchProfiles();
-  }, [companyId]);
+    if (selectedCompany?.id) {
+      fetchProfiles();
+    }
+  }, [selectedCompany?.id]);
 
   useEffect(() => {
     if (activeTab === "portfolio") {
@@ -116,7 +120,7 @@ export default function StakeholderDashboardPage() {
   async function fetchProfiles() {
     setLoading(true);
     try {
-      const data = await getStakeholderProfiles(companyId);
+      const data = await getStakeholderProfiles(selectedCompany!.id);
       setProfiles(data);
     } catch {
       // Backend may not be running
@@ -200,25 +204,51 @@ export default function StakeholderDashboardPage() {
         </div>
 
         {/* Company selector */}
-        <div className="flex justify-center mb-6">
-          <div className="flex items-center gap-3">
-            <label className="text-sm" style={{ color: "var(--color-text-muted)" }}>Company ID:</label>
-            <input
-              type="number"
-              value={companyId}
-              onChange={(e) => setCompanyId(parseInt(e.target.value) || 1)}
-              className="glass-card px-3 py-1.5 text-sm w-20 text-center"
-              style={{
-                background: "var(--color-bg-card)",
-                border: "1px solid var(--color-border)",
-                color: "var(--color-text-primary)",
-                cursor: "text",
-              }}
-              min={1}
-            />
+        {companies.length > 1 && (
+          <div className="flex justify-center mb-6">
+            <select
+              className="glass-card text-sm px-3 py-2 rounded-lg border-none outline-none"
+              style={{ background: "var(--color-bg-card)", color: "var(--color-text-primary)" }}
+              value={selectedCompany?.id || ""}
+              onChange={(e) => selectCompany(Number(e.target.value))}
+            >
+              {companies.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.approved_name || c.proposed_names?.[0] || `Company #${c.id}`}
+                </option>
+              ))}
+            </select>
           </div>
-        </div>
+        )}
 
+        {/* No company guard */}
+        {!selectedCompany && !companyLoading && (
+          <div className="glass-card p-12 text-center" style={{ cursor: "default" }}>
+            <h2 className="text-xl font-bold mb-2" style={{ color: "var(--color-text-primary)" }}>No company selected</h2>
+            <p className="text-sm mb-6" style={{ color: "var(--color-text-secondary)" }}>
+              Select a company from the sidebar to view stakeholder management.
+            </p>
+            <div className="flex items-center justify-center gap-3">
+              <Link href="/pricing" className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white" style={{ background: "#8B5CF6" }}>
+                Incorporate a New Company
+              </Link>
+              <Link href="/dashboard/connect" className="px-5 py-2.5 rounded-lg text-sm font-semibold border" style={{ borderColor: "var(--color-border)", color: "var(--color-text-primary)" }}>
+                Connect Existing Company
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {companyLoading && (
+          <div className="flex items-center justify-center py-24">
+            <div className="animate-pulse-glow w-16 h-16 rounded-full flex items-center justify-center" style={{ background: "rgba(139, 92, 246, 0.2)" }}>
+              <img src="/logo-icon.png" alt="Anvils" className="w-7 h-7 object-contain" />
+            </div>
+          </div>
+        )}
+
+        {selectedCompany && (
+          <>
         {/* Message */}
         {message && (
           <div
@@ -506,6 +536,8 @@ export default function StakeholderDashboardPage() {
               </div>
             )}
           </div>
+        )}
+          </>
         )}
       </div>
 

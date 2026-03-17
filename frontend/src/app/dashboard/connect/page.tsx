@@ -60,10 +60,11 @@ export default function ConnectCompanyPage() {
         state: form.state,
         authorized_capital: form.authorized_capital,
         num_directors: form.num_directors,
+        approved_name: form.company_name.trim(),
+        cin: form.cin.trim() || undefined,
+        is_existing: true,
         pricing_snapshot: {
           connected_existing: true,
-          company_name: form.company_name.trim(),
-          cin: form.cin.trim() || null,
         },
       });
       await refreshCompanies();

@@ -150,7 +150,7 @@ export default function GstDashboardPage() {
                   {gstData.accounting_connected ? "Connected" : "Not Connected"}
                 </p>
                 {!gstData.accounting_connected && (
-                  <Link href="/settings/accounting" className="text-[10px] text-purple-400 hover:underline">Connect now</Link>
+                  <Link href="/dashboard/accounting" className="text-[10px] text-purple-400 hover:underline">Connect now</Link>
                 )}
               </div>
             </div>

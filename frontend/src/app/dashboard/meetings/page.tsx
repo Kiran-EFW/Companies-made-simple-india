@@ -18,6 +18,7 @@ import {
   getUpcomingMeetings,
   getPendingMinutes,
 } from "@/lib/api";
+import ResolutionWorkflow from "./ResolutionWorkflow";
 
 
 // ---------------------------------------------------------------------------
@@ -764,6 +765,17 @@ export default function MeetingsPage() {
                     </div>
                   </div>
                 )}
+
+                {/* Resolution Workflow */}
+                <ResolutionWorkflow
+                  companyId={selectedCompanyId!}
+                  meeting={selectedMeeting}
+                  onUpdate={async () => {
+                    const detail = await getMeeting(selectedCompanyId!, selectedMeeting.id);
+                    setSelectedMeeting(detail);
+                    await fetchMeetingsData();
+                  }}
+                />
 
                 {/* Minutes Preview */}
                 {selectedMeeting.minutes_html && (

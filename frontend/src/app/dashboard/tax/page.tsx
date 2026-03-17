@@ -92,7 +92,7 @@ export default function TaxOverviewPage() {
             <Link href="/dashboard" className="text-xs font-medium transition-colors hover:text-purple-400" style={{ color: "var(--color-text-secondary)" }}>Dashboard</Link>
             <Link href="/dashboard/compliance" className="text-xs font-medium transition-colors hover:text-purple-400" style={{ color: "var(--color-text-secondary)" }}>Compliance</Link>
             <Link href="/dashboard/gst" className="text-xs font-medium transition-colors hover:text-purple-400" style={{ color: "var(--color-text-secondary)" }}>GST</Link>
-            <Link href="/settings/accounting" className="text-xs font-medium transition-colors hover:text-purple-400" style={{ color: "var(--color-text-secondary)" }}>Accounting</Link>
+            <Link href="/dashboard/accounting" className="text-xs font-medium transition-colors hover:text-purple-400" style={{ color: "var(--color-text-secondary)" }}>Accounting</Link>
           </div>
         </div>
       </nav>

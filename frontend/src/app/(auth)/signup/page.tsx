@@ -52,7 +52,7 @@ export default function SignupPage() {
         </Link>
         <h1 className="text-2xl font-bold mb-2">Create your account</h1>
         <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
-          Start incorporating your company today.
+          Manage your company&#39;s equity, compliance, and more.
         </p>
       </div>
 

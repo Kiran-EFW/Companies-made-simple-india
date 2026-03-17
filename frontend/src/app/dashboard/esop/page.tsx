@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useCompany } from "@/lib/company-context";
+import Link from "next/link";
 
 import {
   getESOPPlans,
@@ -13,6 +15,7 @@ import {
   sendESOPGrantForSigning,
   getESOPSummary,
 } from "@/lib/api";
+import ESOPApprovalWizard from "./ESOPApprovalWizard";
 
 
 interface ESOPPlan {
@@ -171,8 +174,9 @@ function PoolDonut({ summary }: { summary: PoolSummary }) {
 }
 
 export default function ESOPPage() {
-  const [companyId, setCompanyId] = useState<number>(1);
-  const [activeTab, setActiveTab] = useState<"plans" | "grants" | "pool">("plans");
+  const { companies, selectedCompany, selectCompany, loading: companyLoading } = useCompany();
+  const [activeTab, setActiveTab] = useState<"plans" | "grants" | "pool" | "approval">("plans");
+  const [approvalPlan, setApprovalPlan] = useState<ESOPPlan | null>(null);
   const [plans, setPlans] = useState<ESOPPlan[]>([]);
   const [grants, setGrants] = useState<ESOPGrant[]>([]);
   const [poolSummary, setPoolSummary] = useState<PoolSummary | null>(null);
@@ -219,16 +223,18 @@ export default function ESOPPage() {
   const [expandedGrantId, setExpandedGrantId] = useState<number | null>(null);
 
   useEffect(() => {
-    fetchData();
-  }, [companyId]);
+    if (selectedCompany?.id) {
+      fetchData();
+    }
+  }, [selectedCompany?.id]);
 
   async function fetchData() {
     setLoading(true);
     try {
       const [plansData, grantsData, summaryData] = await Promise.all([
-        getESOPPlans(companyId).catch(() => []),
-        getCompanyESOPGrants(companyId).catch(() => []),
-        getESOPSummary(companyId).catch(() => null),
+        getESOPPlans(selectedCompany!.id).catch(() => []),
+        getCompanyESOPGrants(selectedCompany!.id).catch(() => []),
+        getESOPSummary(selectedCompany!.id).catch(() => null),
       ]);
       setPlans(plansData);
       setGrants(grantsData);
@@ -243,7 +249,7 @@ export default function ESOPPage() {
     e.preventDefault();
     setMessage("");
     try {
-      await createESOPPlan(companyId, {
+      await createESOPPlan(selectedCompany!.id, {
         ...planForm,
         pool_size: parseInt(planForm.pool_size),
         default_vesting_months: parseInt(planForm.default_vesting_months),
@@ -274,7 +280,7 @@ export default function ESOPPage() {
   async function handleActivatePlan(planId: number) {
     setMessage("");
     try {
-      await activateESOPPlan(companyId, planId);
+      await activateESOPPlan(selectedCompany!.id, planId);
       setMessage("Plan activated successfully!");
       fetchData();
     } catch (err: any) {
@@ -287,7 +293,7 @@ export default function ESOPPage() {
     if (!selectedPlanId) return;
     setMessage("");
     try {
-      await createESOPGrant(companyId, selectedPlanId, {
+      await createESOPGrant(selectedCompany!.id, selectedPlanId, {
         grantee_name: grantForm.grantee_name,
         grantee_email: grantForm.grantee_email,
         grantee_employee_id: grantForm.grantee_employee_id || undefined,
@@ -326,7 +332,7 @@ export default function ESOPPage() {
     if (!exerciseGrantId) return;
     setMessage("");
     try {
-      await exerciseESOPOptions(companyId, exerciseGrantId, {
+      await exerciseESOPOptions(selectedCompany!.id, exerciseGrantId, {
         number_of_options: parseInt(exerciseCount),
       });
       setMessage("Options exercised successfully! Shares allotted to cap table.");
@@ -341,7 +347,7 @@ export default function ESOPPage() {
   async function handleGenerateLetter(grantId: number) {
     setMessage("");
     try {
-      await generateESOPGrantLetter(companyId, grantId);
+      await generateESOPGrantLetter(selectedCompany!.id, grantId);
       setMessage("Grant letter generated successfully!");
       fetchData();
     } catch (err: any) {
@@ -352,7 +358,7 @@ export default function ESOPPage() {
   async function handleSendForSigning(grantId: number) {
     setMessage("");
     try {
-      await sendESOPGrantForSigning(companyId, grantId);
+      await sendESOPGrantForSigning(selectedCompany!.id, grantId);
       setMessage("Grant letter sent for signing!");
       fetchData();
     } catch (err: any) {
@@ -378,25 +384,51 @@ export default function ESOPPage() {
         </div>
 
         {/* Company selector */}
-        <div className="flex justify-center mb-6">
-          <div className="flex items-center gap-3">
-            <label className="text-sm" style={{ color: "var(--color-text-muted)" }}>Company ID:</label>
-            <input
-              type="number"
-              value={companyId}
-              onChange={(e) => setCompanyId(parseInt(e.target.value) || 1)}
-              className="glass-card px-3 py-1.5 text-sm w-20 text-center"
-              style={{
-                background: "var(--color-bg-card)",
-                border: "1px solid var(--color-border)",
-                color: "var(--color-text-primary)",
-                cursor: "text",
-              }}
-              min={1}
-            />
+        {companies.length > 1 && (
+          <div className="flex justify-center mb-6">
+            <select
+              className="glass-card text-sm px-3 py-2 rounded-lg border-none outline-none"
+              style={{ background: "var(--color-bg-card)", color: "var(--color-text-primary)" }}
+              value={selectedCompany?.id || ""}
+              onChange={(e) => selectCompany(Number(e.target.value))}
+            >
+              {companies.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.approved_name || c.proposed_names?.[0] || `Company #${c.id}`}
+                </option>
+              ))}
+            </select>
           </div>
-        </div>
+        )}
 
+        {/* No company guard */}
+        {!selectedCompany && !companyLoading && (
+          <div className="glass-card p-12 text-center" style={{ cursor: "default" }}>
+            <h2 className="text-xl font-bold mb-2" style={{ color: "var(--color-text-primary)" }}>No company selected</h2>
+            <p className="text-sm mb-6" style={{ color: "var(--color-text-secondary)" }}>
+              Select a company from the sidebar to view ESOP management.
+            </p>
+            <div className="flex items-center justify-center gap-3">
+              <Link href="/pricing" className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white" style={{ background: "#8B5CF6" }}>
+                Incorporate a New Company
+              </Link>
+              <Link href="/dashboard/connect" className="px-5 py-2.5 rounded-lg text-sm font-semibold border" style={{ borderColor: "var(--color-border)", color: "var(--color-text-primary)" }}>
+                Connect Existing Company
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {companyLoading && (
+          <div className="flex items-center justify-center py-24">
+            <div className="animate-pulse-glow w-16 h-16 rounded-full flex items-center justify-center" style={{ background: "rgba(139, 92, 246, 0.2)" }}>
+              <img src="/logo-icon.png" alt="Anvils" className="w-7 h-7 object-contain" />
+            </div>
+          </div>
+        )}
+
+        {selectedCompany && (
+          <>
         {/* Message */}
         {message && (
           <div
@@ -414,7 +446,7 @@ export default function ESOPPage() {
 
         {/* Tabs */}
         <div className="flex gap-2 mb-8 justify-center flex-wrap">
-          {(["plans", "grants", "pool"] as const).map((tab) => (
+          {(["plans", "grants", "pool", "approval"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -427,6 +459,7 @@ export default function ESOPPage() {
               {tab === "plans" && "ESOP Plans"}
               {tab === "grants" && "Grants"}
               {tab === "pool" && "Pool Summary"}
+              {tab === "approval" && "Approval Flow"}
             </button>
           ))}
         </div>
@@ -516,33 +549,65 @@ export default function ESOPPage() {
 
                       <div className="flex gap-2">
                         {plan.status === "draft" && (
-                          <button
-                            onClick={() => handleActivatePlan(plan.id)}
-                            className="text-xs px-3 py-1.5 rounded-lg transition-all"
-                            style={{
-                              background: "rgba(16, 185, 129, 0.1)",
-                              border: "1px solid rgba(16, 185, 129, 0.3)",
-                              color: "rgb(16, 185, 129)",
-                            }}
-                          >
-                            Activate Plan
-                          </button>
+                          <>
+                            <button
+                              onClick={() => {
+                                setApprovalPlan(plan);
+                                setActiveTab("approval");
+                              }}
+                              className="text-xs px-3 py-1.5 rounded-lg transition-all"
+                              style={{
+                                background: "rgba(139, 92, 246, 0.1)",
+                                border: "1px solid rgba(139, 92, 246, 0.3)",
+                                color: "rgb(139, 92, 246)",
+                              }}
+                            >
+                              Start Approval Flow
+                            </button>
+                            <button
+                              onClick={() => handleActivatePlan(plan.id)}
+                              className="text-xs px-3 py-1.5 rounded-lg transition-all"
+                              style={{
+                                background: "rgba(16, 185, 129, 0.1)",
+                                border: "1px solid rgba(16, 185, 129, 0.3)",
+                                color: "rgb(16, 185, 129)",
+                              }}
+                            >
+                              Activate Plan
+                            </button>
+                          </>
                         )}
                         {plan.status === "active" && (
-                          <button
-                            onClick={() => {
-                              setSelectedPlanId(plan.id);
-                              setShowCreateGrant(true);
-                            }}
-                            className="text-xs px-3 py-1.5 rounded-lg transition-all"
-                            style={{
-                              background: "rgba(139, 92, 246, 0.1)",
-                              border: "1px solid rgba(139, 92, 246, 0.3)",
-                              color: "rgb(139, 92, 246)",
-                            }}
-                          >
-                            Issue Grant
-                          </button>
+                          <>
+                            <button
+                              onClick={() => {
+                                setApprovalPlan(plan);
+                                setActiveTab("approval");
+                              }}
+                              className="text-xs px-3 py-1.5 rounded-lg transition-all"
+                              style={{
+                                background: "rgba(139, 92, 246, 0.1)",
+                                border: "1px solid rgba(139, 92, 246, 0.3)",
+                                color: "rgb(139, 92, 246)",
+                              }}
+                            >
+                              View Approval Flow
+                            </button>
+                            <button
+                              onClick={() => {
+                                setSelectedPlanId(plan.id);
+                                setShowCreateGrant(true);
+                              }}
+                              className="text-xs px-3 py-1.5 rounded-lg transition-all"
+                              style={{
+                                background: "rgba(16, 185, 129, 0.1)",
+                                border: "1px solid rgba(16, 185, 129, 0.3)",
+                                color: "rgb(16, 185, 129)",
+                              }}
+                            >
+                              Issue Grant
+                            </button>
+                          </>
                         )}
                       </div>
 
@@ -847,6 +912,75 @@ export default function ESOPPage() {
               </div>
             )}
           </div>
+        )}
+
+        {/* ====== APPROVAL FLOW TAB ====== */}
+        {activeTab === "approval" && !loading && (
+          <div>
+            {approvalPlan ? (
+              <ESOPApprovalWizard
+                companyId={selectedCompany!.id}
+                plan={approvalPlan}
+                onComplete={() => {
+                  fetchData();
+                }}
+                onClose={() => {
+                  setApprovalPlan(null);
+                  setActiveTab("plans");
+                }}
+              />
+            ) : (
+              <div className="text-center py-16">
+                <div className="text-4xl mb-4">&#128203;</div>
+                <h3 className="text-lg font-semibold mb-2" style={{ color: "var(--color-text-primary)" }}>
+                  Select a Plan
+                </h3>
+                <p className="text-sm mb-6" style={{ color: "var(--color-text-muted)" }}>
+                  Go to the ESOP Plans tab and click &quot;Start Approval Flow&quot; on a draft plan
+                  to begin the compliance workflow.
+                </p>
+
+                {/* Show draft plans as quick-select cards */}
+                {plans.filter(p => p.status === "draft" || p.status === "active").length > 0 && (
+                  <div className="max-w-md mx-auto space-y-2">
+                    <p className="text-xs font-medium mb-3" style={{ color: "var(--color-text-muted)" }}>
+                      Or select a plan below:
+                    </p>
+                    {plans
+                      .filter(p => p.status === "draft" || p.status === "active")
+                      .map((p) => (
+                        <button
+                          key={p.id}
+                          onClick={() => setApprovalPlan(p)}
+                          className="glass-card p-3 w-full text-left transition-all hover:border-purple-500"
+                          style={{ borderColor: "var(--color-border)" }}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <span className="text-sm font-semibold">{p.plan_name}</span>
+                              <span className="text-xs ml-2" style={{ color: "var(--color-text-muted)" }}>
+                                {p.pool_size.toLocaleString()} options
+                              </span>
+                            </div>
+                            <span
+                              className="text-xs px-2 py-0.5 rounded-full capitalize"
+                              style={{
+                                background: p.status === "active" ? "rgba(16, 185, 129, 0.15)" : "rgba(156, 163, 175, 0.15)",
+                                color: p.status === "active" ? "rgb(16, 185, 129)" : "rgb(156, 163, 175)",
+                              }}
+                            >
+                              {p.status}
+                            </span>
+                          </div>
+                        </button>
+                      ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+          </>
         )}
       </div>
 

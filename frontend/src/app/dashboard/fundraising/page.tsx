@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import Link from "next/link";
 
 import {
   getFundingRounds,
@@ -14,6 +15,7 @@ import {
   completeAllotment,
   previewConversion,
   convertRound,
+  createLegalDraft,
 } from "@/lib/api";
 
 
@@ -53,6 +55,807 @@ interface FundingRound {
   investor_count?: number;
   investors?: Investor[];
   created_at: string;
+}
+
+// ── Document Checklist Types ──
+
+type DocStatus = "not_started" | "in_progress" | "complete";
+type TransactionDocStatus = "draft" | "in_review" | "signed";
+type FilingStatus = "not_filed" | "filed" | "acknowledged";
+type ShareholderApprovalStatus = "pending" | "sr_passed";
+
+interface ChecklistState {
+  // Step 1: Valuation
+  valuation_status: DocStatus;
+
+  // Step 2: Transaction Documents
+  sha_status: TransactionDocStatus;
+  sha_draft_id: number | null;
+  ssa_status: TransactionDocStatus;
+  ssa_draft_id: number | null;
+  aoa_amended: boolean;
+
+  // Step 3: Board Approval
+  board_resolution_status: TransactionDocStatus;
+  board_resolution_draft_id: number | null;
+  board_meeting_held: boolean;
+  board_resolution_passed: boolean;
+
+  // Step 4: Shareholder Approval
+  shareholder_approval_status: ShareholderApprovalStatus;
+  egm_notice_sent: boolean;
+  sr_private_placement: boolean;
+  sr_aoa_amendment: boolean;
+  sr_capital_increase: boolean;
+
+  // Step 5: Regulatory Filings
+  mgt14_filed: FilingStatus;
+  sh7_filed: FilingStatus;
+  sh7_amount: string;
+
+  // Step 6: Offer & Allotment
+  pas4_issued: boolean;
+  funds_received_investors: Record<number, boolean>;
+  allotment_board_resolution: boolean;
+
+  // Step 7: Post-Closing Filings
+  pas3_filed: boolean;
+  share_certificates_issued: boolean;
+  fc_gpr_filed: boolean;
+}
+
+const DEFAULT_CHECKLIST_STATE: ChecklistState = {
+  valuation_status: "not_started",
+  sha_status: "draft",
+  sha_draft_id: null,
+  ssa_status: "draft",
+  ssa_draft_id: null,
+  aoa_amended: false,
+  board_resolution_status: "draft",
+  board_resolution_draft_id: null,
+  board_meeting_held: false,
+  board_resolution_passed: false,
+  shareholder_approval_status: "pending",
+  egm_notice_sent: false,
+  sr_private_placement: false,
+  sr_aoa_amendment: false,
+  sr_capital_increase: false,
+  mgt14_filed: "not_filed",
+  sh7_filed: "not_filed",
+  sh7_amount: "",
+  pas4_issued: false,
+  funds_received_investors: {},
+  allotment_board_resolution: false,
+  pas3_filed: false,
+  share_certificates_issued: false,
+  fc_gpr_filed: false,
+};
+
+function useChecklistState(roundId: number | null): [ChecklistState, (patch: Partial<ChecklistState>) => void] {
+  const storageKey = roundId != null ? `anvils_round_checklist_${roundId}` : null;
+
+  const [state, setState] = useState<ChecklistState>(DEFAULT_CHECKLIST_STATE);
+
+  useEffect(() => {
+    if (!storageKey) {
+      setState(DEFAULT_CHECKLIST_STATE);
+      return;
+    }
+    try {
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setState({ ...DEFAULT_CHECKLIST_STATE, ...parsed });
+      } else {
+        setState(DEFAULT_CHECKLIST_STATE);
+      }
+    } catch {
+      setState(DEFAULT_CHECKLIST_STATE);
+    }
+  }, [storageKey]);
+
+  const updateState = useCallback(
+    (patch: Partial<ChecklistState>) => {
+      setState((prev) => {
+        const next = { ...prev, ...patch };
+        if (storageKey) {
+          try {
+            localStorage.setItem(storageKey, JSON.stringify(next));
+          } catch {
+            // localStorage quota exceeded - silently fail
+          }
+        }
+        return next;
+      });
+    },
+    [storageKey]
+  );
+
+  return [state, updateState];
+}
+
+// ── Checklist UI Helpers ──
+
+function StepStatusIcon({ status }: { status: "complete" | "in_progress" | "not_started" }) {
+  if (status === "complete") {
+    return (
+      <div
+        className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
+        style={{ background: "rgba(16, 185, 129, 0.2)", color: "rgb(16, 185, 129)" }}
+      >
+        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+        </svg>
+      </div>
+    );
+  }
+  if (status === "in_progress") {
+    return (
+      <div
+        className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
+        style={{ background: "rgba(245, 158, 11, 0.2)", color: "rgb(245, 158, 11)" }}
+      >
+        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5" />
+        </svg>
+      </div>
+    );
+  }
+  return (
+    <div
+      className="w-5 h-5 rounded-full flex-shrink-0"
+      style={{ border: "2px solid var(--color-border)" }}
+    />
+  );
+}
+
+function MiniCheckbox({
+  checked,
+  onChange,
+  disabled = false,
+}: {
+  checked: boolean;
+  onChange: (v: boolean) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      onClick={() => !disabled && onChange(!checked)}
+      disabled={disabled}
+      className="w-4 h-4 rounded border inline-flex items-center justify-center transition-all flex-shrink-0"
+      style={{
+        borderColor: checked ? "rgb(16, 185, 129)" : "var(--color-border)",
+        background: checked ? "rgba(16, 185, 129, 0.15)" : "transparent",
+        color: checked ? "rgb(16, 185, 129)" : "transparent",
+        opacity: disabled ? 0.4 : 1,
+        cursor: disabled ? "not-allowed" : "pointer",
+      }}
+    >
+      {checked && (
+        <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+        </svg>
+      )}
+    </button>
+  );
+}
+
+function SmallActionButton({
+  onClick,
+  children,
+  variant = "purple",
+  disabled = false,
+}: {
+  onClick: () => void;
+  children: React.ReactNode;
+  variant?: "purple" | "green" | "amber";
+  disabled?: boolean;
+}) {
+  const colors = {
+    purple: { bg: "rgba(139, 92, 246, 0.1)", border: "rgba(139, 92, 246, 0.3)", text: "rgb(139, 92, 246)" },
+    green: { bg: "rgba(16, 185, 129, 0.1)", border: "rgba(16, 185, 129, 0.3)", text: "rgb(16, 185, 129)" },
+    amber: { bg: "rgba(245, 158, 11, 0.1)", border: "rgba(245, 158, 11, 0.3)", text: "rgb(245, 158, 11)" },
+  };
+  const c = colors[variant];
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className="text-[10px] px-2 py-1 rounded-md whitespace-nowrap"
+      style={{
+        background: c.bg,
+        border: `1px solid ${c.border}`,
+        color: c.text,
+        opacity: disabled ? 0.4 : 1,
+        cursor: disabled ? "not-allowed" : "pointer",
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function TransactionDocStatusBadge({ status }: { status: TransactionDocStatus }) {
+  const map: Record<TransactionDocStatus, { bg: string; text: string; label: string }> = {
+    draft: { bg: "rgba(156, 163, 175, 0.15)", text: "rgb(156, 163, 175)", label: "Draft" },
+    in_review: { bg: "rgba(245, 158, 11, 0.15)", text: "rgb(245, 158, 11)", label: "In Review" },
+    signed: { bg: "rgba(16, 185, 129, 0.15)", text: "rgb(16, 185, 129)", label: "Signed" },
+  };
+  const s = map[status];
+  return (
+    <span className="text-[9px] px-1.5 py-0.5 rounded-full" style={{ background: s.bg, color: s.text }}>
+      {s.label}
+    </span>
+  );
+}
+
+function FilingStatusBadge({ status }: { status: FilingStatus }) {
+  const map: Record<FilingStatus, { bg: string; text: string; label: string }> = {
+    not_filed: { bg: "rgba(156, 163, 175, 0.15)", text: "rgb(156, 163, 175)", label: "Not Filed" },
+    filed: { bg: "rgba(245, 158, 11, 0.15)", text: "rgb(245, 158, 11)", label: "Filed" },
+    acknowledged: { bg: "rgba(16, 185, 129, 0.15)", text: "rgb(16, 185, 129)", label: "Acknowledged" },
+  };
+  const s = map[status];
+  return (
+    <span className="text-[9px] px-1.5 py-0.5 rounded-full" style={{ background: s.bg, color: s.text }}>
+      {s.label}
+    </span>
+  );
+}
+
+function cycleTransactionDocStatus(s: TransactionDocStatus): TransactionDocStatus {
+  if (s === "draft") return "in_review";
+  if (s === "in_review") return "signed";
+  return "draft";
+}
+
+function cycleFilingStatus(s: FilingStatus): FilingStatus {
+  if (s === "not_filed") return "filed";
+  if (s === "filed") return "acknowledged";
+  return "not_filed";
+}
+
+// ── Document Checklist Component ──
+
+function DocumentChecklist({
+  round,
+  companyId,
+  onAllotment,
+  onMessage,
+}: {
+  round: FundingRound;
+  companyId: number;
+  onAllotment: () => void;
+  onMessage: (msg: string) => void;
+}) {
+  const [checklist, updateChecklist] = useChecklistState(round.id);
+  const [expandedSteps, setExpandedSteps] = useState<Set<number>>(new Set([1]));
+  const [draftingDoc, setDraftingDoc] = useState<string | null>(null);
+
+  const toggleStep = (step: number) => {
+    setExpandedSteps((prev) => {
+      const next = new Set(prev);
+      if (next.has(step)) next.delete(step);
+      else next.add(step);
+      return next;
+    });
+  };
+
+  const hasForeignInvestor = useMemo(
+    () => round.investors?.some((inv) => inv.investor_type === "foreign" || inv.investor_type === "fdi") ?? false,
+    [round.investors]
+  );
+
+  // Step completion logic
+  const stepStatuses = useMemo(() => {
+    const s1 = checklist.valuation_status === "complete";
+    const s2 = checklist.sha_status === "signed" && checklist.ssa_status === "signed";
+    const s3 = checklist.board_meeting_held && checklist.board_resolution_passed && checklist.board_resolution_status === "signed";
+    const s4 = checklist.shareholder_approval_status === "sr_passed";
+    const s5 =
+      checklist.mgt14_filed !== "not_filed" &&
+      (checklist.sh7_filed !== "not_filed" || !checklist.sr_capital_increase);
+    const s6 =
+      checklist.pas4_issued &&
+      checklist.allotment_board_resolution &&
+      round.allotment_completed === true;
+    const s7 =
+      checklist.pas3_filed &&
+      checklist.share_certificates_issued &&
+      (!hasForeignInvestor || checklist.fc_gpr_filed);
+
+    return [s1, s2, s3, s4, s5, s6, s7];
+  }, [checklist, round.allotment_completed, hasForeignInvestor]);
+
+  const completedCount = stepStatuses.filter(Boolean).length;
+
+  function getStepIconStatus(stepIndex: number): "complete" | "in_progress" | "not_started" {
+    if (stepStatuses[stepIndex]) return "complete";
+    // Check if any field in the step has been touched
+    if (stepIndex === 0 && checklist.valuation_status !== "not_started") return "in_progress";
+    if (stepIndex === 1 && (checklist.sha_status !== "draft" || checklist.ssa_status !== "draft")) return "in_progress";
+    if (stepIndex === 2 && (checklist.board_meeting_held || checklist.board_resolution_passed || checklist.board_resolution_status !== "draft")) return "in_progress";
+    if (stepIndex === 3 && (checklist.egm_notice_sent || checklist.sr_private_placement)) return "in_progress";
+    if (stepIndex === 4 && (checklist.mgt14_filed !== "not_filed" || checklist.sh7_filed !== "not_filed")) return "in_progress";
+    if (stepIndex === 5 && (checklist.pas4_issued || checklist.allotment_board_resolution)) return "in_progress";
+    if (stepIndex === 6 && (checklist.pas3_filed || checklist.share_certificates_issued || checklist.fc_gpr_filed)) return "in_progress";
+    return "not_started";
+  }
+
+  function isStepBlocked(stepIndex: number): string | null {
+    // Steps 0,1 are never blocked
+    if (stepIndex <= 1) return null;
+    // Step 2 blocked if step 1 not at least in progress
+    if (stepIndex === 2 && checklist.sha_status === "draft" && checklist.ssa_status === "draft") {
+      return "Complete transaction documents first";
+    }
+    // Step 3 blocked if board not approved
+    if (stepIndex === 3 && !stepStatuses[2]) return "Board approval required first";
+    // Step 4 blocked if shareholder approval not done
+    if (stepIndex === 4 && !stepStatuses[3]) return "Shareholder approval required first";
+    // Step 5 blocked if regulatory filings not done
+    if (stepIndex === 5 && !stepStatuses[4]) return "Complete regulatory filings first";
+    // Step 6 blocked if allotment not done
+    if (stepIndex === 6 && !stepStatuses[5]) return "Complete offer & allotment first";
+    return null;
+  }
+
+  async function handleDraftDocument(templateType: string, fieldPrefix: string) {
+    setDraftingDoc(templateType);
+    try {
+      const result = await createLegalDraft({ template_type: templateType, company_id: companyId });
+      if (result?.id) {
+        updateChecklist({ [`${fieldPrefix}_draft_id`]: result.id } as Partial<ChecklistState>);
+      }
+      onMessage(`${templateType.toUpperCase().replace(/_/g, " ")} draft created successfully.`);
+    } catch (err: any) {
+      onMessage(`Error creating draft: ${err.message}`);
+    }
+    setDraftingDoc(null);
+  }
+
+  const stepLabels = [
+    "Valuation Report",
+    "Transaction Documents",
+    "Board Approval",
+    "Shareholder Approval",
+    "Regulatory Filings",
+    "Offer & Allotment",
+    "Post-Closing Filings",
+  ];
+
+  return (
+    <div className="glass-card overflow-hidden" style={{ cursor: "default" }}>
+      {/* Header with progress */}
+      <div className="p-4" style={{ borderBottom: "1px solid var(--color-border)" }}>
+        <div className="flex justify-between items-center mb-2">
+          <h3 className="font-semibold text-sm">Document & Compliance Checklist</h3>
+          <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: "rgba(139, 92, 246, 0.15)", color: "rgb(139, 92, 246)" }}>
+            {completedCount} of 7 complete
+          </span>
+        </div>
+        {/* Progress bar */}
+        <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.05)" }}>
+          <div
+            className="h-full rounded-full transition-all duration-300"
+            style={{
+              width: `${Math.round((completedCount / 7) * 100)}%`,
+              background: completedCount === 7 ? "rgb(16, 185, 129)" : "rgb(139, 92, 246)",
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Steps */}
+      <div>
+        {stepLabels.map((label, idx) => {
+          const stepNum = idx + 1;
+          const isExpanded = expandedSteps.has(stepNum);
+          const blocked = isStepBlocked(idx);
+          const iconStatus = getStepIconStatus(idx);
+
+          return (
+            <div key={stepNum} style={{ borderBottom: idx < 6 ? "1px solid var(--color-border)" : undefined }}>
+              {/* Step header */}
+              <button
+                onClick={() => toggleStep(stepNum)}
+                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-left transition-colors"
+                style={{
+                  opacity: blocked ? 0.5 : 1,
+                  background: isExpanded ? "rgba(255,255,255,0.02)" : "transparent",
+                }}
+              >
+                <StepStatusIcon status={iconStatus} />
+                <div className="flex-1 min-w-0">
+                  <span className="text-xs font-medium">{stepNum}. {label}</span>
+                  {blocked && (
+                    <div className="text-[9px] mt-0.5" style={{ color: "var(--color-text-muted)" }}>
+                      {blocked}
+                    </div>
+                  )}
+                </div>
+                <svg
+                  className="w-3 h-3 flex-shrink-0 transition-transform"
+                  style={{
+                    color: "var(--color-text-muted)",
+                    transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)",
+                  }}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                </svg>
+              </button>
+
+              {/* Step content */}
+              {isExpanded && !blocked && (
+                <div className="px-4 pb-3 pt-0.5" style={{ paddingLeft: "2.75rem" }}>
+                  {/* Step 1: Valuation Report */}
+                  {stepNum === 1 && (
+                    <div className="space-y-2">
+                      <p className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>
+                        Registered valuer&apos;s report (required for private placement pricing)
+                      </p>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <select
+                          value={checklist.valuation_status}
+                          onChange={(e) => updateChecklist({ valuation_status: e.target.value as DocStatus })}
+                          className="text-[10px] px-2 py-1 rounded-md"
+                          style={{
+                            background: "rgba(255,255,255,0.04)",
+                            border: "1px solid var(--color-border)",
+                            color: "var(--color-text-primary)",
+                          }}
+                        >
+                          <option value="not_started">Not Started</option>
+                          <option value="in_progress">In Progress</option>
+                          <option value="complete">Complete</option>
+                        </select>
+                        <Link
+                          href="/dashboard/valuations"
+                          className="text-[10px] px-2 py-1 rounded-md"
+                          style={{
+                            background: "rgba(139, 92, 246, 0.1)",
+                            border: "1px solid rgba(139, 92, 246, 0.3)",
+                            color: "rgb(139, 92, 246)",
+                          }}
+                        >
+                          Go to Valuations
+                        </Link>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Step 2: Transaction Documents */}
+                  {stepNum === 2 && (
+                    <div className="space-y-2.5">
+                      {/* SHA */}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <TransactionDocStatusBadge status={checklist.sha_status} />
+                        <span className="text-[10px] flex-1">SHA (Shareholders&apos; Agreement)</span>
+                        <SmallActionButton
+                          onClick={() => handleDraftDocument("sha", "sha")}
+                          disabled={draftingDoc === "sha"}
+                        >
+                          {draftingDoc === "sha" ? "Drafting..." : "Draft SHA"}
+                        </SmallActionButton>
+                        <SmallActionButton
+                          onClick={() => updateChecklist({ sha_status: cycleTransactionDocStatus(checklist.sha_status) })}
+                          variant="amber"
+                        >
+                          {checklist.sha_status === "draft" ? "Send for Review" : checklist.sha_status === "in_review" ? "Mark Signed" : "Reset"}
+                        </SmallActionButton>
+                      </div>
+
+                      {/* SSA */}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <TransactionDocStatusBadge status={checklist.ssa_status} />
+                        <span className="text-[10px] flex-1">SSA (Share Subscription Agreement)</span>
+                        <SmallActionButton
+                          onClick={() => handleDraftDocument("ssa", "ssa")}
+                          disabled={draftingDoc === "ssa"}
+                        >
+                          {draftingDoc === "ssa" ? "Drafting..." : "Draft SSA"}
+                        </SmallActionButton>
+                        <SmallActionButton
+                          onClick={() => updateChecklist({ ssa_status: cycleTransactionDocStatus(checklist.ssa_status) })}
+                          variant="amber"
+                        >
+                          {checklist.ssa_status === "draft" ? "Send for Review" : checklist.ssa_status === "in_review" ? "Mark Signed" : "Reset"}
+                        </SmallActionButton>
+                      </div>
+
+                      {/* Amended AOA */}
+                      <div className="flex items-center gap-2">
+                        <MiniCheckbox
+                          checked={checklist.aoa_amended}
+                          onChange={(v) => updateChecklist({ aoa_amended: v })}
+                        />
+                        <span className="text-[10px]" style={{ color: "var(--color-text-secondary)" }}>
+                          Amended AOA (if needed)
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Step 3: Board Approval */}
+                  {stepNum === 3 && (
+                    <div className="space-y-2.5">
+                      <p className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>
+                        Board resolution approving the fundraise
+                      </p>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <TransactionDocStatusBadge status={checklist.board_resolution_status} />
+                        <span className="text-[10px] flex-1">Board Resolution</span>
+                        <SmallActionButton
+                          onClick={() => handleDraftDocument("board_resolution", "board_resolution")}
+                          disabled={draftingDoc === "board_resolution"}
+                        >
+                          {draftingDoc === "board_resolution" ? "Generating..." : "Generate Board Resolution"}
+                        </SmallActionButton>
+                        <SmallActionButton
+                          onClick={() => updateChecklist({ board_resolution_status: cycleTransactionDocStatus(checklist.board_resolution_status) })}
+                          variant="amber"
+                        >
+                          {checklist.board_resolution_status === "draft" ? "Send for Signing" : checklist.board_resolution_status === "in_review" ? "Mark Signed" : "Reset"}
+                        </SmallActionButton>
+                      </div>
+                      <div className="space-y-1.5 mt-1">
+                        <div className="flex items-center gap-2">
+                          <MiniCheckbox
+                            checked={checklist.board_meeting_held}
+                            onChange={(v) => updateChecklist({ board_meeting_held: v })}
+                          />
+                          <span className="text-[10px]">Board meeting held</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <MiniCheckbox
+                            checked={checklist.board_resolution_passed}
+                            onChange={(v) => updateChecklist({ board_resolution_passed: v })}
+                          />
+                          <span className="text-[10px]">Resolution passed</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Step 4: Shareholder Approval */}
+                  {stepNum === 4 && (
+                    <div className="space-y-2.5">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[10px] font-medium">Status:</span>
+                        <span
+                          className="text-[9px] px-1.5 py-0.5 rounded-full"
+                          style={{
+                            background:
+                              checklist.shareholder_approval_status === "sr_passed"
+                                ? "rgba(16, 185, 129, 0.15)"
+                                : "rgba(245, 158, 11, 0.15)",
+                            color:
+                              checklist.shareholder_approval_status === "sr_passed"
+                                ? "rgb(16, 185, 129)"
+                                : "rgb(245, 158, 11)",
+                          }}
+                        >
+                          {checklist.shareholder_approval_status === "sr_passed" ? "SR Passed" : "Pending"}
+                        </span>
+                      </div>
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-2">
+                          <MiniCheckbox
+                            checked={checklist.egm_notice_sent}
+                            onChange={(v) => updateChecklist({ egm_notice_sent: v })}
+                          />
+                          <span className="text-[10px]">EGM notice sent (14 clear days)</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <MiniCheckbox
+                            checked={checklist.sr_private_placement}
+                            onChange={(v) => updateChecklist({ sr_private_placement: v })}
+                          />
+                          <span className="text-[10px]">Special Resolution for private placement</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <MiniCheckbox
+                            checked={checklist.sr_aoa_amendment}
+                            onChange={(v) => updateChecklist({ sr_aoa_amendment: v })}
+                          />
+                          <span className="text-[10px]" style={{ color: "var(--color-text-secondary)" }}>
+                            Special Resolution for AOA amendment (if applicable)
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <MiniCheckbox
+                            checked={checklist.sr_capital_increase}
+                            onChange={(v) => updateChecklist({ sr_capital_increase: v })}
+                          />
+                          <span className="text-[10px]" style={{ color: "var(--color-text-secondary)" }}>
+                            Special Resolution for capital increase (if applicable)
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
+                        <SmallActionButton
+                          onClick={() => {
+                            handleDraftDocument("egm_notice", "egm_notice");
+                            updateChecklist({ egm_notice_sent: true });
+                          }}
+                        >
+                          Generate EGM Notice
+                        </SmallActionButton>
+                        {checklist.sr_private_placement && (
+                          <SmallActionButton
+                            onClick={() => updateChecklist({ shareholder_approval_status: checklist.shareholder_approval_status === "pending" ? "sr_passed" : "pending" })}
+                            variant="green"
+                          >
+                            {checklist.shareholder_approval_status === "pending" ? "Mark SR Passed" : "Revert to Pending"}
+                          </SmallActionButton>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Step 5: Regulatory Filings */}
+                  {stepNum === 5 && (
+                    <div className="space-y-2.5">
+                      {/* MGT-14 */}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <FilingStatusBadge status={checklist.mgt14_filed} />
+                        <span className="text-[10px] flex-1">MGT-14 (within 30 days of SR)</span>
+                        <SmallActionButton
+                          onClick={() => updateChecklist({ mgt14_filed: cycleFilingStatus(checklist.mgt14_filed) })}
+                          variant="amber"
+                        >
+                          {checklist.mgt14_filed === "not_filed" ? "Mark Filed" : checklist.mgt14_filed === "filed" ? "Acknowledged" : "Reset"}
+                        </SmallActionButton>
+                      </div>
+
+                      {/* SH-7 */}
+                      {checklist.sr_capital_increase && (
+                        <div className="space-y-1.5">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <FilingStatusBadge status={checklist.sh7_filed} />
+                            <span className="text-[10px] flex-1">SH-7 (capital increase)</span>
+                            <SmallActionButton
+                              onClick={() => updateChecklist({ sh7_filed: cycleFilingStatus(checklist.sh7_filed) })}
+                              variant="amber"
+                            >
+                              {checklist.sh7_filed === "not_filed" ? "Mark Filed" : checklist.sh7_filed === "filed" ? "Acknowledged" : "Reset"}
+                            </SmallActionButton>
+                          </div>
+                          <div className="flex items-center gap-2 pl-1">
+                            <label className="text-[9px]" style={{ color: "var(--color-text-muted)" }}>Amount:</label>
+                            <input
+                              type="text"
+                              value={checklist.sh7_amount}
+                              onChange={(e) => updateChecklist({ sh7_amount: e.target.value })}
+                              placeholder="Capital increase amount"
+                              className="text-[10px] px-2 py-0.5 rounded-md flex-1"
+                              style={{
+                                background: "rgba(255,255,255,0.04)",
+                                border: "1px solid var(--color-border)",
+                                color: "var(--color-text-primary)",
+                                maxWidth: "160px",
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Step 6: Offer & Allotment */}
+                  {stepNum === 6 && (
+                    <div className="space-y-2.5">
+                      <div className="flex items-center gap-2">
+                        <MiniCheckbox
+                          checked={checklist.pas4_issued}
+                          onChange={(v) => updateChecklist({ pas4_issued: v })}
+                        />
+                        <span className="text-[10px]">PAS-4 offer letters issued</span>
+                      </div>
+
+                      {/* Per-investor funds received */}
+                      {round.investors && round.investors.length > 0 && (
+                        <div className="space-y-1 pl-1">
+                          <span className="text-[9px] font-medium" style={{ color: "var(--color-text-muted)" }}>
+                            Funds received per investor:
+                          </span>
+                          {round.investors.map((inv) => (
+                            <div key={inv.id} className="flex items-center gap-2">
+                              <MiniCheckbox
+                                checked={checklist.funds_received_investors[inv.id] ?? inv.funds_received}
+                                onChange={(v) =>
+                                  updateChecklist({
+                                    funds_received_investors: {
+                                      ...checklist.funds_received_investors,
+                                      [inv.id]: v,
+                                    },
+                                  })
+                                }
+                              />
+                              <span className="text-[10px]">{inv.investor_name}</span>
+                              <span className="text-[9px] font-mono" style={{ color: "var(--color-text-muted)" }}>
+                                {formatCurrency(inv.investment_amount)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      <div className="flex items-center gap-2">
+                        <MiniCheckbox
+                          checked={checklist.allotment_board_resolution}
+                          onChange={(v) => updateChecklist({ allotment_board_resolution: v })}
+                        />
+                        <span className="text-[10px]">Board resolution for allotment</span>
+                      </div>
+
+                      <div className="flex items-center gap-2 mt-1">
+                        {!round.allotment_completed ? (
+                          <SmallActionButton
+                            onClick={onAllotment}
+                            variant="green"
+                            disabled={!checklist.pas4_issued || !checklist.allotment_board_resolution}
+                          >
+                            Complete Allotment
+                          </SmallActionButton>
+                        ) : (
+                          <span
+                            className="text-[10px] px-2 py-1 rounded-md"
+                            style={{ background: "rgba(16, 185, 129, 0.1)", color: "rgb(16, 185, 129)" }}
+                          >
+                            Allotment Complete
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Step 7: Post-Closing Filings */}
+                  {stepNum === 7 && (
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-2">
+                        <MiniCheckbox
+                          checked={checklist.pas3_filed}
+                          onChange={(v) => updateChecklist({ pas3_filed: v })}
+                        />
+                        <span className="text-[10px]">PAS-3 filed (within 30 days of allotment)</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <MiniCheckbox
+                          checked={checklist.share_certificates_issued}
+                          onChange={(v) => updateChecklist({ share_certificates_issued: v })}
+                        />
+                        <span className="text-[10px]">Share certificates issued</span>
+                      </div>
+                      {hasForeignInvestor && (
+                        <div className="flex items-center gap-2">
+                          <MiniCheckbox
+                            checked={checklist.fc_gpr_filed}
+                            onChange={(v) => updateChecklist({ fc_gpr_filed: v })}
+                          />
+                          <span className="text-[10px]">FC-GPR filed (foreign investor)</span>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2">
+                        <MiniCheckbox checked={round.allotment_completed} onChange={() => {}} disabled />
+                        <span className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>
+                          Cap table updated {round.allotment_completed ? "(auto-checked)" : "(pending allotment)"}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
@@ -765,6 +1568,14 @@ export default function FundraisingPage() {
                       </div>
                     </div>
                   )}
+
+                  {/* Document & Compliance Checklist */}
+                  <DocumentChecklist
+                    round={selectedRound}
+                    companyId={companyId}
+                    onAllotment={handleCompleteAllotment}
+                    onMessage={setMessage}
+                  />
 
                   {/* Action Buttons */}
                   <div className="flex gap-3 flex-wrap">

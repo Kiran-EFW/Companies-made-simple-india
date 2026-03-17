@@ -1,8 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useCompany } from "@/lib/company-context";
+import Link from "next/link";
 
 import { apiCall, simulateRound, simulateExit, simulateExitWaterfall, getShareCertificate } from "@/lib/api";
+import ShareIssuanceWizard from "./ShareIssuanceWizard";
 
 
 interface ShareholderData {
@@ -118,11 +121,11 @@ function PieChart({ shareholders }: { shareholders: ShareholderData[] }) {
 }
 
 export default function CapTablePage() {
-  const [companyId, setCompanyId] = useState<number>(1);
+  const { companies, selectedCompany, selectCompany, loading: companyLoading } = useCompany();
   const [capTable, setCapTable] = useState<CapTableData | null>(null);
   const [transactions, setTransactions] = useState<TransactionData[]>([]);
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<"overview" | "add" | "transfer" | "history" | "simulator" | "exit" | "waterfall">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "add" | "transfer" | "history" | "simulator" | "exit" | "waterfall" | "issue">("overview");
 
   // Add shareholder form
   const [newName, setNewName] = useState("");
@@ -169,14 +172,17 @@ export default function CapTablePage() {
   const [certLoading, setCertLoading] = useState<number | null>(null);
 
   useEffect(() => {
-    fetchCapTable();
-    fetchTransactions();
-  }, [companyId]);
+    if (selectedCompany?.id) {
+      fetchCapTable();
+      fetchTransactions();
+    }
+  }, [selectedCompany?.id]);
 
   async function fetchCapTable() {
+    if (!selectedCompany?.id) return;
     setLoading(true);
     try {
-      const data = await apiCall(`/companies/${companyId}/cap-table`);
+      const data = await apiCall(`/companies/${selectedCompany.id}/cap-table`);
       setCapTable(data);
     } catch {
       // Backend may not be running
@@ -185,8 +191,9 @@ export default function CapTablePage() {
   }
 
   async function fetchTransactions() {
+    if (!selectedCompany?.id) return;
     try {
-      const data = await apiCall(`/companies/${companyId}/cap-table/transactions`);
+      const data = await apiCall(`/companies/${selectedCompany.id}/cap-table/transactions`);
       setTransactions(data);
     } catch {
       // Silently fail
@@ -197,7 +204,7 @@ export default function CapTablePage() {
     e.preventDefault();
     setMessage("");
     try {
-      await apiCall(`/companies/${companyId}/cap-table/shareholders`, {
+      await apiCall(`/companies/${selectedCompany!.id}/cap-table/shareholders`, {
         method: "POST",
         body: JSON.stringify({
           name: newName,
@@ -227,7 +234,7 @@ export default function CapTablePage() {
     e.preventDefault();
     setMessage("");
     try {
-      const result = await apiCall(`/companies/${companyId}/cap-table/transfer`, {
+      const result = await apiCall(`/companies/${selectedCompany!.id}/cap-table/transfer`, {
         method: "POST",
         body: JSON.stringify({
           from_shareholder_id: parseInt(fromId),
@@ -256,7 +263,7 @@ export default function CapTablePage() {
     setSimResult(null);
     try {
       const totalInvestment = simInvestors.reduce((s, i) => s + (parseFloat(i.amount) || 0), 0);
-      const result = await simulateRound(companyId, {
+      const result = await simulateRound(selectedCompany!.id, {
         pre_money_valuation: parseFloat(simPreMoney) || 0,
         investment_amount: totalInvestment,
         esop_pool_pct: parseFloat(simEsopPct) || 0,
@@ -274,7 +281,7 @@ export default function CapTablePage() {
     setExitLoading(true);
     setExitResult(null);
     try {
-      const result = await simulateExit(companyId, {
+      const result = await simulateExit(selectedCompany!.id, {
         exit_valuation: parseFloat(exitValuation) || 0,
         liquidation_preference: parseFloat(exitLiqPref) || 1,
       });
@@ -310,7 +317,7 @@ export default function CapTablePage() {
           multiple: parseFloat(lp.multiple) || 1,
           invested_amount: parseFloat(lp.invested_amount) || 0,
         }));
-      const result = await simulateExitWaterfall(companyId, {
+      const result = await simulateExitWaterfall(selectedCompany!.id, {
         exit_valuation: parseFloat(wfValuation) || 0,
         liquidation_preferences: lps.length > 0 ? lps : undefined,
         participating_preferred: wfParticipating,
@@ -339,7 +346,7 @@ export default function CapTablePage() {
   async function handleCertificate(shareholderId: number) {
     setCertLoading(shareholderId);
     try {
-      const result = await getShareCertificate(companyId, shareholderId);
+      const result = await getShareCertificate(selectedCompany!.id, shareholderId);
       if (result.html) {
         const blob = new Blob([result.html], { type: "text/html" });
         const url = URL.createObjectURL(blob);
@@ -382,27 +389,51 @@ export default function CapTablePage() {
         </div>
 
         {/* Company selector */}
-        <div className="flex justify-center mb-6">
-          <div className="flex items-center gap-3">
-            <label className="text-sm" style={{ color: "var(--color-text-muted)" }}>
-              Company ID:
-            </label>
-            <input
-              type="number"
-              value={companyId}
-              onChange={(e) => setCompanyId(parseInt(e.target.value) || 1)}
-              className="glass-card px-3 py-1.5 text-sm w-20 text-center"
-              style={{
-                background: "var(--color-bg-card)",
-                border: "1px solid var(--color-border)",
-                color: "var(--color-text-primary)",
-                cursor: "text",
-              }}
-              min={1}
-            />
+        {companies.length > 1 && (
+          <div className="flex justify-center mb-6">
+            <select
+              className="glass-card text-sm px-3 py-2 rounded-lg border-none outline-none"
+              style={{ background: "var(--color-bg-card)", color: "var(--color-text-primary)" }}
+              value={selectedCompany?.id || ""}
+              onChange={(e) => selectCompany(Number(e.target.value))}
+            >
+              {companies.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.approved_name || c.proposed_names?.[0] || `Company #${c.id}`}
+                </option>
+              ))}
+            </select>
           </div>
-        </div>
+        )}
 
+        {/* No company guard */}
+        {!selectedCompany && !companyLoading && (
+          <div className="glass-card p-12 text-center" style={{ cursor: "default" }}>
+            <h2 className="text-xl font-bold mb-2" style={{ color: "var(--color-text-primary)" }}>No company selected</h2>
+            <p className="text-sm mb-6" style={{ color: "var(--color-text-secondary)" }}>
+              Select a company from the sidebar to view the cap table.
+            </p>
+            <div className="flex items-center justify-center gap-3">
+              <Link href="/pricing" className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white" style={{ background: "#8B5CF6" }}>
+                Incorporate a New Company
+              </Link>
+              <Link href="/dashboard/connect" className="px-5 py-2.5 rounded-lg text-sm font-semibold border" style={{ borderColor: "var(--color-border)", color: "var(--color-text-primary)" }}>
+                Connect Existing Company
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {companyLoading && (
+          <div className="flex items-center justify-center py-24">
+            <div className="animate-pulse-glow w-16 h-16 rounded-full flex items-center justify-center" style={{ background: "rgba(139, 92, 246, 0.2)" }}>
+              <img src="/logo-icon.png" alt="Anvils" className="w-7 h-7 object-contain" />
+            </div>
+          </div>
+        )}
+
+        {selectedCompany && (
+          <>
         {/* Message */}
         {message && (
           <div
@@ -420,7 +451,7 @@ export default function CapTablePage() {
 
         {/* Tabs */}
         <div className="flex gap-2 mb-8 justify-center flex-wrap">
-          {(["overview", "add", "transfer", "history", "simulator", "exit", "waterfall"] as const).map((tab) => (
+          {(["overview", "issue", "add", "transfer", "history", "simulator", "exit", "waterfall"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -431,6 +462,7 @@ export default function CapTablePage() {
               }}
             >
               {tab === "overview" && "Overview"}
+              {tab === "issue" && "Issue Shares"}
               {tab === "add" && "Add Shareholder"}
               {tab === "transfer" && "Record Transfer"}
               {tab === "history" && "Transaction History"}
@@ -626,6 +658,20 @@ export default function CapTablePage() {
               )}
             </div>
           </div>
+        )}
+
+        {/* Issue Shares Tab */}
+        {activeTab === "issue" && selectedCompany && (
+          <ShareIssuanceWizard
+            companyId={selectedCompany.id}
+            capTableData={capTable}
+            onComplete={() => {
+              fetchCapTable();
+              fetchTransactions();
+              setActiveTab("overview");
+            }}
+            setMessage={setMessage}
+          />
         )}
 
         {/* Add Shareholder Tab */}
@@ -1655,6 +1701,8 @@ export default function CapTablePage() {
               Add First Shareholder
             </button>
           </div>
+        )}
+          </>
         )}
       </div>
     </div>

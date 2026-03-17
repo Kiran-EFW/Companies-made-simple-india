@@ -6,13 +6,18 @@ from src.schemas.pricing import PricingResponse
 from src.schemas.document import DocumentOut
 
 class CompanyCreate(BaseModel):
-    """Payload to create a Draft company from the Pricing calculator."""
+    """Payload to create a Draft company from the Pricing calculator,
+    or to connect an existing incorporated company."""
     entity_type: EntityType
     plan_tier: PlanTier
     state: str
     authorized_capital: int
     num_directors: int
     pricing_snapshot: dict  # The full snapshot calculated in pricing
+    # Optional fields for connecting an existing company
+    approved_name: Optional[str] = None
+    cin: Optional[str] = None
+    is_existing: bool = False
 
 class DirectorBasicInfo(BaseModel):
     full_name: str
@@ -45,6 +50,7 @@ class CompanyOut(BaseModel):
     authorized_capital: int
     proposed_names: List[str]
     approved_name: Optional[str]
+    cin: Optional[str] = None
     pricing_snapshot: dict
     priority: Optional[str] = None
     assigned_to: Optional[int] = None

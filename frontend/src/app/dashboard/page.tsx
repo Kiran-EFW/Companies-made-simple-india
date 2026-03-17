@@ -495,7 +495,7 @@ export default function DashboardPage() {
                                  <h4 className="text-sm font-semibold">Accounting Integration</h4>
                                  <p className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>Connect Zoho Books or Tally Prime for financial sync</p>
                               </div>
-                              <Link href="/settings/accounting" className="text-xs font-bold text-purple-400 group-hover:underline">Connect &#8594;</Link>
+                              <Link href="/dashboard/accounting" className="text-xs font-bold text-purple-400 group-hover:underline">Connect &#8594;</Link>
                            </div>
                            <div className="p-4 rounded-lg border flex justify-between items-center group hover:border-purple-500/30 transition-colors" style={{ background: "var(--color-overlay)", borderColor: "var(--color-border)" }}>
                               <div>
