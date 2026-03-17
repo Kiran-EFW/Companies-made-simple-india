@@ -195,7 +195,7 @@ function CompanySelector() {
           <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
           <div
             className="absolute left-0 top-full mt-1 w-72 rounded-xl shadow-lg z-40 py-1 border"
-            style={{ background: "white", borderColor: "var(--color-border)" }}
+            style={{ background: "var(--color-bg-card)", borderColor: "var(--color-border)" }}
           >
             {companies.map((c) => {
               const name = c.approved_name || c.proposed_names?.[0] || `Company #${c.id}`;
@@ -465,11 +465,11 @@ function DashboardInner({ children }: { children: React.ReactNode }) {
   }));
 
   return (
-    <div className="min-h-screen" style={{ background: "#f9fafb" }}>
+    <div className="min-h-screen" style={{ background: "var(--color-bg-secondary)" }}>
       {/* ── Top Header Bar ────────────────────────────────────────── */}
       <header
         className="fixed top-0 left-0 right-0 z-50 h-14 flex items-center justify-between px-4 lg:px-6"
-        style={{ background: "white", borderBottom: "1px solid var(--color-border)" }}
+        style={{ background: "var(--color-bg-card)", borderBottom: "1px solid var(--color-border)" }}
       >
         {/* Left: Logo + Company Selector */}
         <div className="flex items-center gap-4">
@@ -532,7 +532,7 @@ function DashboardInner({ children }: { children: React.ReactNode }) {
                 <div className="fixed inset-0 z-30" onClick={() => setProfileOpen(false)} />
                 <div
                   className="absolute right-0 top-full mt-1 w-56 rounded-xl shadow-lg z-40 py-1 border"
-                  style={{ background: "white", borderColor: "var(--color-border)" }}
+                  style={{ background: "var(--color-bg-card)", borderColor: "var(--color-border)" }}
                 >
                   <div className="px-4 py-3 border-b" style={{ borderColor: "var(--color-border)" }}>
                     <div className="text-sm font-medium" style={{ color: "var(--color-text-primary)" }}>{user?.full_name}</div>
@@ -584,7 +584,7 @@ function DashboardInner({ children }: { children: React.ReactNode }) {
         className={`fixed top-14 left-0 z-40 h-[calc(100vh-3.5rem)] w-56 transition-transform duration-200 lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
-        style={{ background: "white", borderRight: "1px solid var(--color-border)" }}
+        style={{ background: "var(--color-bg-card)", borderRight: "1px solid var(--color-border)" }}
       >
         <div className="flex flex-col h-full">
           {/* Mobile company selector */}
@@ -661,7 +661,7 @@ function DashboardInner({ children }: { children: React.ReactNode }) {
         {/* ── Right Sidebar (xl+ only) ───────────────────────────── */}
         <aside
           className="hidden xl:block w-64 flex-shrink-0 h-[calc(100vh-3.5rem)] sticky top-14"
-          style={{ background: "white", borderLeft: "1px solid var(--color-border)" }}
+          style={{ background: "var(--color-bg-card)", borderLeft: "1px solid var(--color-border)" }}
         >
           <RightSidebar />
         </aside>
@@ -691,7 +691,7 @@ export default function DashboardLayout({
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: "#f9fafb" }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--color-bg-secondary)" }}>
         <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: "rgb(139, 92, 246)" }} />
       </div>
     );

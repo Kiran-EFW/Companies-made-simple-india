@@ -168,7 +168,7 @@ export default function BillingPage() {
         {!selectedCompany ? (
           <div
             style={{
-              background: "#fff",
+              background: "var(--color-bg-card)",
               border: "1px solid var(--color-border, #E5E7EB)",
               borderRadius: 12,
               padding: "64px 24px",
@@ -209,7 +209,7 @@ export default function BillingPage() {
             {/* ====== Current Plan Card ====== */}
             <div
               style={{
-                background: "#fff",
+                background: "var(--color-bg-card)",
                 border: "1px solid var(--color-border, #E5E7EB)",
                 borderRadius: 12,
                 padding: 24,
@@ -287,7 +287,7 @@ export default function BillingPage() {
                       border: "1px solid var(--color-border, #E5E7EB)",
                       color: "var(--color-text-primary, #111827)",
                       textDecoration: "none",
-                      background: "#fff",
+                      background: "var(--color-bg-card)",
                     }}
                   >
                     Change Plan
@@ -365,7 +365,7 @@ export default function BillingPage() {
                             justifyContent: "space-between",
                             padding: "10px 14px",
                             borderRadius: 8,
-                            background: "#F9FAFB",
+                            background: "var(--color-bg-secondary)",
                             border: "1px solid var(--color-border, #E5E7EB)",
                             fontSize: 13,
                           }}
@@ -390,7 +390,7 @@ export default function BillingPage() {
             {/* ====== Payment History Table ====== */}
             <div
               style={{
-                background: "#fff",
+                background: "var(--color-bg-card)",
                 border: "1px solid var(--color-border, #E5E7EB)",
                 borderRadius: 12,
                 overflow: "hidden",
@@ -440,7 +440,7 @@ export default function BillingPage() {
                       <tr
                         style={{
                           borderBottom: "1px solid var(--color-border, #E5E7EB)",
-                          background: "#F9FAFB",
+                          background: "var(--color-bg-secondary)",
                         }}
                       >
                         {["Date", "Description", "Amount", "Status", "Receipt"].map((h) => (
@@ -555,7 +555,7 @@ export default function BillingPage() {
             {serviceRequests.filter((r) => !r.is_paid && r.status !== "completed").length > 0 && (
               <div
                 style={{
-                  background: "#fff",
+                  background: "var(--color-bg-card)",
                   border: "1px solid var(--color-border, #E5E7EB)",
                   borderRadius: 12,
                   overflow: "hidden",
@@ -588,7 +588,7 @@ export default function BillingPage() {
                       <tr
                         style={{
                           borderBottom: "1px solid var(--color-border, #E5E7EB)",
-                          background: "#F9FAFB",
+                          background: "var(--color-bg-secondary)",
                         }}
                       >
                         {["Date", "Service", "Amount", "Status"].map((h) => (

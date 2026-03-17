@@ -81,7 +81,7 @@ export default function ConnectCompanyPage() {
     padding: "10px 14px",
     borderRadius: 8,
     border: "1px solid var(--color-border, #E5E7EB)",
-    background: "#fff",
+    background: "var(--color-bg-card)",
     color: "var(--color-text-primary, #111827)",
     outline: "none",
   };
@@ -132,7 +132,7 @@ export default function ConnectCompanyPage() {
       <form onSubmit={handleSubmit}>
         <div
           style={{
-            background: "#fff",
+            background: "var(--color-bg-card)",
             border: "1px solid var(--color-border, #E5E7EB)",
             borderRadius: 12,
             padding: 24,
@@ -239,9 +239,9 @@ export default function ConnectCompanyPage() {
             <div
               style={{
                 fontSize: 13,
-                color: "#DC2626",
-                background: "#FEF2F2",
-                border: "1px solid #FECACA",
+                color: "var(--color-error, #DC2626)",
+                background: "var(--color-error-light, #FEF2F2)",
+                border: "1px solid color-mix(in srgb, var(--color-error, #DC2626) 25%, transparent)",
                 borderRadius: 8,
                 padding: "10px 14px",
               }}
@@ -268,7 +268,7 @@ export default function ConnectCompanyPage() {
                 padding: "10px 20px",
                 borderRadius: 8,
                 border: "1px solid var(--color-border, #E5E7EB)",
-                background: "#fff",
+                background: "var(--color-bg-card)",
                 color: "var(--color-text-primary, #111827)",
                 cursor: "pointer",
               }}
