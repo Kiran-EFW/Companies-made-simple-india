@@ -6,7 +6,7 @@ tasks, and mark filings as complete.
 
 from typing import Optional, List, Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from sqlalchemy.orm import Session
 from datetime import datetime, date, timedelta, timezone
 
@@ -617,6 +617,13 @@ class CaTDSCalculateIn(BaseModel):
     payee_type: Optional[str] = "individual"
     has_pan: Optional[bool] = True
 
+    @field_validator("amount")
+    @classmethod
+    def amount_must_be_positive(cls, v: float) -> float:
+        if v <= 0:
+            raise ValueError("Amount must be greater than 0")
+        return v
+
 
 @router.post("/tds/calculate")
 def ca_calculate_tds(
@@ -718,6 +725,16 @@ def ca_audit_pack(
 
 class TaskNoteIn(BaseModel):
     note: str
+
+    @field_validator("note")
+    @classmethod
+    def note_must_not_be_empty(cls, v: str) -> str:
+        v = v.strip()
+        if not v:
+            raise ValueError("Note cannot be empty")
+        if len(v) > 2000:
+            raise ValueError("Note must be 2000 characters or fewer")
+        return v
 
 
 @router.post("/companies/{company_id}/tasks/{task_id}/notes")

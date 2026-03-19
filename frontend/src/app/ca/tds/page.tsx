@@ -79,6 +79,7 @@ export default function CaTdsPage() {
   const [hasPan, setHasPan] = useState(true);
   const [result, setResult] = useState<TdsResult | null>(null);
   const [calculating, setCalculating] = useState(false);
+  const [calcError, setCalcError] = useState("");
 
   // Due dates
   const [selectedQuarter, setSelectedQuarter] = useState("Q1");
@@ -119,19 +120,25 @@ export default function CaTdsPage() {
   };
 
   const handleCalculate = async () => {
-    if (!selectedSection || !amount) return;
+    const parsed = parseFloat(amount);
+    if (!selectedSection || !amount || isNaN(parsed) || parsed <= 0) {
+      setCalcError("Please enter a valid amount greater than 0.");
+      return;
+    }
     setCalculating(true);
     setResult(null);
+    setCalcError("");
     try {
       const data = await caTdsCalculate({
         section: selectedSection,
-        amount: parseFloat(amount),
+        amount: parsed,
         payee_type: payeeType,
         has_pan: hasPan,
       });
       setResult(data);
-    } catch (err: any) {
-      alert(err.message || "Calculation failed");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Calculation failed";
+      setCalcError(message);
     } finally {
       setCalculating(false);
     }
@@ -222,8 +229,9 @@ export default function CaTdsPage() {
               <input
                 type="number"
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                onChange={(e) => { setAmount(e.target.value); setCalcError(""); }}
                 placeholder="e.g. 100000"
+                min="0"
                 className="w-full px-3 py-2.5 rounded-lg text-sm"
                 style={{
                   background: T.pageBg,
@@ -265,6 +273,9 @@ export default function CaTdsPage() {
             {/* Has PAN */}
             <div className="flex items-center gap-3">
               <button
+                role="switch"
+                aria-checked={hasPan}
+                aria-label="Has PAN"
                 onClick={() => setHasPan(!hasPan)}
                 className="relative w-10 h-5 rounded-full transition-colors"
                 style={{
@@ -285,6 +296,13 @@ export default function CaTdsPage() {
                 Has PAN
               </span>
             </div>
+
+            {/* Error */}
+            {calcError && (
+              <div className="p-3 rounded-lg text-xs font-medium" style={{ background: T.roseBg, color: T.rose, border: `1px solid rgba(220,38,38,0.15)` }}>
+                {calcError}
+              </div>
+            )}
 
             {/* Calculate Button */}
             <button
@@ -557,7 +575,7 @@ export default function CaTdsPage() {
             </h2>
           </div>
           <div
-            className="grid grid-cols-[80px_1fr_80px_80px_80px] gap-3 px-5 py-2.5 text-xs font-semibold uppercase tracking-wider"
+            className="hidden sm:grid grid-cols-[80px_1fr_80px_80px_80px] gap-3 px-5 py-2.5 text-xs font-semibold uppercase tracking-wider"
             style={{
               color: T.textMuted,
               borderBottom: `1px solid ${T.cardBorder}`,
@@ -573,7 +591,7 @@ export default function CaTdsPage() {
           {sections.map((s, idx) => (
             <div
               key={s.section}
-              className="grid grid-cols-[80px_1fr_80px_80px_80px] gap-3 px-5 py-2.5 items-center text-sm"
+              className="flex flex-col gap-1 px-5 py-2.5 sm:grid sm:grid-cols-[80px_1fr_80px_80px_80px] sm:gap-3 sm:items-center text-sm"
               style={{
                 borderBottom:
                   idx < sections.length - 1
@@ -581,35 +599,23 @@ export default function CaTdsPage() {
                     : undefined,
               }}
             >
-              <div
-                className="text-xs font-semibold"
-                style={{ color: T.accent }}
-              >
-                {s.section}
+              <div className="flex items-center gap-2 sm:block">
+                <span className="text-xs font-semibold" style={{ color: T.accent }}>{s.section}</span>
+                <span className="text-xs truncate sm:hidden" style={{ color: T.textSecondary }}> — {s.description}</span>
               </div>
-              <div
-                className="text-xs truncate"
-                style={{ color: T.textSecondary }}
-              >
+              <div className="text-xs truncate hidden sm:block" style={{ color: T.textSecondary }}>
                 {s.description}
               </div>
-              <div
-                className="text-xs font-medium"
-                style={{ color: T.textPrimary }}
-              >
-                {s.rate_individual}%
-              </div>
-              <div
-                className="text-xs font-medium"
-                style={{ color: T.textPrimary }}
-              >
-                {s.rate_company}%
-              </div>
-              <div
-                className="text-xs font-medium"
-                style={{ color: T.rose }}
-              >
-                {s.rate_no_pan}%
+              <div className="flex gap-3 sm:contents text-xs font-medium">
+                <span style={{ color: T.textPrimary }}>
+                  <span className="sm:hidden" style={{ color: T.textMuted }}>Ind: </span>{s.rate_individual}%
+                </span>
+                <span style={{ color: T.textPrimary }}>
+                  <span className="sm:hidden" style={{ color: T.textMuted }}>Co: </span>{s.rate_company}%
+                </span>
+                <span style={{ color: T.rose }}>
+                  <span className="sm:hidden" style={{ color: T.textMuted }}>No PAN: </span>{s.rate_no_pan}%
+                </span>
               </div>
             </div>
           ))}

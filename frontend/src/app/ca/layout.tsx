@@ -110,6 +110,8 @@ export default function CaLayout({ children }: { children: React.ReactNode }) {
       )}
 
       <aside
+        role="navigation"
+        aria-label="CA Portal navigation"
         className={`fixed top-0 left-0 z-40 h-screen w-60 flex flex-col transition-transform duration-200 lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
@@ -188,6 +190,7 @@ export default function CaLayout({ children }: { children: React.ReactNode }) {
               className="p-1.5 rounded-md transition-colors flex-shrink-0"
               style={{ color: CA.sidebarText }}
               title="Log out"
+              aria-label="Log out"
               onMouseEnter={(e) => { e.currentTarget.style.color = "#f87171"; e.currentTarget.style.background = "rgba(248,113,113,0.1)"; }}
               onMouseLeave={(e) => { e.currentTarget.style.color = CA.sidebarText; e.currentTarget.style.background = "transparent"; }}
             >

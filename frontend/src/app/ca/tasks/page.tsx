@@ -88,13 +88,15 @@ export default function CaTasksPage() {
   const [filingModal, setFilingModal] = useState<Task | null>(null);
   const [filingRef, setFilingRef] = useState("");
   const [filingLoading, setFilingLoading] = useState(false);
+  const [filingError, setFilingError] = useState("");
 
   const fetchTasks = async (statusFilter?: string) => {
     try {
       const data = await getCaAllTasks(statusFilter || undefined);
       setTasks(Array.isArray(data) ? data : []);
-    } catch (err: any) {
-      setError(err.message || "Failed to load tasks");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to load tasks";
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -108,13 +110,15 @@ export default function CaTasksPage() {
   const handleMarkComplete = async () => {
     if (!filingModal || !filingRef.trim()) return;
     setFilingLoading(true);
+    setFilingError("");
     try {
       await markFilingComplete(filingModal.company_id, filingModal.id, filingRef.trim());
       await fetchTasks(filter);
       setFilingModal(null);
       setFilingRef("");
-    } catch (err: any) {
-      alert(err.message || "Failed to mark filing complete");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to mark filing complete";
+      setFilingError(message);
     } finally {
       setFilingLoading(false);
     }
@@ -274,7 +278,11 @@ export default function CaTasksPage() {
         <div
           className="fixed inset-0 z-50 flex items-center justify-center px-4"
           style={{ background: "rgba(0,0,0,0.4)" }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Mark filing complete"
           onClick={() => setFilingModal(null)}
+          onKeyDown={(e) => { if (e.key === "Escape") setFilingModal(null); }}
         >
           <div
             className="rounded-xl p-6 w-full max-w-md"
@@ -291,13 +299,19 @@ export default function CaTasksPage() {
               {filingModal.company_name}
             </p>
 
+            {filingError && (
+              <div className="p-3 rounded-lg mb-4 text-xs font-medium" style={{ background: T.roseBg, color: T.rose, border: `1px solid rgba(220,38,38,0.15)` }}>
+                {filingError}
+              </div>
+            )}
+
             <label className="block text-sm font-medium mb-1.5" style={{ color: T.textSecondary }}>
               Filing Reference Number
             </label>
             <input
               type="text"
               value={filingRef}
-              onChange={(e) => setFilingRef(e.target.value)}
+              onChange={(e) => { setFilingRef(e.target.value); setFilingError(""); }}
               placeholder="e.g. ARN-12345678"
               className="w-full px-3 py-2.5 rounded-lg text-sm mb-5"
               style={{ background: T.pageBg, border: `1px solid ${T.cardBorder}`, color: T.textPrimary, outline: "none" }}

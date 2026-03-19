@@ -6,7 +6,6 @@ import {
   getCaCompanies,
   getCaTaxOverview,
   getCaGstDashboard,
-  markFilingComplete,
 } from "@/lib/api";
 
 // ---------------------------------------------------------------------------

@@ -85,8 +85,9 @@ export default function CaCalendarPage() {
       try {
         const data = await getCaAllTasks();
         setTasks(Array.isArray(data) ? data : []);
-      } catch (err: any) {
-        setError(err.message || "Failed to load tasks");
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : "Failed to load tasks";
+        setError(message);
       } finally {
         setLoading(false);
       }
