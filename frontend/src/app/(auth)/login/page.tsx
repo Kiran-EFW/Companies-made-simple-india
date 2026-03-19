@@ -129,6 +129,7 @@ function LoginForm() {
           {[
             { label: "Paul", email: "paul@anvils.in", password: "Anvils123" },
             { label: "Janeevan", email: "janeevan@anvils.in", password: "Anvils123" },
+            { label: "Abey", email: "abey@anvils.in", password: "Anvils123" },
           ].map((acct) => (
             <button
               key={acct.email}

@@ -163,6 +163,21 @@ export async function getCompanyTasks(companyId: number): Promise<any> {
 }
 
 // ---------------------------------------------------------------------------
+// Company Info
+// ---------------------------------------------------------------------------
+
+export async function updateCompanyInfo(companyId: number, data: Record<string, any>): Promise<any> {
+  return apiCall(`/companies/${companyId}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getCompanyDocuments(companyId: number): Promise<any> {
+  return apiCall(`/companies/${companyId}/documents`);
+}
+
+// ---------------------------------------------------------------------------
 // Documents
 // ---------------------------------------------------------------------------
 
