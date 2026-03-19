@@ -30,10 +30,12 @@ function LoginForm() {
         method: "POST",
         body: JSON.stringify(formData),
       });
-      await login(res.access_token);
+      const loggedInUser = await login(res.access_token);
 
       if (redirectTo) {
         router.push(redirectTo);
+      } else if (loggedInUser?.role === "ca_lead") {
+        router.push("/ca");
       } else if (typeof window !== "undefined" && localStorage.getItem("pending_company_draft")) {
         router.push("/onboarding");
       } else {
@@ -130,6 +132,7 @@ function LoginForm() {
             { label: "Paul", email: "paul@anvils.in", password: "Anvils123" },
             { label: "Janeevan", email: "janeevan@anvils.in", password: "Anvils123" },
             { label: "Abey", email: "abey@anvils.in", password: "Anvils123" },
+            { label: "CA Demo", email: "ca@anvils.in", password: "Anvils123" },
           ].map((acct) => (
             <button
               key={acct.email}

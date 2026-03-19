@@ -1500,5 +1500,92 @@ export async function declineInvite(token: string) {
 }
 
 // ---------------------------------------------------------------------------
+// CA Portal
+// ---------------------------------------------------------------------------
+
+export async function getCaDashboardSummary(): Promise<any> {
+  return apiCall("/ca/dashboard-summary");
+}
+
+export async function getCaCompanies(): Promise<any> {
+  return apiCall("/ca/companies");
+}
+
+export async function getCaCompanyCompliance(companyId: number): Promise<any> {
+  return apiCall(`/ca/companies/${companyId}/compliance`);
+}
+
+export async function getCaCompanyDocuments(companyId: number): Promise<any> {
+  return apiCall(`/ca/companies/${companyId}/documents`);
+}
+
+export async function markFilingComplete(companyId: number, taskId: number, filingReference: string): Promise<any> {
+  return apiCall(`/ca/companies/${companyId}/filings/${taskId}`, {
+    method: "PUT",
+    body: JSON.stringify({ filing_reference: filingReference }),
+  });
+}
+
+export async function getCaAllTasks(status?: string): Promise<any> {
+  const query = status ? `?status=${status}` : "";
+  return apiCall(`/ca/tasks${query}`);
+}
+
+export async function getCaCompanyScore(companyId: number): Promise<any> {
+  return apiCall(`/ca/companies/${companyId}/score`);
+}
+
+export async function getCaCompanyPenalties(companyId: number): Promise<any> {
+  return apiCall(`/ca/companies/${companyId}/penalties`);
+}
+
+export async function getCaAllScores(): Promise<any> {
+  return apiCall("/ca/scores");
+}
+
+export async function getCaTaxOverview(companyId: number): Promise<any> {
+  return apiCall(`/ca/companies/${companyId}/tax-overview`);
+}
+
+export async function getCaGstDashboard(companyId: number): Promise<any> {
+  return apiCall(`/ca/companies/${companyId}/gst-dashboard`);
+}
+
+export async function caTdsCalculate(data: {
+  section: string;
+  amount: number;
+  payee_type?: string;
+  has_pan?: boolean;
+}): Promise<any> {
+  return apiCall("/ca/tds/calculate", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getCaTdsSections(): Promise<any> {
+  return apiCall("/ca/tds/sections");
+}
+
+export async function getCaTdsDueDates(quarter: string): Promise<any> {
+  return apiCall(`/ca/tds/due-dates?quarter=${quarter}`);
+}
+
+export async function getCaAuditPack(companyId: number): Promise<any> {
+  return apiCall(`/ca/companies/${companyId}/audit-pack`);
+}
+
+export async function addCaTaskNote(companyId: number, taskId: number, note: string): Promise<any> {
+  return apiCall(`/ca/companies/${companyId}/tasks/${taskId}/notes`, {
+    method: "POST",
+    body: JSON.stringify({ note }),
+  });
+}
+
+export async function getCaTaskNotes(companyId: number, taskId: number): Promise<any> {
+  return apiCall(`/ca/companies/${companyId}/tasks/${taskId}/notes`);
+}
+
+// ---------------------------------------------------------------------------
 // Admin/Ops functions have been moved to the separate admin-portal app.
 // ---------------------------------------------------------------------------
