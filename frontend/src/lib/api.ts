@@ -1411,6 +1411,27 @@ export async function convertRound(companyId: number, roundId: number, data?: { 
 }
 
 // ---------------------------------------------------------------------------
+// Deal Sharing (founder → investor)
+// ---------------------------------------------------------------------------
+
+export async function shareDeal(companyId: number, data: { investor_email: string; message?: string }) {
+  return apiCall(`/companies/${companyId}/fundraising/share-deal`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function listSharedDeals(companyId: number) {
+  return apiCall(`/companies/${companyId}/fundraising/shared-deals`);
+}
+
+export async function revokeSharedDeal(companyId: number, shareId: number) {
+  return apiCall(`/companies/${companyId}/fundraising/shared-deals/${shareId}`, {
+    method: "DELETE",
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Valuations
 // ---------------------------------------------------------------------------
 

@@ -1,4 +1,4 @@
-FROM python:3.9-slim
+FROM python:3.12-slim
 
 # Install system dependencies required by WeasyPrint and other native libs
 RUN apt-get update && apt-get install -y --no-install-recommends \

@@ -25,6 +25,7 @@ from src.models.funding_round import (
 )
 from src.models.stakeholder import StakeholderProfile, StakeholderType
 from src.models.company_member import CompanyMember, CompanyRole, InviteStatus
+from src.models.deal_share import DealShare, DealShareStatus
 
 __all__ = [
     "User", "UserRole",
@@ -46,4 +47,5 @@ __all__ = [
     "FundingRound", "RoundInvestor", "FundingRoundStatus", "InstrumentType",
     "StakeholderProfile", "StakeholderType",
     "CompanyMember", "CompanyRole", "InviteStatus",
+    "DealShare", "DealShareStatus",
 ]

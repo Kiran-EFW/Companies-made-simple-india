@@ -17,6 +17,7 @@ from src.models.funding_round import FundingRound, RoundInvestor
 from src.models.esop import ESOPGrant, ESOPPlan
 from src.models.document import Document
 from src.models.investor_interest import InvestorInterest, InterestStatus
+from src.models.deal_share import DealShare, DealShareStatus
 
 router = APIRouter(prefix="/investor-portal", tags=["Investor Portal"])
 
@@ -69,7 +70,7 @@ def get_investor_portfolio(token: str, db: Session = Depends(get_db)):
     portfolio = []
     for sh in shareholdings:
         company = db.query(Company).filter(Company.id == sh.company_id).first()
-        company_name = (company.approved_name or company.name or "Unnamed") if company else "Unknown"
+        company_name = (company.approved_name or (company.proposed_names[0] if company.proposed_names else "Unnamed")) if company else "Unknown"
 
         portfolio.append({
             "shareholder_id": sh.id,
@@ -132,7 +133,7 @@ def get_investor_company_detail(
     return {
         "company": {
             "id": company.id,
-            "name": company.approved_name or company.name or "Unnamed",
+            "name": company.approved_name or (company.proposed_names[0] if company.proposed_names else "Unnamed"),
             "entity_type": company.entity_type.value if company.entity_type else None,
             "cin": company.cin,
             "status": company.status.value if company.status else None,
@@ -344,7 +345,7 @@ def get_esop_summary(token: str, db: Session = Depends(get_db)):
             company = db.query(Company).filter(Company.id == cid).first()
             companies[cid] = {
                 "company_id": cid,
-                "company_name": company.name if company else f"Company #{cid}",
+                "company_name": (company.approved_name or (company.proposed_names[0] if company.proposed_names else f"Company #{cid}")) if company else f"Company #{cid}",
                 "grants": [],
                 "total_options": 0,
                 "total_vested": 0,
@@ -478,36 +479,40 @@ def get_investor_pitch_deck(
 
 
 # ---------------------------------------------------------------------------
-# Discovery / Matchmaking
+# Shared Deals — only shows deals founders have explicitly shared
 # ---------------------------------------------------------------------------
 
 @router.get("/{token}/discover")
-def discover_companies(
+def get_shared_deals(
     token: str,
-    sector: str = None,
-    stage: str = None,
     db: Session = Depends(get_db),
 ):
-    """Browse companies that are actively fundraising.
+    """Get deals that founders have explicitly shared with this investor.
 
-    Optional filters: ?sector=fintech&stage=seed
+    Unlike an open marketplace, this only returns companies where the founder
+    has chosen to share their fundraising deal with this specific investor.
+    This protects founder trust.
     """
     profile = _get_profile_by_token(db, token)
 
-    # Get all companies with fundraise_status=open in their data JSON
-    all_companies = db.query(Company).all()
+    # Only get deals explicitly shared with this investor
+    shares = (
+        db.query(DealShare)
+        .filter(
+            DealShare.investor_profile_id == profile.id,
+            DealShare.status == DealShareStatus.ACTIVE,
+        )
+        .order_by(DealShare.created_at.desc())
+        .all()
+    )
 
     results = []
-    for c in all_companies:
-        cd = c.data or {}
-        if cd.get("fundraise_status") != "open":
+    for share in shares:
+        c = db.query(Company).filter(Company.id == share.company_id).first()
+        if not c:
             continue
 
-        # Apply filters
-        if sector and cd.get("sector", "").lower() != sector.lower():
-            continue
-        if stage and cd.get("stage", "").lower() != stage.lower():
-            continue
+        cd = c.data or {}
 
         # Check if investor already has holdings
         has_holdings = (
@@ -543,7 +548,7 @@ def discover_companies(
 
         results.append({
             "company_id": c.id,
-            "name": c.approved_name or c.name or "Unnamed",
+            "name": c.approved_name or (c.proposed_names[0] if c.proposed_names else "Unnamed"),
             "entity_type": c.entity_type.value if c.entity_type else None,
             "sector": cd.get("sector"),
             "stage": cd.get("stage"),
@@ -554,6 +559,8 @@ def discover_companies(
             "has_pitch_deck": has_pitch_deck,
             "already_invested": has_holdings,
             "interest_expressed": existing_interest is not None,
+            "shared_message": share.message,
+            "shared_at": share.created_at.isoformat() if share.created_at else None,
         })
 
     return {"companies": results}
@@ -657,7 +664,7 @@ def get_my_interests(
         result.append({
             "interest_id": i.id,
             "company_id": i.company_id,
-            "company_name": (company.approved_name or company.name or "Unnamed") if company else "Unknown",
+            "company_name": (company.approved_name or (company.proposed_names[0] if company.proposed_names else "Unnamed")) if company else "Unknown",
             "sector": cd.get("sector"),
             "stage": cd.get("stage"),
             "status": i.status.value,

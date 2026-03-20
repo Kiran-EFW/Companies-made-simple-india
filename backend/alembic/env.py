@@ -22,7 +22,36 @@ from src.models import (  # noqa: F401
     DSCPricing,
     Task,
     AgentLog,
+    Notification,
+    NotificationPreference,
+    AdminLog,
+    InternalNote,
+    ComplianceTask,
+    Shareholder,
+    ShareTransaction,
+    ServiceRequest,
+    Subscription,
+    AccountingConnection,
+    ESOPPlan,
+    ESOPGrant,
+    FundingRound,
+    RoundInvestor,
+    StakeholderProfile,
+    CompanyMember,
 )
+from src.models.filing_task import FilingTask  # noqa: F401
+from src.models.verification_queue import VerificationQueue  # noqa: F401
+from src.models.escalation_rule import EscalationRule, EscalationLog  # noqa: F401
+from src.models.legal_template import LegalDocument  # noqa: F401
+from src.models.statutory_register import StatutoryRegister, RegisterEntry  # noqa: F401
+from src.models.meeting import Meeting  # noqa: F401
+from src.models.data_room import DataRoomFolder, DataRoomFile, DataRoomShareLink, DataRoomAccessLog  # noqa: F401
+from src.models.esign import SignatureRequest, Signatory, SignatureAuditLog  # noqa: F401
+from src.models.message import Message  # noqa: F401
+from src.models.ca_assignment import CAAssignment  # noqa: F401
+from src.models.conversion_event import ConversionEvent  # noqa: F401
+from src.models.investor_interest import InvestorInterest  # noqa: F401
+from src.models.valuation import Valuation  # noqa: F401
 
 # Import settings to get database URL
 from src.config import get_settings

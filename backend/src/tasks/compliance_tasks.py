@@ -5,7 +5,7 @@ from src.celery_app import celery_app
 def check_compliance_deadlines():
     """Periodic task to check compliance deadlines and send reminders."""
     from src.database import SessionLocal
-    from src.models.compliance_task import ComplianceTask
+    from src.models.compliance_task import ComplianceTask, ComplianceTaskStatus
     from datetime import datetime, timezone, timedelta
 
     db = SessionLocal()
@@ -13,13 +13,13 @@ def check_compliance_deadlines():
         # Find tasks due within 7 days
         cutoff = datetime.now(timezone.utc) + timedelta(days=7)
         tasks = db.query(ComplianceTask).filter(
-            ComplianceTask.status.in_(["UPCOMING", "DUE_SOON"]),
+            ComplianceTask.status.in_([ComplianceTaskStatus.UPCOMING, ComplianceTaskStatus.DUE_SOON]),
             ComplianceTask.due_date <= cutoff,
         ).all()
 
         for task in tasks:
-            if task.status == "UPCOMING":
-                task.status = "DUE_SOON"
+            if task.status == ComplianceTaskStatus.UPCOMING:
+                task.status = ComplianceTaskStatus.DUE_SOON
             # Send notification would go here
 
         db.commit()

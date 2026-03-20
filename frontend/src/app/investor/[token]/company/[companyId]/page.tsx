@@ -13,6 +13,8 @@ import {
 
 type Tab = "holdings" | "cap-table" | "rounds" | "esop" | "documents";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 export default function InvestorCompanyDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -43,7 +45,7 @@ export default function InvestorCompanyDetailPage() {
         setRounds(roundsData.funding_rounds || []);
         setEsopGrants(esopData.esop_grants || []);
         setDocuments(docsData.documents || []);
-      } catch (err: any) {
+      } catch {
         setError("Unable to load company details.");
       } finally {
         setLoading(false);
@@ -55,7 +57,10 @@ export default function InvestorCompanyDetailPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+        <div
+          className="animate-spin rounded-full h-8 w-8 border-b-2"
+          style={{ borderColor: "var(--color-accent-purple)" }}
+        />
       </div>
     );
   }
@@ -63,10 +68,11 @@ export default function InvestorCompanyDetailPage() {
   if (error) {
     return (
       <div className="text-center py-20">
-        <p className="text-gray-600">{error}</p>
+        <p style={{ color: "var(--color-text-secondary)" }}>{error}</p>
         <button
           onClick={() => router.push(`/investor/${token}`)}
-          className="mt-4 text-blue-600 hover:underline text-sm"
+          className="mt-4 text-sm font-medium hover:underline"
+          style={{ color: "var(--color-accent-purple)" }}
         >
           Back to Portfolio
         </button>
@@ -76,12 +82,12 @@ export default function InvestorCompanyDetailPage() {
 
   const company = detail?.company;
   const holdings = detail?.holdings;
-  const tabs: { key: Tab; label: string }[] = [
+  const tabs: { key: Tab; label: string; count?: number }[] = [
     { key: "holdings", label: "Holdings" },
-    { key: "cap-table", label: "Cap Table" },
-    { key: "rounds", label: "Funding Rounds" },
-    { key: "esop", label: "ESOP" },
-    { key: "documents", label: "Documents" },
+    { key: "cap-table", label: "Cap Table", count: capTable.length },
+    { key: "rounds", label: "Funding Rounds", count: rounds.length },
+    { key: "esop", label: "ESOP", count: esopGrants.length },
+    { key: "documents", label: "Documents", count: documents.length },
   ];
 
   return (
@@ -89,28 +95,62 @@ export default function InvestorCompanyDetailPage() {
       {/* Back link */}
       <button
         onClick={() => router.push(`/investor/${token}`)}
-        className="text-sm text-blue-600 hover:underline mb-4 inline-block"
+        className="text-sm font-medium hover:underline mb-5 inline-flex items-center gap-1"
+        style={{ color: "var(--color-accent-purple)" }}
       >
-        &larr; Back to Portfolio
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+        </svg>
+        Back to Portfolio
       </button>
 
       {/* Company header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">{company?.name}</h1>
+        <h1
+          className="text-2xl font-bold"
+          style={{ fontFamily: "var(--font-display)", color: "var(--color-text-primary)" }}
+        >
+          {company?.name}
+        </h1>
         {company?.tagline && (
-          <p className="text-gray-600 mt-1">{company.tagline}</p>
+          <p className="mt-1 text-sm" style={{ color: "var(--color-text-secondary)" }}>{company.tagline}</p>
         )}
-        <div className="flex flex-wrap gap-3 mt-2 text-sm text-gray-500">
-          {company?.entity_type && <span className="capitalize">{company.entity_type.replace("_", " ")}</span>}
-          {company?.sector && <span className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs font-medium">{company.sector}</span>}
-          {company?.cin && <span>CIN: {company.cin}</span>}
+        <div className="flex flex-wrap gap-2 mt-3">
+          {company?.entity_type && (
+            <span
+              className="text-[10px] font-semibold px-2.5 py-1 rounded-full capitalize"
+              style={{ background: "rgba(124, 58, 237, 0.08)", color: "var(--color-accent-purple)" }}
+            >
+              {company.entity_type.replace("_", " ")}
+            </span>
+          )}
+          {company?.sector && (
+            <span
+              className="text-[10px] font-semibold px-2.5 py-1 rounded-full"
+              style={{ background: "rgba(124, 58, 237, 0.08)", color: "var(--color-accent-purple)" }}
+            >
+              {company.sector}
+            </span>
+          )}
+          {company?.cin && (
+            <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>CIN: {company.cin}</span>
+          )}
           {company?.status && (
-            <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-medium capitalize">
+            <span
+              className="text-[10px] font-semibold px-2.5 py-1 rounded-full capitalize"
+              style={{ background: "rgba(37, 99, 235, 0.08)", color: "var(--color-accent-blue)" }}
+            >
               {company.status.replace("_", " ")}
             </span>
           )}
           {company?.website && (
-            <a href={company.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+            <a
+              href={company.website}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-medium hover:underline"
+              style={{ color: "var(--color-accent-purple)" }}
+            >
               Website
             </a>
           )}
@@ -121,7 +161,10 @@ export default function InvestorCompanyDetailPage() {
       {(company?.has_pitch_deck || company?.description) && (
         <div className="mb-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
           {company?.has_pitch_deck && (
-            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div
+              className="rounded-xl overflow-hidden border"
+              style={{ background: "var(--color-bg-card)", borderColor: "var(--color-border)" }}
+            >
               <div className="relative w-full" style={{ paddingBottom: "75%" }}>
                 <iframe
                   className="absolute inset-0 w-full h-full"
@@ -129,13 +172,17 @@ export default function InvestorCompanyDetailPage() {
                   title="Pitch Deck"
                 />
               </div>
-              <div className="p-3 border-t border-gray-200 flex items-center justify-between">
-                <span className="text-xs text-gray-500">Pitch Deck</span>
+              <div
+                className="p-3 border-t flex items-center justify-between"
+                style={{ borderColor: "var(--color-border)" }}
+              >
+                <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>Pitch Deck</span>
                 <a
                   href={getInvestorPitchDeckUrl(token, companyId)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-blue-600 hover:underline font-medium"
+                  className="text-xs font-medium hover:underline"
+                  style={{ color: "var(--color-accent-purple)" }}
                 >
                   Download
                 </a>
@@ -143,9 +190,16 @@ export default function InvestorCompanyDetailPage() {
             </div>
           )}
           {company?.description && (
-            <div className="bg-white rounded-lg border border-gray-200 p-5">
-              <h3 className="text-sm font-medium text-gray-500 mb-2">About</h3>
-              <p className="text-sm text-gray-700 whitespace-pre-line">{company.description}</p>
+            <div
+              className="rounded-xl p-5 border"
+              style={{ background: "var(--color-bg-card)", borderColor: "var(--color-border)" }}
+            >
+              <h3 className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--color-text-muted)" }}>
+                About
+              </h3>
+              <p className="text-sm whitespace-pre-line" style={{ color: "var(--color-text-secondary)" }}>
+                {company.description}
+              </p>
             </div>
           )}
         </div>
@@ -153,38 +207,47 @@ export default function InvestorCompanyDetailPage() {
 
       {/* Summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div className="bg-white rounded-lg border border-gray-200 p-5">
-          <p className="text-sm text-gray-500">Your Shares</p>
-          <p className="text-2xl font-bold text-gray-900">
-            {holdings?.total_shares?.toLocaleString()}
-          </p>
-        </div>
-        <div className="bg-white rounded-lg border border-gray-200 p-5">
-          <p className="text-sm text-gray-500">Ownership</p>
-          <p className="text-2xl font-bold text-gray-900">
-            {holdings?.total_percentage?.toFixed(2)}%
-          </p>
-        </div>
-        <div className="bg-white rounded-lg border border-gray-200 p-5">
-          <p className="text-sm text-gray-500">Funding Rounds</p>
-          <p className="text-2xl font-bold text-gray-900">{rounds.length}</p>
-        </div>
+        {[
+          { label: "Your Shares", value: holdings?.total_shares?.toLocaleString() || "0" },
+          { label: "Ownership", value: `${holdings?.total_percentage?.toFixed(2) || "0.00"}%`, accent: true },
+          { label: "Funding Rounds", value: rounds.length },
+        ].map((stat) => (
+          <div
+            key={stat.label}
+            className="rounded-xl p-5 border"
+            style={{ background: "var(--color-bg-card)", borderColor: "var(--color-border)" }}
+          >
+            <p className="text-xs mb-1" style={{ color: "var(--color-text-muted)" }}>{stat.label}</p>
+            <p
+              className="text-2xl font-bold"
+              style={{
+                fontFamily: "var(--font-display)",
+                color: stat.accent ? "var(--color-accent-purple)" : "var(--color-text-primary)",
+              }}
+            >
+              {stat.value}
+            </p>
+          </div>
+        ))}
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-gray-200 mb-6">
+      <div className="border-b mb-6" style={{ borderColor: "var(--color-border)" }}>
         <nav className="flex gap-6">
           {tabs.map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === tab.key
-                  ? "border-blue-600 text-blue-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700"
-              }`}
+              className="pb-3 text-sm font-medium border-b-2 transition-colors"
+              style={{
+                borderColor: activeTab === tab.key ? "var(--color-accent-purple)" : "transparent",
+                color: activeTab === tab.key ? "var(--color-accent-purple)" : "var(--color-text-muted)",
+              }}
             >
               {tab.label}
+              {tab.count !== undefined && (
+                <span className="ml-1.5 text-[10px] opacity-60">({tab.count})</span>
+              )}
             </button>
           ))}
         </nav>
@@ -192,25 +255,28 @@ export default function InvestorCompanyDetailPage() {
 
       {/* Tab content */}
       {activeTab === "holdings" && (
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div
+          className="rounded-xl overflow-hidden border"
+          style={{ background: "var(--color-bg-card)", borderColor: "var(--color-border)" }}
+        >
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Share Type</th>
-                <th className="text-right px-4 py-3 font-medium text-gray-600">Shares</th>
-                <th className="text-right px-4 py-3 font-medium text-gray-600">Ownership %</th>
-                <th className="text-right px-4 py-3 font-medium text-gray-600">Face Value</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Allotment Date</th>
+            <thead>
+              <tr style={{ background: "var(--color-bg-secondary)" }}>
+                <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Share Type</th>
+                <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Shares</th>
+                <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Ownership %</th>
+                <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Face Value</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Allotment Date</th>
               </tr>
             </thead>
             <tbody>
               {holdings?.details?.map((h: any, i: number) => (
-                <tr key={i} className="border-b border-gray-100">
-                  <td className="px-4 py-3 capitalize">{h.share_type}</td>
-                  <td className="px-4 py-3 text-right">{h.shares?.toLocaleString()}</td>
-                  <td className="px-4 py-3 text-right">{h.percentage?.toFixed(2)}%</td>
-                  <td className="px-4 py-3 text-right">{h.face_value || "-"}</td>
-                  <td className="px-4 py-3">{h.date_of_allotment || "-"}</td>
+                <tr key={i} style={{ borderBottom: `1px solid var(--color-border)` }}>
+                  <td className="px-4 py-3 capitalize" style={{ color: "var(--color-text-primary)" }}>{h.share_type}</td>
+                  <td className="px-4 py-3 text-right font-medium" style={{ color: "var(--color-text-primary)" }}>{h.shares?.toLocaleString()}</td>
+                  <td className="px-4 py-3 text-right font-medium" style={{ color: "var(--color-accent-purple)" }}>{h.percentage?.toFixed(2)}%</td>
+                  <td className="px-4 py-3 text-right" style={{ color: "var(--color-text-secondary)" }}>{h.face_value || "-"}</td>
+                  <td className="px-4 py-3" style={{ color: "var(--color-text-secondary)" }}>{h.date_of_allotment || "-"}</td>
                 </tr>
               ))}
             </tbody>
@@ -219,38 +285,50 @@ export default function InvestorCompanyDetailPage() {
       )}
 
       {activeTab === "cap-table" && (
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div
+          className="rounded-xl overflow-hidden border"
+          style={{ background: "var(--color-bg-card)", borderColor: "var(--color-border)" }}
+        >
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Shareholder</th>
-                <th className="text-right px-4 py-3 font-medium text-gray-600">Shares</th>
-                <th className="text-right px-4 py-3 font-medium text-gray-600">Ownership %</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Type</th>
+            <thead>
+              <tr style={{ background: "var(--color-bg-secondary)" }}>
+                <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Shareholder</th>
+                <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Shares</th>
+                <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Ownership %</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Type</th>
               </tr>
             </thead>
             <tbody>
               {capTable.map((sh: any, i: number) => (
                 <tr
                   key={i}
-                  className={`border-b border-gray-100 ${sh.is_self ? "bg-blue-50" : ""}`}
+                  style={{
+                    borderBottom: `1px solid var(--color-border)`,
+                    background: sh.is_self ? "rgba(124, 58, 237, 0.04)" : undefined,
+                  }}
                 >
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3" style={{ color: "var(--color-text-primary)" }}>
                     {sh.name}
                     {sh.is_self && (
-                      <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
+                      <span
+                        className="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
+                        style={{ background: "rgba(124, 58, 237, 0.08)", color: "var(--color-accent-purple)" }}
+                      >
                         You
                       </span>
                     )}
                     {sh.is_promoter && (
-                      <span className="ml-1 text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded">
+                      <span
+                        className="ml-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
+                        style={{ background: "rgba(5, 150, 105, 0.08)", color: "var(--color-accent-emerald)" }}
+                      >
                         Promoter
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-right">{sh.shares?.toLocaleString()}</td>
-                  <td className="px-4 py-3 text-right">{sh.percentage?.toFixed(2)}%</td>
-                  <td className="px-4 py-3 capitalize">{sh.share_type}</td>
+                  <td className="px-4 py-3 text-right font-medium" style={{ color: "var(--color-text-primary)" }}>{sh.shares?.toLocaleString()}</td>
+                  <td className="px-4 py-3 text-right font-medium" style={{ color: "var(--color-accent-purple)" }}>{sh.percentage?.toFixed(2)}%</td>
+                  <td className="px-4 py-3 capitalize" style={{ color: "var(--color-text-secondary)" }}>{sh.share_type}</td>
                 </tr>
               ))}
             </tbody>
@@ -261,60 +339,72 @@ export default function InvestorCompanyDetailPage() {
       {activeTab === "rounds" && (
         <div className="space-y-4">
           {rounds.length === 0 ? (
-            <div className="bg-white rounded-lg border border-gray-200 p-8 text-center text-gray-500">
-              No funding rounds recorded.
+            <div
+              className="rounded-xl p-12 text-center border"
+              style={{ background: "var(--color-bg-card)", borderColor: "var(--color-border)" }}
+            >
+              <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>No funding rounds recorded.</p>
             </div>
           ) : (
             rounds.map((r: any) => (
-              <div key={r.id} className="bg-white rounded-lg border border-gray-200 p-5">
+              <div
+                key={r.id}
+                className="rounded-xl p-5 border"
+                style={{ background: "var(--color-bg-card)", borderColor: "var(--color-border)" }}
+              >
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-gray-900">{r.round_name}</h3>
+                  <h3
+                    className="font-semibold"
+                    style={{ fontFamily: "var(--font-display)", color: "var(--color-text-primary)" }}
+                  >
+                    {r.round_name}
+                  </h3>
                   <div className="flex items-center gap-2">
                     {r.participated && (
-                      <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded font-medium">
+                      <span
+                        className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                        style={{ background: "rgba(5, 150, 105, 0.08)", color: "var(--color-accent-emerald)" }}
+                      >
                         Participated
                       </span>
                     )}
-                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded capitalize">
+                    <span
+                      className="text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize"
+                      style={{ background: "rgba(100, 116, 139, 0.08)", color: "var(--color-text-muted)" }}
+                    >
                       {r.status?.replace("_", " ")}
                     </span>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
-                  <div>
-                    <p className="text-gray-500">Instrument</p>
-                    <p className="font-medium capitalize">{r.instrument_type || "-"}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">Pre-Money</p>
-                    <p className="font-medium">
-                      {r.pre_money_valuation ? `Rs ${(r.pre_money_valuation / 100000).toFixed(1)}L` : "-"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">Amount Raised</p>
-                    <p className="font-medium">
-                      {r.amount_raised ? `Rs ${(r.amount_raised / 100000).toFixed(1)}L` : "-"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">Price/Share</p>
-                    <p className="font-medium">
-                      {r.price_per_share ? `Rs ${r.price_per_share}` : "-"}
-                    </p>
-                  </div>
+                  {[
+                    { label: "Instrument", value: r.instrument_type || "-", capitalize: true },
+                    { label: "Pre-Money", value: r.pre_money_valuation ? `Rs ${(r.pre_money_valuation / 100000).toFixed(1)}L` : "-" },
+                    { label: "Amount Raised", value: r.amount_raised ? `Rs ${(r.amount_raised / 100000).toFixed(1)}L` : "-" },
+                    { label: "Price/Share", value: r.price_per_share ? `Rs ${r.price_per_share}` : "-" },
+                  ].map((item) => (
+                    <div key={item.label}>
+                      <p className="text-xs mb-0.5" style={{ color: "var(--color-text-muted)" }}>{item.label}</p>
+                      <p className={`font-medium ${item.capitalize ? "capitalize" : ""}`} style={{ color: "var(--color-text-primary)" }}>
+                        {item.value}
+                      </p>
+                    </div>
+                  ))}
                 </div>
                 {r.participated && (
-                  <div className="mt-3 pt-3 border-t border-gray-100 grid grid-cols-2 gap-4 text-sm">
+                  <div
+                    className="mt-3 pt-3 grid grid-cols-2 gap-4 text-sm border-t"
+                    style={{ borderColor: "var(--color-border)" }}
+                  >
                     <div>
-                      <p className="text-gray-500">Your Investment</p>
-                      <p className="font-medium text-blue-700">
+                      <p className="text-xs mb-0.5" style={{ color: "var(--color-text-muted)" }}>Your Investment</p>
+                      <p className="font-semibold" style={{ color: "var(--color-accent-purple)" }}>
                         {r.my_investment ? `Rs ${r.my_investment.toLocaleString()}` : "-"}
                       </p>
                     </div>
                     <div>
-                      <p className="text-gray-500">Shares Allotted</p>
-                      <p className="font-medium text-blue-700">
+                      <p className="text-xs mb-0.5" style={{ color: "var(--color-text-muted)" }}>Shares Allotted</p>
+                      <p className="font-semibold" style={{ color: "var(--color-accent-purple)" }}>
                         {r.my_shares?.toLocaleString() || "-"}
                       </p>
                     </div>
@@ -329,8 +419,11 @@ export default function InvestorCompanyDetailPage() {
       {activeTab === "esop" && (
         <div className="space-y-4">
           {esopGrants.length === 0 ? (
-            <div className="bg-white rounded-lg border border-gray-200 p-8 text-center text-gray-500">
-              No ESOP grants found.
+            <div
+              className="rounded-xl p-12 text-center border"
+              style={{ background: "var(--color-bg-card)", borderColor: "var(--color-border)" }}
+            >
+              <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>No ESOP grants found.</p>
             </div>
           ) : (
             esopGrants.map((g: any) => {
@@ -338,97 +431,113 @@ export default function InvestorCompanyDetailPage() {
                 ? Math.round(((g.options_vested || 0) / g.number_of_options) * 100)
                 : 0;
               return (
-                <div key={g.id} className="bg-white rounded-lg border border-gray-200 p-5">
+                <div
+                  key={g.id}
+                  className="rounded-xl p-5 border"
+                  style={{ background: "var(--color-bg-card)", borderColor: "var(--color-border)" }}
+                >
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-semibold text-gray-900">{g.plan_name || "Grant"}</h3>
-                    <span className={`text-xs px-2 py-1 rounded font-medium capitalize ${
-                      g.status === "active" || g.status === "partially_exercised"
-                        ? "bg-green-100 text-green-700"
-                        : g.status === "fully_exercised"
-                        ? "bg-blue-100 text-blue-700"
-                        : "bg-gray-100 text-gray-600"
-                    }`}>
+                    <h3
+                      className="font-semibold"
+                      style={{ fontFamily: "var(--font-display)", color: "var(--color-text-primary)" }}
+                    >
+                      {g.plan_name || "Grant"}
+                    </h3>
+                    <span
+                      className="text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize"
+                      style={{
+                        background: (g.status === "active" || g.status === "partially_exercised")
+                          ? "rgba(5, 150, 105, 0.08)"
+                          : g.status === "fully_exercised"
+                          ? "rgba(124, 58, 237, 0.08)"
+                          : "rgba(100, 116, 139, 0.08)",
+                        color: (g.status === "active" || g.status === "partially_exercised")
+                          ? "var(--color-accent-emerald)"
+                          : g.status === "fully_exercised"
+                          ? "var(--color-accent-purple)"
+                          : "var(--color-text-muted)",
+                      }}
+                    >
                       {g.status?.replace(/_/g, " ")}
                     </span>
                   </div>
 
                   {/* Vesting progress bar */}
                   <div className="mb-4">
-                    <div className="flex justify-between text-xs text-gray-500 mb-1">
+                    <div className="flex justify-between text-xs mb-1" style={{ color: "var(--color-text-muted)" }}>
                       <span>{vestedPct}% vested</span>
                       <span>{(g.options_vested || 0).toLocaleString()} / {g.number_of_options?.toLocaleString()}</span>
                     </div>
-                    <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: "var(--color-bg-secondary)" }}>
                       <div
-                        className="h-full rounded-full bg-green-500 transition-all"
-                        style={{ width: `${vestedPct}%` }}
+                        className="h-full rounded-full transition-all"
+                        style={{ width: `${vestedPct}%`, background: "var(--color-accent-emerald)" }}
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-sm">
-                    <div>
-                      <p className="text-gray-500">Granted</p>
-                      <p className="font-medium">{g.number_of_options?.toLocaleString()}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500">Vested</p>
-                      <p className="font-medium text-green-700">{(g.options_vested || 0).toLocaleString()}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500">Exercisable</p>
-                      <p className="font-medium text-blue-700">{(g.options_exercisable || 0).toLocaleString()}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500">Exercised</p>
-                      <p className="font-medium">{g.options_exercised?.toLocaleString()}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500">Exercise Price</p>
-                      <p className="font-medium">Rs {g.exercise_price}</p>
-                    </div>
+                    {[
+                      { label: "Granted", value: g.number_of_options?.toLocaleString() },
+                      { label: "Vested", value: (g.options_vested || 0).toLocaleString(), color: "var(--color-accent-emerald)" },
+                      { label: "Exercisable", value: (g.options_exercisable || 0).toLocaleString(), color: "var(--color-accent-purple)" },
+                      { label: "Exercised", value: g.options_exercised?.toLocaleString() },
+                      { label: "Exercise Price", value: `Rs ${g.exercise_price}` },
+                    ].map((item) => (
+                      <div key={item.label}>
+                        <p className="text-xs mb-0.5" style={{ color: "var(--color-text-muted)" }}>{item.label}</p>
+                        <p className="font-medium" style={{ color: item.color || "var(--color-text-primary)" }}>{item.value}</p>
+                      </div>
+                    ))}
                   </div>
 
-                  <div className="mt-3 pt-3 border-t border-gray-100 grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
-                    <div>
-                      <p className="text-gray-500">Grant Date</p>
-                      <p className="font-medium">{g.grant_date?.split("T")[0] || "-"}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500">Vesting Period</p>
-                      <p className="font-medium">{g.vesting_months} months ({g.cliff_months}m cliff)</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500">Vesting Type</p>
-                      <p className="font-medium capitalize">{g.vesting_type || "monthly"}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500">Vesting Start</p>
-                      <p className="font-medium">{g.vesting_start_date?.split("T")[0] || "-"}</p>
-                    </div>
+                  <div
+                    className="mt-3 pt-3 grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm border-t"
+                    style={{ borderColor: "var(--color-border)" }}
+                  >
+                    {[
+                      { label: "Grant Date", value: g.grant_date?.split("T")[0] || "-" },
+                      { label: "Vesting Period", value: `${g.vesting_months} months (${g.cliff_months}m cliff)` },
+                      { label: "Vesting Type", value: g.vesting_type || "monthly" },
+                      { label: "Vesting Start", value: g.vesting_start_date?.split("T")[0] || "-" },
+                    ].map((item) => (
+                      <div key={item.label}>
+                        <p className="text-xs mb-0.5" style={{ color: "var(--color-text-muted)" }}>{item.label}</p>
+                        <p className="font-medium capitalize" style={{ color: "var(--color-text-primary)" }}>{item.value}</p>
+                      </div>
+                    ))}
                   </div>
 
-                  {/* Vesting schedule table */}
+                  {/* Vesting schedule */}
                   {g.vesting_schedule && g.vesting_schedule.length > 0 && (
-                    <details className="mt-3 pt-3 border-t border-gray-100">
-                      <summary className="text-sm text-blue-600 cursor-pointer hover:underline">
+                    <details className="mt-3 pt-3 border-t" style={{ borderColor: "var(--color-border)" }}>
+                      <summary
+                        className="text-sm cursor-pointer hover:underline font-medium"
+                        style={{ color: "var(--color-accent-purple)" }}
+                      >
                         View vesting schedule ({g.vesting_schedule.length} milestones)
                       </summary>
                       <div className="mt-2 max-h-48 overflow-y-auto">
                         <table className="w-full text-xs">
                           <thead>
-                            <tr className="text-gray-500 border-b border-gray-100">
-                              <th className="text-left py-1.5 pr-3">Date</th>
-                              <th className="text-right py-1.5 pr-3">Vesting</th>
-                              <th className="text-right py-1.5 pr-3">Cumulative</th>
-                              <th className="text-right py-1.5">%</th>
+                            <tr style={{ borderBottom: `1px solid var(--color-border)` }}>
+                              <th className="text-left py-1.5 pr-3" style={{ color: "var(--color-text-muted)" }}>Date</th>
+                              <th className="text-right py-1.5 pr-3" style={{ color: "var(--color-text-muted)" }}>Vesting</th>
+                              <th className="text-right py-1.5 pr-3" style={{ color: "var(--color-text-muted)" }}>Cumulative</th>
+                              <th className="text-right py-1.5" style={{ color: "var(--color-text-muted)" }}>%</th>
                             </tr>
                           </thead>
                           <tbody>
                             {g.vesting_schedule.map((vs: any, idx: number) => {
                               const isPast = new Date(vs.date) <= new Date();
                               return (
-                                <tr key={idx} className={`border-b border-gray-50 ${isPast ? "text-gray-900" : "text-gray-400"}`}>
+                                <tr
+                                  key={idx}
+                                  style={{
+                                    borderBottom: `1px solid var(--color-border)`,
+                                    color: isPast ? "var(--color-text-primary)" : "var(--color-text-muted)",
+                                  }}
+                                >
                                   <td className="py-1.5 pr-3">{vs.date?.split("T")[0]}</td>
                                   <td className="py-1.5 pr-3 text-right">{vs.options_vesting?.toLocaleString()}</td>
                                   <td className="py-1.5 pr-3 text-right font-medium">{vs.cumulative_vested?.toLocaleString()}</td>
@@ -449,36 +558,49 @@ export default function InvestorCompanyDetailPage() {
       )}
 
       {activeTab === "documents" && (
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div
+          className="rounded-xl overflow-hidden border"
+          style={{ background: "var(--color-bg-card)", borderColor: "var(--color-border)" }}
+        >
           {documents.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">No documents available.</div>
+            <div className="p-12 text-center">
+              <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>No documents available.</p>
+            </div>
           ) : (
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Document</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Type</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Status</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Date</th>
+              <thead>
+                <tr style={{ background: "var(--color-bg-secondary)" }}>
+                  <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Document</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Type</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Status</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>Date</th>
                 </tr>
               </thead>
               <tbody>
                 {documents.map((d: any) => (
-                  <tr key={d.id} className="border-b border-gray-100">
-                    <td className="px-4 py-3 font-medium">{d.name}</td>
-                    <td className="px-4 py-3 capitalize">{d.doc_type?.replace("_", " ") || "-"}</td>
+                  <tr key={d.id} style={{ borderBottom: `1px solid var(--color-border)` }}>
+                    <td className="px-4 py-3 font-medium" style={{ color: "var(--color-text-primary)" }}>{d.name}</td>
+                    <td className="px-4 py-3 capitalize" style={{ color: "var(--color-text-secondary)" }}>{d.doc_type?.replace("_", " ") || "-"}</td>
                     <td className="px-4 py-3">
-                      <span className={`text-xs px-2 py-0.5 rounded font-medium ${
-                        d.status === "team_verified" || d.status === "ai_verified"
-                          ? "bg-green-100 text-green-700"
-                          : d.status === "rejected"
-                          ? "bg-red-100 text-red-700"
-                          : "bg-gray-100 text-gray-600"
-                      }`}>
+                      <span
+                        className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                        style={{
+                          background: (d.status === "team_verified" || d.status === "ai_verified")
+                            ? "rgba(5, 150, 105, 0.08)"
+                            : d.status === "rejected"
+                            ? "rgba(225, 29, 72, 0.08)"
+                            : "rgba(100, 116, 139, 0.08)",
+                          color: (d.status === "team_verified" || d.status === "ai_verified")
+                            ? "var(--color-accent-emerald)"
+                            : d.status === "rejected"
+                            ? "var(--color-accent-rose)"
+                            : "var(--color-text-muted)",
+                        }}
+                      >
                         {d.status?.replace("_", " ") || "pending"}
                       </span>
                     </td>
-                    <td className="px-4 py-3">{d.uploaded_at?.split("T")[0] || "-"}</td>
+                    <td className="px-4 py-3" style={{ color: "var(--color-text-secondary)" }}>{d.uploaded_at?.split("T")[0] || "-"}</td>
                   </tr>
                 ))}
               </tbody>

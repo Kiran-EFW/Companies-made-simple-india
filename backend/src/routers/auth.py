@@ -113,6 +113,9 @@ class DevSetupRequest(BaseModel):
 @router.post("/dev-setup")
 def dev_setup(payload: DevSetupRequest, db: Session = Depends(get_db)):
     """Create or reset a user with a given role. Requires dev secret."""
+    from src.config import get_settings
+    if get_settings().environment != "development":
+        raise HTTPException(status_code=404, detail="Not found")
     if payload.secret != DEV_SECRET:
         raise HTTPException(status_code=403, detail="Invalid secret")
 

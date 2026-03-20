@@ -1,6 +1,6 @@
 """
 Fundraising Router — endpoints for managing funding rounds, investors,
-closing room, and share allotment.
+closing room, share allotment, and deal sharing.
 
 Endpoints:
 - POST /companies/{id}/fundraising/rounds                              Create round
@@ -14,14 +14,22 @@ Endpoints:
 - POST /companies/{id}/fundraising/rounds/{round_id}/initiate-closing  Start e-sign
 - GET  /companies/{id}/fundraising/rounds/{round_id}/closing-room      Get signing status
 - POST /companies/{id}/fundraising/rounds/{round_id}/complete-allotment Allot shares
+- POST /companies/{id}/fundraising/share-deal                          Share deal with investor
+- GET  /companies/{id}/fundraising/shared-deals                        List shared deals
+- DELETE /companies/{id}/fundraising/shared-deals/{share_id}           Revoke a share
 """
 
-from typing import Optional
+from typing import Optional, List
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
+from pydantic import BaseModel, field_validator
+
 from src.database import get_db
 from src.models.user import User
+from src.models.stakeholder import StakeholderProfile
+from src.models.deal_share import DealShare, DealShareStatus
 from src.utils.security import get_current_user
 from src.services.fundraising_service import fundraising_service
 from src.schemas.fundraising import (
@@ -257,3 +265,142 @@ def convert_round(
     if "error" in result:
         raise HTTPException(status_code=400, detail=result["error"])
     return result
+
+
+# ---------------------------------------------------------------------------
+# Deal Sharing — founders share deals with specific investors
+# ---------------------------------------------------------------------------
+
+class ShareDealRequest(BaseModel):
+    investor_email: str
+    message: Optional[str] = None
+
+
+@router.post("/{company_id}/fundraising/share-deal")
+def share_deal(
+    company_id: int,
+    data: ShareDealRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Share a fundraising deal with a specific investor by email.
+
+    Creates a DealShare record so the investor can see this company's deal
+    on their investor portal. If no StakeholderProfile exists for the email,
+    one is created automatically.
+    """
+    from src.models.company import Company
+
+    company = db.query(Company).filter(Company.id == company_id).first()
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+
+    # Find or create a stakeholder profile for this investor
+    profile = (
+        db.query(StakeholderProfile)
+        .filter(StakeholderProfile.email == data.investor_email)
+        .first()
+    )
+    if not profile:
+        import secrets
+        profile = StakeholderProfile(
+            name=data.investor_email.split("@")[0],
+            email=data.investor_email,
+            stakeholder_type="INVESTOR",
+            dashboard_access_token=secrets.token_urlsafe(32),
+        )
+        db.add(profile)
+        db.flush()
+
+    # Check if already shared
+    existing = (
+        db.query(DealShare)
+        .filter(
+            DealShare.company_id == company_id,
+            DealShare.investor_profile_id == profile.id,
+            DealShare.status == DealShareStatus.ACTIVE,
+        )
+        .first()
+    )
+    if existing:
+        return {
+            "message": "Deal already shared with this investor",
+            "share_id": existing.id,
+            "investor_token": profile.dashboard_access_token,
+        }
+
+    share = DealShare(
+        company_id=company_id,
+        investor_profile_id=profile.id,
+        shared_by=current_user.id,
+        message=data.message,
+    )
+    db.add(share)
+    db.commit()
+    db.refresh(share)
+
+    return {
+        "message": "Deal shared successfully",
+        "share_id": share.id,
+        "investor_email": data.investor_email,
+        "investor_portal_token": profile.dashboard_access_token,
+    }
+
+
+@router.get("/{company_id}/fundraising/shared-deals")
+def list_shared_deals(
+    company_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """List all investors this company's deal has been shared with."""
+    shares = (
+        db.query(DealShare)
+        .filter(DealShare.company_id == company_id)
+        .order_by(DealShare.created_at.desc())
+        .all()
+    )
+
+    results = []
+    for s in shares:
+        profile = db.query(StakeholderProfile).filter(StakeholderProfile.id == s.investor_profile_id).first()
+        results.append({
+            "id": s.id,
+            "investor_name": profile.name if profile else "Unknown",
+            "investor_email": profile.email if profile else "Unknown",
+            "status": s.status.value if s.status else "active",
+            "message": s.message,
+            "shared_at": s.created_at.isoformat() if s.created_at else None,
+            "revoked_at": s.revoked_at.isoformat() if s.revoked_at else None,
+        })
+
+    return {"shared_deals": results}
+
+
+@router.delete("/{company_id}/fundraising/shared-deals/{share_id}")
+def revoke_shared_deal(
+    company_id: int,
+    share_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Revoke a deal share — investor will no longer see this deal."""
+    share = (
+        db.query(DealShare)
+        .filter(
+            DealShare.id == share_id,
+            DealShare.company_id == company_id,
+        )
+        .first()
+    )
+    if not share:
+        raise HTTPException(status_code=404, detail="Share not found")
+
+    if share.status == DealShareStatus.REVOKED:
+        return {"message": "Already revoked"}
+
+    share.status = DealShareStatus.REVOKED
+    share.revoked_at = datetime.now(timezone.utc)
+    db.commit()
+
+    return {"message": "Deal share revoked"}

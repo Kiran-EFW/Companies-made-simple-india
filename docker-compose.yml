@@ -23,6 +23,7 @@ services:
     environment:
       - DATABASE_URL=postgresql://cms_india:cms_india_dev@db:5432/cms_india
       - ENVIRONMENT=development
+      - PORT=8000
     depends_on:
       - db
       - redis

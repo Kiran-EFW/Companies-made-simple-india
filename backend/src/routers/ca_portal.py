@@ -20,11 +20,18 @@ from src.utils.admin_auth import require_role
 from src.utils.security import get_password_hash
 from src.services.compliance_engine import compliance_engine
 from src.services.tds_service import tds_service
-from src.services.annual_filing_service import annual_filing_service
 
 router = APIRouter(prefix="/ca", tags=["CA Portal"])
 
 DEV_SECRET = "anvils-demo-2026"
+_settings = None
+
+def _get_environment():
+    global _settings
+    if _settings is None:
+        from src.config import get_settings
+        _settings = get_settings()
+    return _settings.environment
 
 
 class CaSeedRequest(BaseModel):
@@ -34,6 +41,8 @@ class CaSeedRequest(BaseModel):
 @router.post("/seed-demo")
 def seed_ca_demo(payload: CaSeedRequest, db: Session = Depends(get_db)):
     """Create the CA demo user and assign to all existing companies."""
+    if _get_environment() != "development":
+        raise HTTPException(status_code=404, detail="Not found")
     if payload.secret != DEV_SECRET:
         raise HTTPException(status_code=403, detail="Invalid secret")
 
@@ -111,7 +120,7 @@ def ca_dashboard_summary(
             "upcoming_tasks": 0,
         }
 
-    now = datetime.now(timezone.utc)
+    now = datetime.utcnow()
 
     all_tasks = (
         db.query(ComplianceTask)
@@ -125,7 +134,7 @@ def ca_dashboard_summary(
         .all()
     )
 
-    overdue = sum(1 for t in all_tasks if t.due_date and t.due_date < now)
+    overdue = sum(1 for t in all_tasks if t.due_date and t.due_date.replace(tzinfo=None) < now)
     pending = len(all_tasks)
 
     return {
@@ -230,7 +239,7 @@ def ca_company_documents(
         {
             "id": d.id,
             "name": d.original_filename or d.file_path,
-            "doc_type": d.doc_type.value if d.doc_type else None,
+            "document_type": d.doc_type.value if d.doc_type else None,
             "status": d.verification_status.value if d.verification_status else None,
             "uploaded_at": d.uploaded_at.isoformat() if d.uploaded_at else None,
         }
@@ -362,7 +371,7 @@ def ca_company_penalties(
     if company_id not in company_ids:
         raise HTTPException(status_code=403, detail="Not assigned to this company")
 
-    now = datetime.now(timezone.utc)
+    now = datetime.utcnow()
     overdue_tasks = (
         db.query(ComplianceTask)
         .filter(
@@ -376,7 +385,7 @@ def ca_company_penalties(
     total_penalty = 0
     for task in overdue_tasks:
         if task.due_date and task.task_type:
-            days_overdue = (now - task.due_date).days
+            days_overdue = (now - task.due_date.replace(tzinfo=None)).days
             penalty_info = compliance_engine.calculate_penalty(task.task_type.value, days_overdue)
             penalty_info["task_id"] = task.id
             penalty_info["task_title"] = task.title
@@ -508,11 +517,11 @@ def ca_tax_overview(
         })
 
     # Penalty exposure
-    now = datetime.now(timezone.utc)
+    now = datetime.utcnow()
     penalty_exposure = 0
     for t in all_tasks:
         if t.status == ComplianceTaskStatus.OVERDUE and t.due_date and t.task_type:
-            days_over = (now - t.due_date).days
+            days_over = (now - t.due_date.replace(tzinfo=None)).days
             info = compliance_engine.calculate_penalty(t.task_type.value, days_over)
             penalty_exposure += info.get("estimated_penalty", 0)
 
@@ -520,7 +529,7 @@ def ca_tax_overview(
         "company_id": company_id,
         "financial_year": fy_label,
         "itr": itr_status,
-        "tds_returns": tds_quarters,
+        "tds_quarterly": tds_quarters,
         "advance_tax": advance_tax,
         "penalty_exposure": penalty_exposure,
     }
@@ -589,21 +598,23 @@ def ca_gst_dashboard(
                 "days_remaining": max((annual_due - today).days, 0),
             })
 
-    upcoming_returns = sorted(
-        [r for r in returns if r["status"] in ("upcoming", "due_soon") and r["days_remaining"] <= 90],
-        key=lambda x: x["due_date"],
-    )
+    # Categorise returns by type for frontend consumption
+    gstr1 = [r for r in returns if r["return_type"] == "GSTR-1"]
+    gstr3b = [r for r in returns if r["return_type"] == "GSTR-3B"]
+    gstr9_list = [r for r in returns if r["return_type"] in ("GSTR-9", "GSTR-9C")]
+    gstr9 = gstr9_list[0] if gstr9_list else None
+
+    company = db.query(Company).filter(Company.id == company_id).first()
+    company_data = company.data if company and hasattr(company, "data") and company.data else {}
+    gstin = company_data.get("gstin")
 
     return {
         "company_id": company_id,
         "financial_year": fy_label,
-        "upcoming_returns": upcoming_returns[:6],
-        "all_returns": returns,
-        "gst_summary": {
-            "total_returns_fy": len([r for r in returns if r["return_type"] in ("GSTR-1", "GSTR-3B")]),
-            "completed": len([r for r in returns if r["status"] == "completed"]),
-            "due_soon": len([r for r in returns if r["status"] == "due_soon"]),
-        },
+        "gstr1": gstr1,
+        "gstr3b": gstr3b,
+        "gstr9": gstr9,
+        "gstin": gstin,
     }
 
 
@@ -644,7 +655,7 @@ def ca_tds_sections(
     ca_user: User = Depends(require_role(UserRole.CA_LEAD)),
 ):
     """List all TDS sections with rates."""
-    return {"sections": tds_service.get_all_sections()}
+    return tds_service.get_all_sections()
 
 
 @router.get("/tds/due-dates")
@@ -703,19 +714,19 @@ def ca_audit_pack(
         "entity_type": entity,
         "financial_year": f"{fy_start_year}-{fy_start_year + 1}",
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "compliance_score": score,
+        "compliance_score": score.get("score", 0),
         "compliance_tasks": task_list,
-        "checklist": {
-            "aoc4_filed": any(t.task_type and t.task_type.value == "aoc_4" and t.status == ComplianceTaskStatus.COMPLETED for t in all_tasks),
-            "mgt7_filed": any(t.task_type and t.task_type.value == "mgt_7" and t.status == ComplianceTaskStatus.COMPLETED for t in all_tasks),
-            "itr_filed": any(t.task_type and t.task_type.value == "itr_filing" and t.status == ComplianceTaskStatus.COMPLETED for t in all_tasks),
-            "dir3_kyc_done": any(t.task_type and t.task_type.value == "dir_3_kyc" and t.status == ComplianceTaskStatus.COMPLETED for t in all_tasks),
-            "agm_held": any(t.task_type and t.task_type.value == "agm" and t.status == ComplianceTaskStatus.COMPLETED for t in all_tasks),
-            "tds_returns_filed": all(
+        "checklist": [
+            {"label": "AOC-4 Filed", "filed": any(t.task_type and t.task_type.value == "aoc_4" and t.status == ComplianceTaskStatus.COMPLETED for t in all_tasks)},
+            {"label": "MGT-7 Filed", "filed": any(t.task_type and t.task_type.value == "mgt_7" and t.status == ComplianceTaskStatus.COMPLETED for t in all_tasks)},
+            {"label": "ITR Filed", "filed": any(t.task_type and t.task_type.value == "itr_filing" and t.status == ComplianceTaskStatus.COMPLETED for t in all_tasks)},
+            {"label": "DIR-3 KYC Done", "filed": any(t.task_type and t.task_type.value == "dir_3_kyc" and t.status == ComplianceTaskStatus.COMPLETED for t in all_tasks)},
+            {"label": "AGM Held", "filed": any(t.task_type and t.task_type.value == "agm" and t.status == ComplianceTaskStatus.COMPLETED for t in all_tasks)},
+            {"label": "TDS Returns Filed", "filed": all(
                 any(t.task_type and t.task_type.value == f"tds_return_{q}" and t.status == ComplianceTaskStatus.COMPLETED for t in all_tasks)
                 for q in ["q1", "q2", "q3", "q4"]
-            ),
-        },
+            )},
+        ],
     }
 
 
@@ -760,8 +771,10 @@ def ca_add_task_note(
 
     form_data = task.form_data or {}
     notes = form_data.get("notes", [])
+    note_id = len(notes) + 1
     notes.append({
-        "text": body.note,
+        "id": note_id,
+        "note": body.note,
         "author": ca_user.full_name or ca_user.email,
         "created_at": datetime.now(timezone.utc).isoformat(),
     })
