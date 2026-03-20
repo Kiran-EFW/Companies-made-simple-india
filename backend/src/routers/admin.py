@@ -290,7 +290,7 @@ def update_company_status(
                 .first()
             )
             if prefs and prefs.sms_enabled and prefs.status_updates:
-                company_name = company.name or "Your company"
+                company_name = company.approved_name or (company.proposed_names[0] if company.proposed_names else "Your company")
                 sms_service.send_status_update_sms(
                     owner.phone, company_name, new_status.upper()
                 )
@@ -682,7 +682,7 @@ def list_service_requests(
             {
                 "id": r.id,
                 "company_id": r.company_id,
-                "company_name": r.company.approved_name or r.company.proposed_names[0] if r.company.proposed_names else f"Company #{r.company_id}",
+                "company_name": r.company.approved_name or (r.company.proposed_names[0] if r.company.proposed_names else f"Company #{r.company_id}"),
                 "user_email": r.user.email if r.user else None,
                 "service_key": r.service_key,
                 "service_name": r.service_name,

@@ -309,7 +309,7 @@ def generate_aoc4_with_data(
 ):
     """Generate AOC-4 form data with provided financial data."""
     company = _get_user_company(company_id, db, current_user)
-    return annual_filing_service.generate_aoc4_data(company, body.dict())
+    return annual_filing_service.generate_aoc4_data(company, body.model_dump())
 
 
 @router.get("/filings/mgt7")

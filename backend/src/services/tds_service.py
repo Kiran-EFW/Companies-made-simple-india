@@ -246,6 +246,7 @@ class TDSService:
 
         tds_amount = round(amount * rate / 100, 2)
 
+        cess = round(tds_amount * 0.04, 2)
         return {
             "section": section,
             "description": rate_info["description"],
@@ -255,8 +256,11 @@ class TDSService:
             "tds_amount": tds_amount,
             "net_payable": round(amount - tds_amount, 2),
             "has_pan": has_pan,
-            "surcharge_health_cess": round(tds_amount * 0.04, 2),
-            "total_tds_with_cess": round(tds_amount * 1.04, 2),
+            "surcharge": 0,
+            "cess": cess,
+            "surcharge_health_cess": cess,
+            "total_with_cess": round(tds_amount + cess, 2),
+            "total_tds_with_cess": round(tds_amount + cess, 2),
             "note": rate_info.get("note", ""),
         }
 
@@ -365,6 +369,8 @@ class TDSService:
         return {
             "quarter": quarter,
             "period": due_dates["period"],
+            "due_date": due_dates.get(f"tds_deposit_{quarter.lower()}_end", "7th of next month"),
+            "return_due_date": due_dates.get("return_26q", due_dates.get("return_24q", "")),
             "tds_payment_deadline": due_dates.get(f"tds_deposit_{quarter.lower()}_end", "7th of next month"),
             "return_filing_deadlines": {
                 "24Q_salary": due_dates.get("return_24q", ""),
@@ -387,30 +393,40 @@ class TDSService:
     # ── Get All Sections ─────────────────────────────────────────────────
 
     def get_all_sections(self) -> List[Dict[str, Any]]:
-        """Return all TDS sections with rates for reference."""
+        """Return all TDS sections with rates for reference.
+
+        Normalises every section to {rate_individual, rate_company, rate_no_pan}
+        so the frontend can render a consistent table.
+        """
         result = []
         for section, info in TDS_RATES.items():
+            if info.get("slab_based"):
+                rate_individual = "Slab based"
+                rate_company = "Slab based"
+            elif info.get("variable_rate"):
+                rate_individual = "Variable"
+                rate_company = "Variable"
+            elif "individual_rate" in info:
+                rate_individual = info["individual_rate"]
+                rate_company = info.get("company_rate", info["individual_rate"])
+            elif "professional_rate" in info:
+                rate_individual = info["professional_rate"]
+                rate_company = info.get("technical_rate", info["professional_rate"])
+            elif "land_building_rate" in info:
+                rate_individual = info["land_building_rate"]
+                rate_company = info.get("plant_machinery_rate", info["land_building_rate"])
+            else:
+                rate_individual = info.get("rate", 0)
+                rate_company = info.get("rate", 0)
+
             entry = {
                 "section": section,
                 "description": info.get("description", ""),
                 "threshold": info.get("threshold", 0),
+                "rate_individual": rate_individual,
+                "rate_company": rate_company,
+                "rate_no_pan": 20,
             }
-            if info.get("slab_based"):
-                entry["rate"] = "Slab based"
-            elif info.get("variable_rate"):
-                entry["rate"] = "Variable"
-            elif "individual_rate" in info:
-                entry["individual_rate"] = info["individual_rate"]
-                entry["company_rate"] = info.get("company_rate", info["individual_rate"])
-            elif "professional_rate" in info:
-                entry["professional_rate"] = info["professional_rate"]
-                entry["technical_rate"] = info.get("technical_rate", info["professional_rate"])
-            elif "land_building_rate" in info:
-                entry["land_building_rate"] = info["land_building_rate"]
-                entry["plant_machinery_rate"] = info.get("plant_machinery_rate", info["land_building_rate"])
-            else:
-                entry["rate"] = info.get("rate", 0)
-
             result.append(entry)
         return result
 

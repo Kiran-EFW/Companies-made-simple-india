@@ -89,6 +89,10 @@ class Company(Base):
     pan = Column(String, nullable=True)
     tan = Column(String, nullable=True)
 
+    # Operational details
+    employee_count = Column(Integer, nullable=True, default=0)
+    incorporation_date = Column(DateTime, nullable=True)
+
     # Metadata
     data = Column(JSON, default=dict)  # Flexible JSON for additional data
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))

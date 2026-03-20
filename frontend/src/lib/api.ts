@@ -340,6 +340,31 @@ export async function getSuggestedQuestions(companyId?: number): Promise<any> {
 }
 
 // ---------------------------------------------------------------------------
+// Copilot
+// ---------------------------------------------------------------------------
+
+export async function sendCopilotMessage(data: {
+  message: string;
+  company_id: number;
+  current_page: string;
+  conversation_history?: { role: string; content: string }[];
+}): Promise<any> {
+  return apiCall("/copilot/message", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getCopilotSuggestions(
+  companyId: number,
+  page: string
+): Promise<any> {
+  return apiCall(
+    `/copilot/suggestions/${companyId}?page=${encodeURIComponent(page)}`
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Workflow / Post-Incorporation
 // ---------------------------------------------------------------------------
 

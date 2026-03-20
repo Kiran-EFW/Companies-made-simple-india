@@ -52,6 +52,7 @@ from src.models.ca_assignment import CAAssignment  # noqa: F401
 from src.models.conversion_event import ConversionEvent  # noqa: F401
 from src.models.investor_interest import InvestorInterest  # noqa: F401
 from src.models.valuation import Valuation  # noqa: F401
+from src.models.deal_share import DealShare  # noqa: F401
 
 # Import settings to get database URL
 from src.config import get_settings

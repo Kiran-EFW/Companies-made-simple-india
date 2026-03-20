@@ -137,8 +137,8 @@ def create_meeting(
     meeting_number = _next_meeting_number(db, company_id, body.meeting_type)
 
     # Serialize attendees and agenda_items from Pydantic models to dicts
-    attendees_data = [a.dict() for a in body.attendees] if body.attendees else []
-    agenda_data = [a.dict() for a in body.agenda_items] if body.agenda_items else []
+    attendees_data = [a.model_dump() for a in body.attendees] if body.attendees else []
+    agenda_data = [a.model_dump() for a in body.agenda_items] if body.agenda_items else []
 
     meeting = Meeting(
         company_id=company_id,
@@ -415,7 +415,7 @@ def update_attendance(
 ):
     """Update attendance for a meeting."""
     meeting = _get_meeting(db, company_id, meeting_id)
-    meeting.attendees = [a.dict() for a in body.attendees]
+    meeting.attendees = [a.model_dump() for a in body.attendees]
     meeting.quorum_present = body.quorum_present
     db.commit()
     db.refresh(meeting)
@@ -432,7 +432,7 @@ def update_agenda(
 ):
     """Update agenda items for a meeting."""
     meeting = _get_meeting(db, company_id, meeting_id)
-    meeting.agenda_items = [a.dict() for a in body.agenda_items]
+    meeting.agenda_items = [a.model_dump() for a in body.agenda_items]
     db.commit()
     db.refresh(meeting)
     return _serialize_meeting(meeting)
@@ -661,7 +661,7 @@ def update_resolutions(
 ):
     """Add/update resolutions passed."""
     meeting = _get_meeting(db, company_id, meeting_id)
-    meeting.resolutions = [r.dict() for r in body.resolutions]
+    meeting.resolutions = [r.model_dump() for r in body.resolutions]
     db.commit()
     db.refresh(meeting)
     return _serialize_meeting(meeting)

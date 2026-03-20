@@ -120,7 +120,7 @@ def ca_dashboard_summary(
             "upcoming_tasks": 0,
         }
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
 
     all_tasks = (
         db.query(ComplianceTask)
@@ -134,7 +134,7 @@ def ca_dashboard_summary(
         .all()
     )
 
-    overdue = sum(1 for t in all_tasks if t.due_date and t.due_date.replace(tzinfo=None) < now)
+    overdue = sum(1 for t in all_tasks if t.due_date and (t.due_date if t.due_date.tzinfo else t.due_date.replace(tzinfo=timezone.utc)) < now)
     pending = len(all_tasks)
 
     return {
@@ -175,7 +175,7 @@ def ca_list_companies(
         )
         result.append({
             "id": c.id,
-            "name": c.approved_name or c.proposed_names[0] if c.proposed_names else "Unnamed",
+            "name": c.approved_name or (c.proposed_names[0] if c.proposed_names else "Unnamed"),
             "entity_type": c.entity_type.value if c.entity_type else None,
             "cin": c.cin,
             "status": c.status.value if c.status else None,
@@ -203,6 +203,9 @@ def ca_company_compliance(
         .all()
     )
 
+    company = db.query(Company).filter(Company.id == company_id).first()
+    cname = _company_name(company) if company else f"Company #{company_id}"
+
     return [
         {
             "id": t.id,
@@ -212,6 +215,7 @@ def ca_company_compliance(
             "status": t.status.value if t.status else None,
             "description": t.description,
             "filing_reference": t.filing_reference,
+            "company_name": cname,
         }
         for t in tasks
     ]
@@ -371,7 +375,7 @@ def ca_company_penalties(
     if company_id not in company_ids:
         raise HTTPException(status_code=403, detail="Not assigned to this company")
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     overdue_tasks = (
         db.query(ComplianceTask)
         .filter(
@@ -385,7 +389,8 @@ def ca_company_penalties(
     total_penalty = 0
     for task in overdue_tasks:
         if task.due_date and task.task_type:
-            days_overdue = (now - task.due_date.replace(tzinfo=None)).days
+            due = task.due_date if task.due_date.tzinfo else task.due_date.replace(tzinfo=timezone.utc)
+            days_overdue = (now - due).days
             penalty_info = compliance_engine.calculate_penalty(task.task_type.value, days_overdue)
             penalty_info["task_id"] = task.id
             penalty_info["task_title"] = task.title
@@ -477,12 +482,19 @@ def ca_tax_overview(
         (t for t in all_tasks if t.task_type and t.task_type.value == "itr_filing"),
         None,
     )
+    today = date.today()
+    if today.month >= 4:
+        assessment_year = f"AY {today.year + 1}-{today.year + 2}"
+    else:
+        assessment_year = f"AY {today.year}-{today.year + 1}"
+
     itr_status = {
         "task_id": itr_task.id if itr_task else None,
         "status": itr_task.status.value if itr_task else "not_generated",
         "due_date": itr_task.due_date.isoformat() if itr_task and itr_task.due_date else None,
         "completed_date": itr_task.completed_date.isoformat() if itr_task and itr_task.completed_date else None,
         "filing_reference": itr_task.filing_reference if itr_task else None,
+        "assessment_year": assessment_year,
     }
 
     # TDS quarterly statuses
@@ -503,25 +515,27 @@ def ca_tax_overview(
 
     # Advance tax statuses
     advance_tax = []
+    cumulative_pct = {"q1": 15, "q2": 45, "q3": 75, "q4": 100}
     for q in ["q1", "q2", "q3", "q4"]:
         at_task = next(
             (t for t in all_tasks if t.task_type and t.task_type.value == f"advance_tax_{q}"),
             None,
         )
-        cumulative = {"q1": "15%", "q2": "45%", "q3": "75%", "q4": "100%"}
         advance_tax.append({
-            "quarter": f"Q{q[-1]} ({cumulative[q]} cumulative)",
+            "quarter": f"Q{q[-1]}",
+            "cumulative_percent": cumulative_pct[q],
             "task_id": at_task.id if at_task else None,
             "status": at_task.status.value if at_task else "not_generated",
             "due_date": at_task.due_date.isoformat() if at_task and at_task.due_date else None,
         })
 
     # Penalty exposure
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     penalty_exposure = 0
     for t in all_tasks:
         if t.status == ComplianceTaskStatus.OVERDUE and t.due_date and t.task_type:
-            days_over = (now - t.due_date.replace(tzinfo=None)).days
+            due = t.due_date if t.due_date.tzinfo else t.due_date.replace(tzinfo=timezone.utc)
+            days_over = (now - due).days
             info = compliance_engine.calculate_penalty(t.task_type.value, days_over)
             penalty_exposure += info.get("estimated_penalty", 0)
 
@@ -708,6 +722,12 @@ def ca_audit_pack(
     if hasattr(entity, "value"):
         entity = entity.value
 
+    # Build task_summary for the frontend
+    total_count = len(all_tasks)
+    completed_count = sum(1 for t in all_tasks if t.status == ComplianceTaskStatus.COMPLETED)
+    overdue_count = sum(1 for t in all_tasks if t.status == ComplianceTaskStatus.OVERDUE)
+    pending_count = total_count - completed_count - overdue_count
+
     return {
         "company_id": company_id,
         "company_name": _company_name(company),
@@ -715,6 +735,12 @@ def ca_audit_pack(
         "financial_year": f"{fy_start_year}-{fy_start_year + 1}",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "compliance_score": score.get("score", 0),
+        "task_summary": {
+            "total": total_count,
+            "completed": completed_count,
+            "overdue": overdue_count,
+            "pending": pending_count,
+        },
         "compliance_tasks": task_list,
         "checklist": [
             {"label": "AOC-4 Filed", "filed": any(t.task_type and t.task_type.value == "aoc_4" and t.status == ComplianceTaskStatus.COMPLETED for t in all_tasks)},

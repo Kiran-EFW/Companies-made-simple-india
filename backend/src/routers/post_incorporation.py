@@ -170,7 +170,7 @@ def generate_adt1(
 ):
     """Generate ADT-1 auditor appointment form data."""
     company = _get_user_company(company_id, db, current_user)
-    auditor_details = body.dict()
+    auditor_details = body.model_dump()
     form_data = post_incorporation_service.generate_adt1_form(company, auditor_details)
     return form_data
 

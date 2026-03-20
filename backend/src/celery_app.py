@@ -5,7 +5,7 @@ settings = get_settings()
 
 celery_app = Celery(
     "companies_made_simple",
-    broker=settings.redis_url,
+    broker=settings.celery_broker_url or settings.redis_url,
     backend=settings.redis_url,
 )
 

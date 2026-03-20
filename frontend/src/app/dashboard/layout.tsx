@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { CompanyProvider, useCompany } from "@/lib/company-context";
 import { apiCall } from "@/lib/api";
+import CopilotWidget from "@/components/copilot-panel";
 
 // ---------------------------------------------------------------------------
 // Sidebar navigation structure — grouped with role visibility
@@ -509,8 +510,9 @@ function DashboardInner({ children }: { children: React.ReactNode }) {
           </div>
         </div>
 
-        {/* Right: Notifications + Profile */}
+        {/* Right: Copilot + Notifications + Profile */}
         <div className="flex items-center gap-2">
+          <CopilotWidget />
           <Link
             href="/dashboard/notifications"
             className="p-2 rounded-lg hover:bg-gray-100 transition-colors relative"

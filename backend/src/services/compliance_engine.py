@@ -778,17 +778,6 @@ class ComplianceEngine:
                 "financial_year": f"{financial_year}-{financial_year + 1}",
             })
 
-            calendar.append({
-                "type": rule["type"],
-                "title": rule["title"],
-                "description": rule.get("description", ""),
-                "frequency": rule["frequency"],
-                "due_date": due.isoformat() if due else None,
-                "days_remaining": max(days_until, 0) if days_until is not None else None,
-                "status": status,
-                "financial_year": f"{financial_year}-{financial_year + 1}",
-            })
-
         # Sort by due_date
         calendar.sort(key=lambda x: x["due_date"] or "9999-12-31")
         return calendar
@@ -941,7 +930,7 @@ class ComplianceEngine:
                 .filter(
                     ComplianceTask.company_id == company_id,
                     ComplianceTask.task_type == task_type,
-                    ComplianceTask.due_date is not None,
+                    ComplianceTask.due_date != None,
                 )
                 .first()
             )
