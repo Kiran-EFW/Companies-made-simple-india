@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { sendChatMessage, getSuggestedQuestions } from "@/lib/api";
+import { formatContent } from "@/lib/format-content";
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -98,104 +99,6 @@ export default function ChatWidget({ companyId }: ChatWidgetProps) {
     }
   };
 
-  // Simple content renderer: handles newlines, **bold**, `code`, and URLs
-  function renderContent(text: string) {
-    return text.split("\n").map((line, lineIdx) => {
-      // Process inline formatting within each line
-      const parts: React.ReactNode[] = [];
-      let remaining = line;
-      let partKey = 0;
-
-      while (remaining.length > 0) {
-        // Check for inline code: `code`
-        const codeMatch = remaining.match(/^`([^`]+)`/);
-        if (codeMatch) {
-          parts.push(
-            <code
-              key={partKey++}
-              className="px-1 py-0.5 rounded text-xs font-mono"
-              style={{
-                background: "rgba(124, 58, 237, 0.1)",
-                color: "var(--color-accent-purple, #7c3aed)",
-              }}
-            >
-              {codeMatch[1]}
-            </code>
-          );
-          remaining = remaining.slice(codeMatch[0].length);
-          continue;
-        }
-
-        // Check for bold: **text**
-        const boldMatch = remaining.match(/^\*\*([^*]+)\*\*/);
-        if (boldMatch) {
-          parts.push(<strong key={partKey++}>{boldMatch[1]}</strong>);
-          remaining = remaining.slice(boldMatch[0].length);
-          continue;
-        }
-
-        // Check for URLs
-        const urlMatch = remaining.match(/^(https?:\/\/[^\s)]+)/);
-        if (urlMatch) {
-          parts.push(
-            <a
-              key={partKey++}
-              href={urlMatch[1]}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline"
-              style={{ color: "var(--color-accent-purple, #7c3aed)" }}
-            >
-              {urlMatch[1]}
-            </a>
-          );
-          remaining = remaining.slice(urlMatch[0].length);
-          continue;
-        }
-
-        // Check for bullet points: lines starting with - or *
-        // (handled at the line level below)
-
-        // Take the next character as plain text
-        const nextSpecial = remaining.search(/[`*]|https?:\/\//);
-        if (nextSpecial === -1) {
-          parts.push(remaining);
-          remaining = "";
-        } else if (nextSpecial === 0) {
-          // No match for formatting, treat as literal
-          parts.push(remaining[0]);
-          remaining = remaining.slice(1);
-        } else {
-          parts.push(remaining.slice(0, nextSpecial));
-          remaining = remaining.slice(nextSpecial);
-        }
-      }
-
-      // Detect bullet points
-      const bulletMatch = line.match(/^(\s*[-*•])\s/);
-      const numberedMatch = line.match(/^(\s*\d+[.)]\s)/);
-
-      if (bulletMatch || numberedMatch) {
-        return (
-          <div key={lineIdx} className="flex gap-1.5 ml-1">
-            <span className="shrink-0" style={{ color: "var(--color-accent-purple, #7c3aed)" }}>
-              {bulletMatch ? "•" : line.match(/^\s*(\d+)/)?.[1] + "."}
-            </span>
-            <span>{parts.slice(0).map((p, i) =>
-              typeof p === "string" ? p.replace(/^(\s*[-*•]\s|\s*\d+[.)]\s)/, "") : p
-            )}</span>
-          </div>
-        );
-      }
-
-      return (
-        <span key={lineIdx}>
-          {parts}
-          {lineIdx < text.split("\n").length - 1 && <br />}
-        </span>
-      );
-    });
-  }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -379,7 +282,7 @@ export default function ChatWidget({ companyId }: ChatWidgetProps) {
                         }
                   }
                 >
-                  {msg.role === "assistant" ? renderContent(msg.content) : msg.content}
+                  {msg.role === "assistant" ? formatContent(msg.content) : msg.content}
                 </div>
               </div>
             ))}
