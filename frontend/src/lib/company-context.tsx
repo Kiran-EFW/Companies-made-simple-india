@@ -18,6 +18,7 @@ import { useAuth } from "./auth-context";
 export interface Company {
   id: number;
   entity_type: string;
+  segment: string | null;
   plan_tier: string;
   proposed_names: string[];
   approved_name: string | null;

@@ -16,6 +16,8 @@ interface NavItem {
   href: string;
   label: string;
   icon: string;
+  /** Module key — matches segment_service.py module names for gating */
+  moduleKey?: string;
   roles?: readonly string[]; // undefined = all roles
 }
 
@@ -27,6 +29,49 @@ interface NavGroup {
 
 import { FOUNDER_ROLES } from "@/lib/roles";
 
+// ── Segment-based module visibility ──────────────────────────────────────────
+// Maps segment → set of visible module keys.  Must stay in sync with
+// backend/src/services/segment_service.py → SEGMENT_MODULES.
+
+const SEGMENT_MODULES: Record<string, Set<string>> = {
+  micro_business: new Set([
+    "overview", "company-info", "compliance", "documents", "gst", "tax",
+    "services", "billing", "notifications",
+  ]),
+  sme: new Set([
+    "overview", "company-info", "compliance", "meetings", "registers",
+    "documents", "signatures", "gst", "tax", "accounting", "stakeholders",
+    "team", "services", "billing", "notifications",
+  ]),
+  startup: new Set([
+    "overview", "company-info", "compliance", "meetings", "registers",
+    "documents", "signatures", "data-room", "gst", "tax", "accounting",
+    "cap-table", "esop", "stakeholders", "team", "fundraising", "valuations",
+    "services", "billing", "notifications",
+  ]),
+  non_profit: new Set([
+    "overview", "company-info", "compliance", "meetings", "registers",
+    "documents", "signatures", "gst", "tax", "accounting", "stakeholders",
+    "team", "services", "billing", "notifications",
+  ]),
+  nidhi: new Set([
+    "overview", "company-info", "compliance", "meetings", "registers",
+    "documents", "signatures", "gst", "tax", "accounting", "stakeholders",
+    "team", "services", "billing", "notifications",
+  ]),
+  producer: new Set([
+    "overview", "company-info", "compliance", "meetings", "registers",
+    "documents", "gst", "tax", "accounting", "stakeholders", "team",
+    "services", "billing", "notifications",
+  ]),
+  enterprise: new Set([
+    "overview", "company-info", "compliance", "meetings", "registers",
+    "documents", "signatures", "data-room", "gst", "tax", "accounting",
+    "cap-table", "esop", "stakeholders", "team", "fundraising", "valuations",
+    "services", "billing", "notifications",
+  ]),
+};
+
 const NAV_GROUPS: NavGroup[] = [
   {
     label: "",
@@ -34,11 +79,13 @@ const NAV_GROUPS: NavGroup[] = [
       {
         href: "/dashboard",
         label: "Overview",
+        moduleKey: "overview",
         icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1",
       },
       {
         href: "/dashboard/company-info",
         label: "Company Info",
+        moduleKey: "company-info",
         icon: "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4",
       },
     ],
@@ -50,21 +97,25 @@ const NAV_GROUPS: NavGroup[] = [
       {
         href: "/dashboard/cap-table",
         label: "Cap Table",
+        moduleKey: "cap-table",
         icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z",
       },
       {
         href: "/dashboard/esop",
         label: "ESOP",
+        moduleKey: "esop",
         icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z",
       },
       {
         href: "/dashboard/stakeholders",
         label: "Stakeholders",
+        moduleKey: "stakeholders",
         icon: "M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z",
       },
       {
         href: "/dashboard/team",
         label: "Team",
+        moduleKey: "team",
         icon: "M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z",
       },
     ],
@@ -76,11 +127,13 @@ const NAV_GROUPS: NavGroup[] = [
       {
         href: "/dashboard/fundraising",
         label: "Rounds",
+        moduleKey: "fundraising",
         icon: "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
       },
       {
         href: "/dashboard/valuations",
         label: "Valuations",
+        moduleKey: "valuations",
         icon: "M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z",
       },
     ],
@@ -91,16 +144,19 @@ const NAV_GROUPS: NavGroup[] = [
       {
         href: "/dashboard/compliance",
         label: "Calendar",
+        moduleKey: "compliance",
         icon: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z",
       },
       {
         href: "/dashboard/meetings",
         label: "Meetings",
+        moduleKey: "meetings",
         icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z",
       },
       {
         href: "/dashboard/registers",
         label: "Registers",
+        moduleKey: "registers",
         icon: "M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253",
       },
     ],
@@ -111,16 +167,19 @@ const NAV_GROUPS: NavGroup[] = [
       {
         href: "/dashboard/documents",
         label: "Legal Docs",
+        moduleKey: "documents",
         icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z",
       },
       {
         href: "/dashboard/signatures",
         label: "E-Signatures",
+        moduleKey: "signatures",
         icon: "M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z",
       },
       {
         href: "/dashboard/data-room",
         label: "Data Room",
+        moduleKey: "data-room",
         icon: "M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z",
       },
     ],
@@ -131,16 +190,19 @@ const NAV_GROUPS: NavGroup[] = [
       {
         href: "/dashboard/gst",
         label: "GST",
+        moduleKey: "gst",
         icon: "M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z",
       },
       {
         href: "/dashboard/tax",
         label: "Tax",
+        moduleKey: "tax",
         icon: "M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z",
       },
       {
         href: "/dashboard/accounting",
         label: "Accounting",
+        moduleKey: "accounting",
         icon: "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4",
         roles: FOUNDER_ROLES,
       },
@@ -153,11 +215,13 @@ const NAV_GROUPS: NavGroup[] = [
       {
         href: "/dashboard/services",
         label: "Marketplace",
+        moduleKey: "services",
         icon: "M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z",
       },
       {
         href: "/dashboard/billing",
         label: "Billing",
+        moduleKey: "billing",
         icon: "M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z",
       },
     ],
@@ -452,6 +516,7 @@ function RightSidebar() {
 
 function DashboardInner({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
+  const { selectedCompany } = useCompany();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -463,17 +528,25 @@ function DashboardInner({ children }: { children: React.ReactNode }) {
       ? pathname === "/dashboard"
       : pathname.startsWith(href);
 
-  // Filter nav groups by role
+  // Determine which modules are visible for the selected company's segment
+  const segmentModules = selectedCompany?.segment
+    ? SEGMENT_MODULES[selectedCompany.segment]
+    : null; // null = show all (no segment restriction)
+
+  // Filter nav groups by role AND segment
   const visibleGroups = NAV_GROUPS.filter((group) => {
     if (!group.roles) return true;
     return group.roles.includes(userRole);
   }).map((group) => ({
     ...group,
     items: group.items.filter((item) => {
-      if (!item.roles) return true;
-      return item.roles.includes(userRole);
+      // Role check
+      if (item.roles && !item.roles.includes(userRole)) return false;
+      // Segment check — if item has a moduleKey and segment is set, gate it
+      if (item.moduleKey && segmentModules && !segmentModules.has(item.moduleKey)) return false;
+      return true;
     }),
-  }));
+  })).filter((group) => group.items.length > 0);
 
   return (
     <div className="min-h-screen" style={{ background: "var(--color-bg-secondary)" }}>

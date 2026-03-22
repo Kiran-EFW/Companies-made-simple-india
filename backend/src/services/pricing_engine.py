@@ -17,13 +17,15 @@ from typing import Optional
 # ──────────────────────────────────────────────
 
 PLATFORM_FEES = {
-    "private_limited": {"launch": 4999, "grow": 7999, "scale": 12999},
-    "opc": {"launch": 3499, "grow": 5499, "scale": 8999},
-    "llp": {"launch": 3999, "grow": 6499, "scale": 9999},
-    "section_8": {"launch": 7999, "grow": 11999, "scale": 17999},
-    "sole_proprietorship": {"launch": 499, "grow": 999, "scale": 0},
-    "partnership": {"launch": 2999, "grow": 4999, "scale": 7999},
-    "public_limited": {"launch": 9999, "grow": 14999, "scale": 24999},
+    "private_limited": {"launch": 1499, "grow": 3999, "scale": 7999},
+    "opc": {"launch": 999, "grow": 2999, "scale": 5999},
+    "llp": {"launch": 1499, "grow": 3499, "scale": 6999},
+    "section_8": {"launch": 4999, "grow": 7999, "scale": 12999},
+    "sole_proprietorship": {"launch": 0, "grow": 499, "scale": 0},
+    "partnership": {"launch": 1499, "grow": 2999, "scale": 4999},
+    "public_limited": {"launch": 7999, "grow": 11999, "scale": 19999},
+    "nidhi": {"launch": 7999, "grow": 11999, "scale": 16999},
+    "producer_company": {"launch": 3999, "grow": 5999, "scale": 8999},
 }
 
 # ──────────────────────────────────────────────
@@ -146,6 +148,46 @@ def calc_partnership_deed_stamp_duty(state: str) -> int:
 def calc_partnership_pan_fee() -> int:
     """PAN application fee for partnership firm (Form 49A)."""
     return 107
+
+
+# ──────────────────────────────────────────────
+# Nidhi Company Fees
+# ──────────────────────────────────────────────
+
+def calc_nidhi_additional_fees() -> dict:
+    """
+    Additional fees specific to Nidhi companies.
+    Nidhi companies are incorporated as public limited companies under
+    Section 406, so they pay standard SPICe+ fees plus additional
+    Nidhi-specific compliance costs.
+    """
+    return {
+        "ndh4_filing_fee": 500,  # NDH-4 declaration application
+        "min_members_note": "Minimum 200 members required within 1 year",
+        "min_nof": 2000000,  # Rs 20 lakh minimum net owned funds
+        "deposit_ratio_limit": "1:20 (net owned funds to deposits)",
+        "note": "Nidhi companies are incorporated as public limited under "
+                "Section 406. Standard SPICe+ and ROC fees apply.",
+    }
+
+
+# ──────────────────────────────────────────────
+# Producer Company Fees
+# ──────────────────────────────────────────────
+
+def calc_producer_company_fees() -> dict:
+    """
+    Producer Companies (Part IXA, Companies Act 1956).
+    Incorporated via SPICe+ with specific objects clause for primary produce.
+    """
+    return {
+        "min_individual_members": 10,
+        "min_institutional_members": 2,
+        "mandatory_ceo": True,
+        "min_directors": 5,
+        "note": "Producer companies require minimum 10 individual producers "
+                "or 2 producer institutions. CEO appointment is mandatory.",
+    }
 
 
 # ──────────────────────────────────────────────
@@ -358,6 +400,17 @@ def calculate_total_cost(
         roc_fee = calc_roc_registration_fee(authorized_capital)
         section8_fee = 0
         public_limited_extras = calc_public_limited_additional_fees(authorized_capital)
+    elif entity_type == "nidhi":
+        # Nidhi companies are incorporated as public limited under Sec 406
+        filing_fee = calc_spice_filing_fee(authorized_capital)
+        roc_fee = calc_roc_registration_fee(authorized_capital)
+        section8_fee = 0
+        public_limited_extras = calc_nidhi_additional_fees()
+    elif entity_type == "producer_company":
+        # Producer companies use SPICe+ with special objects clause
+        filing_fee = calc_spice_filing_fee(authorized_capital)
+        roc_fee = calc_roc_registration_fee(authorized_capital)
+        section8_fee = 0
     else:
         filing_fee = calc_spice_filing_fee(authorized_capital)
         roc_fee = calc_roc_registration_fee(authorized_capital)

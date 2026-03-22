@@ -11,6 +11,7 @@ from src.models.ca_assignment import CAAssignment
 from src.schemas.company import CompanyCreate, CompanyOnboardDetails, CompanyOut
 from src.models.company_member import CompanyMember, InviteStatus
 from src.utils.security import get_current_user, get_password_hash
+from src.services.segment_service import resolve_segment
 
 router = APIRouter(prefix="/companies", tags=["Companies"])
 
@@ -22,11 +23,15 @@ def create_draft_company(
     current_user: User = Depends(get_current_user)
 ):
     """Create a draft company from pricing, or connect an existing incorporated company."""
+    # Auto-assign customer segment based on entity type
+    segment = resolve_segment(comp_data.entity_type)
+
     if comp_data.is_existing:
         # Connecting an existing company — set status to INCORPORATED
         new_comp = Company(
             user_id=current_user.id,
             entity_type=comp_data.entity_type,
+            segment=segment,
             plan_tier=comp_data.plan_tier,
             state=comp_data.state,
             authorized_capital=comp_data.authorized_capital,
@@ -40,6 +45,7 @@ def create_draft_company(
         new_comp = Company(
             user_id=current_user.id,
             entity_type=comp_data.entity_type,
+            segment=segment,
             plan_tier=comp_data.plan_tier,
             state=comp_data.state,
             authorized_capital=comp_data.authorized_capital,

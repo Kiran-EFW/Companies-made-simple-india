@@ -13,6 +13,21 @@ class EntityType(str, enum.Enum):
     SOLE_PROPRIETORSHIP = "sole_proprietorship"
     PARTNERSHIP = "partnership"
     PUBLIC_LIMITED = "public_limited"
+    NIDHI = "nidhi"
+    PRODUCER_COMPANY = "producer_company"
+
+
+class CustomerSegment(str, enum.Enum):
+    """Customer segment determines which features are visible and which
+    pricing tier applies.  Assigned automatically during onboarding based
+    on entity_type + user answers, but can be overridden manually."""
+    MICRO_BUSINESS = "micro_business"       # Sole prop, partnership
+    SME = "sme"                             # LLP, OPC, non-funded Pvt Ltd
+    STARTUP = "startup"                     # Funded / funding-stage Pvt Ltd
+    NON_PROFIT = "non_profit"               # Section 8
+    NIDHI = "nidhi"                         # Nidhi company
+    PRODUCER = "producer"                   # Producer company / FPO
+    ENTERPRISE = "enterprise"               # Public limited
 
 
 class PlanTier(str, enum.Enum):
@@ -65,6 +80,7 @@ class Company(Base):
 
     # Entity details
     entity_type = Column(Enum(EntityType), nullable=False)
+    segment = Column(Enum(CustomerSegment), nullable=True)  # Auto-assigned during onboarding
     plan_tier = Column(Enum(PlanTier), default=PlanTier.LAUNCH)
     proposed_names = Column(JSON, default=list)  # List of up to 2 proposed names
     approved_name = Column(String, nullable=True)

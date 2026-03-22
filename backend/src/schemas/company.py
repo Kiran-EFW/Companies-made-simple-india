@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional, List, Any
 from datetime import datetime
-from src.models.company import EntityType, PlanTier, CompanyStatus
+from src.models.company import EntityType, PlanTier, CompanyStatus, CustomerSegment
 from src.schemas.pricing import PricingResponse
 from src.schemas.document import DocumentOut
 
@@ -44,6 +44,7 @@ class CompanyOut(BaseModel):
     """Response payload for dashboard/company state."""
     id: int
     entity_type: str
+    segment: Optional[str] = None
     plan_tier: str
     status: str
     state: str
