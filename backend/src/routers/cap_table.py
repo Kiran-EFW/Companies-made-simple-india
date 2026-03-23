@@ -21,8 +21,11 @@ from sqlalchemy.orm import Session
 
 from src.database import get_db
 from src.models.user import User
+from src.models.company import Company
 from src.utils.security import get_current_user
 from src.utils.tier_gate import require_tier
+from src.services.notification_service import notification_service
+from src.models.notification import NotificationType
 from src.services.cap_table_service import (
     cap_table_service,
     ShareholderEntry,
@@ -104,6 +107,21 @@ def add_shareholder(
     if "error" in result:
         raise HTTPException(status_code=400, detail=result["error"])
     cache_delete(f"captable:{company_id}")
+
+    # Notify company owner
+    company = db.query(Company).filter(Company.id == company_id).first()
+    if company and company.user_id:
+        shareholder_name = entry.name if hasattr(entry, "name") else "New Shareholder"
+        notification_service.send_notification(
+            db=db,
+            user_id=company.user_id,
+            type=NotificationType.SHARE_ALLOTMENT,
+            title=f"Shareholder Added: {shareholder_name}",
+            message=f"A new shareholder ({shareholder_name}) has been added to the cap table.",
+            action_url="/dashboard/cap-table",
+            company_id=company_id,
+        )
+
     return result
 
 
@@ -125,6 +143,20 @@ def record_transfer(
         price_per_share=request.price_per_share,
     )
     cache_delete(f"captable:{company_id}")
+
+    # Notify company owner
+    company = db.query(Company).filter(Company.id == company_id).first()
+    if company and company.user_id:
+        notification_service.send_notification(
+            db=db,
+            user_id=company.user_id,
+            type=NotificationType.SHARE_TRANSFER,
+            title="Share Transfer Recorded",
+            message=f"{request.shares} shares transferred at {request.price_per_share}/share.",
+            action_url="/dashboard/cap-table",
+            company_id=company_id,
+        )
+
     return result
 
 

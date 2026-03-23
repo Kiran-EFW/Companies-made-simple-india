@@ -25,6 +25,8 @@ from src.models.esign import SignatureRequest, Signatory
 from src.models.company import Company, EntityType
 from src.utils.security import get_current_user
 from src.utils.tier_gate import require_tier
+from src.services.notification_service import notification_service
+from src.models.notification import NotificationType
 
 router = APIRouter(
     prefix="/companies/{company_id}/meetings",
@@ -185,6 +187,21 @@ def create_meeting(
     db.add(meeting)
     db.commit()
     db.refresh(meeting)
+
+    # Notify company owner about the scheduled meeting
+    if company and company.user_id:
+        meeting_date_str = meeting_date.strftime("%d %B %Y at %I:%M %p")
+        venue_text = body.venue or ("Virtual" if body.is_virtual else "TBD")
+        notification_service.send_notification(
+            db=db,
+            user_id=company.user_id,
+            type=NotificationType.MEETING_SCHEDULED,
+            title=f"Meeting Scheduled: {body.title}",
+            message=f"A {body.meeting_type.replace('_', ' ')} has been scheduled for {meeting_date_str} at {venue_text}.",
+            action_url="/dashboard/meetings",
+            company_id=company_id,
+        )
+
     result = _serialize_meeting(meeting)
     if entity_note:
         result["entity_note"] = entity_note
@@ -453,6 +470,20 @@ def generate_notice(
         meeting.status = "notice_sent"
     db.commit()
     db.refresh(meeting)
+
+    # Notify company owner that a meeting notice has been sent
+    company = db.query(Company).filter(Company.id == company_id).first()
+    if company and company.user_id:
+        notification_service.send_notification(
+            db=db,
+            user_id=company.user_id,
+            type=NotificationType.MEETING_NOTICE,
+            title=f"Meeting Notice: {meeting.title}",
+            message=f"The notice for {meeting.title} has been generated and is ready for distribution.",
+            action_url="/dashboard/meetings",
+            company_id=company_id,
+        )
+
     return _serialize_meeting(meeting)
 
 
@@ -715,6 +746,19 @@ def sign_minutes(
     meeting.status = "minutes_signed"
     db.commit()
     db.refresh(meeting)
+
+    # Notify company owner that minutes have been signed
+    company = db.query(Company).filter(Company.id == company_id).first()
+    if company and company.user_id:
+        notification_service.send_notification(
+            db=db,
+            user_id=company.user_id,
+            type=NotificationType.MINUTES_SIGNED,
+            title=f"Minutes Signed: {meeting.title}",
+            message=f"The minutes for {meeting.title} have been signed by {body.signed_by}.",
+            action_url="/dashboard/meetings",
+            company_id=company_id,
+        )
 
     result = _serialize_meeting(meeting)
     # Add compliance note

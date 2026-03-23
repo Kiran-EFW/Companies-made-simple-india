@@ -11,8 +11,10 @@ from src.models.user import User
 from src.models.company import Company
 from src.models.compliance_task import ComplianceTask, ComplianceTaskStatus
 from src.models.accounting_connection import AccountingConnection, ConnectionStatus
+from src.models.notification import NotificationType
 from src.utils.security import get_current_user
 from src.services.compliance_engine import compliance_engine
+from src.services.notification_service import notification_service
 from src.services.annual_filing_service import annual_filing_service
 from src.services.tds_service import tds_service
 from src.services.zoho_books_service import zoho_books_service
@@ -186,8 +188,22 @@ def generate_compliance_tasks(
     current_user: User = Depends(get_current_user),
 ):
     """Generate compliance tasks for the next financial year."""
-    _get_user_company(company_id, db, current_user)
+    company = _get_user_company(company_id, db, current_user)
     created = compliance_engine.create_compliance_tasks(db, company_id)
+
+    # Notify company owner for each created task
+    if company.user_id and created:
+        for task in created:
+            notification_service.send_notification(
+                db=db,
+                user_id=company.user_id,
+                type=NotificationType.COMPLIANCE,
+                title=f"New Compliance Task: {task.title}",
+                message=f"A new compliance task has been created: {task.title}.",
+                action_url="/dashboard/compliance",
+                company_id=company_id,
+            )
+
     return {
         "company_id": company_id,
         "tasks_created": len(created),
@@ -237,6 +253,20 @@ def update_compliance_task(
 
     db.commit()
     db.refresh(task)
+
+    # Notify company owner when task is completed
+    if body.status and ComplianceTaskStatus(body.status) == ComplianceTaskStatus.COMPLETED:
+        company = db.query(Company).filter(Company.id == company_id).first()
+        if company and company.user_id:
+            notification_service.send_notification(
+                db=db,
+                user_id=company.user_id,
+                type=NotificationType.COMPLIANCE,
+                title=f"Compliance Task Completed: {task.title}",
+                message=f"The compliance task '{task.title}' has been marked as completed.",
+                action_url="/dashboard/compliance",
+                company_id=company_id,
+            )
 
     # Invalidate compliance calendar cache for this company
     cache_delete_pattern(f"compliance:calendar:{company_id}:*")

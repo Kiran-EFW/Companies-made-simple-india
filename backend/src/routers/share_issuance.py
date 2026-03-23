@@ -21,8 +21,11 @@ from sqlalchemy.orm import Session
 
 from src.database import get_db
 from src.models.user import User
+from src.models.company import Company
 from src.utils.security import get_current_user
 from src.utils.tier_gate import require_tier
+from src.services.notification_service import notification_service
+from src.models.notification import NotificationType
 from src.services.share_issuance_service import share_issuance_service
 from src.schemas.share_issuance import (
     ShareIssuanceCreate,
@@ -55,6 +58,21 @@ def create_workflow(
     )
     if "error" in result:
         raise HTTPException(status_code=400, detail=result["error"])
+
+    # Notify company owner
+    company = db.query(Company).filter(Company.id == company_id).first()
+    if company and company.user_id:
+        issuance_type = data.issuance_type.replace("_", " ").title()
+        notification_service.send_notification(
+            db=db,
+            user_id=company.user_id,
+            type=NotificationType.ISSUANCE_UPDATE,
+            title=f"Share Issuance Started: {issuance_type}",
+            message=f"A new share issuance workflow ({issuance_type}) has been created.",
+            action_url="/dashboard/cap-table",
+            company_id=company_id,
+        )
+
     return result
 
 
@@ -94,11 +112,28 @@ def update_workflow(
     _tier=Depends(require_tier("growth")),
 ):
     """Update workflow fields."""
+    updates = data.model_dump(exclude_unset=True)
     result = share_issuance_service.update_workflow(
-        db, workflow_id, company_id, data.model_dump(exclude_unset=True)
+        db, workflow_id, company_id, updates
     )
     if "error" in result:
         raise HTTPException(status_code=400, detail=result["error"])
+
+    # Notify company owner when status changes
+    if "status" in updates and updates["status"]:
+        company = db.query(Company).filter(Company.id == company_id).first()
+        if company and company.user_id:
+            new_status = updates["status"].replace("_", " ").title()
+            notification_service.send_notification(
+                db=db,
+                user_id=company.user_id,
+                type=NotificationType.ISSUANCE_UPDATE,
+                title=f"Share Issuance Update: {new_status}",
+                message=f"Share issuance workflow status has been updated to {new_status}.",
+                action_url="/dashboard/cap-table",
+                company_id=company_id,
+            )
+
     return result
 
 

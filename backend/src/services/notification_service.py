@@ -262,7 +262,9 @@ class NotificationService:
         mapping = {
             NotificationType.STATUS_UPDATE: prefs.status_updates,
             NotificationType.PAYMENT: prefs.payment_alerts,
+            NotificationType.PAYMENT_FAILED: prefs.payment_alerts,
             NotificationType.COMPLIANCE: prefs.compliance_reminders,
+            NotificationType.SUBSCRIPTION_EVENT: prefs.payment_alerts,
             # These always send (unless channel itself is disabled)
             NotificationType.DOCUMENT_REQUEST: True,
             NotificationType.SYSTEM: True,
@@ -271,6 +273,25 @@ class NotificationService:
             NotificationType.ESCALATION: True,
             NotificationType.DOCUMENT_VERIFIED: True,
             NotificationType.DOCUMENT_REJECTED: True,
+            NotificationType.MEETING_SCHEDULED: True,
+            NotificationType.MEETING_NOTICE: True,
+            NotificationType.MEETING_REMINDER: True,
+            NotificationType.MINUTES_READY: True,
+            NotificationType.MINUTES_SIGNED: True,
+            NotificationType.ROUND_CREATED: True,
+            NotificationType.INVESTOR_ADDED: True,
+            NotificationType.ROUND_CLOSED: True,
+            NotificationType.DEAL_SHARED: True,
+            NotificationType.ESOP_PLAN_CREATED: True,
+            NotificationType.GRANT_ISSUED: True,
+            NotificationType.GRANT_VESTED: True,
+            NotificationType.SHARE_TRANSFER: True,
+            NotificationType.SHARE_ALLOTMENT: True,
+            NotificationType.ISSUANCE_UPDATE: True,
+            NotificationType.MEMBER_INVITED: True,
+            NotificationType.MEMBER_JOINED: True,
+            NotificationType.SIGNATURE_REQUESTED: True,
+            NotificationType.SIGNATURE_COMPLETED: True,
         }
         return mapping.get(notif_type, True)
 

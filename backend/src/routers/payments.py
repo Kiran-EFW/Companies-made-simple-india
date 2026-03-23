@@ -16,6 +16,8 @@ from src.schemas.payment import CreateOrderRequest, CreateOrderResponse, VerifyP
 from src.schemas.company import CompanyOut
 from src.services.payment_service import payment_service
 from src.services.email_service import email_service
+from src.services.notification_service import notification_service
+from src.models.notification import NotificationType
 from src.config import get_settings
 from src.utils.security import get_current_user
 
@@ -249,9 +251,6 @@ def _handle_payment_captured(payload: dict, db: Session):
     # Send in-app notification to founder
     if company:
         try:
-            from src.services.notification_service import notification_service
-            from src.models.notification import NotificationType
-
             amount = entity.get("amount", 0) / 100  # Razorpay sends paise
             notification_service.send_notification(
                 db=db,
@@ -287,6 +286,22 @@ def _handle_payment_failed(payload: dict, db: Session):
     db.commit()
     logger.info("payment.failed: order=%s company=%s", razorpay_order_id, payment.company_id)
 
+    # Send in-app notification to founder
+    company = db.query(Company).filter(Company.id == payment.company_id).first()
+    if company:
+        try:
+            notification_service.send_notification(
+                db=db,
+                user_id=company.user_id,
+                type=NotificationType.PAYMENT_FAILED,
+                title="Payment Failed",
+                message="Your recent payment could not be processed. Please retry or use a different payment method.",
+                company_id=company.id,
+                action_url="/dashboard/billing",
+            )
+        except Exception:
+            logger.exception("Failed to send payment-failed notification")
+
 
 def _handle_subscription_charged(payload: dict, db: Session):
     """Renew the subscription period after a successful recurring charge."""
@@ -321,6 +336,22 @@ def _handle_subscription_charged(payload: dict, db: Session):
         razorpay_sub_id, new_end.isoformat(),
     )
 
+    # Send in-app notification to founder
+    company = db.query(Company).filter(Company.id == subscription.company_id).first()
+    if company:
+        try:
+            notification_service.send_notification(
+                db=db,
+                user_id=company.user_id,
+                type=NotificationType.SUBSCRIPTION_EVENT,
+                title="Subscription Renewed",
+                message=f"Your {subscription.plan_name} subscription has been renewed successfully. Next billing date: {new_end.strftime('%d %b %Y')}.",
+                company_id=company.id,
+                action_url="/dashboard/billing",
+            )
+        except Exception:
+            logger.exception("Failed to send subscription-charged notification")
+
 
 def _handle_subscription_cancelled(payload: dict, db: Session):
     """Mark the subscription as CANCELLED."""
@@ -343,3 +374,19 @@ def _handle_subscription_cancelled(payload: dict, db: Session):
     subscription.cancelled_at = datetime.now(timezone.utc)
     db.commit()
     logger.info("subscription.cancelled: sub=%s", razorpay_sub_id)
+
+    # Send in-app notification to founder
+    company = db.query(Company).filter(Company.id == subscription.company_id).first()
+    if company:
+        try:
+            notification_service.send_notification(
+                db=db,
+                user_id=company.user_id,
+                type=NotificationType.SUBSCRIPTION_EVENT,
+                title="Subscription Cancelled",
+                message=f"Your {subscription.plan_name} subscription has been cancelled. You can resubscribe at any time from your billing page.",
+                company_id=company.id,
+                action_url="/dashboard/billing",
+            )
+        except Exception:
+            logger.exception("Failed to send subscription-cancelled notification")

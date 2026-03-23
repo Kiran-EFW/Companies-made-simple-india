@@ -36,6 +36,8 @@ from src.models.deal_share import DealShare, DealShareStatus
 from src.utils.security import get_current_user
 from src.utils.tier_gate import require_tier
 from src.services.fundraising_service import fundraising_service
+from src.services.notification_service import notification_service
+from src.models.notification import NotificationType
 from src.schemas.fundraising import (
     FundingRoundCreate,
     FundingRoundUpdate,
@@ -63,7 +65,27 @@ def create_round(
     _tier=Depends(require_tier("growth")),
 ):
     """Create a new funding round."""
-    return fundraising_service.create_round(db, company_id, data.model_dump())
+    result = fundraising_service.create_round(db, company_id, data.model_dump())
+
+    # Notify company owner
+    try:
+        from src.models.company import Company
+        company = db.query(Company).filter(Company.id == company_id).first()
+        if company:
+            round_label = data.round_name or data.instrument_type or "New Round"
+            notification_service.send_notification(
+                db=db,
+                user_id=company.user_id,
+                type=NotificationType.ROUND_CREATED,
+                title=f"Fundraising Round Created: {round_label}",
+                message=f"A new fundraising round '{round_label}' has been created.",
+                company_id=company_id,
+                action_url="/dashboard/fundraising",
+            )
+    except Exception:
+        pass  # Don't let notification failure block the request
+
+    return result
 
 
 @router.get("/{company_id}/fundraising/rounds")
@@ -102,11 +124,32 @@ def update_round(
     _tier=Depends(require_tier("growth")),
 ):
     """Update round details."""
+    update_payload = data.model_dump(exclude_unset=True)
     result = fundraising_service.update_round(
-        db, round_id, company_id, data.model_dump(exclude_unset=True)
+        db, round_id, company_id, update_payload
     )
     if "error" in result:
         raise HTTPException(status_code=400, detail=result["error"])
+
+    # Notify company owner when round is closed
+    if update_payload.get("status") == "closed":
+        try:
+            from src.models.company import Company
+            company = db.query(Company).filter(Company.id == company_id).first()
+            if company:
+                round_name = result.get("round_name", "Funding Round")
+                notification_service.send_notification(
+                    db=db,
+                    user_id=company.user_id,
+                    type=NotificationType.ROUND_CLOSED,
+                    title=f"Round Closed: {round_name}",
+                    message=f"The fundraising round '{round_name}' has been closed.",
+                    company_id=company_id,
+                    action_url="/dashboard/fundraising",
+                )
+        except Exception:
+            pass  # Don't let notification failure block the request
+
     return result
 
 
@@ -166,6 +209,24 @@ def add_investor(
     )
     if "error" in result:
         raise HTTPException(status_code=400, detail=result["error"])
+
+    # Notify company owner
+    try:
+        from src.models.company import Company
+        company = db.query(Company).filter(Company.id == company_id).first()
+        if company:
+            notification_service.send_notification(
+                db=db,
+                user_id=company.user_id,
+                type=NotificationType.INVESTOR_ADDED,
+                title=f"Investor Added: {data.investor_name}",
+                message=f"Investor '{data.investor_name}' has been added to the funding round.",
+                company_id=company_id,
+                action_url="/dashboard/fundraising",
+            )
+    except Exception:
+        pass  # Don't let notification failure block the request
+
     return result
 
 
@@ -394,6 +455,20 @@ def share_deal(
     db.add(share)
     db.commit()
     db.refresh(share)
+
+    # Notify company owner about the deal share
+    try:
+        notification_service.send_notification(
+            db=db,
+            user_id=company.user_id,
+            type=NotificationType.DEAL_SHARED,
+            title=f"Deal Shared: {data.investor_email}",
+            message=f"A fundraising deal has been shared with {data.investor_email}.",
+            company_id=company_id,
+            action_url="/dashboard/fundraising",
+        )
+    except Exception:
+        pass  # Don't let notification failure block the request
 
     return {
         "message": "Deal shared successfully",

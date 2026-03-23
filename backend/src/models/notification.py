@@ -9,6 +9,7 @@ class NotificationType(str, enum.Enum):
     STATUS_UPDATE = "status_update"
     DOCUMENT_REQUEST = "document_request"
     PAYMENT = "payment"
+    PAYMENT_FAILED = "payment_failed"
     COMPLIANCE = "compliance"
     SYSTEM = "system"
     ADMIN_MESSAGE = "admin_message"
@@ -16,6 +17,33 @@ class NotificationType(str, enum.Enum):
     ESCALATION = "escalation"
     DOCUMENT_VERIFIED = "document_verified"
     DOCUMENT_REJECTED = "document_rejected"
+    # Meetings
+    MEETING_SCHEDULED = "meeting_scheduled"
+    MEETING_NOTICE = "meeting_notice"
+    MEETING_REMINDER = "meeting_reminder"
+    MINUTES_READY = "minutes_ready"
+    MINUTES_SIGNED = "minutes_signed"
+    # Fundraising
+    ROUND_CREATED = "round_created"
+    INVESTOR_ADDED = "investor_added"
+    ROUND_CLOSED = "round_closed"
+    DEAL_SHARED = "deal_shared"
+    # ESOP
+    ESOP_PLAN_CREATED = "esop_plan_created"
+    GRANT_ISSUED = "grant_issued"
+    GRANT_VESTED = "grant_vested"
+    # Cap Table / Shares
+    SHARE_TRANSFER = "share_transfer"
+    SHARE_ALLOTMENT = "share_allotment"
+    ISSUANCE_UPDATE = "issuance_update"
+    # Team
+    MEMBER_INVITED = "member_invited"
+    MEMBER_JOINED = "member_joined"
+    # E-Signatures
+    SIGNATURE_REQUESTED = "signature_requested"
+    SIGNATURE_COMPLETED = "signature_completed"
+    # Subscription
+    SUBSCRIPTION_EVENT = "subscription_event"
 
 
 class NotificationChannel(str, enum.Enum):

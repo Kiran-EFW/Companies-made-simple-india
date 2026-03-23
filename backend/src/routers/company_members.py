@@ -11,6 +11,8 @@ from src.database import get_db
 from src.models.user import User
 from src.models.company import Company
 from src.models.company_member import CompanyMember, CompanyRole, InviteStatus
+from src.models.notification import NotificationType
+from src.services.notification_service import notification_service
 from src.utils.security import get_current_user
 
 router = APIRouter(prefix="/companies/{company_id}/members", tags=["company-members"])
@@ -174,6 +176,24 @@ def invite_member(
     db.add(member)
     db.commit()
     db.refresh(member)
+
+    # Send in-app notification to the invited user (only if they exist)
+    if existing_user:
+        company_name = company.approved_name or (
+            company.proposed_names[0] if company.proposed_names else f"Company #{company.id}"
+        )
+        try:
+            notification_service.send_notification(
+                db=db,
+                user_id=existing_user.id,
+                type=NotificationType.MEMBER_INVITED,
+                title=f"You've been invited to {company_name}",
+                message=f"{current_user.full_name} has invited you to join {company_name} as {payload.role}.",
+                company_id=company_id,
+                action_url="/dashboard/team",
+            )
+        except Exception:
+            pass  # Never break invite flow for notification failure
 
     result = _member_to_out(member)
     result["invite_token"] = member.invite_token
@@ -385,6 +405,22 @@ def accept_invite(
     member.accepted_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(member)
+
+    # Notify the company owner that the member accepted
+    company = db.query(Company).filter(Company.id == member.company_id).first()
+    if company:
+        try:
+            notification_service.send_notification(
+                db=db,
+                user_id=company.user_id,
+                type=NotificationType.MEMBER_JOINED,
+                title=f"{current_user.full_name} joined your team",
+                message=f"{current_user.full_name} has accepted the invitation and joined as {member.role.value}.",
+                company_id=member.company_id,
+                action_url="/dashboard/team",
+            )
+        except Exception:
+            pass  # Never break accept flow for notification failure
 
     return {
         "message": "Invite accepted",

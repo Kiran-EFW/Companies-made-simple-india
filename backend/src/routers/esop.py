@@ -26,6 +26,8 @@ from src.models.user import User
 from src.utils.security import get_current_user
 from src.utils.tier_gate import require_tier
 from src.services.esop_service import esop_service
+from src.services.notification_service import notification_service
+from src.models.notification import NotificationType
 from src.schemas.esop import (
     ESOPPlanCreate,
     ESOPPlanUpdate,
@@ -49,7 +51,27 @@ def create_plan(
     _tier=Depends(require_tier("growth")),
 ):
     """Create a new ESOP plan."""
-    return esop_service.create_plan(db, company_id, data.model_dump())
+    result = esop_service.create_plan(db, company_id, data.model_dump())
+
+    # Notify company owner
+    if "error" not in result:
+        try:
+            from src.models.company import Company
+            company = db.query(Company).filter(Company.id == company_id).first()
+            if company:
+                notification_service.send_notification(
+                    db=db,
+                    user_id=company.user_id,
+                    type=NotificationType.ESOP_PLAN_CREATED,
+                    title=f"ESOP Plan Created: {data.plan_name}",
+                    message=f"A new ESOP plan '{data.plan_name}' with a pool of {data.pool_size:,} options has been created.",
+                    company_id=company_id,
+                    action_url="/dashboard/esop",
+                )
+        except Exception:
+            pass  # Don't let notification failure block the request
+
+    return result
 
 
 @router.get("/{company_id}/esop/plans")
@@ -128,6 +150,24 @@ def create_grant(
     result = esop_service.create_grant(db, plan_id, company_id, data.model_dump())
     if "error" in result:
         raise HTTPException(status_code=400, detail=result["error"])
+
+    # Notify company owner
+    try:
+        from src.models.company import Company
+        company = db.query(Company).filter(Company.id == company_id).first()
+        if company:
+            notification_service.send_notification(
+                db=db,
+                user_id=company.user_id,
+                type=NotificationType.GRANT_ISSUED,
+                title=f"ESOP Grant Issued: {data.number_of_options:,} options",
+                message=f"An ESOP grant of {data.number_of_options:,} options has been issued to {data.grantee_name}.",
+                company_id=company_id,
+                action_url="/dashboard/esop",
+            )
+    except Exception:
+        pass  # Don't let notification failure block the request
+
     return result
 
 

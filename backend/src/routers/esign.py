@@ -10,7 +10,9 @@ from typing import List
 
 from src.database import get_db
 from src.models.user import User
-from src.models.esign import SignatureRequest
+from src.models.esign import SignatureRequest, Signatory
+from src.models.notification import NotificationType
+from src.services.notification_service import notification_service
 from src.services.pdf_service import pdf_service
 from src.schemas.esign import (
     AuditLogOut,
@@ -58,6 +60,29 @@ def create_signature_request(
         sig_request = esign_service.create_signature_request(
             db, current_user.id, body
         )
+
+        # Send SIGNATURE_REQUESTED notification to each signatory who is an existing user
+        try:
+            signatories = (
+                db.query(Signatory)
+                .filter(Signatory.signature_request_id == sig_request.id)
+                .all()
+            )
+            for signatory in signatories:
+                signer_user = db.query(User).filter(User.email == signatory.email).first()
+                if signer_user:
+                    notification_service.send_notification(
+                        db=db,
+                        user_id=signer_user.id,
+                        type=NotificationType.SIGNATURE_REQUESTED,
+                        title=f"Signature Required: {sig_request.title}",
+                        message=f"{current_user.full_name} has requested your signature on '{sig_request.title}'.",
+                        company_id=sig_request.company_id,
+                        action_url="/dashboard/signatures",
+                    )
+        except Exception:
+            pass  # Never break signing flow for notification failure
+
         return esign_service.get_request_details(db, sig_request.id, current_user.id)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -261,13 +286,37 @@ def submit_signature(
     """
     client_info = _extract_client_info(request)
     try:
-        return esign_service.submit_signature(
+        result = esign_service.submit_signature(
             db,
             access_token,
             body,
             ip_address=client_info["ip_address"],
             user_agent=client_info["user_agent"],
         )
+
+        # Send SIGNATURE_COMPLETED notification to the document creator
+        try:
+            signatory = db.query(Signatory).filter(Signatory.access_token == access_token).first()
+            if signatory:
+                sig_request = (
+                    db.query(SignatureRequest)
+                    .filter(SignatureRequest.id == signatory.signature_request_id)
+                    .first()
+                )
+                if sig_request:
+                    notification_service.send_notification(
+                        db=db,
+                        user_id=sig_request.created_by,
+                        type=NotificationType.SIGNATURE_COMPLETED,
+                        title=f"{signatory.name} signed: {sig_request.title}",
+                        message=f"{signatory.name} has signed '{sig_request.title}'.",
+                        company_id=sig_request.company_id,
+                        action_url="/dashboard/signatures",
+                    )
+        except Exception:
+            pass  # Never break signing flow for notification failure
+
+        return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
