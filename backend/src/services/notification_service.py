@@ -124,6 +124,75 @@ class NotificationService:
             metadata={"old_status": old_status, "new_status": new_status},
         )
 
+    def send_compliance_reminders(self, db: Session, company_id: int) -> int:
+        """Send notifications for DUE_SOON and OVERDUE compliance tasks.
+
+        Returns the number of notifications sent.
+        """
+        from src.models.compliance_task import ComplianceTask, ComplianceTaskStatus
+        from src.models.company import Company
+        from src.models.ca_assignment import CAAssignment
+
+        company = db.query(Company).filter(Company.id == company_id).first()
+        if not company:
+            return 0
+
+        # Find tasks that are DUE_SOON or OVERDUE
+        tasks = (
+            db.query(ComplianceTask)
+            .filter(
+                ComplianceTask.company_id == company_id,
+                ComplianceTask.status.in_([
+                    ComplianceTaskStatus.DUE_SOON,
+                    ComplianceTaskStatus.OVERDUE,
+                ]),
+            )
+            .all()
+        )
+
+        if not tasks:
+            return 0
+
+        count = 0
+        for task in tasks:
+            status_label = "overdue" if task.status == ComplianceTaskStatus.OVERDUE else "due soon"
+            due_str = task.due_date.strftime("%d %b %Y") if task.due_date else "N/A"
+
+            # Notify the company founder
+            self.send_notification(
+                db=db,
+                user_id=company.user_id,
+                type=NotificationType.COMPLIANCE,
+                title=f"Compliance {status_label.title()}: {task.title}",
+                message=f"{task.title} is {status_label}. Due date: {due_str}. Please ensure this is filed on time to avoid penalties.",
+                company_id=company_id,
+                action_url="/dashboard/compliance",
+            )
+            count += 1
+
+            # Also notify the assigned CA if any
+            ca_assignment = (
+                db.query(CAAssignment)
+                .filter(
+                    CAAssignment.company_id == company_id,
+                    CAAssignment.status == "active",
+                )
+                .first()
+            )
+            if ca_assignment:
+                self.send_notification(
+                    db=db,
+                    user_id=ca_assignment.ca_user_id,
+                    type=NotificationType.COMPLIANCE,
+                    title=f"Client Filing {status_label.title()}: {task.title}",
+                    message=f"{task.title} for company #{company_id} is {status_label}. Due: {due_str}.",
+                    company_id=company_id,
+                    action_url=f"/ca/companies/{company_id}/compliance",
+                )
+                count += 1
+
+        return count
+
     # ── Read / count helpers ─────────────────────────────────────────────
 
     def get_unread_count(self, db: Session, user_id: int) -> int:

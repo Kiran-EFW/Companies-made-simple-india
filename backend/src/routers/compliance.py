@@ -286,6 +286,23 @@ def estimate_penalties(
 
 
 # ---------------------------------------------------------------------------
+# Reminder Notifications
+# ---------------------------------------------------------------------------
+
+@router.post("/reminders")
+def send_compliance_reminders(
+    company_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Trigger compliance reminder notifications for this company's due/overdue tasks."""
+    _get_user_company(company_id, db, current_user)
+    from src.services.notification_service import notification_service
+    count = notification_service.send_compliance_reminders(db, company_id)
+    return {"notifications_sent": count}
+
+
+# ---------------------------------------------------------------------------
 # Annual Filing Data Generation
 # ---------------------------------------------------------------------------
 

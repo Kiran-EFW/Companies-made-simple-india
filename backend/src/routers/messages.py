@@ -86,12 +86,12 @@ def get_company_messages(
         .all()
     )
 
-    # Count unread messages from admin
+    # Count unread messages from admin and CA
     unread_count = (
         db.query(Message)
         .filter(
             Message.company_id == company_id,
-            Message.sender_type == SenderType.ADMIN,
+            Message.sender_type.in_([SenderType.ADMIN, SenderType.CA_LEAD]),
             Message.is_read == False,
         )
         .count()
@@ -155,7 +155,7 @@ def mark_messages_read(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Mark all admin messages as read (founder marking incoming messages as read)."""
+    """Mark all admin/CA messages as read (founder marking incoming messages as read)."""
     company = (
         db.query(Company)
         .filter(Company.id == company_id, Company.user_id == current_user.id)
@@ -169,10 +169,10 @@ def mark_messages_read(
         db.query(Message)
         .filter(
             Message.company_id == company_id,
-            Message.sender_type == SenderType.ADMIN,
+            Message.sender_type.in_([SenderType.ADMIN, SenderType.CA_LEAD]),
             Message.is_read == False,
         )
-        .update({"is_read": True, "read_at": now})
+        .update({"is_read": True, "read_at": now}, synchronize_session="fetch")
     )
     db.commit()
 
@@ -257,7 +257,7 @@ def send_admin_message(
         title=f"New message from {admin_user.full_name}",
         message=body.content[:200],
         company_id=company_id,
-        action_url=f"/dashboard",
+        action_url=f"/dashboard/messages",
     )
 
     return _message_to_dict(msg, sender_name=admin_user.full_name)

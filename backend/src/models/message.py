@@ -10,6 +10,7 @@ from src.database import Base
 class SenderType(str, enum.Enum):
     ADMIN = "admin"
     FOUNDER = "founder"
+    CA_LEAD = "ca_lead"
 
 
 class Message(Base):

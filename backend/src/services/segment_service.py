@@ -59,6 +59,7 @@ ALL_MODULES = [
     "services",          # /dashboard/services
     "billing",           # /dashboard/billing
     "notifications",     # /dashboard/notifications
+    "messages",          # /dashboard/messages
 ]
 
 SEGMENT_MODULES: Dict[CustomerSegment, List[str]] = {
@@ -72,6 +73,7 @@ SEGMENT_MODULES: Dict[CustomerSegment, List[str]] = {
         "services",
         "billing",
         "notifications",
+        "messages",
     ],
     CustomerSegment.SME: [
         "overview",
@@ -89,6 +91,7 @@ SEGMENT_MODULES: Dict[CustomerSegment, List[str]] = {
         "services",
         "billing",
         "notifications",
+        "messages",
     ],
     CustomerSegment.STARTUP: ALL_MODULES,  # Full access
     CustomerSegment.NON_PROFIT: [
@@ -107,6 +110,7 @@ SEGMENT_MODULES: Dict[CustomerSegment, List[str]] = {
         "services",
         "billing",
         "notifications",
+        "messages",
     ],
     CustomerSegment.NIDHI: [
         "overview",
@@ -124,6 +128,7 @@ SEGMENT_MODULES: Dict[CustomerSegment, List[str]] = {
         "services",
         "billing",
         "notifications",
+        "messages",
     ],
     CustomerSegment.PRODUCER: [
         "overview",
@@ -140,6 +145,7 @@ SEGMENT_MODULES: Dict[CustomerSegment, List[str]] = {
         "services",
         "billing",
         "notifications",
+        "messages",
     ],
     CustomerSegment.ENTERPRISE: ALL_MODULES,  # Full access
 }

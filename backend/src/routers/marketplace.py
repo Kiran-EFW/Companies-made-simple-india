@@ -58,6 +58,24 @@ def assign_to_partner(
             partner_id=body.partner_id,
             assigned_by=admin.id,
         )
+
+        # Notify the partner CA that they've been assigned work
+        from src.services.notification_service import notification_service
+        from src.models.notification import NotificationType
+        from src.models.service_catalog import ServiceRequest
+
+        sr = db.query(ServiceRequest).filter(ServiceRequest.id == body.service_request_id).first()
+        service_name = sr.service_key.replace("_", " ").title() if sr else "Service"
+        notification_service.send_notification(
+            db=db,
+            user_id=body.partner_id,
+            type=NotificationType.TASK_ASSIGNED,
+            title=f"New Assignment: {service_name}",
+            message=f"You have been assigned a new service request: {service_name}. Please review and accept.",
+            company_id=sr.company_id if sr else None,
+            action_url="/marketplace/partner/assignments",
+        )
+
         return fulfillment
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -85,6 +103,25 @@ def approve_delivery(
         fulfillment = fulfillment_service.admin_approve_delivery(
             db=db, fulfillment_id=fulfillment_id, admin_id=admin.id,
         )
+
+        # Notify the founder that their service is complete
+        from src.services.notification_service import notification_service
+        from src.models.notification import NotificationType
+        from src.models.service_catalog import ServiceRequest
+
+        sr = db.query(ServiceRequest).filter(ServiceRequest.id == fulfillment.service_request_id).first()
+        if sr:
+            service_name = sr.service_key.replace("_", " ").title()
+            notification_service.send_notification(
+                db=db,
+                user_id=sr.user_id,
+                type=NotificationType.STATUS_UPDATE,
+                title=f"Service Completed: {service_name}",
+                message=f"Your {service_name} service request has been completed. You can now review and rate the service.",
+                company_id=sr.company_id,
+                action_url="/dashboard/services",
+            )
+
         return fulfillment
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

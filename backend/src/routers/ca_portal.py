@@ -279,6 +279,22 @@ def ca_mark_filing_done(
     db.commit()
     db.refresh(task)
 
+    # Notify the company founder that filing is complete
+    company = db.query(Company).filter(Company.id == company_id).first()
+    if company:
+        from src.services.notification_service import notification_service
+        from src.models.notification import NotificationType
+
+        notification_service.send_notification(
+            db=db,
+            user_id=company.user_id,
+            type=NotificationType.COMPLIANCE,
+            title=f"Filing Completed: {task.title}",
+            message=f"Your CA has completed the filing for {task.title}. Reference: {task.filing_reference or 'N/A'}",
+            company_id=company_id,
+            action_url="/dashboard/compliance",
+        )
+
     return {
         "id": task.id,
         "status": task.status.value,
@@ -839,3 +855,101 @@ def ca_get_task_notes(
 
     form_data = task.form_data or {}
     return {"task_id": task.id, "notes": form_data.get("notes", [])}
+
+
+# ---------------------------------------------------------------------------
+# Messaging (CA <-> Founder)
+# ---------------------------------------------------------------------------
+
+
+@router.get("/companies/{company_id}/messages")
+def get_ca_company_messages(
+    company_id: int,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
+    db: Session = Depends(get_db),
+    ca_user: User = Depends(require_role(UserRole.CA_LEAD)),
+):
+    """Get conversation thread for a company (CA view)."""
+    company_ids = _get_ca_companies(db, ca_user.id)
+    if company_id not in company_ids:
+        raise HTTPException(status_code=403, detail="Not assigned to this company")
+
+    from src.models.message import Message
+    messages = (
+        db.query(Message)
+        .filter(Message.company_id == company_id)
+        .order_by(Message.created_at.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+
+    return {
+        "company_id": company_id,
+        "messages": [
+            {
+                "id": m.id,
+                "sender_id": m.sender_id,
+                "sender_type": m.sender_type.value,
+                "sender_name": m.sender.full_name if m.sender else "Unknown",
+                "content": m.content,
+                "is_read": m.is_read,
+                "created_at": m.created_at.isoformat() if m.created_at else None,
+            }
+            for m in reversed(messages)
+        ],
+        "total": len(messages),
+    }
+
+
+@router.post("/companies/{company_id}/messages")
+def send_ca_message(
+    company_id: int,
+    data: dict,
+    db: Session = Depends(get_db),
+    ca_user: User = Depends(require_role(UserRole.CA_LEAD)),
+):
+    """Send a message from CA to company founder."""
+    company_ids = _get_ca_companies(db, ca_user.id)
+    if company_id not in company_ids:
+        raise HTTPException(status_code=403, detail="Not assigned to this company")
+
+    content = data.get("content", "").strip()
+    if not content:
+        raise HTTPException(status_code=400, detail="Message content cannot be empty")
+
+    from src.models.message import Message, SenderType
+    msg = Message(
+        company_id=company_id,
+        sender_id=ca_user.id,
+        sender_type=SenderType.CA_LEAD,
+        content=content,
+    )
+    db.add(msg)
+    db.commit()
+    db.refresh(msg)
+
+    # Notify the company founder
+    company = db.query(Company).filter(Company.id == company_id).first()
+    if company:
+        from src.services.notification_service import notification_service
+        from src.models.notification import NotificationType
+        notification_service.send_notification(
+            db=db,
+            user_id=company.user_id,
+            type=NotificationType.ADMIN_MESSAGE,
+            title=f"Message from your CA: {ca_user.full_name}",
+            message=content[:200],
+            company_id=company_id,
+            action_url=f"/dashboard/messages",
+        )
+
+    return {
+        "id": msg.id,
+        "sender_id": msg.sender_id,
+        "sender_type": msg.sender_type.value,
+        "content": msg.content,
+        "created_at": msg.created_at.isoformat() if msg.created_at else None,
+        "message": "Message sent successfully",
+    }

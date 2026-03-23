@@ -256,7 +256,7 @@ export default function NotificationBell() {
           {/* Footer */}
           <div className="px-4 py-2.5 border-t text-center" style={{ borderColor: "var(--color-border)" }}>
             <Link
-              href="/notifications"
+              href="/dashboard/notifications"
               onClick={() => setIsOpen(false)}
               className="text-xs font-medium transition-colors"
               style={{ color: "var(--color-accent-purple-light)" }}

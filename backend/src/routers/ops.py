@@ -569,6 +569,20 @@ def verify_document(
         if body.decision == VerificationDecision.APPROVED.value:
             doc.verification_status = VerificationStatus.TEAM_VERIFIED
             doc.verified_at = datetime.now(timezone.utc)
+
+            # Notify founder that document was verified
+            company = db.query(Company).filter(Company.id == doc.company_id).first()
+            if company:
+                notification_service.send_notification(
+                    db=db,
+                    user_id=company.user_id,
+                    type=NotificationType.DOCUMENT_VERIFIED,
+                    title="Document Verified",
+                    message=f"Your {doc.doc_type.value if hasattr(doc.doc_type, 'value') else doc.doc_type} document has been verified.",
+                    company_id=company.id,
+                    action_url="/dashboard/company-info",
+                )
+
         elif body.decision in (VerificationDecision.REJECTED.value, VerificationDecision.NEEDS_REUPLOAD.value):
             doc.verification_status = VerificationStatus.REJECTED
             doc.rejection_reason = body.rejection_reason

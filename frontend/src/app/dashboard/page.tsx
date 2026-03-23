@@ -4,7 +4,6 @@ import { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { getCompanies, uploadDocument, getCompanyLogs, getCompanyMessages, sendMessage, markMessagesRead, getUpsellItems, uploadPitchDeck, getInvestorInterests, type UpsellItem } from "@/lib/api";
 import Link from "next/link";
-import ChatWidget from "@/components/chat-widget";
 
 const PIPELINE_STEPS = [
   { key: "draft_to_payment", label: "Draft & Payment", statuses: ["draft", "entity_selected", "payment_pending", "payment_completed"] },
@@ -794,7 +793,6 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {companies.length > 0 && <ChatWidget companyId={companies[0]?.id} />}
     </div>
   );
 }

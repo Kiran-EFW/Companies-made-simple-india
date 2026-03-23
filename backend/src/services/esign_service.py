@@ -1116,6 +1116,64 @@ class ESignService:
                     is_creator=False,
                 )
 
+        # Send in-app notification to creator
+        try:
+            from src.services.notification_service import notification_service
+            from src.models.notification import NotificationType
+
+            if creator:
+                # Get company_id from the legal document
+                doc = db.query(LegalDocument).filter(LegalDocument.id == sig_request.legal_document_id).first()
+                notification_service.send_notification(
+                    db=db,
+                    user_id=creator.id,
+                    type=NotificationType.STATUS_UPDATE,
+                    title=f"Document Signed: {sig_request.title}",
+                    message=f"All signatories have signed '{sig_request.title}'. The signed document has been filed to your data room.",
+                    company_id=doc.company_id if doc else None,
+                    action_url="/dashboard/signatures",
+                )
+        except Exception:
+            pass  # Never break signing flow for notification failure
+
+        # Update the originating module's status (fundraising, share issuance, meeting)
+        self._update_originating_module(db, sig_request)
+
+    def _update_originating_module(self, db: Session, sig_request: SignatureRequest) -> None:
+        """Update the status of the module that initiated the e-sign request."""
+        try:
+            # Check fundraising rounds
+            from src.models.funding_round import FundingRound, FundingRoundStatus
+            round_obj = db.query(FundingRound).filter(
+                FundingRound.sha_signature_request_id == sig_request.id
+            ).first()
+            if round_obj:
+                round_obj.status = FundingRoundStatus.CLOSED
+                return
+
+            # Check share issuance workflows
+            from src.models.share_issuance import ShareIssuanceWorkflow, IssuanceStatus
+            workflow = db.query(ShareIssuanceWorkflow).filter(
+                ShareIssuanceWorkflow.board_resolution_signature_request_id == sig_request.id
+            ).first()
+            if workflow:
+                workflow.status = IssuanceStatus.BOARD_RESOLUTION_SIGNED
+                return
+
+            # Check meeting minutes
+            from src.models.meeting import Meeting
+            meeting = db.query(Meeting).filter(
+                Meeting.minutes_signature_request_id == sig_request.id
+            ).first()
+            if meeting:
+                meeting.minutes_signed = True
+                meeting.minutes_signed_date = sig_request.completed_at
+                meeting.status = "minutes_signed"
+                return
+
+        except Exception:
+            pass  # Never break signing flow for callback failure
+
     def _serialize_request(
         self,
         sig_request: SignatureRequest,

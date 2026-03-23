@@ -246,6 +246,25 @@ def _handle_payment_captured(payload: dict, db: Session):
         razorpay_order_id, razorpay_payment_id, payment.company_id,
     )
 
+    # Send in-app notification to founder
+    if company:
+        try:
+            from src.services.notification_service import notification_service
+            from src.models.notification import NotificationType
+
+            amount = entity.get("amount", 0) / 100  # Razorpay sends paise
+            notification_service.send_notification(
+                db=db,
+                user_id=company.user_id,
+                type=NotificationType.PAYMENT,
+                title="Payment Confirmed",
+                message=f"Your payment of \u20b9{amount:,.0f} has been confirmed.",
+                company_id=company.id,
+                action_url="/dashboard/billing",
+            )
+        except Exception:
+            logger.exception("Failed to send payment notification")
+
 
 def _handle_payment_failed(payload: dict, db: Session):
     """Mark payment as FAILED."""
