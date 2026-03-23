@@ -1,6 +1,23 @@
 """
-Services Catalog — defines all add-on services, compliance subscription plans,
+Services Catalog — defines all add-on services, platform subscription plans,
 and post-incorporation upsell logic.
+
+Business model:
+- Incorporation: one-time platform fee (our revenue) + government fees (pass-through)
+- Platform SaaS: Starter tier (Rs 499/mo) for all companies, Growth and Scale
+  tiers for equity/fundraising/governance tools
+- Services Marketplace: à la carte compliance/tax/legal services fulfilled by
+  partner CAs/CSs/Auditors, with Anvils taking a 15-20% platform service margin
+
+Free hook: post-incorporation document bundle (founders agreement, board
+resolution, compliance checklist) — given once, for free, to drive platform
+adoption.  Everything beyond that requires a paid subscription.
+
+Compliance filing is NOT bundled into subscriptions. Companies either use their
+own CA/CS or purchase individual services from the marketplace.
+
+Phase 1 entity types: Private Limited, LLP, OPC
+Phase 2 (future): Section 8, Sole Prop, Partnership, Public Limited, Nidhi, Producer
 
 Pricing is based on industry-standard market rates for Indian company
 incorporation and compliance services (2025-26 rates).
@@ -16,19 +33,25 @@ from typing import List, Dict, Any, Optional
 #   name: display name
 #   short_description: one-liner
 #   category: compliance | tax | registration | legal | accounting | amendment
-#   platform_fee: our fee (Rs)
-#   government_fee: government fee (Rs)
+#   platform_fee: client price (Rs) — what the client pays Anvils
+#   fulfillment_fee: partner fee (Rs) — what Anvils pays the CA/CS (80% of platform_fee)
+#   government_fee: government fee (Rs) — pass-through at cost
 #   frequency: one_time | monthly | quarterly | annual
 #   entity_types: list of applicable entity types (empty = all)
 #   is_mandatory: whether legally required
 #   penalty_note: penalty for non-compliance (drives urgency)
 #   badge: "popular" | "mandatory" | "recommended" | None
+#
+# Pricing aligned with CA Partner Agreement Schedule A (20% platform service margin).
 
 ALL_ENTITY_TYPES = [
     "private_limited", "opc", "llp", "section_8",
     "partnership", "sole_proprietorship", "public_limited",
     "nidhi", "producer_company",
 ]
+
+# Phase 1: entity types supported at launch
+PHASE_1_ENTITY_TYPES = ["private_limited", "opc", "llp"]
 
 COMPANY_ENTITIES = ["private_limited", "opc", "section_8", "public_limited", "nidhi"]
 MCA_ENTITIES = ["private_limited", "opc", "llp", "section_8", "public_limited", "nidhi", "producer_company"]
@@ -40,7 +63,8 @@ SERVICES_CATALOG: List[Dict[str, Any]] = [
         "name": "GST Registration",
         "short_description": "Register for Goods & Services Tax with GSTIN allocation",
         "category": "registration",
-        "platform_fee": 1499,
+        "platform_fee": 2499,
+        "fulfillment_fee": 1999,
         "government_fee": 0,
         "frequency": "one_time",
         "entity_types": ALL_ENTITY_TYPES,
@@ -53,7 +77,8 @@ SERVICES_CATALOG: List[Dict[str, Any]] = [
         "name": "MSME / Udyam Registration",
         "short_description": "Register on Udyam portal for MSME benefits and subsidies",
         "category": "registration",
-        "platform_fee": 499,
+        "platform_fee": 1499,
+        "fulfillment_fee": 1199,
         "government_fee": 0,
         "frequency": "one_time",
         "entity_types": ALL_ENTITY_TYPES,
@@ -66,7 +91,8 @@ SERVICES_CATALOG: List[Dict[str, Any]] = [
         "name": "Trademark Registration",
         "short_description": "Protect your brand name, logo, or tagline under Trademark Act",
         "category": "registration",
-        "platform_fee": 4999,
+        "platform_fee": 6499,
+        "fulfillment_fee": 5199,
         "government_fee": 4500,
         "frequency": "one_time",
         "entity_types": ALL_ENTITY_TYPES,
@@ -79,7 +105,8 @@ SERVICES_CATALOG: List[Dict[str, Any]] = [
         "name": "Import Export Code (IEC)",
         "short_description": "DGFT registration for import/export of goods or services",
         "category": "registration",
-        "platform_fee": 1999,
+        "platform_fee": 3499,
+        "fulfillment_fee": 2799,
         "government_fee": 500,
         "frequency": "one_time",
         "entity_types": ALL_ENTITY_TYPES,
@@ -93,6 +120,7 @@ SERVICES_CATALOG: List[Dict[str, Any]] = [
         "short_description": "Food safety registration for businesses with turnover under Rs 12L",
         "category": "registration",
         "platform_fee": 2499,
+        "fulfillment_fee": 1999,
         "government_fee": 100,
         "frequency": "one_time",
         "entity_types": ALL_ENTITY_TYPES,
@@ -106,6 +134,7 @@ SERVICES_CATALOG: List[Dict[str, Any]] = [
         "short_description": "State food license for turnover Rs 12L to Rs 20 Cr",
         "category": "registration",
         "platform_fee": 5999,
+        "fulfillment_fee": 4799,
         "government_fee": 2000,
         "frequency": "one_time",
         "entity_types": ALL_ENTITY_TYPES,
@@ -118,7 +147,8 @@ SERVICES_CATALOG: List[Dict[str, Any]] = [
         "name": "DPIIT Startup India Recognition",
         "short_description": "Get recognised under Startup India for tax benefits and fast-track patents",
         "category": "registration",
-        "platform_fee": 2999,
+        "platform_fee": 4999,
+        "fulfillment_fee": 3999,
         "government_fee": 0,
         "frequency": "one_time",
         "entity_types": ["private_limited", "llp", "partnership"],
@@ -131,7 +161,8 @@ SERVICES_CATALOG: List[Dict[str, Any]] = [
         "name": "Professional Tax Registration",
         "short_description": "State-level professional tax registration for employers",
         "category": "registration",
-        "platform_fee": 1499,
+        "platform_fee": 1999,
+        "fulfillment_fee": 1599,
         "government_fee": 0,
         "frequency": "one_time",
         "entity_types": ALL_ENTITY_TYPES,
@@ -145,6 +176,7 @@ SERVICES_CATALOG: List[Dict[str, Any]] = [
         "short_description": "Employee State Insurance registration for businesses with 10+ employees",
         "category": "registration",
         "platform_fee": 2499,
+        "fulfillment_fee": 1999,
         "government_fee": 0,
         "frequency": "one_time",
         "entity_types": ALL_ENTITY_TYPES,
@@ -158,6 +190,7 @@ SERVICES_CATALOG: List[Dict[str, Any]] = [
         "short_description": "Provident Fund registration for businesses with 20+ employees",
         "category": "registration",
         "platform_fee": 2499,
+        "fulfillment_fee": 1999,
         "government_fee": 0,
         "frequency": "one_time",
         "entity_types": ALL_ENTITY_TYPES,
@@ -171,6 +204,7 @@ SERVICES_CATALOG: List[Dict[str, Any]] = [
         "short_description": "Quality management system certification for B2B credibility",
         "category": "registration",
         "platform_fee": 19999,
+        "fulfillment_fee": 15999,
         "government_fee": 0,
         "frequency": "one_time",
         "entity_types": ALL_ENTITY_TYPES,
@@ -186,6 +220,7 @@ SERVICES_CATALOG: List[Dict[str, Any]] = [
         "short_description": "File annual financial statements and return with Registrar of Companies",
         "category": "compliance",
         "platform_fee": 7999,
+        "fulfillment_fee": 6399,
         "government_fee": 600,
         "frequency": "annual",
         "entity_types": COMPANY_ENTITIES,
@@ -199,6 +234,7 @@ SERVICES_CATALOG: List[Dict[str, Any]] = [
         "short_description": "File LLP statement of accounts and annual return with ROC",
         "category": "compliance",
         "platform_fee": 5999,
+        "fulfillment_fee": 4799,
         "government_fee": 200,
         "frequency": "annual",
         "entity_types": ["llp"],
@@ -211,7 +247,8 @@ SERVICES_CATALOG: List[Dict[str, Any]] = [
         "name": "DIR-3 KYC (Per Director)",
         "short_description": "Annual KYC filing for each director to keep DIN active",
         "category": "compliance",
-        "platform_fee": 999,
+        "platform_fee": 1499,
+        "fulfillment_fee": 1199,
         "government_fee": 0,
         "frequency": "annual",
         "entity_types": MCA_ENTITIES,
@@ -225,6 +262,7 @@ SERVICES_CATALOG: List[Dict[str, Any]] = [
         "short_description": "File auditor appointment/reappointment notice with ROC after AGM",
         "category": "compliance",
         "platform_fee": 1999,
+        "fulfillment_fee": 1599,
         "government_fee": 300,
         "frequency": "annual",
         "entity_types": COMPANY_ENTITIES,
@@ -238,6 +276,7 @@ SERVICES_CATALOG: List[Dict[str, Any]] = [
         "short_description": "Mandatory filing within 180 days of incorporation to commence operations",
         "category": "compliance",
         "platform_fee": 1999,
+        "fulfillment_fee": 1599,
         "government_fee": 500,
         "frequency": "one_time",
         "entity_types": ["private_limited", "public_limited"],
@@ -252,7 +291,8 @@ SERVICES_CATALOG: List[Dict[str, Any]] = [
         "name": "Income Tax Return Filing (Company)",
         "short_description": "ITR-6 filing for private limited, OPC, and public limited companies",
         "category": "tax",
-        "platform_fee": 9999,
+        "platform_fee": 4999,
+        "fulfillment_fee": 3999,
         "government_fee": 0,
         "frequency": "annual",
         "entity_types": ["private_limited", "opc", "public_limited", "section_8"],
@@ -265,7 +305,8 @@ SERVICES_CATALOG: List[Dict[str, Any]] = [
         "name": "Income Tax Return Filing (LLP / Partnership)",
         "short_description": "ITR-5 filing for LLP and partnership firms",
         "category": "tax",
-        "platform_fee": 5999,
+        "platform_fee": 2999,
+        "fulfillment_fee": 2399,
         "government_fee": 0,
         "frequency": "annual",
         "entity_types": ["llp", "partnership"],
@@ -278,7 +319,8 @@ SERVICES_CATALOG: List[Dict[str, Any]] = [
         "name": "Income Tax Return Filing (Individual / Sole Prop)",
         "short_description": "ITR-3 or ITR-4 filing for sole proprietors and individuals",
         "category": "tax",
-        "platform_fee": 2499,
+        "platform_fee": 999,
+        "fulfillment_fee": 799,
         "government_fee": 0,
         "frequency": "annual",
         "entity_types": ["sole_proprietorship"],
@@ -292,6 +334,7 @@ SERVICES_CATALOG: List[Dict[str, Any]] = [
         "short_description": "GSTR-1 + GSTR-3B monthly filing with input tax credit reconciliation",
         "category": "tax",
         "platform_fee": 1999,
+        "fulfillment_fee": 1599,
         "government_fee": 0,
         "frequency": "monthly",
         "entity_types": ALL_ENTITY_TYPES,
@@ -305,6 +348,7 @@ SERVICES_CATALOG: List[Dict[str, Any]] = [
         "short_description": "Form 24Q/26Q quarterly TDS return filing with challan preparation",
         "category": "tax",
         "platform_fee": 2499,
+        "fulfillment_fee": 1999,
         "government_fee": 0,
         "frequency": "quarterly",
         "entity_types": ["private_limited", "opc", "llp", "section_8", "public_limited", "partnership"],
@@ -318,6 +362,7 @@ SERVICES_CATALOG: List[Dict[str, Any]] = [
         "short_description": "Annual GST return consolidating all monthly/quarterly returns",
         "category": "tax",
         "platform_fee": 4999,
+        "fulfillment_fee": 3999,
         "government_fee": 0,
         "frequency": "annual",
         "entity_types": ALL_ENTITY_TYPES,
@@ -331,6 +376,7 @@ SERVICES_CATALOG: List[Dict[str, Any]] = [
         "short_description": "Annual financial audit by a Chartered Accountant as required by law",
         "category": "tax",
         "platform_fee": 14999,
+        "fulfillment_fee": 11999,
         "government_fee": 0,
         "frequency": "annual",
         "entity_types": COMPANY_ENTITIES + ["llp"],
@@ -346,6 +392,7 @@ SERVICES_CATALOG: List[Dict[str, Any]] = [
         "short_description": "Monthly bookkeeping for businesses with up to 100 transactions",
         "category": "accounting",
         "platform_fee": 2999,
+        "fulfillment_fee": 2399,
         "government_fee": 0,
         "frequency": "monthly",
         "entity_types": ALL_ENTITY_TYPES,
@@ -359,6 +406,7 @@ SERVICES_CATALOG: List[Dict[str, Any]] = [
         "short_description": "Monthly bookkeeping for 100-500 transactions with bank reconciliation",
         "category": "accounting",
         "platform_fee": 5999,
+        "fulfillment_fee": 4799,
         "government_fee": 0,
         "frequency": "monthly",
         "entity_types": ALL_ENTITY_TYPES,
@@ -372,6 +420,7 @@ SERVICES_CATALOG: List[Dict[str, Any]] = [
         "short_description": "Monthly payroll with salary slips, PF/ESI challans, and Form 16",
         "category": "accounting",
         "platform_fee": 1999,
+        "fulfillment_fee": 1599,
         "government_fee": 0,
         "frequency": "monthly",
         "entity_types": ALL_ENTITY_TYPES,
@@ -386,7 +435,8 @@ SERVICES_CATALOG: List[Dict[str, Any]] = [
         "name": "Director Appointment / Resignation",
         "short_description": "File DIR-12 for director appointment or resignation with ROC",
         "category": "amendment",
-        "platform_fee": 3499,
+        "platform_fee": 4999,
+        "fulfillment_fee": 3999,
         "government_fee": 600,
         "frequency": "one_time",
         "entity_types": COMPANY_ENTITIES,
@@ -400,6 +450,7 @@ SERVICES_CATALOG: List[Dict[str, Any]] = [
         "short_description": "Prepare SH-4 transfer deed, board resolution, and PAS-3 filing",
         "category": "amendment",
         "platform_fee": 4999,
+        "fulfillment_fee": 3999,
         "government_fee": 400,
         "frequency": "one_time",
         "entity_types": ["private_limited", "public_limited"],
@@ -413,6 +464,7 @@ SERVICES_CATALOG: List[Dict[str, Any]] = [
         "short_description": "Issue new shares with PAS-3 filing and updated share certificates",
         "category": "amendment",
         "platform_fee": 5999,
+        "fulfillment_fee": 4799,
         "government_fee": 600,
         "frequency": "one_time",
         "entity_types": ["private_limited", "opc", "public_limited"],
@@ -425,7 +477,8 @@ SERVICES_CATALOG: List[Dict[str, Any]] = [
         "name": "Increase Authorised Capital",
         "short_description": "File SH-7 with ROC to increase your company's authorised share capital",
         "category": "amendment",
-        "platform_fee": 5999,
+        "platform_fee": 9999,
+        "fulfillment_fee": 7999,
         "government_fee": 5000,
         "frequency": "one_time",
         "entity_types": ["private_limited", "opc", "public_limited"],
@@ -438,7 +491,8 @@ SERVICES_CATALOG: List[Dict[str, Any]] = [
         "name": "Registered Office Change",
         "short_description": "File INC-22 / INC-23 to change your registered office address",
         "category": "amendment",
-        "platform_fee": 3499,
+        "platform_fee": 4999,
+        "fulfillment_fee": 3999,
         "government_fee": 600,
         "frequency": "one_time",
         "entity_types": MCA_ENTITIES,
@@ -451,7 +505,8 @@ SERVICES_CATALOG: List[Dict[str, Any]] = [
         "name": "Company Name Change",
         "short_description": "Change your company or LLP name with ROC approval",
         "category": "amendment",
-        "platform_fee": 5999,
+        "platform_fee": 6999,
+        "fulfillment_fee": 5599,
         "government_fee": 1000,
         "frequency": "one_time",
         "entity_types": MCA_ENTITIES,
@@ -464,7 +519,8 @@ SERVICES_CATALOG: List[Dict[str, Any]] = [
         "name": "Company Closure / Strike Off",
         "short_description": "Voluntary strike-off (STK-2) or winding up of your company or LLP",
         "category": "amendment",
-        "platform_fee": 7999,
+        "platform_fee": 9999,
+        "fulfillment_fee": 7999,
         "government_fee": 5000,
         "frequency": "one_time",
         "entity_types": MCA_ENTITIES,
@@ -478,6 +534,7 @@ SERVICES_CATALOG: List[Dict[str, Any]] = [
         "short_description": "File Form 4 for change in LLP partners or designated partners",
         "category": "amendment",
         "platform_fee": 3499,
+        "fulfillment_fee": 2799,
         "government_fee": 100,
         "frequency": "one_time",
         "entity_types": ["llp"],
@@ -493,6 +550,7 @@ SERVICES_CATALOG: List[Dict[str, Any]] = [
         "short_description": "Draft and file reply to trademark examination objection",
         "category": "legal",
         "platform_fee": 4999,
+        "fulfillment_fee": 3999,
         "government_fee": 0,
         "frequency": "one_time",
         "entity_types": ALL_ENTITY_TYPES,
@@ -506,6 +564,7 @@ SERVICES_CATALOG: List[Dict[str, Any]] = [
         "short_description": "Professional legal notice drafting and dispatch",
         "category": "legal",
         "platform_fee": 3499,
+        "fulfillment_fee": 2799,
         "government_fee": 0,
         "frequency": "one_time",
         "entity_types": ALL_ENTITY_TYPES,
@@ -519,6 +578,7 @@ SERVICES_CATALOG: List[Dict[str, Any]] = [
         "short_description": "Get a virtual registered office address with mail handling",
         "category": "legal",
         "platform_fee": 7999,
+        "fulfillment_fee": 6399,
         "government_fee": 0,
         "frequency": "annual",
         "entity_types": ALL_ENTITY_TYPES,
@@ -530,184 +590,88 @@ SERVICES_CATALOG: List[Dict[str, Any]] = [
 
 
 # ---------------------------------------------------------------------------
-# Compliance Subscription Plans
+# Platform Subscription Plans
 # ---------------------------------------------------------------------------
+# NOTE: These are PLATFORM subscriptions for software features (cap table,
+# ESOP, fundraising, data room, etc.). Compliance filing is NOT included —
+# companies purchase individual services from the marketplace above, or use
+# their own CA/CS.
+#
+# Free hook: every incorporated company gets a one-time post-incorporation
+# document bundle (founders agreement, board resolution, compliance checklist)
+# for free.  Beyond that, all features require a paid subscription.
+#
+# Revenue model:
+#   Starter → company dashboard, compliance calendar, document storage
+#   Growth  → equity management, fundraising tools — main SaaS revenue
+#   Scale   → board governance, investor reporting — high-value accounts
 
 SUBSCRIPTION_PLANS: List[Dict[str, Any]] = [
-    # ── Segment-based plans ──────────────────────────────────────────────
     {
-        "key": "basic",
-        "name": "Anvils Basic",
-        "segment": "micro_business",
-        "target": "Sole Proprietorship & Partnership",
-        "monthly_price": 799,
-        "annual_price": 7999,
-        "entity_types": ["sole_proprietorship", "partnership"],
+        "key": "starter",
+        "name": "Anvils Starter",
+        "segment": "all",
+        "target": "All incorporated companies",
+        "monthly_price": 499,
+        "annual_price": 4999,
+        "entity_types": ALL_ENTITY_TYPES,
         "highlighted": False,
         "features": [
-            "Income Tax Return filing",
-            "GST return filing (if applicable)",
-            "Basic compliance calendar with reminders",
-            "Document storage (up to 10 documents)",
-            "Dedicated relationship manager",
+            "Company dashboard with key metrics",
+            "Compliance calendar with deadline reminders",
+            "Email & SMS alerts before due dates",
+            "Document storage (up to 50 documents)",
+            "Director/partner KYC tracker",
+            "Services marketplace access (buy à la carte)",
+            "Company profile management",
+            "Post-incorporation document bundle (one-time free)",
         ],
     },
     {
-        "key": "business",
-        "name": "Anvils Business",
-        "segment": "sme",
-        "target": "LLP, OPC & Private Limited (SME)",
-        "monthly_price": 1999,
-        "annual_price": 19999,
-        "entity_types": ["llp", "opc", "private_limited"],
+        "key": "growth",
+        "name": "Anvils Growth",
+        "segment": "startup",
+        "target": "Funded startups & companies planning to raise",
+        "monthly_price": 2999,
+        "annual_price": 29999,
+        "entity_types": PHASE_1_ENTITY_TYPES + ["public_limited"],
         "highlighted": True,
         "features": [
-            "All annual ROC/MCA filings (AOC-4, MGT-7, Form 8, Form 11)",
-            "Income Tax Return filing",
-            "GST return filing (monthly)",
-            "TDS quarterly returns",
-            "DIR-3 KYC for all directors/partners",
-            "ADT-1 auditor appointment",
-            "Bookkeeping (up to 200 txns/month)",
-            "Board meeting templates (4/year)",
-            "Compliance calendar with email + SMS alerts",
-            "Priority support",
-        ],
-    },
-    {
-        "key": "startup",
-        "name": "Anvils Startup",
-        "segment": "startup",
-        "target": "Funded / Funding-Stage Private Limited",
-        "monthly_price": 4999,
-        "annual_price": 49999,
-        "entity_types": ["private_limited"],
-        "highlighted": False,
-        "features": [
-            "Everything in Business plan",
+            "Everything in Starter",
             "Full cap table management with dilution modeling",
             "ESOP plan creation and grant management",
             "Fundraising rounds (SAFE, CCD, CCPS, equity)",
             "Investor portal (token-based + authenticated)",
-            "Data room with access controls",
+            "Data room with granular access controls",
             "E-signatures (up to 20/month)",
             "Valuations (Rule 11UA FMV calculator)",
-            "Board meeting packs with resolution workflow",
-            "Statutory audit coordination",
-            "Bookkeeping (up to 500 txns/month)",
-            "Compliance autopilot with penalty alerts",
-            "Dedicated CA + relationship manager",
+            "Unlimited document storage",
+            "Team management (up to 10 users)",
+            "Priority support",
         ],
     },
     {
-        "key": "startup_pro",
-        "name": "Anvils Startup Pro",
-        "segment": "startup",
-        "target": "Well-Funded Startups (Series A+)",
+        "key": "scale",
+        "name": "Anvils Scale",
+        "segment": "enterprise",
+        "target": "Series A+ companies, public limited, pre-IPO",
         "monthly_price": 9999,
         "annual_price": 99999,
-        "entity_types": ["private_limited"],
+        "entity_types": ["private_limited", "public_limited"],
         "highlighted": False,
         "features": [
-            "Everything in Startup plan",
+            "Everything in Growth",
+            "Board meeting management with agenda builder",
+            "Resolution workflow and voting",
+            "Statutory registers (members, directors, charges)",
+            "Investor reporting and portfolio dashboard",
+            "Closing room for fundraising rounds",
             "Unlimited e-signatures",
-            "Quarterly board meeting preparation packs",
-            "Tax planning advisory (quarterly)",
-            "Penalty protection (up to Rs 50,000/year in service credits)",
-            "DPIIT recognition support",
-            "2 free event-based filings per year",
-            "Same-day response SLA",
+            "FEMA/RBI compliance tracker (FC-GPR, FLA)",
             "Quarterly compliance health reports",
-            "FEMA/RBI compliance support (FC-GPR, FLA)",
-            "Dedicated CA + CS + relationship manager",
-        ],
-    },
-    {
-        "key": "non_profit",
-        "name": "Anvils Non-Profit",
-        "segment": "non_profit",
-        "target": "Section 8 Companies, NGOs, Social Enterprises",
-        "monthly_price": 3499,
-        "annual_price": 34999,
-        "entity_types": ["section_8"],
-        "highlighted": False,
-        "features": [
-            "All annual ROC filings (AOC-4, MGT-7)",
-            "12A / 80G registration and renewal",
-            "Income Tax Return filing (ITR-7)",
-            "FCRA compliance support (if foreign funds)",
-            "CSR compliance reporting",
-            "Board meeting documentation",
-            "Statutory audit coordination",
-            "Compliance calendar with deadline alerts",
-            "Dedicated CA + CS",
-        ],
-    },
-    {
-        "key": "nidhi",
-        "name": "Anvils Nidhi",
-        "segment": "nidhi",
-        "target": "Nidhi Companies (Sec 406)",
-        "monthly_price": 7999,
-        "annual_price": 79999,
-        "entity_types": ["nidhi"],
-        "highlighted": False,
-        "features": [
-            "NDH-1 annual statutory compliance return",
-            "NDH-3 half-yearly deposit & loan return",
-            "NDH-4 declaration filing",
-            "Member management dashboard (200+ members)",
-            "Deposit ratio monitoring (auto-alerts at 1:20)",
-            "Net owned funds tracking",
-            "All standard company compliance (AOC-4, MGT-7, DIR-3 KYC)",
-            "Income Tax Return filing",
-            "Statutory audit coordination",
-            "Board meeting documentation",
-            "Dedicated CA + CS",
-        ],
-    },
-    {
-        "key": "producer",
-        "name": "Anvils Producer",
-        "segment": "producer",
-        "target": "Producer Companies & FPOs",
-        "monthly_price": 1499,
-        "annual_price": 14999,
-        "entity_types": ["producer_company"],
-        "highlighted": False,
-        "features": [
-            "All annual ROC/MCA filings",
-            "Income Tax Return filing",
-            "GST return filing (if applicable)",
-            "Member register management",
-            "AGM documentation and minutes",
-            "CEO appointment compliance",
-            "Statutory audit coordination",
-            "Compliance calendar with reminders",
-            "Dedicated relationship manager",
-        ],
-    },
-    {
-        "key": "enterprise",
-        "name": "Anvils Enterprise",
-        "segment": "enterprise",
-        "target": "Public Limited & Pre-IPO Companies",
-        "monthly_price": 19999,
-        "annual_price": 199999,
-        "entity_types": ["public_limited"],
-        "highlighted": False,
-        "features": [
-            "Everything in Startup Pro plan",
-            "Secretarial audit (MR-3)",
-            "Mandatory Company Secretary compliance",
-            "Corporate governance reporting",
-            "Board committee management (Audit, Nomination, CSR)",
-            "Related party transaction tracking",
-            "Bookkeeping (unlimited transactions)",
-            "Payroll processing (up to 25 employees)",
-            "Quarterly board meeting packs",
             "Unlimited users",
-            "Dedicated CS + CA + relationship manager",
+            "Dedicated account manager",
+            "Same-day response SLA",
         ],
     },
 ]

@@ -35,6 +35,7 @@ def init_db():
     from src.models import investor_interest  # noqa
     from src.models import company_member  # noqa
     from src.models import deal_share  # noqa
+    from src.models import marketplace  # noqa
     Base.metadata.create_all(bind=engine)
 
 

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
+import FeatureGate from "@/components/feature-gate";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell,
@@ -1139,6 +1140,11 @@ export default function FundraisingPage() {
   }
 
   return (
+    <FeatureGate
+      moduleKey="fundraising"
+      featureName="Fundraising Rounds"
+      featureDescription="Create and manage funding rounds, track investors, and execute closings."
+    >
     <div>
       <div className="max-w-6xl mx-auto px-6 py-8">
         {/* Header */}
@@ -1896,5 +1902,6 @@ export default function FundraisingPage() {
       )}
 
     </div>
+    </FeatureGate>
   );
 }

@@ -116,3 +116,8 @@ class CreateOrderForServiceRequest(BaseModel):
 
 class CreateOrderForSubscriptionRequest(BaseModel):
     subscription_id: int
+
+
+class SubscriptionPlanChangeRequest(BaseModel):
+    """Request body for subscription upgrade or downgrade."""
+    new_plan_key: str

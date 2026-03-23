@@ -16,6 +16,7 @@ from src.schemas.statutory_register import (
     RegisterSummaryOut,
 )
 from src.utils.security import get_current_user
+from src.utils.tier_gate import require_tier
 
 router = APIRouter(
     prefix="/companies/{company_id}/registers",
@@ -141,6 +142,7 @@ def get_registers_summary(
     company_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("scale")),
 ):
     """Summary of all registers (entry counts, last updated)."""
     registers = _ensure_all_registers(db, company_id)
@@ -173,6 +175,7 @@ def list_registers(
     company_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("scale")),
 ):
     """List all registers for company (auto-create if missing)."""
     registers = _ensure_all_registers(db, company_id)
@@ -185,6 +188,7 @@ def get_register(
     register_type: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("scale")),
 ):
     """Get register with all entries."""
     reg = _get_register(db, company_id, register_type)
@@ -204,6 +208,7 @@ def add_entry(
     body: RegisterEntryCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("scale")),
 ):
     """Add entry to register."""
     reg = _get_register(db, company_id, register_type)
@@ -236,6 +241,7 @@ def update_entry(
     body: RegisterEntryUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("scale")),
 ):
     """Update entry in register."""
     reg = _get_register(db, company_id, register_type)
@@ -271,6 +277,7 @@ def export_register(
     register_type: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("scale")),
 ):
     """Export register as formatted HTML (printable)."""
     reg = _get_register(db, company_id, register_type)

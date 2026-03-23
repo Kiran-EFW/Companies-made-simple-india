@@ -26,6 +26,12 @@ from src.models.funding_round import (
 from src.models.stakeholder import StakeholderProfile, StakeholderType
 from src.models.company_member import CompanyMember, CompanyRole, InviteStatus
 from src.models.deal_share import DealShare, DealShareStatus
+from src.models.share_issuance import (
+    ShareIssuanceWorkflow, IssuanceType, IssuanceStatus,
+)
+from src.models.meeting import Meeting
+from src.models.legal_template import LegalDocument
+from src.models.esign import SignatureRequest
 
 __all__ = [
     "User", "UserRole",
@@ -48,4 +54,8 @@ __all__ = [
     "StakeholderProfile", "StakeholderType",
     "CompanyMember", "CompanyRole", "InviteStatus",
     "DealShare", "DealShareStatus",
+    "ShareIssuanceWorkflow", "IssuanceType", "IssuanceStatus",
+    "Meeting",
+    "LegalDocument",
+    "SignatureRequest",
 ]

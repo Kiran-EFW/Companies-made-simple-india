@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useCompany } from "@/lib/company-context";
 import Link from "next/link";
+import FeatureGate from "@/components/feature-gate";
 
 import {
   getESOPPlans,
@@ -377,6 +378,11 @@ export default function ESOPPage() {
   }
 
   return (
+    <FeatureGate
+      moduleKey="esop"
+      featureName="ESOP Management"
+      featureDescription="Create ESOP plans, manage grants, track vesting schedules, and exercise options."
+    >
     <div>
       <div className="max-w-6xl mx-auto px-6 py-8">
         {/* Header */}
@@ -1430,5 +1436,6 @@ export default function ESOPPage() {
       )}
 
     </div>
+    </FeatureGate>
   );
 }

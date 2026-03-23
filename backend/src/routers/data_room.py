@@ -25,6 +25,7 @@ from src.schemas.data_room import (
     SharedFolderOut,
 )
 from src.utils.security import get_current_user
+from src.utils.tier_gate import require_tier
 
 router = APIRouter(
     prefix="/companies/{company_id}/data-room",
@@ -159,6 +160,7 @@ def list_folders(
     company_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """List all folders (tree structure)."""
     folders = (
@@ -176,6 +178,7 @@ def create_folder(
     body: FolderCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Create a new folder."""
     if body.parent_id:
@@ -210,6 +213,7 @@ def update_folder(
     body: FolderUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Rename/move folder."""
     folder = (
@@ -241,6 +245,7 @@ def delete_folder(
     folder_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Delete empty folder."""
     folder = (
@@ -289,6 +294,7 @@ def upload_file(
     retention_category: Optional[str] = Form(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Upload file to a folder."""
     folder = (
@@ -339,6 +345,7 @@ def list_files(
     include_archived: bool = Query(False),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """List all files (optional filter by folder, tags, retention)."""
     query = db.query(DataRoomFile).filter(DataRoomFile.company_id == company_id)
@@ -365,6 +372,7 @@ def get_file_metadata(
     file_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Get file metadata."""
     db_file = (
@@ -384,6 +392,7 @@ def download_file(
     request: Request,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Download file."""
     db_file = (
@@ -422,6 +431,7 @@ def update_file_metadata(
     body: FileUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Update file metadata (description, tags, retention)."""
     db_file = (
@@ -455,6 +465,7 @@ def archive_file(
     file_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Soft delete (archive) file."""
     db_file = (
@@ -478,6 +489,7 @@ def upload_new_version(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Upload new version of a file."""
     existing = (
@@ -531,6 +543,7 @@ def create_share_link(
     body: ShareLinkCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Create share link."""
     expires_at = None
@@ -567,6 +580,7 @@ def list_share_links(
     company_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """List active share links."""
     links = (
@@ -588,6 +602,7 @@ def update_share_link(
     body: ShareLinkUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Update share link (toggle active, update expiry)."""
     link = (
@@ -619,6 +634,7 @@ def deactivate_share_link(
     link_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Deactivate share link."""
     link = (
@@ -640,6 +656,7 @@ def get_access_log(
     link_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """View access log for a share link."""
     link = (
@@ -669,6 +686,7 @@ def retention_alerts(
     company_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Files approaching retention expiry (within 90 days)."""
     now = datetime.now(timezone.utc)
@@ -707,6 +725,7 @@ def retention_summary(
     company_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Retention compliance summary."""
     now = datetime.now(timezone.utc)
@@ -752,6 +771,7 @@ def setup_default_folders(
     company_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Create default folder structure for company."""
     existing = (

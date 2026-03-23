@@ -13,6 +13,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from src.models.shareholder import Shareholder, ShareTransaction, ShareType, TransactionType
+from src.models.company import Company, EntityType
 
 logger = logging.getLogger(__name__)
 
@@ -92,6 +93,10 @@ class CapTableService:
 
     def get_cap_table(self, db: Session, company_id: int) -> Dict[str, Any]:
         """Get current cap table for a company."""
+        # Fetch company to determine entity type
+        company = db.query(Company).filter(Company.id == company_id).first()
+        entity_type = company.entity_type if company else None
+
         shareholders = (
             db.query(Shareholder)
             .filter(Shareholder.company_id == company_id)
@@ -131,6 +136,7 @@ class CapTableService:
             "total_shareholders": len(shareholders),
             "shareholders": shareholder_data,
             "esop_pool": esop_pool,
+            "entity_context": self._get_entity_context(entity_type),
             "summary": {
                 "equity_shares": sum(
                     s.shares for s in shareholders
@@ -154,6 +160,16 @@ class CapTableService:
         self, db: Session, company_id: int, entry: ShareholderEntry
     ) -> Dict[str, Any]:
         """Add a new shareholder to the cap table."""
+        # OPC guard: One Person Company can only have 1 shareholder
+        company = db.query(Company).filter(Company.id == company_id).first()
+        if company and company.entity_type == EntityType.OPC:
+            existing_count = db.query(Shareholder).filter(
+                Shareholder.company_id == company_id,
+                Shareholder.shares > 0,
+            ).count()
+            if existing_count >= 1:
+                return {"error": "OPC (One Person Company) can only have one shareholder. Transfer existing shares first or convert to Private Limited."}
+
         # Parse date if provided
         allotment_date = None
         if entry.date_of_allotment:
@@ -202,6 +218,20 @@ class CapTableService:
 
         # Recalculate percentages for all shareholders
         self._recalculate_percentages(db, company_id)
+
+        # Sync to Register of Members
+        self._sync_register_entry(db, company_id, "MEMBERS", {
+            "shareholder_name": entry.name,
+            "shares": entry.shares,
+            "share_type": share_type.value,
+            "face_value": entry.face_value,
+            "date_of_allotment": (allotment_date or datetime.now(timezone.utc)).isoformat(),
+            "email": entry.email,
+            "pan_number": entry.pan_number,
+            "is_promoter": entry.is_promoter,
+            "action": "initial_allotment",
+        }, notes=f"New shareholder: {entry.name} — {entry.shares} shares")
+
         try:
             db.commit()
         except Exception:
@@ -229,6 +259,9 @@ class CapTableService:
         price_per_share: float = 10.0,
     ) -> Dict[str, Any]:
         """Record share transfer and generate SH-4 form data."""
+        company = db.query(Company).filter(Company.id == company_id).first()
+        entity_note = None
+
         from_holder = (
             db.query(Shareholder)
             .filter(
@@ -258,6 +291,10 @@ class CapTableService:
                 )
             }
 
+        # OPC note
+        if company and company.entity_type == EntityType.OPC:
+            entity_note = "Note: Share transfer in OPC may require filing Form INC-4 with ROC for change in member details."
+
         # Execute transfer
         from_holder.shares -= shares
         to_holder.shares += shares
@@ -279,6 +316,38 @@ class CapTableService:
 
         # Recalculate percentages
         self._recalculate_percentages(db, company_id)
+
+        # Sync to Register of Share Transfers
+        self._sync_register_entry(db, company_id, "SHARE_TRANSFERS", {
+            "transferor": from_holder.name,
+            "transferee": to_holder.name,
+            "shares_transferred": shares,
+            "price_per_share": price_per_share,
+            "total_consideration": total_amount,
+            "share_type": from_holder.share_type.value if from_holder.share_type else "equity",
+            "transfer_date": datetime.now(timezone.utc).isoformat(),
+            "form_reference": "SH-4",
+        }, notes=f"Transfer: {from_holder.name} \u2192 {to_holder.name} \u2014 {shares} shares")
+
+        # Also update Register of Members
+        self._sync_register_entry(db, company_id, "MEMBERS", {
+            "shareholder_name": from_holder.name,
+            "shares_after": from_holder.shares,
+            "action": "transfer_out",
+            "counterparty": to_holder.name,
+            "shares_transferred": shares,
+            "transfer_date": datetime.now(timezone.utc).isoformat(),
+        }, notes=f"Transfer out: {shares} shares to {to_holder.name}")
+
+        self._sync_register_entry(db, company_id, "MEMBERS", {
+            "shareholder_name": to_holder.name,
+            "shares_after": to_holder.shares,
+            "action": "transfer_in",
+            "counterparty": from_holder.name,
+            "shares_received": shares,
+            "transfer_date": datetime.now(timezone.utc).isoformat(),
+        }, notes=f"Transfer in: {shares} shares from {from_holder.name}")
+
         try:
             db.commit()
         except Exception:
@@ -288,7 +357,7 @@ class CapTableService:
         # Generate SH-4 form data
         sh4_data = self._generate_sh4(from_holder, to_holder, shares, price_per_share, total_amount)
 
-        return {
+        result = {
             "message": "Share transfer recorded successfully",
             "transfer": {
                 "from": {"id": from_holder.id, "name": from_holder.name, "remaining_shares": from_holder.shares},
@@ -299,6 +368,9 @@ class CapTableService:
             },
             "form_data": sh4_data,
         }
+        if entity_note:
+            result["entity_note"] = entity_note
+        return result
 
     def record_allotment(
         self,
@@ -307,6 +379,20 @@ class CapTableService:
         entries: List[AllotmentEntry],
     ) -> Dict[str, Any]:
         """Record new share allotment and generate PAS-3 form data."""
+        # OPC guard: block adding new shareholders
+        company = db.query(Company).filter(Company.id == company_id).first()
+        if company and company.entity_type == EntityType.OPC:
+            existing_shareholders = db.query(Shareholder).filter(
+                Shareholder.company_id == company_id,
+                Shareholder.shares > 0,
+            ).all()
+            existing_ids = {s.id for s in existing_shareholders}
+            for entry in entries:
+                if entry.shareholder_id is None and len(existing_shareholders) >= 1:
+                    return {"error": "OPC can only have one shareholder. Cannot allot shares to a new shareholder."}
+                if entry.shareholder_id and entry.shareholder_id not in existing_ids and len(existing_shareholders) >= 1:
+                    return {"error": "OPC can only have one shareholder. Cannot allot shares to a new shareholder."}
+
         allotment_results = []
 
         for entry in entries:
@@ -369,6 +455,19 @@ class CapTableService:
 
         # Recalculate percentages
         self._recalculate_percentages(db, company_id)
+
+        # Sync to Register of Members for each allottee
+        for result_entry in allotment_results:
+            if "error" not in result_entry:
+                self._sync_register_entry(db, company_id, "MEMBERS", {
+                    "shareholder_name": result_entry.get("name", ""),
+                    "shares_allotted": result_entry.get("shares_allotted", 0),
+                    "total_shares_after": result_entry.get("total_shares", 0),
+                    "action": "allotment",
+                    "allotment_date": datetime.now(timezone.utc).isoformat(),
+                    "form_reference": "PAS-3",
+                }, notes=f"Allotment: {result_entry.get('name', '')} — {result_entry.get('shares_allotted', 0)} shares")
+
         try:
             db.commit()
         except Exception:
@@ -874,7 +973,6 @@ class CapTableService:
 
         # Fetch company name
         try:
-            from src.models.company import Company
             company = db.query(Company).filter(Company.id == company_id).first()
             company_name = company.company_name if company else f"Company #{company_id}"
             cin = getattr(company, "cin", "") or ""
@@ -959,6 +1057,119 @@ class CapTableService:
     # ------------------------------------------------------------------
     # Private helpers
     # ------------------------------------------------------------------
+
+    def _get_entity_context(self, entity_type) -> Dict[str, Any]:
+        """Return entity-type specific labels and restrictions for the frontend."""
+        if entity_type is None:
+            return {"labels": {"shareholder": "Shareholder", "shares": "Shares", "share_capital": "Share Capital"}, "restrictions": {}}
+
+        # Default labels for Companies Act entities
+        labels = {
+            "shareholder": "Shareholder",
+            "shares": "Shares",
+            "share_capital": "Share Capital",
+            "allotment": "Share Allotment",
+            "transfer": "Share Transfer",
+            "face_value": "Face Value",
+        }
+        restrictions = {}
+
+        if entity_type == EntityType.LLP:
+            labels = {
+                "shareholder": "Partner",
+                "shares": "Capital Contribution",
+                "share_capital": "Total Capital",
+                "allotment": "Capital Contribution",
+                "transfer": "Capital Transfer",
+                "face_value": "Contribution Amount",
+            }
+            restrictions["no_share_certificates"] = True
+            restrictions["no_esop"] = True
+        elif entity_type == EntityType.OPC:
+            labels["shareholder"] = "Member"
+            restrictions["max_shareholders"] = 1
+            restrictions["no_share_transfer_without_inc4"] = True
+        elif entity_type == EntityType.SOLE_PROPRIETORSHIP:
+            labels = {
+                "shareholder": "Proprietor",
+                "shares": "Capital",
+                "share_capital": "Proprietor Capital",
+                "allotment": "Capital Infusion",
+                "transfer": "Not Applicable",
+                "face_value": "Capital Amount",
+            }
+            restrictions["max_shareholders"] = 1
+            restrictions["no_share_certificates"] = True
+            restrictions["no_share_transfer"] = True
+            restrictions["no_esop"] = True
+        elif entity_type == EntityType.PARTNERSHIP:
+            labels = {
+                "shareholder": "Partner",
+                "shares": "Capital Contribution",
+                "share_capital": "Partner Capital",
+                "allotment": "Capital Contribution",
+                "transfer": "Partnership Interest Transfer",
+                "face_value": "Contribution Amount",
+            }
+            restrictions["no_share_certificates"] = True
+            restrictions["no_esop"] = True
+        elif entity_type == EntityType.SECTION_8:
+            restrictions["no_dividend"] = True
+            restrictions["profit_applied_to_objects"] = True
+            restrictions["transfer_requires_nclat"] = True
+        elif entity_type == EntityType.PUBLIC_LIMITED:
+            restrictions["min_shareholders"] = 7
+            restrictions["min_directors"] = 3
+
+        return {"labels": labels, "restrictions": restrictions, "entity_type": entity_type.value if entity_type else None}
+
+    def _sync_register_entry(
+        self,
+        db: Session,
+        company_id: int,
+        register_type: str,
+        entry_data: Dict[str, Any],
+        notes: str = "",
+    ) -> None:
+        """Auto-create a statutory register entry for cap table changes."""
+        from src.models.statutory_register import StatutoryRegister, RegisterEntry
+
+        # Ensure the register exists
+        register = (
+            db.query(StatutoryRegister)
+            .filter(
+                StatutoryRegister.company_id == company_id,
+                StatutoryRegister.register_type == register_type,
+            )
+            .first()
+        )
+        if not register:
+            register = StatutoryRegister(
+                company_id=company_id,
+                register_type=register_type,
+            )
+            db.add(register)
+            db.flush()
+
+        # Get next entry number
+        max_entry = (
+            db.query(RegisterEntry.entry_number)
+            .filter(RegisterEntry.register_id == register.id)
+            .order_by(RegisterEntry.entry_number.desc())
+            .first()
+        )
+        next_num = (max_entry[0] + 1) if max_entry else 1
+
+        entry = RegisterEntry(
+            register_id=register.id,
+            company_id=company_id,
+            entry_number=next_num,
+            entry_date=datetime.now(timezone.utc),
+            data=entry_data,
+            notes=notes,
+            created_by=0,  # System-generated (no user context in service)
+        )
+        db.add(entry)
 
     def _recalculate_percentages(self, db: Session, company_id: int) -> None:
         """Recalculate percentage holdings for all shareholders."""

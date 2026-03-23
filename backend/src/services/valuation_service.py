@@ -176,6 +176,38 @@ class ValuationService:
 
         return self._serialize(valuation)
 
+    def get_latest_valuation_summary(
+        self, db: Session, company_id: int
+    ) -> Optional[Dict[str, Any]]:
+        """Return the latest finalized valuation as a lightweight summary.
+
+        Used by ESOP (exercise price reference) and fundraising (pre-money
+        valuation reference).  Returns None when no finalized valuation exists.
+        """
+        valuation = (
+            db.query(Valuation)
+            .filter(
+                Valuation.company_id == company_id,
+                Valuation.status == ValuationStatus.FINALIZED,
+            )
+            .order_by(Valuation.created_at.desc())
+            .first()
+        )
+        if not valuation:
+            return None
+
+        return {
+            "valuation_id": valuation.id,
+            "valuation_date": (
+                valuation.valuation_date.isoformat()
+                if valuation.valuation_date
+                else None
+            ),
+            "total_valuation": valuation.total_enterprise_value,
+            "per_share_value": valuation.fair_market_value,
+            "method": valuation.method.value if valuation.method else None,
+        }
+
     def get_latest_valuation(
         self, db: Session, company_id: int
     ) -> Optional[Dict[str, Any]]:

@@ -5,6 +5,8 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { CompanyProvider, useCompany } from "@/lib/company-context";
+import { SubscriptionProvider, useSubscription } from "@/lib/subscription-context";
+import { getRequiredTier } from "@/lib/subscription-tiers";
 import { apiCall } from "@/lib/api";
 import CopilotWidget from "@/components/copilot-panel";
 
@@ -517,6 +519,7 @@ function RightSidebar() {
 function DashboardInner({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
   const { selectedCompany } = useCompany();
+  const { canAccess } = useSubscription();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -714,7 +717,24 @@ function DashboardInner({ children }: { children: React.ReactNode }) {
                     >
                       <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
                     </svg>
-                    {item.label}
+                    <span className="flex-1">{item.label}</span>
+                    {item.moduleKey && !canAccess(item.moduleKey) && (() => {
+                      const req = getRequiredTier(item.moduleKey!);
+                      return req ? (
+                        <span
+                          className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full flex items-center gap-1"
+                          style={{
+                            background: req === "growth" ? "rgba(124,58,237,0.12)" : "rgba(16,185,129,0.12)",
+                            color: req === "growth" ? "var(--color-accent-purple-light)" : "#10b981",
+                          }}
+                        >
+                          <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                          </svg>
+                          {req === "growth" ? "Pro" : "Scale"}
+                        </span>
+                      ) : null;
+                    })()}
                   </Link>
                 ))}
               </div>
@@ -786,7 +806,9 @@ export default function DashboardLayout({
 
   return (
     <CompanyProvider>
-      <DashboardInner>{children}</DashboardInner>
+      <SubscriptionProvider>
+        <DashboardInner>{children}</DashboardInner>
+      </SubscriptionProvider>
     </CompanyProvider>
   );
 }

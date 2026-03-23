@@ -18,6 +18,7 @@ from src.schemas.services import (
     SubscriptionCreate, SubscriptionOut,
     UpsellItem,
     CreateOrderForServiceRequest, CreateOrderForSubscriptionRequest,
+    SubscriptionPlanChangeRequest,
 )
 from src.schemas.payment import CreateOrderResponse
 from src.services.services_catalog import (
@@ -27,6 +28,7 @@ from src.services.services_catalog import (
     get_upsell_recommendations,
 )
 from src.services.payment_service import payment_service
+from src.services.subscription_service import subscription_service
 from src.models.payment import Payment, PaymentStatus
 from src.config import get_settings
 from src.utils.security import get_current_user
@@ -443,6 +445,71 @@ def cancel_subscription(
     db.commit()
     db.refresh(sub)
     return sub
+
+
+@router.post("/subscriptions/{sub_id}/upgrade", response_model=SubscriptionOut)
+def upgrade_subscription(
+    sub_id: int,
+    req: SubscriptionPlanChangeRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Upgrade a subscription to a higher-tier plan.
+
+    The upgrade takes effect immediately.  A prorated credit for the
+    remaining days in the current billing period is applied to the first
+    charge at the new rate.
+    """
+    # Verify ownership
+    sub = db.query(Subscription).filter(
+        Subscription.id == sub_id,
+        Subscription.user_id == current_user.id,
+    ).first()
+    if not sub:
+        raise HTTPException(status_code=404, detail="Subscription not found")
+
+    try:
+        updated = subscription_service.handle_subscription_upgrade(
+            db=db,
+            subscription_id=sub_id,
+            new_plan_key=req.new_plan_key,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+    return updated
+
+
+@router.post("/subscriptions/{sub_id}/downgrade", response_model=SubscriptionOut)
+def downgrade_subscription(
+    sub_id: int,
+    req: SubscriptionPlanChangeRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Downgrade a subscription to a lower-tier plan.
+
+    The downgrade takes effect at the end of the current billing period.
+    The user retains access to higher-tier features until then.
+    """
+    # Verify ownership
+    sub = db.query(Subscription).filter(
+        Subscription.id == sub_id,
+        Subscription.user_id == current_user.id,
+    ).first()
+    if not sub:
+        raise HTTPException(status_code=404, detail="Subscription not found")
+
+    try:
+        updated = subscription_service.handle_subscription_downgrade(
+            db=db,
+            subscription_id=sub_id,
+            new_plan_key=req.new_plan_key,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+    return updated
 
 
 # ---------------------------------------------------------------------------

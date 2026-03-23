@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import Link from "next/link";
+import FeatureGate from "@/components/feature-gate";
 import {
   getCompanies,
   getRegistersSummary,
@@ -284,6 +285,11 @@ export default function RegistersPage() {
   }
 
   return (
+    <FeatureGate
+      moduleKey="registers"
+      featureName="Statutory Registers"
+      featureDescription="Statutory registers for members, directors, charges, and share transfers."
+    >
     <div>
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Header */}
@@ -549,5 +555,6 @@ export default function RegistersPage() {
         )}
       </div>
     </div>
+    </FeatureGate>
   );
 }

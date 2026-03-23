@@ -6,6 +6,8 @@ import Link from "next/link";
 
 import { apiCall, simulateRound, simulateExit, simulateExitWaterfall, getShareCertificate } from "@/lib/api";
 import ShareIssuanceWizard from "./ShareIssuanceWizard";
+import FeatureGate from "@/components/feature-gate";
+import UpsellBanner from "@/components/upsell-banner";
 
 
 interface ShareholderData {
@@ -372,8 +374,14 @@ export default function CapTablePage() {
   }
 
   return (
+    <FeatureGate
+      moduleKey="cap-table"
+      featureName="Cap Table Management"
+      featureDescription="Full cap table management with dilution modeling, share transfers, and ESOP tracking."
+    >
     <div>
       <div className="max-w-6xl mx-auto px-6 py-8">
+        {selectedCompany && <UpsellBanner pageKey="cap-table" companyId={selectedCompany.id} />}
         {/* Header */}
         <div className="text-center mb-8">
           <div className="badge badge-purple mb-4 mx-auto w-fit">Cap Table Management</div>
@@ -1706,5 +1714,6 @@ export default function CapTablePage() {
         )}
       </div>
     </div>
+    </FeatureGate>
   );
 }

@@ -11,6 +11,7 @@ from src.models.ca_assignment import CAAssignment
 from src.schemas.company import CompanyCreate, CompanyOnboardDetails, CompanyOut
 from src.models.company_member import CompanyMember, InviteStatus
 from src.utils.security import get_current_user, get_password_hash
+from src.utils.tier_gate import require_tier
 from src.services.segment_service import resolve_segment
 
 router = APIRouter(prefix="/companies", tags=["Companies"])
@@ -321,6 +322,7 @@ def update_pitch_profile(
     data: dict,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Update company pitch profile (video, tagline, sector, fundraise ask).
 
@@ -358,6 +360,7 @@ def get_pitch_profile(
     company_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Get company pitch profile."""
     company = db.query(Company).filter(
@@ -405,6 +408,7 @@ def get_investor_interests(
     company_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """List investors who have expressed interest in this company."""
     comp = db.query(Company).filter(

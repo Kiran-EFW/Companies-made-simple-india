@@ -8,14 +8,14 @@ import Footer from "@/components/footer";
 import {
   BarChart3, Users, TrendingUp, Shield, Calculator, Calendar, FileText,
   FolderLock, BookOpen, Receipt, PenTool, UserCheck,
-  Check, Star, Zap, Crown, Heart,
+  Check, Star, Zap, Crown,
 } from "lucide-react";
 
 // ─── Section Navigation ─────────────────────────────────────────────────────
 
 const SECTIONS = [
   { id: "platform", label: "Platform Features" },
-  { id: "plans", label: "Compliance Plans" },
+  { id: "plans", label: "Platform Plans" },
   { id: "incorporation", label: "Incorporation" },
   { id: "services", label: "Services & Add-Ons" },
 ];
@@ -42,115 +42,73 @@ const USER_TYPES = [
   { label: "Investors", desc: "Token-based portal. View portfolio companies, cap tables, funding rounds, and documents — no login needed.", href: "/for/investors" },
 ];
 
-// ─── Compliance Subscription Plans ──────────────────────────────────────────
+// ─── Platform Subscription Plans ────────────────────────────────────────────
+// Synced with backend services_catalog.py SUBSCRIPTION_PLANS (3 tiers)
 
 const SUBSCRIPTION_PLANS = [
   {
     key: "starter",
     name: "Starter",
     icon: <Zap className="w-5 h-5" />,
-    target: "Sole Proprietorship & Partnership",
-    monthlyPrice: 999,
-    annualPrice: 9999,
+    target: "All incorporated companies",
+    monthlyPrice: 499,
+    annualPrice: 4999,
     highlighted: false,
     features: [
-      "Income Tax Return filing",
-      "GST return filing (if applicable)",
-      "Basic bookkeeping (up to 50 txns/month)",
-      "Compliance calendar with reminders",
-      "Dedicated relationship manager",
+      "Company dashboard with key metrics",
+      "Compliance calendar with deadline reminders",
+      "Email & SMS alerts before due dates",
+      "Document storage (up to 50 documents)",
+      "Director/partner KYC tracker",
+      "Services marketplace access (buy à la carte)",
+      "Company profile management",
+      "Post-incorporation document bundle (one-time free)",
     ],
   },
   {
     key: "growth",
     name: "Growth",
     icon: <Star className="w-5 h-5" />,
-    target: "LLP & One Person Company",
+    target: "Funded startups & companies planning to raise",
     monthlyPrice: 2999,
     annualPrice: 29999,
     highlighted: true,
     features: [
-      "All annual ROC/MCA filings",
-      "Income Tax Return filing",
-      "GST return filing (monthly)",
-      "TDS quarterly returns",
-      "DIR-3 KYC for all partners/directors",
-      "Bookkeeping (up to 200 txns/month)",
-      "Compliance calendar with email alerts",
+      "Everything in Starter",
+      "Full cap table management with dilution modeling",
+      "ESOP plan creation and grant management",
+      "Fundraising rounds (SAFE, CCD, CCPS, equity)",
+      "Investor portal (token-based + authenticated)",
+      "Data room with granular access controls",
+      "E-signatures (up to 20/month)",
+      "Valuations (Rule 11UA FMV calculator)",
+      "Unlimited document storage",
+      "Team management (up to 10 users)",
       "Priority support",
     ],
   },
   {
     key: "scale",
     name: "Scale",
-    icon: <TrendingUp className="w-5 h-5" />,
-    target: "Private Limited Company",
-    monthlyPrice: 4999,
-    annualPrice: 49999,
-    highlighted: false,
-    features: [
-      "All annual ROC filings (AOC-4, MGT-7)",
-      "ADT-1 auditor appointment",
-      "Income Tax Return (ITR-6)",
-      "GST return filing (monthly)",
-      "TDS quarterly returns",
-      "DIR-3 KYC for all directors",
-      "Statutory audit coordination",
-      "Bookkeeping (up to 500 txns/month)",
-      "Board meeting documentation (4/year)",
-      "Full compliance management with penalty alerts",
-      "Dedicated compliance manager",
-    ],
-  },
-  {
-    key: "enterprise",
-    name: "Enterprise",
     icon: <Crown className="w-5 h-5" />,
-    target: "Public Limited & Section 8",
+    target: "Series A+ companies, public limited, pre-IPO",
     monthlyPrice: 9999,
     annualPrice: 99999,
     highlighted: false,
     features: [
-      "Everything in Scale plan",
-      "Secretarial audit (MR-3)",
-      "Company Secretary compliance",
-      "Corporate governance reporting",
-      "12A / 80G registration & renewal (Section 8)",
-      "Bookkeeping (unlimited transactions)",
-      "Payroll processing (up to 25 employees)",
-      "Quarterly board meeting packs",
-      "Dedicated compliance + governance manager",
-    ],
-  },
-  {
-    key: "peace_of_mind",
-    name: "Peace of Mind",
-    icon: <Heart className="w-5 h-5" />,
-    target: "All Entity Types",
-    monthlyPrice: 9999,
-    annualPrice: 99999,
-    highlighted: false,
-    features: [
-      "All ROC / MCA annual filings",
-      "Income Tax Return filing",
-      "GST monthly + annual return filing",
-      "TDS quarterly return filing",
-      "DIR-3 KYC for all directors / partners",
-      "ADT-1 auditor appointment filing",
-      "Statutory audit coordination",
-      "Board meeting documentation (4/year)",
-      "INC-20A commencement filing",
-      "MSME / Udyam registration included",
-      "2 free event-based filings per year",
-      "Zoho Books / Tally integration",
-      "Full compliance management",
-      "Tax planning advisory (quarterly)",
-      "Penalty protection (up to ₹25,000/yr)",
-      "Same-day response SLA",
+      "Everything in Growth",
+      "Board meeting management with agenda builder",
+      "Resolution workflow and voting",
+      "Statutory registers (members, directors, charges)",
+      "Investor reporting and portfolio dashboard",
+      "Closing room for fundraising rounds",
+      "Unlimited e-signatures",
+      "FEMA/RBI compliance tracker (FC-GPR, FLA)",
       "Quarterly compliance health reports",
-      "Dedicated compliance + governance manager",
+      "Unlimited users",
+      "Dedicated account manager",
+      "Same-day response SLA",
     ],
-    note: "Bookkeeping, payroll, and trademark available as add-ons",
   },
 ];
 
@@ -265,14 +223,14 @@ const SERVICES_BY_CATEGORY: Record<string, { label: string; services: Service[] 
   registration: {
     label: "Registration Services",
     services: [
-      { name: "GST Registration", desc: "GSTIN allocation", platformFee: 1499, govtFee: 0, frequency: "one-time", badge: "popular" },
-      { name: "MSME / Udyam Registration", desc: "MSME benefits & subsidies", platformFee: 499, govtFee: 0, frequency: "one-time", badge: "recommended" },
-      { name: "Trademark Registration", desc: "Brand name & logo protection", platformFee: 4999, govtFee: 4500, frequency: "one-time", badge: "popular" },
-      { name: "Import Export Code (IEC)", desc: "DGFT registration", platformFee: 1999, govtFee: 500, frequency: "one-time" },
+      { name: "GST Registration", desc: "GSTIN allocation", platformFee: 2499, govtFee: 0, frequency: "one-time", badge: "popular" },
+      { name: "MSME / Udyam Registration", desc: "MSME benefits & subsidies", platformFee: 1499, govtFee: 0, frequency: "one-time", badge: "recommended" },
+      { name: "Trademark Registration", desc: "Brand name & logo protection", platformFee: 6499, govtFee: 4500, frequency: "one-time", badge: "popular" },
+      { name: "Import Export Code (IEC)", desc: "DGFT registration", platformFee: 3499, govtFee: 500, frequency: "one-time" },
       { name: "FSSAI Basic Registration", desc: "Food safety (turnover < ₹12L)", platformFee: 2499, govtFee: 100, frequency: "one-time" },
       { name: "FSSAI State License", desc: "Food license (₹12L–₹20Cr)", platformFee: 5999, govtFee: 2000, frequency: "one-time" },
-      { name: "DPIIT Startup Recognition", desc: "Tax benefits & fast-track patents", platformFee: 2999, govtFee: 0, frequency: "one-time", badge: "recommended" },
-      { name: "Professional Tax Registration", desc: "State-level employer registration", platformFee: 1499, govtFee: 0, frequency: "one-time" },
+      { name: "DPIIT Startup Recognition", desc: "Tax benefits & fast-track patents", platformFee: 4999, govtFee: 0, frequency: "one-time", badge: "recommended" },
+      { name: "Professional Tax Registration", desc: "State-level employer registration", platformFee: 1999, govtFee: 0, frequency: "one-time" },
       { name: "ESI Registration", desc: "Employee State Insurance (10+ employees)", platformFee: 2499, govtFee: 0, frequency: "one-time" },
       { name: "EPFO / PF Registration", desc: "Provident Fund (20+ employees)", platformFee: 2499, govtFee: 0, frequency: "one-time" },
       { name: "ISO 9001 Certification", desc: "Quality management certification", platformFee: 19999, govtFee: 0, frequency: "one-time" },
@@ -283,7 +241,7 @@ const SERVICES_BY_CATEGORY: Record<string, { label: string; services: Service[] 
     services: [
       { name: "Annual ROC Filing (AOC-4 + MGT-7)", desc: "Financial statements & annual return", platformFee: 7999, govtFee: 600, frequency: "annual", badge: "mandatory" },
       { name: "LLP Annual Filing (Form 8 + Form 11)", desc: "LLP accounts & annual return", platformFee: 5999, govtFee: 200, frequency: "annual", badge: "mandatory" },
-      { name: "DIR-3 KYC (Per Director)", desc: "Annual DIN KYC filing", platformFee: 999, govtFee: 0, frequency: "annual", badge: "mandatory" },
+      { name: "DIR-3 KYC (Per Director)", desc: "Annual DIN KYC filing", platformFee: 1499, govtFee: 0, frequency: "annual", badge: "mandatory" },
       { name: "ADT-1 Auditor Appointment", desc: "Auditor appointment notice", platformFee: 1999, govtFee: 300, frequency: "annual" },
       { name: "INC-20A Commencement of Business", desc: "180-day mandatory filing", platformFee: 1999, govtFee: 500, frequency: "one-time", badge: "mandatory" },
     ],
@@ -291,9 +249,9 @@ const SERVICES_BY_CATEGORY: Record<string, { label: string; services: Service[] 
   tax: {
     label: "Tax Services",
     services: [
-      { name: "ITR Filing (Company — ITR-6)", desc: "Company income tax return", platformFee: 9999, govtFee: 0, frequency: "annual", badge: "mandatory" },
-      { name: "ITR Filing (LLP/Partnership — ITR-5)", desc: "LLP/partnership income tax", platformFee: 5999, govtFee: 0, frequency: "annual", badge: "mandatory" },
-      { name: "ITR Filing (Individual/Sole Prop)", desc: "ITR-3 or ITR-4 filing", platformFee: 2499, govtFee: 0, frequency: "annual" },
+      { name: "ITR Filing (Company — ITR-6)", desc: "Company income tax return", platformFee: 4999, govtFee: 0, frequency: "annual", badge: "mandatory" },
+      { name: "ITR Filing (LLP/Partnership — ITR-5)", desc: "LLP/partnership income tax", platformFee: 2999, govtFee: 0, frequency: "annual", badge: "mandatory" },
+      { name: "ITR Filing (Individual/Sole Prop)", desc: "ITR-3 or ITR-4 filing", platformFee: 999, govtFee: 0, frequency: "annual" },
       { name: "GST Monthly Return Filing", desc: "GSTR-1 + GSTR-3B monthly", platformFee: 1999, govtFee: 0, frequency: "monthly", badge: "popular" },
       { name: "TDS Quarterly Return Filing", desc: "Form 24Q/26Q quarterly", platformFee: 2499, govtFee: 0, frequency: "quarterly" },
       { name: "GST Annual Return (GSTR-9)", desc: "Annual GST consolidation", platformFee: 4999, govtFee: 0, frequency: "annual" },
@@ -311,13 +269,13 @@ const SERVICES_BY_CATEGORY: Record<string, { label: string; services: Service[] 
   amendment: {
     label: "Amendments & Changes",
     services: [
-      { name: "Director Appointment / Resignation", desc: "DIR-12 filing with ROC", platformFee: 3499, govtFee: 600, frequency: "one-time" },
+      { name: "Director Appointment / Resignation", desc: "DIR-12 filing with ROC", platformFee: 4999, govtFee: 600, frequency: "one-time" },
       { name: "Share Transfer", desc: "SH-4 deed + PAS-3 filing", platformFee: 4999, govtFee: 400, frequency: "one-time" },
       { name: "Share Allotment (New Shares)", desc: "PAS-3 + updated certificates", platformFee: 5999, govtFee: 600, frequency: "one-time" },
-      { name: "Increase Authorised Capital", desc: "SH-7 filing with ROC", platformFee: 5999, govtFee: 5000, frequency: "one-time" },
-      { name: "Registered Office Change", desc: "INC-22 / INC-23 filing", platformFee: 3499, govtFee: 600, frequency: "one-time" },
-      { name: "Company Name Change", desc: "Name change with ROC approval", platformFee: 5999, govtFee: 1000, frequency: "one-time" },
-      { name: "Company Closure / Strike Off", desc: "Voluntary strike-off (STK-2)", platformFee: 7999, govtFee: 5000, frequency: "one-time" },
+      { name: "Increase Authorised Capital", desc: "SH-7 filing with ROC", platformFee: 9999, govtFee: 5000, frequency: "one-time" },
+      { name: "Registered Office Change", desc: "INC-22 / INC-23 filing", platformFee: 4999, govtFee: 600, frequency: "one-time" },
+      { name: "Company Name Change", desc: "Name change with ROC approval", platformFee: 6999, govtFee: 1000, frequency: "one-time" },
+      { name: "Company Closure / Strike Off", desc: "Voluntary strike-off (STK-2)", platformFee: 9999, govtFee: 5000, frequency: "one-time" },
       { name: "LLP Partner Addition / Removal", desc: "Form 4 filing", platformFee: 3499, govtFee: 100, frequency: "one-time" },
     ],
   },
@@ -484,10 +442,10 @@ export default function PricingPage() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-8">
             <h2 className="text-2xl md:text-3xl font-bold mb-2" style={{ fontFamily: "var(--font-display)" }}>
-              Compliance <span className="gradient-text">Subscription Plans</span>
+              Platform <span className="gradient-text">Subscription Plans</span>
             </h2>
             <p className="text-sm mb-6" style={{ color: "var(--color-text-muted)" }}>
-              Ongoing compliance handled by our team. Filings, returns, and bookkeeping — managed for you.
+              Software tools for equity, compliance, fundraising, and governance. Filings available à la carte from the marketplace.
             </p>
 
             {/* Billing toggle */}
@@ -515,9 +473,9 @@ export default function PricingPage() {
             </div>
           </div>
 
-          {/* Plan Cards — first 4 plans */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-            {SUBSCRIPTION_PLANS.slice(0, 4).map((plan) => (
+          {/* Plan Cards */}
+          <div className="grid md:grid-cols-3 gap-5 mb-8">
+            {SUBSCRIPTION_PLANS.map((plan) => (
               <div
                 key={plan.key}
                 className="rounded-2xl p-6 flex flex-col"
@@ -571,42 +529,13 @@ export default function PricingPage() {
             ))}
           </div>
 
-          {/* Peace of Mind — Full Width Card */}
-          {SUBSCRIPTION_PLANS.filter((p) => p.key === "peace_of_mind").map((plan) => (
-            <div
-              key={plan.key}
-              className="rounded-2xl p-8"
-              style={{ background: "var(--gradient-primary)", border: "1px solid var(--color-border)" }}
-            >
-              <div className="grid md:grid-cols-2 gap-8">
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <div style={{ color: "var(--color-accent-purple)" }}>{plan.icon}</div>
-                    <h3 className="text-xl font-bold" style={{ fontFamily: "var(--font-display)" }}>{plan.name}</h3>
-                  </div>
-                  <p className="text-sm text-gray-500 mb-4">{plan.target} — Total Compliance Coverage</p>
-                  <div className="mb-4">
-                    <span className="text-3xl font-bold text-gray-900" style={{ fontFamily: "var(--font-display)" }}>
-                      {formatCurrency(billingCycle === "annual" ? plan.annualPrice : plan.monthlyPrice)}
-                    </span>
-                    <span className="text-sm text-gray-500">{billingCycle === "annual" ? "/year" : "/month"}</span>
-                  </div>
-                  {plan.note && <p className="text-xs text-gray-400 mb-4">{plan.note}</p>}
-                  <a href="/signup" className="btn-primary inline-block text-center text-sm">Get Peace of Mind</a>
-                </div>
-                <div>
-                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {plan.features.map((f) => (
-                      <li key={f} className="flex items-start gap-2 text-xs text-gray-600">
-                        <Check className="w-3.5 h-3.5 mt-0.5 shrink-0 text-emerald-500" />
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </div>
-          ))}
+          {/* Marketplace note */}
+          <div className="text-center p-6 rounded-xl" style={{ backgroundColor: "var(--color-bg-card)", border: "1px solid var(--color-border)" }}>
+            <p className="text-sm text-gray-500">
+              Need compliance filings, tax returns, or professional services?
+              Browse our <a href="/services" className="font-semibold" style={{ color: "var(--color-accent-purple)" }}>Services Marketplace</a> — 50+ services fulfilled by verified CAs and professionals.
+            </p>
+          </div>
         </div>
       </section>
 

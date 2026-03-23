@@ -106,3 +106,14 @@ class ESOPGrantOut(BaseModel):
 
 class ExerciseOptionsRequest(BaseModel):
     number_of_options: int = Field(..., gt=0)
+
+
+# --- Approval / document linking schemas ---
+
+class ApprovalStateUpdate(BaseModel):
+    state: dict
+
+
+class LinkDocumentRequest(BaseModel):
+    doc_type: str  # board_resolution | shareholder_resolution | plan_document
+    document_id: int

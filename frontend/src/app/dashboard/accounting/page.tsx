@@ -11,6 +11,7 @@ import {
   syncAccountingData,
   type AccountingConnectionOut,
 } from "@/lib/api";
+import FeatureGate from "@/components/feature-gate";
 
 const PLATFORM_LABELS: Record<string, string> = {
   zoho_books: "Zoho Books",
@@ -148,6 +149,11 @@ export default function AccountingPage() {
   };
 
   return (
+    <FeatureGate
+      moduleKey="accounting"
+      featureName="Accounting Integration"
+      featureDescription="Connect Zoho Books or Tally Prime for seamless financial sync, auto-populated GST returns, and audit-ready statements."
+    >
     <div>
       {/* Page header */}
       <div className="mb-6">
@@ -376,5 +382,6 @@ export default function AccountingPage() {
         </div>
       )}
     </div>
+    </FeatureGate>
   );
 }

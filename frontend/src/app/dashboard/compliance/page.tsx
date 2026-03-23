@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { useCompany } from "@/lib/company-context";
 import Link from "next/link";
+import UpsellBanner from "@/components/upsell-banner";
 import {
   BarChart,
   Bar,
@@ -143,6 +145,7 @@ function StatusBadge({ status }: { status: string }) {
 
 export default function ComplianceDashboard() {
   const { user, loading: authLoading } = useAuth();
+  const { selectedCompany } = useCompany();
 
   // Company selection
   const [companies, setCompanies] = useState<any[]>([]);
@@ -283,6 +286,7 @@ export default function ComplianceDashboard() {
   return (
     <div>
       <div className="max-w-7xl mx-auto px-6 py-8">
+        {selectedCompany && <UpsellBanner pageKey="compliance" companyId={selectedCompany.id} />}
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4 animate-fade-in-up">
           <div>

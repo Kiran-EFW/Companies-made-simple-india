@@ -103,6 +103,70 @@ class EmailService:
         """
         return self.send_email(user_email, subject, html_content)
 
+    def send_password_reset_email(
+        self, user_email: str, user_name: str, reset_token: str
+    ) -> bool:
+        """Send a password reset email with a one-time link.
+
+        Args:
+            user_email: Recipient email address
+            user_name: The user's full name
+            reset_token: The unique reset token
+
+        Returns:
+            True if sent successfully
+        """
+        import os
+
+        frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+        reset_link = f"{frontend_url}/reset-password?token={reset_token}"
+
+        subject = "Reset Your Password - Anvils"
+        html_content = f"""
+        <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333333;">
+            <div style="text-align: center; padding: 20px 0; border-bottom: 2px solid #2563EB;">
+                <h1 style="color: #2563EB; margin: 0; font-size: 24px;">Anvils</h1>
+            </div>
+
+            <div style="padding: 30px 0;">
+                <h2 style="color: #1E293B; font-size: 20px;">Password Reset Request</h2>
+                <p style="font-size: 16px; line-height: 1.6;">
+                    Hi {user_name}, we received a request to reset your password.
+                </p>
+
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="{reset_link}"
+                       style="background: #2563EB; color: #ffffff; padding: 14px 32px;
+                              border-radius: 8px; text-decoration: none; font-size: 16px;
+                              font-weight: 600; display: inline-block;">
+                        Reset Password
+                    </a>
+                </div>
+
+                <div style="background: #F8FAFC; border-radius: 8px; padding: 20px; margin: 20px 0;">
+                    <p style="font-size: 14px; line-height: 1.6; margin: 0; color: #64748B;">
+                        If the button above does not work, copy and paste this link into your browser:
+                    </p>
+                    <p style="font-size: 13px; line-height: 1.6; margin: 10px 0 0 0;
+                              word-break: break-all; color: #2563EB;">
+                        {reset_link}
+                    </p>
+                </div>
+
+                <p style="font-size: 14px; line-height: 1.6; color: #64748B;">
+                    This link will expire in <strong>1 hour</strong>. If you did not request a
+                    password reset, you can safely ignore this email.
+                </p>
+            </div>
+
+            <div style="border-top: 1px solid #E2E8F0; padding: 20px 0; text-align: center; color: #94A3B8; font-size: 12px;">
+                <p style="margin: 0;">Anvils</p>
+                <p style="margin: 5px 0 0 0;">You are receiving this email because a password reset was requested for your account.</p>
+            </div>
+        </div>
+        """
+        return self.send_email(user_email, subject, html_content)
+
     def send_payment_confirmation(
         self,
         user_email: str,

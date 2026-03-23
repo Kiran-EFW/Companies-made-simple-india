@@ -1,5 +1,5 @@
 import enum
-from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, ForeignKey, Enum
+from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, ForeignKey, Enum, JSON
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 from src.database import Base
@@ -64,6 +64,15 @@ class ESOPPlan(Base):
 
     # Plan document
     plan_document_id = Column(Integer, ForeignKey("legal_documents.id"), nullable=True)
+
+    # Approval workflow state (persisted from frontend 5-step wizard)
+    approval_state = Column(JSON, default=dict)
+    # Keys: pool_size_confirmed, exercise_price_confirmed,
+    #   board_resolution_status (pending/generated/sent_for_signing/signed),
+    #   board_resolution_draft_id, board_resolution_signature_request_id,
+    #   egm_notice_status, egm_notice_draft_id, egm_notice_signature_request_id,
+    #   special_resolution_passed, mgt14_status (pending/filed/acknowledged),
+    #   plan_activated
 
     # DPIIT Recognition — enables ESOP tax deferral under Section 80-IAC
     # Recognized startups can defer perquisite tax on ESOPs for 5 years from exercise

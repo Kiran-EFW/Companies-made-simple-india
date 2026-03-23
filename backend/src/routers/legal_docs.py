@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from src.services.pdf_service import pdf_service
 from sqlalchemy.orm import Session
-from typing import Any, List
+from typing import Any, List, Optional
 from src.database import get_db
 from src.models.user import User
 from src.models.legal_template import LegalDocument
@@ -24,9 +24,9 @@ router = APIRouter(prefix="/legal-docs", tags=["legal-docs"])
 
 
 @router.get("/templates")
-def list_templates():
-    """Return list of available legal document templates."""
-    return contract_template_service.get_available_templates()
+def list_templates(entity_type: Optional[str] = Query(None, description="Filter templates by company entity type")):
+    """Return list of available legal document templates, optionally filtered by entity type."""
+    return contract_template_service.get_available_templates(entity_type=entity_type)
 
 
 @router.get("/templates/{template_type}")
@@ -79,6 +79,19 @@ def create_draft(
     definition = contract_template_service.get_template_definition(body.template_type)
     if not definition:
         raise HTTPException(status_code=400, detail="Invalid template type")
+
+    # Check entity type compatibility
+    if body.company_id:
+        from src.models.company import Company
+        company = db.query(Company).filter(Company.id == body.company_id).first()
+        if company and company.entity_type:
+            entity_type_val = company.entity_type.value if hasattr(company.entity_type, 'value') else str(company.entity_type)
+            tpl_entity_types = definition.get("entity_types")
+            if tpl_entity_types is not None and entity_type_val not in tpl_entity_types:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Template '{body.template_type}' is not available for {entity_type_val.replace('_', ' ')} entities."
+                )
 
     title = body.title or definition.get("name", body.template_type)
 

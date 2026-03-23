@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anvils — The Company OS for India | Investor Deck</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #0F0D15;
+  --bg-card: rgba(255,255,255,0.04);
+  --bg-card-hover: rgba(255,255,255,0.07);
+  --border: rgba(255,255,255,0.08);
+  --border-accent: rgba(124,58,237,0.35);
+  --text: #F1F0F3;
+  --text-muted: #9B97A5;
+  --text-dim: #6B6775;
+  --accent: #7C3AED;
+  --accent-light: #A78BFA;
+  --accent-glow: rgba(124,58,237,0.25);
+  --green: #34D399;
+  --red: #F87171;
+  --yellow: #FBBF24;
+  --blue: #60A5FA;
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --slide-count: 25;
+}
+html { scroll-behavior: smooth; scroll-snap-type: y mandatory; overflow-y: scroll; overflow-x: hidden; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+#progress-bar { position: fixed; top: 0; left: 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent-light)); z-index: 1000; transition: width 0.3s ease; box-shadow: 0 0 12px var(--accent-glow); }
+#slide-counter { position: fixed; bottom: 28px; right: 32px; font-size: 13px; font-weight: 500; color: var(--text-muted); z-index: 1000; letter-spacing: 0.5px; background: rgba(15,13,21,0.7); backdrop-filter: blur(8px); padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border); }
+#slide-counter span { color: var(--accent-light); font-weight: 700; }
+#nav-dots { position: fixed; right: 20px; top: 50%; transform: translateY(-50%); z-index: 1000; display: flex; flex-direction: column; gap: 6px; }
+.nav-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-dim); cursor: pointer; transition: all 0.3s ease; border: none; padding: 0; }
+.nav-dot:hover { background: var(--text-muted); transform: scale(1.3); }
+.nav-dot.active { background: var(--accent); transform: scale(1.4); box-shadow: 0 0 8px var(--accent-glow); }
+.slide { min-height: 100vh; width: 100%; scroll-snap-align: start; display: flex; align-items: center; justify-content: center; padding: 60px 80px; position: relative; overflow: hidden; }
+.slide-inner { max-width: 1200px; width: 100%; opacity: 0; transform: translateY(30px); transition: opacity 0.7s ease, transform 0.7s ease; }
+.slide-inner.visible { opacity: 1; transform: translateY(0); }
+.slide-label { font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--accent-light); margin-bottom: 12px; }
+.slide-title { font-size: 42px; font-weight: 800; line-height: 1.15; margin-bottom: 24px; letter-spacing: -1px; }
+.slide-title .accent { color: var(--accent-light); }
+.slide-subtitle { font-size: 17px; color: var(--text-muted); max-width: 700px; line-height: 1.7; margin-bottom: 36px; }
+.card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 28px; backdrop-filter: blur(12px); transition: all 0.3s ease; }
+.card:hover { background: var(--bg-card-hover); border-color: var(--border-accent); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.table-wrap { overflow-x: auto; border-radius: 16px; border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th { background: rgba(124,58,237,0.12); color: var(--accent-light); font-weight: 600; text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase; white-space: nowrap; }
+tbody td { padding: 11px 16px; border-bottom: 1px solid var(--border); color: var(--text-muted); white-space: nowrap; }
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover { background: rgba(255,255,255,0.02); }
+td.hi { color: var(--green); font-weight: 600; }
+td.neg { color: var(--red); font-weight: 600; }
+td.bold { color: var(--text); font-weight: 600; }
+tr.total-row td { border-top: 2px solid var(--border); font-weight: 700; color: var(--text); background: rgba(124,58,237,0.05); }
+.tag { display: inline-block; padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; background: rgba(124,58,237,0.15); color: var(--accent-light); border: 1px solid rgba(124,58,237,0.25); }
+.tag.green { background: rgba(52,211,153,0.12); color: var(--green); border-color: rgba(52,211,153,0.25); }
+.tag.yellow { background: rgba(251,191,36,0.12); color: var(--yellow); border-color: rgba(251,191,36,0.25); }
+.tag.blue { background: rgba(96,165,250,0.12); color: var(--blue); border-color: rgba(96,165,250,0.25); }
+.tag.red { background: rgba(248,113,113,0.12); color: var(--red); border-color: rgba(248,113,113,0.25); }
+.icon-circle { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 16px; background: rgba(124,58,237,0.12); border: 1px solid rgba(124,58,237,0.2); flex-shrink: 0; }
+.stat-value { font-size: 36px; font-weight: 800; color: var(--text); letter-spacing: -1px; }
+.stat-value.accent { color: var(--accent-light); }
+.stat-label { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+.divider { height: 1px; background: var(--border); margin: 24px 0; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: start; }
+.metric-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.metric-row:last-child { border-bottom: none; }
+.metric-row .label { font-size: 13px; color: var(--text-muted); }
+.metric-row .value { font-size: 15px; font-weight: 700; color: var(--text); }
+.insight-box { background: linear-gradient(135deg, rgba(124,58,237,0.1), rgba(124,58,237,0.03)); border: 1px solid var(--border-accent); border-radius: 16px; padding: 24px 28px; margin: 20px 0; }
+.insight-box h4 { color: var(--accent-light); font-size: 13px; font-weight: 700; margin-bottom: 10px; letter-spacing: 1px; text-transform: uppercase; }
+.insight-box p { font-size: 14px; color: var(--text-muted); line-height: 1.7; }
+.bg-glow { position: absolute; width: 500px; height: 500px; border-radius: 50%; background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%); pointer-events: none; z-index: 0; }
+.title-slide { text-align: center; }
+.title-slide .logo { font-size: 72px; font-weight: 900; letter-spacing: -3px; margin-bottom: 8px; background: linear-gradient(135deg, #fff 0%, var(--accent-light) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.title-slide .tagline { font-size: 26px; font-weight: 600; color: var(--accent-light); margin-bottom: 20px; }
+.title-slide .subtitle { font-size: 18px; color: var(--text-muted); max-width: 600px; margin: 0 auto 32px; line-height: 1.7; }
+.title-slide .round-info { font-size: 14px; color: var(--text-dim); font-weight: 500; padding: 8px 24px; border: 1px solid var(--border); border-radius: 24px; display: inline-block; }
+.problem-card { display: flex; gap: 18px; align-items: flex-start; }
+.problem-card .icon-circle { margin-bottom: 0; }
+.problem-card h4 { font-size: 15px; font-weight: 600; margin-bottom: 4px; color: var(--text); }
+.problem-card p { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+.tam-visual { display: flex; align-items: center; justify-content: center; gap: 40px; margin-bottom: 40px; }
+.tam-circle { border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border: 2px solid; }
+.tam-circle.tam { width: 200px; height: 200px; border-color: var(--accent); background: rgba(124,58,237,0.08); }
+.tam-circle.sam { width: 160px; height: 160px; border-color: var(--blue); background: rgba(96,165,250,0.08); }
+.tam-circle.som { width: 120px; height: 120px; border-color: var(--green); background: rgba(52,211,153,0.08); }
+.tam-circle .value { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+.tam-circle .label { font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+.tam-circle.tam .label { color: var(--accent-light); }
+.tam-circle.sam .label { color: var(--blue); }
+.tam-circle.som .label { color: var(--green); }
+.fund-bar { display: flex; height: 36px; border-radius: 10px; overflow: hidden; margin: 24px 0; }
+.fund-segment { display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; white-space: nowrap; }
+.cta-slide { text-align: center; }
+.cta-slide .logo { font-size: 56px; font-weight: 900; letter-spacing: -2px; background: linear-gradient(135deg, #fff, var(--accent-light)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 16px; }
+.cta-slide .big-text { font-size: 36px; font-weight: 700; margin-bottom: 32px; line-height: 1.3; }
+.cta-link { display: inline-block; padding: 6px 0; font-size: 16px; color: var(--text-muted); margin: 4px 0; }
+.cta-link strong { color: var(--text); }
+.stagger-children > * { opacity: 0; transform: translateY(20px); transition: opacity 0.5s ease, transform 0.5s ease; }
+.stagger-children.visible > *:nth-child(1) { transition-delay: 0.1s; }
+.stagger-children.visible > *:nth-child(2) { transition-delay: 0.2s; }
+.stagger-children.visible > *:nth-child(3) { transition-delay: 0.3s; }
+.stagger-children.visible > *:nth-child(4) { transition-delay: 0.35s; }
+.stagger-children.visible > *:nth-child(5) { transition-delay: 0.4s; }
+.stagger-children.visible > *:nth-child(6) { transition-delay: 0.45s; }
+.stagger-children.visible > *:nth-child(7) { transition-delay: 0.5s; }
+.stagger-children.visible > *:nth-child(8) { transition-delay: 0.55s; }
+.stagger-children.visible > * { opacity: 1; transform: translateY(0); }
+.team-card { text-align: center; padding: 32px; }
+.team-avatar { width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent-light)); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 28px; font-weight: 700; color: #fff; }
+.team-card h4 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+.team-card p { font-size: 13px; color: var(--text-muted); }
+.tech-item { display: flex; align-items: center; gap: 14px; padding: 12px 20px; }
+.tech-item .tech-label { font-size: 11px; color: var(--text-dim); min-width: 100px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+.tech-item .tech-value { font-size: 14px; font-weight: 600; color: var(--text); }
+tr.best td { background: rgba(52,211,153,0.06); }
+@media (max-width: 1024px) {
+  .slide { padding: 40px 40px; }
+  .slide-title { font-size: 32px; }
+  .grid-3 { grid-template-columns: repeat(2, 1fr); }
+  .grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .two-col { grid-template-columns: 1fr; }
+  .tam-visual { gap: 20px; }
+}
+@media (max-width: 768px) {
+  .slide { padding: 30px 24px; }
+  .slide-title { font-size: 26px; }
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  .title-slide .logo { font-size: 48px; }
+  .tam-visual { flex-direction: column; gap: 16px; }
+  #nav-dots { display: none; }
+}
+</style>
+</head>
+<body>
+<div id="progress-bar" style="width: 0%"></div>
+<div id="slide-counter"><span>1</span> / 25</div>
+<nav id="nav-dots"></nav>
+
+<!-- ============================================================ -->
+<!-- SLIDE 1: TITLE -->
+<!-- ============================================================ -->
+<section class="slide" id="slide-1">
+  <div class="bg-glow" style="top: -200px; right: -150px;"></div>
+  <div class="bg-glow" style="bottom: -200px; left: -150px; opacity: 0.5;"></div>
+  <div class="slide-inner title-slide">
+    <div class="logo">Anvils</div>
+    <div class="tagline">The Company OS for India</div>
+    <div class="subtitle">Incorporate. Manage equity. Stay compliant. &mdash; One platform for the full company lifecycle.</div>
+    <div class="round-info">Pre-Seed &mdash; &#x20B9;25&ndash;35L &mdash; March 2026</div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 2: THE PROBLEM -->
+<!-- ============================================================ -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="slide-label">The Problem</div>
+    <div class="slide-title">India's company infrastructure is <span class="accent">broken</span></div>
+    <div class="slide-subtitle">Every founder, CA, and investor deals with the same painful gaps.</div>
+    <div style="display:flex;flex-direction:column;gap:16px;" class="stagger-children">
+      <div class="card problem-card">
+        <div class="icon-circle">&#x1F3DB;</div>
+        <div>
+          <h4>Opaque Incorporation</h4>
+          <p>Starting a company means navigating MCA portals, stamp duty across 28 states, DSC procurement &mdash; most founders rely on CAs charging &#x20B9;8,000&ndash;25,000 with zero transparency on what is a government fee vs. a service fee.</p>
+        </div>
+      </div>
+      <div class="card problem-card">
+        <div class="icon-circle">&#x23F0;</div>
+        <div>
+          <h4>50+ Compliance Deadlines/Year</h4>
+          <p>ROC filings, GST returns, TDS, DIR-3 KYC, board meetings, AGM &mdash; each with &#x20B9;100/day penalties. 2 consecutive years of non-filing = company struck off, directors disqualified for 5 years.</p>
+        </div>
+      </div>
+      <div class="card problem-card">
+        <div class="icon-circle">&#x1F4CA;</div>
+        <div>
+          <h4>Spreadsheet Equity</h4>
+          <p>Cap tables, ESOPs, fundraising tracked in spreadsheets with no single source of truth. Errors compound at every round. Options: Carta at $3K&ndash;10K/yr (US-focused), or hire a CS firm at &#x20B9;50K&ndash;1.5L/yr.</p>
+        </div>
+      </div>
+      <div class="card problem-card">
+        <div class="icon-circle">&#x1F4F1;</div>
+        <div>
+          <h4>WhatsApp-Driven Practice</h4>
+          <p>CAs manage multiple companies via WhatsApp and email. No dashboard, no automation, no scalability. Founders have zero visibility into filing status.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 3: SOLUTION -->
+<!-- ============================================================ -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="slide-label">The Solution</div>
+    <div class="slide-title">One platform. <span class="accent">Every stakeholder.</span></div>
+    <div class="slide-subtitle">Anvils unifies the full company lifecycle &mdash; from Day 0 incorporation to Series A governance &mdash; for every user type.</div>
+    <div class="grid-2 stagger-children" style="margin-bottom:32px;">
+      <div class="card" style="text-align:center;padding:28px;">
+        <div class="icon-circle" style="margin:0 auto 16px;background:rgba(124,58,237,0.15);">&#x1F680;</div>
+        <h4 style="font-size:16px;font-weight:700;margin-bottom:6px;">Founder</h4>
+        <p style="font-size:13px;color:var(--text-muted);">Incorporate, manage cap table, issue ESOPs, fundraise, file compliance, sign documents &mdash; one dashboard.</p>
+      </div>
+      <div class="card" style="text-align:center;padding:28px;">
+        <div class="icon-circle" style="margin:0 auto 16px;background:rgba(96,165,250,0.15);border-color:rgba(96,165,250,0.25);">&#x1F4BC;</div>
+        <h4 style="font-size:16px;font-weight:700;margin-bottom:6px;">CA / CS</h4>
+        <p style="font-size:13px;color:var(--text-muted);">Marketplace providers &mdash; get free inbound leads, manage clients from a dedicated portal, earn without acquiring.</p>
+      </div>
+      <div class="card" style="text-align:center;padding:28px;">
+        <div class="icon-circle" style="margin:0 auto 16px;background:rgba(52,211,153,0.15);border-color:rgba(52,211,153,0.25);">&#x1F4B0;</div>
+        <h4 style="font-size:16px;font-weight:700;margin-bottom:6px;">Investor</h4>
+        <p style="font-size:13px;color:var(--text-muted);">Portfolio view, data room access, deal discovery, cap table visibility &mdash; complete portfolio monitoring.</p>
+      </div>
+      <div class="card" style="text-align:center;padding:28px;">
+        <div class="icon-circle" style="margin:0 auto 16px;background:rgba(251,191,36,0.15);border-color:rgba(251,191,36,0.25);">&#x2699;</div>
+        <h4 style="font-size:16px;font-weight:700;margin-bottom:6px;">Admin / Ops</h4>
+        <p style="font-size:13px;color:var(--text-muted);">Platform management, service fulfillment tracking, operational analytics, marketplace quality control.</p>
+      </div>
+    </div>
+    <div class="insight-box">
+      <h4>Key Insight</h4>
+      <p>We compete with <strong>Carta</strong> (equity management), not with CAs (compliance filing). CAs are our marketplace providers, not our competitors. Compliance tracking is free &mdash; it creates engagement. Equity tools are the paid product.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 4: MARKET OPPORTUNITY -->
+<!-- ============================================================ -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="slide-label">Market Opportunity</div>
+    <div class="slide-title">A <span class="accent">&#x20B9;4,000 Cr</span> addressable market</div>
+    <div class="tam-visual">
+      <div class="tam-circle tam">
+        <div class="label">TAM</div>
+        <div class="value">&#x20B9;4,000 Cr</div>
+        <div style="font-size:10px;color:var(--text-dim);margin-top:2px;">SME compliance +<br>incorp + equity mgmt</div>
+      </div>
+      <div class="tam-circle sam">
+        <div class="label">SAM</div>
+        <div class="value">&#x20B9;4,010 Cr</div>
+        <div style="font-size:10px;color:var(--text-dim);margin-top:2px;">Incorp + SaaS subs<br>+ marketplace</div>
+      </div>
+      <div class="tam-circle som">
+        <div class="label">SOM (Yr 3)</div>
+        <div class="value">&#x20B9;2&ndash;4 Cr</div>
+        <div style="font-size:10px;color:var(--text-dim);margin-top:2px;">ARR target</div>
+      </div>
+    </div>
+    <div class="grid-4 stagger-children">
+      <div class="card" style="text-align:center;padding:20px;">
+        <div class="stat-value accent" style="font-size:28px;">2,00,000</div>
+        <div class="stat-label">Companies incorporated/yr</div>
+      </div>
+      <div class="card" style="text-align:center;padding:20px;">
+        <div class="stat-value accent" style="font-size:28px;">1,00,000+</div>
+        <div class="stat-label">DPIIT startups (15K/yr new)</div>
+      </div>
+      <div class="card" style="text-align:center;padding:20px;">
+        <div class="stat-value accent" style="font-size:28px;">5&ndash;7K</div>
+        <div class="stat-label">Startup funding rounds/yr</div>
+      </div>
+      <div class="card" style="text-align:center;padding:20px;">
+        <div class="stat-value accent" style="font-size:28px;">70L+</div>
+        <div class="stat-label">MSMEs under Udyam</div>
+      </div>
+    </div>
+    <div class="insight-box" style="margin-top:24px;">
+      <h4>Why now</h4>
+      <p>MCA is digitizing rapidly. UPI/India Stack proved digital infra works. 10L+ new companies need compliance every year. No platform combines incorporation + equity management + compliance marketplace. The market is ready.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 5: PRODUCT — 12 MODULES -->
+<!-- ============================================================ -->
+<section class="slide" id="slide-5">
+  <div class="slide-inner">
+    <div class="slide-label">Product</div>
+    <div class="slide-title">12 integrated <span class="accent">platform modules</span></div>
+    <div class="slide-subtitle">Built and functional. Not a prototype &mdash; a working platform.</div>
+    <div class="grid-4 stagger-children">
+      <div class="card" style="padding:20px;"><div class="icon-circle" style="width:38px;height:38px;font-size:17px;border-radius:10px;margin-bottom:10px;">&#x1F3D7;</div><h4 style="font-size:13px;font-weight:600;margin-bottom:4px;">Incorporation Engine</h4><p style="font-size:11px;color:var(--text-dim);">3 entity types (9 planned), 28 states, 3 tiers</p></div>
+      <div class="card" style="padding:20px;"><div class="icon-circle" style="width:38px;height:38px;font-size:17px;border-radius:10px;margin-bottom:10px;">&#x1F4C5;</div><h4 style="font-size:13px;font-weight:600;margin-bottom:4px;">Compliance Calendar</h4><p style="font-size:11px;color:var(--text-dim);">50+ task types, auto-reminders, penalty alerts</p></div>
+      <div class="card" style="padding:20px;"><div class="icon-circle" style="width:38px;height:38px;font-size:17px;border-radius:10px;margin-bottom:10px;">&#x1F4CA;</div><h4 style="font-size:13px;font-weight:600;margin-bottom:4px;">Cap Table</h4><p style="font-size:11px;color:var(--text-dim);">Dilution modeling, ownership tracking, SEBI-compliant</p></div>
+      <div class="card" style="padding:20px;"><div class="icon-circle" style="width:38px;height:38px;font-size:17px;border-radius:10px;margin-bottom:10px;">&#x1F381;</div><h4 style="font-size:13px;font-weight:600;margin-bottom:4px;">ESOP Management</h4><p style="font-size:11px;color:var(--text-dim);">Grant, vest, exercise &mdash; Indian tax rules built in</p></div>
+      <div class="card" style="padding:20px;"><div class="icon-circle" style="width:38px;height:38px;font-size:17px;border-radius:10px;margin-bottom:10px;">&#x1F4B8;</div><h4 style="font-size:13px;font-weight:600;margin-bottom:4px;">Fundraising</h4><p style="font-size:11px;color:var(--text-dim);">SAFE, CCD, CCPS, equity rounds, Rule 11UA</p></div>
+      <div class="card" style="padding:20px;"><div class="icon-circle" style="width:38px;height:38px;font-size:17px;border-radius:10px;margin-bottom:10px;">&#x1F465;</div><h4 style="font-size:13px;font-weight:600;margin-bottom:4px;">Investor Portal</h4><p style="font-size:11px;color:var(--text-dim);">Portfolio view, deal sharing, token-based access</p></div>
+      <div class="card" style="padding:20px;"><div class="icon-circle" style="width:38px;height:38px;font-size:17px;border-radius:10px;margin-bottom:10px;">&#x270D;</div><h4 style="font-size:13px;font-weight:600;margin-bottom:4px;">E-Signatures</h4><p style="font-size:11px;color:var(--text-dim);">Token-based, no login required for signatories</p></div>
+      <div class="card" style="padding:20px;"><div class="icon-circle" style="width:38px;height:38px;font-size:17px;border-radius:10px;margin-bottom:10px;">&#x1F4C1;</div><h4 style="font-size:13px;font-weight:600;margin-bottom:4px;">Data Room</h4><p style="font-size:11px;color:var(--text-dim);">Access controls, password protection, expiry</p></div>
+      <div class="card" style="padding:20px;"><div class="icon-circle" style="width:38px;height:38px;font-size:17px;border-radius:10px;margin-bottom:10px;">&#x1F9FE;</div><h4 style="font-size:13px;font-weight:600;margin-bottom:4px;">GST &amp; Tax</h4><p style="font-size:11px;color:var(--text-dim);">Returns tracking, TDS, ITR dashboard</p></div>
+      <div class="card" style="padding:20px;"><div class="icon-circle" style="width:38px;height:38px;font-size:17px;border-radius:10px;margin-bottom:10px;">&#x1F6D2;</div><h4 style="font-size:13px;font-weight:600;margin-bottom:4px;">Services Marketplace</h4><p style="font-size:11px;color:var(--text-dim);">37+ services, partner CAs fulfill</p></div>
+      <div class="card" style="padding:20px;"><div class="icon-circle" style="width:38px;height:38px;font-size:17px;border-radius:10px;margin-bottom:10px;">&#x1F916;</div><h4 style="font-size:13px;font-weight:600;margin-bottom:4px;">AI Copilot</h4><p style="font-size:11px;color:var(--text-dim);">Doc OCR, entity wizard, compliance alerts</p></div>
+      <div class="card" style="padding:20px;"><div class="icon-circle" style="width:38px;height:38px;font-size:17px;border-radius:10px;margin-bottom:10px;">&#x1F5A5;</div><h4 style="font-size:13px;font-weight:600;margin-bottom:4px;">CA / Admin Portal</h4><p style="font-size:11px;color:var(--text-dim);">Multi-company management for professionals</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 6: BUSINESS MODEL — 3 REVENUE STREAMS -->
+<!-- ============================================================ -->
+<section class="slide" id="slide-6">
+  <div class="slide-inner">
+    <div class="slide-label">Business Model</div>
+    <div class="slide-title">Three <span class="accent">revenue streams</span>, distinct margins</div>
+    <div class="slide-subtitle">One-time acquisition + recurring SaaS + per-transaction service margin. No compliance fulfillment cost.</div>
+    <div class="grid-3 stagger-children" style="margin-bottom:32px;">
+      <div class="card" style="text-align:center;padding:28px;">
+        <div class="tag" style="margin-bottom:14px;">One-Time Wedge</div>
+        <h4 style="font-size:17px;font-weight:700;margin-bottom:6px;">Incorporation</h4>
+        <div style="font-size:26px;font-weight:800;color:var(--accent-light);margin-bottom:6px;">&#x20B9;999&ndash;7,999</div>
+        <p style="font-size:12px;color:var(--text-dim);margin-bottom:12px;">Platform fee per company</p>
+        <div class="divider"></div>
+        <div class="metric-row"><span class="label">Margin</span><span class="value">40&ndash;50%</span></div>
+        <div class="metric-row"><span class="label">Yr 1 Revenue</span><span class="value">&#x20B9;9&ndash;10L</span></div>
+        <div class="metric-row"><span class="label">Purpose</span><span class="value" style="font-size:12px;">Acquire companies</span></div>
+      </div>
+      <div class="card" style="text-align:center;padding:28px;border-color:var(--border-accent);">
+        <div class="tag green" style="margin-bottom:14px;">Recurring SaaS</div>
+        <h4 style="font-size:17px;font-weight:700;margin-bottom:6px;">Platform SaaS</h4>
+        <div style="font-size:26px;font-weight:800;color:var(--green);margin-bottom:6px;">&#x20B9;499&ndash;9,999<span style="font-size:12px;color:var(--text-dim);">/mo</span></div>
+        <p style="font-size:12px;color:var(--text-dim);margin-bottom:12px;">Starter / Growth / Scale tiers</p>
+        <div class="divider"></div>
+        <div class="metric-row"><span class="label">Margin</span><span class="value" style="color:var(--green);">85&ndash;92%</span></div>
+        <div class="metric-row"><span class="label">Yr 1 Revenue</span><span class="value">&#x20B9;7.4L</span></div>
+        <div class="metric-row"><span class="label">Purpose</span><span class="value" style="font-size:12px;">Core business</span></div>
+      </div>
+      <div class="card" style="text-align:center;padding:28px;">
+        <div class="tag blue" style="margin-bottom:14px;">Service Margin</div>
+        <h4 style="font-size:17px;font-weight:700;margin-bottom:6px;">Services Marketplace</h4>
+        <div style="font-size:26px;font-weight:800;color:var(--blue);margin-bottom:6px;">15&ndash;20%</div>
+        <p style="font-size:12px;color:var(--text-dim);margin-bottom:12px;">Service margin on 37+ services</p>
+        <div class="divider"></div>
+        <div class="metric-row"><span class="label">Margin</span><span class="value" style="color:var(--green);">95%+</span></div>
+        <div class="metric-row"><span class="label">Yr 1 Revenue</span><span class="value">&#x20B9;1.1L</span></div>
+        <div class="metric-row"><span class="label">Purpose</span><span class="value" style="font-size:12px;">Long-tail revenue</span></div>
+      </div>
+    </div>
+    <div class="insight-box">
+      <h4>The Fundamental Shift</h4>
+      <p>We stopped being a compliance fulfillment company and became a <strong>platform company</strong>. CAs and CSs are marketplace providers listed for free &mdash; they handle all service fulfillment. We retain a 15&ndash;20% platform service margin with zero professional headcount, zero fulfillment cost.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 7: MONEY FLOW — HOW THE MARKETPLACE WORKS -->
+<!-- ============================================================ -->
+<section class="slide" id="slide-money-flow">
+  <div class="slide-inner">
+    <div class="slide-label">Marketplace Structure</div>
+    <div class="slide-title">How <span class="accent">money flows</span></div>
+    <div class="slide-subtitle">Anvils is the service provider. CAs are fulfillment partners. No fee-sharing &mdash; fully ICAI-compliant.</div>
+
+    <!-- Flow diagram -->
+    <div style="display:flex;align-items:stretch;gap:0;margin-bottom:32px;" class="stagger-children">
+      <!-- Step 1: Client -->
+      <div class="card" style="flex:1;text-align:center;padding:24px 20px;border-radius:16px 0 0 16px;border-right:none;">
+        <div style="font-size:32px;margin-bottom:10px;">&#x1F3E2;</div>
+        <h4 style="font-size:14px;font-weight:700;margin-bottom:6px;">Client Company</h4>
+        <p style="font-size:11px;color:var(--text-dim);margin-bottom:14px;">Orders Annual ROC Filing</p>
+        <div style="font-size:24px;font-weight:800;color:var(--text);">&#x20B9;7,999</div>
+        <div style="font-size:10px;color:var(--text-dim);margin-top:4px;">+ 18% GST = &#x20B9;9,439</div>
+      </div>
+      <!-- Arrow 1 -->
+      <div style="display:flex;align-items:center;justify-content:center;flex-direction:column;background:var(--bg-card);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:0 6px;">
+        <div style="font-size:22px;color:var(--accent-light);">&#x27A1;&#xFE0F;</div>
+        <div style="font-size:9px;color:var(--text-dim);margin-top:4px;white-space:nowrap;">Pays Anvils</div>
+      </div>
+      <!-- Step 2: Anvils -->
+      <div class="card" style="flex:1.3;text-align:center;padding:24px 20px;border-radius:0;border-left:none;border-right:none;border-color:var(--border-accent);background:rgba(124,58,237,0.08);">
+        <div style="font-size:32px;margin-bottom:10px;">&#x2692;&#xFE0F;</div>
+        <h4 style="font-size:14px;font-weight:700;margin-bottom:6px;color:var(--accent-light);">Anvils (Service Provider)</h4>
+        <p style="font-size:11px;color:var(--text-dim);margin-bottom:14px;">Issues invoice to client &bull; Assigns work to partner</p>
+        <div style="display:flex;justify-content:center;gap:20px;">
+          <div>
+            <div style="font-size:10px;color:var(--text-dim);margin-bottom:2px;">Receives</div>
+            <div style="font-size:18px;font-weight:800;color:var(--text);">&#x20B9;7,999</div>
+          </div>
+          <div style="width:1px;background:var(--border);"></div>
+          <div>
+            <div style="font-size:10px;color:var(--text-dim);margin-bottom:2px;">Pays CA</div>
+            <div style="font-size:18px;font-weight:800;color:var(--text-muted);">&#x20B9;6,399</div>
+          </div>
+          <div style="width:1px;background:var(--border);"></div>
+          <div>
+            <div style="font-size:10px;color:var(--green);margin-bottom:2px;">Retains</div>
+            <div style="font-size:18px;font-weight:800;color:var(--green);">&#x20B9;1,600</div>
+          </div>
+        </div>
+        <div style="margin-top:8px;font-size:11px;color:var(--accent-light);font-weight:600;">20% Platform Service Margin</div>
+      </div>
+      <!-- Arrow 2 -->
+      <div style="display:flex;align-items:center;justify-content:center;flex-direction:column;background:var(--bg-card);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:0 6px;">
+        <div style="font-size:22px;color:var(--accent-light);">&#x27A1;&#xFE0F;</div>
+        <div style="font-size:9px;color:var(--text-dim);margin-top:4px;white-space:nowrap;">Pays Partner</div>
+      </div>
+      <!-- Step 3: Partner CA -->
+      <div class="card" style="flex:1;text-align:center;padding:24px 20px;border-radius:0 16px 16px 0;border-left:none;">
+        <div style="font-size:32px;margin-bottom:10px;">&#x1F468;&#x200D;&#x1F4BC;</div>
+        <h4 style="font-size:14px;font-weight:700;margin-bottom:6px;">Partner CA</h4>
+        <p style="font-size:11px;color:var(--text-dim);margin-bottom:14px;">Fulfills AOC-4 + MGT-7 filing</p>
+        <div style="font-size:24px;font-weight:800;color:var(--text);">&#x20B9;6,399</div>
+        <div style="font-size:10px;color:var(--text-dim);margin-top:4px;">Fulfillment fee (after TDS)</div>
+      </div>
+    </div>
+
+    <!-- Bottom: Legal + Tax details -->
+    <div class="grid-3 stagger-children">
+      <div class="card" style="padding:20px;">
+        <h4 style="font-size:12px;font-weight:700;color:var(--accent-light);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">&#x2696;&#xFE0F; Legal Structure</h4>
+        <div style="font-size:12px;color:var(--text-muted);line-height:1.8;">
+          <div style="margin-bottom:6px;"><strong style="color:var(--text);">Client contracts with:</strong> Anvils</div>
+          <div style="margin-bottom:6px;"><strong style="color:var(--text);">CA's role:</strong> Independent fulfillment partner</div>
+          <div style="margin-bottom:6px;"><strong style="color:var(--text);">Fee sharing:</strong> None &mdash; Anvils pays CA for work done</div>
+          <div><strong style="color:var(--text);">ICAI Clause 2:</strong> <span style="color:var(--green);">Compliant</span></div>
+        </div>
+      </div>
+      <div class="card" style="padding:20px;">
+        <h4 style="font-size:12px;font-weight:700;color:var(--blue);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">&#x1F4B0; Tax Treatment</h4>
+        <div style="font-size:12px;color:var(--text-muted);line-height:1.8;">
+          <div style="margin-bottom:6px;"><strong style="color:var(--text);">GST on service:</strong> 18% collected from client</div>
+          <div style="margin-bottom:6px;"><strong style="color:var(--text);">GST on fulfillment:</strong> 18% input credit from CA invoice</div>
+          <div style="margin-bottom:6px;"><strong style="color:var(--text);">Net GST payable:</strong> &#x20B9;288 (on margin only)</div>
+          <div><strong style="color:var(--text);">TDS:</strong> Sec 194J @ 10% on fulfillment fee</div>
+        </div>
+      </div>
+      <div class="card" style="padding:20px;">
+        <h4 style="font-size:12px;font-weight:700;color:var(--green);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">&#x2705; Market Precedent</h4>
+        <div style="font-size:12px;color:var(--text-muted);line-height:1.8;">
+          <div style="margin-bottom:6px;"><strong style="color:var(--text);">Vakilsearch:</strong> Same model, 10+ years</div>
+          <div style="margin-bottom:6px;"><strong style="color:var(--text);">IndiaFilings:</strong> Same model, 8+ years</div>
+          <div style="margin-bottom:6px;"><strong style="color:var(--text);">ClearTax:</strong> Same model, 10+ years</div>
+          <div><strong style="color:var(--text);">ICAI action:</strong> <span style="color:var(--green);">None against any platform</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 8: PRICING TIERS -->
+<!-- ============================================================ -->
+<section class="slide" id="slide-8">
+  <div class="slide-inner">
+    <div class="slide-label">Pricing</div>
+    <div class="slide-title">SaaS tiers + <span class="accent">&agrave; la carte</span> marketplace</div>
+    <div class="grid-3 stagger-children" style="margin-bottom:28px;">
+      <div class="card" style="padding:28px;text-align:center;">
+        <div class="tag" style="margin-bottom:14px;">Base</div>
+        <h4 style="font-size:17px;font-weight:700;margin-bottom:4px;">Starter</h4>
+        <div style="font-size:28px;font-weight:800;color:var(--text-muted);margin-bottom:4px;">&#x20B9;499<span style="font-size:14px;color:var(--text-dim);font-weight:500;">/mo</span></div>
+        <div style="font-size:11px;color:var(--text-dim);margin-bottom:14px;">&#x20B9;4,999/yr annual</div>
+        <div style="text-align:left;font-size:12px;color:var(--text-muted);line-height:1.9;">
+          &#x2713; Dashboard &amp; compliance calendar<br>
+          &#x2713; 50+ deadline reminders<br>
+          &#x2713; Document storage<br>
+          &#x2713; Post-incorp doc bundle<br>
+          &#x2713; Company profile
+        </div>
+        <div class="divider"></div>
+        <div style="font-size:11px;color:var(--text-dim);">All incorporated companies<br>&#x20B9;5,988/yr revenue even if they never upgrade</div>
+      </div>
+      <div class="card" style="padding:28px;text-align:center;border-color:var(--border-accent);">
+        <div class="tag green" style="margin-bottom:14px;">Core SaaS</div>
+        <h4 style="font-size:17px;font-weight:700;margin-bottom:4px;">Growth</h4>
+        <div style="font-size:28px;font-weight:800;color:var(--green);margin-bottom:4px;">&#x20B9;2,999<span style="font-size:14px;color:var(--text-dim);font-weight:500;">/mo</span></div>
+        <div style="font-size:11px;color:var(--text-dim);margin-bottom:14px;">&#x20B9;29,999/yr annual</div>
+        <div style="text-align:left;font-size:12px;color:var(--text-muted);line-height:1.9;">
+          &#x2713; Everything in Starter<br>
+          &#x2713; Cap table management<br>
+          &#x2713; ESOP administration<br>
+          &#x2713; Fundraising tools<br>
+          &#x2713; Data room + investor portal
+        </div>
+        <div class="divider"></div>
+        <div style="font-size:11px;color:var(--text-dim);">Funded startups (Pre-Seed to Seed)<br><strong style="color:var(--green);">85%+ gross margin, pure software</strong></div>
+      </div>
+      <div class="card" style="padding:28px;text-align:center;">
+        <div class="tag blue" style="margin-bottom:14px;">Enterprise</div>
+        <h4 style="font-size:17px;font-weight:700;margin-bottom:4px;">Scale</h4>
+        <div style="font-size:28px;font-weight:800;color:var(--blue);margin-bottom:4px;">&#x20B9;9,999<span style="font-size:14px;color:var(--text-dim);font-weight:500;">/mo</span></div>
+        <div style="font-size:11px;color:var(--text-dim);margin-bottom:14px;">&#x20B9;99,999/yr annual</div>
+        <div style="text-align:left;font-size:12px;color:var(--text-muted);line-height:1.9;">
+          &#x2713; Everything in Growth<br>
+          &#x2713; Board governance<br>
+          &#x2713; Statutory registers<br>
+          &#x2713; Investor reporting<br>
+          &#x2713; Closing room + priority support
+        </div>
+        <div class="divider"></div>
+        <div style="font-size:11px;color:var(--text-dim);">Series A+ companies<br><strong style="color:var(--blue);">90%+ margin, 5&ndash;10% annual churn</strong></div>
+      </div>
+    </div>
+    <div class="insight-box">
+      <h4>+ Services Marketplace (37+ services)</h4>
+      <p>Compliance, tax, and legal services fulfilled by partner CAs. <strong>Not bundled into subscriptions.</strong> Companies buy what they need. Anvils retains a 15&ndash;20% platform service margin. Top services: GST filing (&#x20B9;999/mo), Annual ROC (&#x20B9;7,999), ITR (&#x20B9;4,999), Statutory Audit (&#x20B9;14,999).</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 8: COMPETITIVE LANDSCAPE -->
+<!-- ============================================================ -->
+<section class="slide" id="slide-8">
+  <div class="slide-inner">
+    <div class="slide-label">Competition</div>
+    <div class="slide-title">We compete with <span class="accent">Carta</span>, not with CAs</div>
+    <div class="slide-subtitle">No platform in India combines incorporation + equity management + compliance marketplace.</div>
+    <div class="table-wrap" style="margin-bottom:28px;">
+      <table>
+        <thead>
+          <tr><th>Feature</th><th style="color:var(--green);">Anvils</th><th>Trica Equity</th><th>Carta</th><th>Vakilsearch</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="bold">Incorporation</td><td class="hi">Yes (3 entities)</td><td>No</td><td>No</td><td>Yes</td></tr>
+          <tr><td class="bold">Compliance tracking</td><td class="hi">Free (50+ tasks)</td><td>No</td><td>No</td><td>Basic</td></tr>
+          <tr><td class="bold">Cap table</td><td class="hi">Yes (Growth+)</td><td>Yes</td><td>Yes</td><td>No</td></tr>
+          <tr><td class="bold">ESOP management</td><td class="hi">Yes (Growth+)</td><td>Yes</td><td>Yes</td><td>No</td></tr>
+          <tr><td class="bold">Data room</td><td class="hi">Yes (Growth+)</td><td>No</td><td>Yes</td><td>No</td></tr>
+          <tr><td class="bold">Investor portal</td><td class="hi">Yes (Growth+)</td><td>Limited</td><td>Yes</td><td>No</td></tr>
+          <tr><td class="bold">Board governance</td><td class="hi">Yes (Scale)</td><td>No</td><td>Yes</td><td>No</td></tr>
+          <tr><td class="bold">Statutory registers</td><td class="hi">Yes (Scale)</td><td>No</td><td>No</td><td>No</td></tr>
+          <tr><td class="bold">Filing marketplace</td><td class="hi">Yes (37+ services)</td><td>No</td><td>No</td><td>Bundled</td></tr>
+          <tr><td class="bold">India-specific (MCA, SEBI)</td><td class="hi">Deep</td><td>Yes</td><td>No</td><td>Yes</td></tr>
+          <tr class="total-row"><td class="bold">Pricing</td><td class="hi">&#x20B9;29,999/yr</td><td>&#x20B9;25K&ndash;50K/yr</td><td>$3K&ndash;10K/yr</td><td>N/A</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="insight-box">
+      <h4>Unique Position</h4>
+      <p>Anvils Growth at &#x20B9;29,999/yr is <strong>40&ndash;70% cheaper</strong> than Trica/Qapita/Carta alternatives while offering more features. We capture companies from Day 0 (incorporation) before they need equity tools &mdash; no other equity platform has this funnel.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 9: COMPETITIVE PRICING -->
+<!-- ============================================================ -->
+<section class="slide" id="slide-9">
+  <div class="slide-inner">
+    <div class="slide-label">Pricing Comparison</div>
+    <div class="slide-title">Priced to <span class="accent">win</span> on incorporation</div>
+    <div class="slide-subtitle">Incorporation is the wedge. 75&ndash;80% cheaper than the nearest competitor.</div>
+    <div class="table-wrap" style="margin-bottom:24px;">
+      <table>
+        <thead><tr><th>Service</th><th style="color:var(--green);">Anvils</th><th>Vakilsearch</th><th>IndiaFilings</th><th>LegalRaasta</th><th>Traditional CA</th></tr></thead>
+        <tbody>
+          <tr class="best"><td class="bold">Pvt Ltd (basic)</td><td class="hi">&#x20B9;1,499</td><td>&#x20B9;6,499</td><td>&#x20B9;7,899</td><td>&#x20B9;5,999</td><td>&#x20B9;8,000&ndash;15,000</td></tr>
+          <tr class="best"><td class="bold">Pvt Ltd (full)</td><td class="hi">&#x20B9;7,999</td><td>&#x20B9;15,999</td><td>&#x20B9;17,899</td><td>&#x20B9;13,999</td><td>&#x20B9;15,000&ndash;25,000</td></tr>
+          <tr class="best"><td class="bold">LLP</td><td class="hi">&#x20B9;1,499</td><td>&#x20B9;5,899</td><td>&#x20B9;6,999</td><td>&#x20B9;4,999</td><td>&#x20B9;5,000&ndash;10,000</td></tr>
+          <tr class="best"><td class="bold">OPC</td><td class="hi">&#x20B9;999</td><td>&#x20B9;5,499</td><td>&#x20B9;6,499</td><td>&#x20B9;4,999</td><td>&#x20B9;6,000&ndash;12,000</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="two-col">
+      <div class="card" style="padding:24px;">
+        <h4 style="font-size:14px;font-weight:700;color:var(--accent-light);margin-bottom:16px;">Incorporation Tiers (Platform Fee)</h4>
+        <div class="metric-row"><span class="label">Launch (basic)</span><span class="value">&#x20B9;999&ndash;1,499</span></div>
+        <div class="metric-row"><span class="label">Grow (+ compliance setup)</span><span class="value">&#x20B9;2,999&ndash;3,999</span></div>
+        <div class="metric-row"><span class="label">Scale (+ everything)</span><span class="value">&#x20B9;5,999&ndash;7,999</span></div>
+        <div class="metric-row"><span class="label">Blended avg platform fee</span><span class="value" style="color:var(--green);">~&#x20B9;2,500</span></div>
+      </div>
+      <div class="card" style="padding:24px;">
+        <h4 style="font-size:14px;font-weight:700;color:var(--accent-light);margin-bottom:16px;">What Customer Actually Pays</h4>
+        <p style="font-size:12px;color:var(--text-dim);margin-bottom:12px;">Platform fee is small vs. total cost (govt + stamp + DSC)</p>
+        <div class="metric-row"><span class="label">Pvt Ltd (Delhi, Launch)</span><span class="value">&#x20B9;7,407 total</span></div>
+        <div class="metric-row"><span class="label">Our platform fee</span><span class="value" style="color:var(--green);">&#x20B9;1,499 (20%)</span></div>
+        <div class="metric-row"><span class="label">Govt + Stamp + DSC</span><span class="value">&#x20B9;5,908 (80%)</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 10: CUSTOMER SEGMENTATION & LTV -->
+<!-- ============================================================ -->
+<section class="slide" id="slide-10">
+  <div class="slide-inner">
+    <div class="slide-label">Customer Segments</div>
+    <div class="slide-title">Three segments, <span class="accent">distinct LTVs</span></div>
+    <div class="table-wrap" style="margin-bottom:28px;">
+      <table>
+        <thead><tr><th>Segment</th><th>% of Companies</th><th>Plan</th><th>Year 1 Revenue</th><th>3-Year LTV</th><th>5-Year LTV</th><th>Annual Churn</th></tr></thead>
+        <tbody>
+          <tr><td class="bold">Bootstrapped SME</td><td>70%</td><td>Starter (&#x20B9;499/mo)</td><td>&#x20B9;13,200</td><td>&#x20B9;24,400</td><td>&#x20B9;35,600</td><td>50&ndash;65%</td></tr>
+          <tr style="background:rgba(52,211,153,0.04);"><td class="bold">Funded Startup</td><td>20%</td><td>Growth (&#x20B9;2,999/mo)</td><td class="hi">&#x20B9;42,373</td><td class="hi">&#x20B9;1,10,071</td><td class="hi">&#x20B9;1,77,769</td><td>15&ndash;20%</td></tr>
+          <tr style="background:rgba(96,165,250,0.04);"><td class="bold">Series A+</td><td>5%</td><td>Scale (&#x20B9;9,999/mo)</td><td class="hi">&#x20B9;1,06,999</td><td class="hi">&#x20B9;3,19,247</td><td class="hi">&#x20B9;5,31,495</td><td>8&ndash;12%</td></tr>
+          <tr class="total-row"><td>Blended (all)</td><td>100%</td><td>&mdash;</td><td>&#x20B9;18,500</td><td>&#x20B9;46,900</td><td>&mdash;</td><td>&mdash;</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="two-col">
+      <div class="card" style="padding:24px;">
+        <h4 style="font-size:14px;font-weight:700;color:var(--accent-light);margin-bottom:16px;">Per-Customer Annual Profitability</h4>
+        <div class="metric-row"><span class="label">Bootstrapped (Starter + Marketplace)</span><span class="value">&#x20B9;11,399 <span style="color:var(--green);font-size:11px;">86% margin</span></span></div>
+        <div class="metric-row"><span class="label">Funded (Growth + Marketplace)</span><span class="value" style="color:var(--green);">&#x20B9;45,748 <span style="font-size:11px;">88% margin</span></span></div>
+        <div class="metric-row"><span class="label">Series A+ (Scale + Marketplace)</span><span class="value" style="color:var(--green);">&#x20B9;1,09,748 <span style="font-size:11px;">90% margin</span></span></div>
+      </div>
+      <div class="card" style="padding:24px;">
+        <h4 style="font-size:14px;font-weight:700;color:var(--accent-light);margin-bottom:16px;">Why Growth Subscribers Matter Most</h4>
+        <p style="font-size:13px;color:var(--text-muted);line-height:1.7;">Each Growth subscriber is worth <strong>6x</strong> a Starter subscriber. Even small changes in Growth adoption rate have outsized impact on revenue. Target: 200 Growth subs by Month 18 = &#x20B9;60L ARR at 85%+ margin.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 11: UNIT ECONOMICS -->
+<!-- ============================================================ -->
+<section class="slide" id="slide-11">
+  <div class="slide-inner">
+    <div class="slide-label">Unit Economics</div>
+    <div class="slide-title">Strong <span class="accent">LTV:CAC</span> fundamentals</div>
+    <div class="two-col">
+      <div>
+        <div class="card" style="margin-bottom:20px;text-align:center;padding:28px;">
+          <div style="font-size:12px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:8px;">Growth Subscriber LTV:CAC</div>
+          <div style="font-size:52px;font-weight:800;color:var(--green);">10&ndash;15:1</div>
+          <div style="font-size:12px;color:var(--text-dim);margin-top:4px;">Same CAC, pure software margin LTV</div>
+        </div>
+        <div class="card" style="padding:24px;">
+          <h4 style="font-size:13px;font-weight:600;margin-bottom:14px;color:var(--text-muted);">CAC by Channel</h4>
+          <div class="metric-row"><span class="label">Google Ads (incorporation)</span><span class="value">&#x20B9;2,000&ndash;5,000</span></div>
+          <div class="metric-row"><span class="label">SEO / Content</span><span class="value" style="color:var(--green);">&#x20B9;0 marginal</span></div>
+          <div class="metric-row"><span class="label">CA Referrals</span><span class="value" style="color:var(--green);">&#x20B9;100&ndash;500</span></div>
+          <div class="metric-row"><span class="label">PLG (wizard, cap table tool)</span><span class="value" style="color:var(--green);">&#x20B9;0</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="padding:24px;margin-bottom:20px;">
+          <h4 style="font-size:13px;font-weight:600;margin-bottom:14px;color:var(--text-muted);">Revenue Per Customer Type (Monthly)</h4>
+          <div class="metric-row"><span class="label">Starter ARPU</span><span class="value">&#x20B9;499/mo</span></div>
+          <div class="metric-row"><span class="label">Growth ARPU</span><span class="value" style="color:var(--green);">&#x20B9;2,999/mo</span></div>
+          <div class="metric-row"><span class="label">Scale ARPU</span><span class="value" style="color:var(--blue);">&#x20B9;9,999/mo</span></div>
+          <div class="metric-row"><span class="label">Blended ARPU (all)</span><span class="value">&#x20B9;1,200&ndash;1,800/mo</span></div>
+        </div>
+        <div class="card" style="padding:24px;">
+          <h4 style="font-size:13px;font-weight:600;margin-bottom:14px;color:var(--text-muted);">Margin Profile</h4>
+          <div class="metric-row"><span class="label">SaaS gross margin</span><span class="value" style="color:var(--green);">85&ndash;92%</span></div>
+          <div class="metric-row"><span class="label">Marketplace margin</span><span class="value" style="color:var(--green);">95%+ (platform margin)</span></div>
+          <div class="metric-row"><span class="label">Incorporation margin</span><span class="value">40&ndash;50%</span></div>
+          <div class="metric-row"><span class="label">Marketplace GMV/customer/yr</span><span class="value">&#x20B9;15K&ndash;40K</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 12: MONTH-BY-MONTH REVENUE -->
+<!-- ============================================================ -->
+<section class="slide" id="slide-12">
+  <div class="slide-inner">
+    <div class="slide-label">Revenue Projections</div>
+    <div class="slide-title">Month-by-month <span class="accent">Year 1</span> ramp</div>
+    <div class="table-wrap">
+      <table style="font-size:12px;">
+        <thead>
+          <tr><th>Month</th><th>Incorp</th><th>Incorp Rev</th><th>Starter Subs</th><th>Growth</th><th>Scale</th><th>SaaS Rev</th><th>Mktpl Rev</th><th style="color:var(--green);">Total Rev</th><th>Burn</th><th style="color:var(--red);">Net P&amp;L</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="bold">M1</td><td>10</td><td>&#x20B9;0.25L</td><td>8</td><td>0</td><td>0</td><td>&#x20B9;0.04L</td><td>&#x20B9;0.00L</td><td class="hi">&#x20B9;0.29L</td><td>&#x20B9;2.75L</td><td class="neg">&minus;&#x20B9;2.46L</td></tr>
+          <tr><td class="bold">M3</td><td>15</td><td>&#x20B9;0.38L</td><td>25</td><td>0</td><td>0</td><td>&#x20B9;0.12L</td><td>&#x20B9;0.01L</td><td class="hi">&#x20B9;0.51L</td><td>&#x20B9;2.75L</td><td class="neg">&minus;&#x20B9;2.24L</td></tr>
+          <tr><td class="bold">M6</td><td>30</td><td>&#x20B9;0.75L</td><td>65</td><td>4</td><td>0</td><td>&#x20B9;0.44L</td><td>&#x20B9;0.06L</td><td class="hi">&#x20B9;1.25L</td><td>&#x20B9;2.75L</td><td class="neg">&minus;&#x20B9;1.50L</td></tr>
+          <tr style="border-top:2px solid var(--border);"><td class="bold">M7</td><td>30</td><td>&#x20B9;0.75L</td><td>80</td><td>6</td><td>0</td><td>&#x20B9;0.58L</td><td>&#x20B9;0.08L</td><td class="hi">&#x20B9;1.41L</td><td style="color:var(--yellow);">&#x20B9;3.75L</td><td class="neg">&minus;&#x20B9;2.34L</td></tr>
+          <tr><td class="bold">M9</td><td>40</td><td>&#x20B9;1.00L</td><td>112</td><td>10</td><td>1</td><td>&#x20B9;0.96L</td><td>&#x20B9;0.13L</td><td class="hi">&#x20B9;2.09L</td><td>&#x20B9;3.75L</td><td class="neg">&minus;&#x20B9;1.66L</td></tr>
+          <tr class="total-row"><td class="bold">M12</td><td>60</td><td>&#x20B9;1.50L</td><td>175</td><td>17</td><td>2</td><td>&#x20B9;1.58L</td><td>&#x20B9;0.27L</td><td class="hi">&#x20B9;3.35L</td><td>&#x20B9;3.75L</td><td class="neg">&minus;&#x20B9;0.40L</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="display:flex;gap:16px;margin-top:20px;">
+      <div class="card" style="flex:1;text-align:center;padding:20px;">
+        <div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;font-weight:600;">M12 Revenue as % of Burn</div>
+        <div style="font-size:40px;font-weight:800;color:var(--green);margin-top:8px;">89%</div>
+      </div>
+      <div class="card" style="flex:1;text-align:center;padding:20px;">
+        <div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;font-weight:600;">Burn Step-Up at M7</div>
+        <div style="font-size:14px;color:var(--text-muted);margin-top:12px;">&#x20B9;2.75L &rarr; &#x20B9;3.75L<br><span style="font-size:11px;color:var(--text-dim);">Phase 2 hires (ops + marketing)</span></div>
+      </div>
+      <div class="card" style="flex:1;text-align:center;padding:20px;">
+        <div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;font-weight:600;">SaaS at M12</div>
+        <div style="font-size:14px;color:var(--text-muted);margin-top:12px;">Starter: &#x20B9;87K<br>Growth: &#x20B9;51K<br>Scale: &#x20B9;20K</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 13: YEAR 1-3 FINANCIALS -->
+<!-- ============================================================ -->
+<section class="slide" id="slide-13">
+  <div class="slide-inner">
+    <div class="slide-label">Financial Projections</div>
+    <div class="slide-title">Year 1&ndash;3 <span class="accent">financial outlook</span></div>
+    <div class="table-wrap" style="margin-bottom:28px;">
+      <table>
+        <thead><tr><th>Metric</th><th>Year 1</th><th>Year 2</th><th>Year 3</th></tr></thead>
+        <tbody>
+          <tr><td class="bold">Companies on Platform</td><td>~360</td><td>800&ndash;1,200</td><td>2,000&ndash;3,000</td></tr>
+          <tr><td class="bold">Active Starter Subscribers</td><td>175</td><td>400&ndash;600</td><td>1,000&ndash;1,500</td></tr>
+          <tr><td class="bold">Growth Subscribers</td><td>17</td><td>80&ndash;150</td><td class="hi">300&ndash;600</td></tr>
+          <tr><td class="bold">Scale Subscribers</td><td>2</td><td>10&ndash;20</td><td class="hi">30&ndash;60</td></tr>
+          <tr><td class="bold">Total Revenue</td><td>&#x20B9;18L</td><td>&#x20B9;60L&ndash;1.2 Cr</td><td class="hi">&#x20B9;2&ndash;4 Cr</td></tr>
+          <tr><td class="bold">Total Cost</td><td>&#x20B9;39L</td><td>&#x20B9;45&ndash;55L</td><td>&#x20B9;60&ndash;72L</td></tr>
+          <tr class="total-row"><td>Net P&amp;L</td><td class="neg">&minus;&#x20B9;21.5L</td><td class="hi">&#x20B9;15L&ndash;65L</td><td class="hi">&#x20B9;1.3&ndash;3.3 Cr</td></tr>
+          <tr><td class="bold">SaaS Gross Margin</td><td>85%</td><td>85%</td><td class="hi">85&ndash;90%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="display:flex;align-items:flex-end;gap:40px;justify-content:center;padding:20px 0;">
+      <div style="text-align:center;">
+        <div style="font-size:14px;font-weight:700;margin-bottom:8px;">&#x20B9;18L</div>
+        <div style="width:100px;height:50px;background:linear-gradient(180deg,var(--accent-light),var(--accent));border-radius:8px 8px 4px 4px;"></div>
+        <div style="font-size:12px;color:var(--text-dim);margin-top:8px;">Year 1</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:14px;font-weight:700;margin-bottom:8px;">&#x20B9;60L&ndash;1.2 Cr</div>
+        <div style="width:100px;height:130px;background:linear-gradient(180deg,var(--accent-light),var(--accent));border-radius:8px 8px 4px 4px;"></div>
+        <div style="font-size:12px;color:var(--text-dim);margin-top:8px;">Year 2</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:14px;font-weight:700;margin-bottom:8px;color:var(--green);">&#x20B9;2&ndash;4 Cr</div>
+        <div style="width:100px;height:200px;background:linear-gradient(180deg,var(--green),#059669);border-radius:8px 8px 4px 4px;"></div>
+        <div style="font-size:12px;color:var(--text-dim);margin-top:8px;">Year 3</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 14: COST STRUCTURE & BURN -->
+<!-- ============================================================ -->
+<section class="slide" id="slide-14">
+  <div class="slide-inner">
+    <div class="slide-label">Cost Structure</div>
+    <div class="slide-title">Lean burn, <span class="accent">phased hiring</span></div>
+    <div class="table-wrap" style="margin-bottom:24px;">
+      <table>
+        <thead><tr><th>Category</th><th>Phase 1 (M1&ndash;6)</th><th>Phase 2 (M7&ndash;12)</th><th>Phase 3 (M13&ndash;24)</th></tr></thead>
+        <tbody>
+          <tr><td class="bold">Salaries</td><td>&#x20B9;2.00L/mo</td><td>&#x20B9;3.10L/mo</td><td>&#x20B9;4.50L/mo</td></tr>
+          <tr><td class="bold">Marketing</td><td>&#x20B9;0.25L/mo</td><td>&#x20B9;0.40L/mo</td><td>&#x20B9;0.60L/mo</td></tr>
+          <tr><td class="bold">Technology (GCP + APIs)</td><td>&#x20B9;0.15L/mo</td><td>&#x20B9;0.20L/mo</td><td>&#x20B9;0.50L/mo</td></tr>
+          <tr><td class="bold">Tools &amp; Software</td><td>&#x20B9;0.10L/mo</td><td>&#x20B9;0.15L/mo</td><td>&#x20B9;0.20L/mo</td></tr>
+          <tr><td class="bold">Contingency (10%)</td><td>&#x20B9;0.25L/mo</td><td>&#x20B9;0.35L/mo</td><td>&#x20B9;0.50L/mo</td></tr>
+          <tr class="total-row"><td>Total Monthly Burn</td><td>&#x20B9;2.75L</td><td>&#x20B9;3.75L</td><td>&#x20B9;5&ndash;6L</td></tr>
+          <tr class="total-row"><td>Cumulative Burn</td><td>&#x20B9;15&ndash;18L</td><td>&#x20B9;36&ndash;42L</td><td>&#x20B9;96&ndash;114L</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="insight-box">
+      <h4>Why This Is &#x20B9;60L Cheaper Than the Full Ops Model</h4>
+      <p>The original staffing plan called for 11.5 people at launch (&#x20B9;7.75L/mo) including in-house CAs and CSs. Under the <strong>marketplace model, we never hire CAs or CSs</strong>. They are free marketplace providers. This saves &#x20B9;60L in Year 1 salary costs alone and moves break-even from Month 18&ndash;20 to Month 12&ndash;14.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 15: STAFFING PLAN -->
+<!-- ============================================================ -->
+<section class="slide" id="slide-15">
+  <div class="slide-inner">
+    <div class="slide-label">Staffing</div>
+    <div class="slide-title"><span class="accent">3 &rarr; 5 &rarr; 9</span> people, revenue-gated</div>
+    <div class="grid-3 stagger-children" style="margin-bottom:24px;">
+      <div class="card" style="padding:24px;">
+        <div class="tag" style="margin-bottom:14px;">Phase 1: M1&ndash;6</div>
+        <h4 style="font-size:16px;font-weight:700;margin-bottom:16px;">3 people &mdash; &#x20B9;2L/mo</h4>
+        <div class="metric-row"><span class="label">Founder / CEO</span><span class="value">&#x20B9;50K</span></div>
+        <div class="metric-row"><span class="label">Full-Stack Engineer</span><span class="value">&#x20B9;1.0L</span></div>
+        <div class="metric-row"><span class="label">Contract Ops / CS</span><span class="value">&#x20B9;50K</span></div>
+      </div>
+      <div class="card" style="padding:24px;border-color:var(--border-accent);">
+        <div class="tag green" style="margin-bottom:14px;">Phase 2: M7&ndash;12</div>
+        <h4 style="font-size:16px;font-weight:700;margin-bottom:16px;">5 people &mdash; &#x20B9;3.1L/mo</h4>
+        <div class="metric-row"><span class="label">+ Ops Manager</span><span class="value">&#x20B9;60K</span></div>
+        <div class="metric-row"><span class="label">+ Marketing / Content</span><span class="value">&#x20B9;50K</span></div>
+        <div style="font-size:11px;color:var(--text-dim);margin-top:8px;">Gate: 30+ incorporations/mo, Starter retention validated</div>
+      </div>
+      <div class="card" style="padding:24px;">
+        <div class="tag blue" style="margin-bottom:14px;">Phase 3: M13&ndash;24</div>
+        <h4 style="font-size:16px;font-weight:700;margin-bottom:16px;">8&ndash;9 people &mdash; &#x20B9;4.5L/mo</h4>
+        <div class="metric-row"><span class="label">+ 2nd Developer</span><span class="value">&#x20B9;1.0L</span></div>
+        <div class="metric-row"><span class="label">+ Sr. Customer Success</span><span class="value">&#x20B9;60K</span></div>
+        <div class="metric-row"><span class="label">+ Business Development</span><span class="value">&#x20B9;50K</span></div>
+      </div>
+    </div>
+    <div class="insight-box">
+      <h4>3 Hiring Rules</h4>
+      <p><strong>1. Never hire a CA/CS</strong> &mdash; marketplace partners handle fulfillment at zero fixed cost. <strong>2. Hire ops before engineers</strong> &mdash; one ops person handles 200+ customers. <strong>3. Revenue-gate every hire</strong> &mdash; each new person must be justified by &#x20B9;1.5L+ monthly revenue they unlock or retain.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 16: GO-TO-MARKET -->
+<!-- ============================================================ -->
+<section class="slide" id="slide-16">
+  <div class="slide-inner">
+    <div class="slide-label">Go-to-Market</div>
+    <div class="slide-title">Incorporation is the <span class="accent">wedge</span></div>
+    <div class="two-col">
+      <div>
+        <div class="card" style="padding:24px;margin-bottom:20px;">
+          <h4 style="font-size:14px;font-weight:700;color:var(--accent-light);margin-bottom:16px;">The Funnel</h4>
+          <div class="metric-row"><span class="label">1. Incorporate via Anvils</span><span class="value" style="color:var(--accent-light);">&#x20B9;999&ndash;7,999</span></div>
+          <div class="metric-row"><span class="label">2. Free doc bundle + Starter sub</span><span class="value" style="color:var(--green);">&#x20B9;499/mo</span></div>
+          <div class="metric-row"><span class="label">3. Raises funding &rarr; Growth</span><span class="value" style="color:var(--green);">&#x20B9;2,999/mo</span></div>
+          <div class="metric-row"><span class="label">4. Series A+ &rarr; Scale</span><span class="value">&#x20B9;9,999/mo</span></div>
+          <div class="metric-row"><span class="label">At every stage: Marketplace</span><span class="value">15&ndash;20% service margin</span></div>
+        </div>
+        <div class="card" style="text-align:center;padding:20px;">
+          <div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;font-weight:600;">Key Conversion Target</div>
+          <div style="font-size:36px;font-weight:800;color:var(--green);margin-top:8px;">15&ndash;20%</div>
+          <div style="font-size:12px;color:var(--text-dim);">Starter &rarr; Growth (startup segment)</div>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="padding:24px;margin-bottom:20px;">
+          <h4 style="font-size:14px;font-weight:700;color:var(--accent-light);margin-bottom:16px;">Distribution Channels</h4>
+          <div class="metric-row"><span class="label">SEO / Content (40%)</span><span class="value" style="color:var(--green);">Zero marginal CAC</span></div>
+          <div class="metric-row"><span class="label">Google Ads (25%)</span><span class="value">Incorporation leads</span></div>
+          <div class="metric-row"><span class="label">CA Referrals (10%)</span><span class="value">Free leads both ways</span></div>
+          <div class="metric-row"><span class="label">PLG Tools (10%)</span><span class="value">Wizard, cap table builder</span></div>
+          <div class="metric-row"><span class="label">LinkedIn (15%)</span><span class="value">Founder community</span></div>
+        </div>
+        <div class="card" style="padding:24px;">
+          <h4 style="font-size:14px;font-weight:700;color:var(--accent-light);margin-bottom:12px;">The Flywheel</h4>
+          <p style="font-size:12px;color:var(--text-muted);line-height:1.6;">More companies &rarr; more marketplace demand &rarr; more CAs list &rarr; better service &rarr; more companies choose Anvils. CAs refer clients for incorporation (earning marketplace orders in return). Every incorporated company starts paying from Day 1.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 17: BREAK-EVEN -->
+<!-- ============================================================ -->
+<section class="slide" id="slide-17">
+  <div class="slide-inner">
+    <div class="slide-label">Profitability</div>
+    <div class="slide-title">Break-even at <span class="accent">Month 12&ndash;14</span></div>
+    <div class="two-col">
+      <div>
+        <div class="card" style="padding:24px;margin-bottom:20px;">
+          <h4 style="font-size:14px;font-weight:700;color:var(--accent-light);margin-bottom:16px;">Break-Even Requirements</h4>
+          <div class="metric-row"><span class="label">Monthly revenue needed</span><span class="value" style="color:var(--green);">&#x20B9;3.75L</span></div>
+          <div class="metric-row"><span class="label">Starter subscribers</span><span class="value">150&ndash;200</span></div>
+          <div class="metric-row"><span class="label">Growth subscribers</span><span class="value">15&ndash;20</span></div>
+          <div class="metric-row"><span class="label">Scale subscribers</span><span class="value">1&ndash;2</span></div>
+          <div class="metric-row"><span class="label">Incorporations/mo</span><span class="value">50&ndash;60</span></div>
+          <div class="metric-row"><span class="label">Marketplace txns/mo</span><span class="value">30&ndash;50</span></div>
+          <div class="metric-row"><span class="label">Cumulative loss to break-even</span><span class="value" style="color:var(--red);">&#x20B9;21&ndash;28L</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="padding:24px;margin-bottom:20px;">
+          <h4 style="font-size:14px;font-weight:700;color:var(--accent-light);margin-bottom:16px;">Scenario Analysis</h4>
+          <div class="table-wrap">
+            <table style="font-size:12px;">
+              <thead><tr><th>Scenario</th><th>Break-Even</th><th>Cumul. Loss</th></tr></thead>
+              <tbody>
+                <tr style="background:rgba(52,211,153,0.06);"><td class="bold">Optimistic (low churn)</td><td class="hi">Month 10&ndash;11</td><td>&#x20B9;16&ndash;18L</td></tr>
+                <tr><td class="bold">Base case</td><td>Month 12&ndash;14</td><td>&#x20B9;21&ndash;28L</td></tr>
+                <tr><td class="bold">Pessimistic (high churn)</td><td class="neg">Month 16&ndash;20</td><td>&#x20B9;35&ndash;45L</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="insight-box">
+          <h4>Swing Variables</h4>
+          <p><strong>1. Starter churn</strong> (5&ndash;8% monthly = base case; below 4% = early break-even). <strong>2. Growth adoption</strong> (each Growth sub = 6x Starter; 10% adoption vs 5% moves break-even 2&ndash;3 months earlier).</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 18: MONEY LOSERS & MAKERS -->
+<!-- ============================================================ -->
+<section class="slide" id="slide-18">
+  <div class="slide-inner">
+    <div class="slide-label">P&amp;L Deep Dive</div>
+    <div class="slide-title">Money <span style="color:var(--red);">losers</span> vs. money <span style="color:var(--green);">makers</span></div>
+    <div class="two-col">
+      <div>
+        <div class="card" style="padding:24px;border-color:rgba(248,113,113,0.25);">
+          <h4 style="font-size:14px;font-weight:700;color:var(--red);margin-bottom:16px;">Money Losers (Intentional)</h4>
+          <div class="metric-row"><span class="label">Free doc bundle</span><span class="value neg">&minus;&#x20B9;600&ndash;1,200/co</span></div>
+          <div class="metric-row"><span class="label">Launch tier incorporations</span><span class="value neg">~&#x20B9;500 margin</span></div>
+          <div class="metric-row"><span class="label">GST/MSME/DIR-3 KYC (marketplace)</span><span class="value neg">&#x20B9;87 service margin ea.</span></div>
+          <div class="metric-row"><span class="label">Starter subscription</span><span class="value" style="color:var(--yellow);">Break-even at best</span></div>
+          <div style="font-size:11px;color:var(--text-dim);margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">All losers are intentional &mdash; they are customer acquisition costs that funnel users to high-margin products.</div>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="padding:24px;border-color:rgba(52,211,153,0.25);">
+          <h4 style="font-size:14px;font-weight:700;color:var(--green);margin-bottom:16px;">Money Makers</h4>
+          <div class="metric-row"><span class="label">Growth subscription</span><span class="value hi">&#x20B9;24K&ndash;26K/yr profit (85%)</span></div>
+          <div class="metric-row"><span class="label">Scale subscription</span><span class="value hi">&#x20B9;88K&ndash;94K/yr profit (90%)</span></div>
+          <div class="metric-row"><span class="label">Bookkeeping (monthly mktpl)</span><span class="value hi">&#x20B9;12,598/yr service margin</span></div>
+          <div class="metric-row"><span class="label">Statutory audit (annual)</span><span class="value hi">&#x20B9;2,625 service margin</span></div>
+          <div class="metric-row"><span class="label">Grow/Scale incorp tiers</span><span class="value hi">&#x20B9;2,499&ndash;6,499 profit</span></div>
+          <div style="font-size:11px;color:var(--text-dim);margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">Subscriptions are the core business. Marketplace scales with platform base.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 19: KEY METRICS -->
+<!-- ============================================================ -->
+<section class="slide" id="slide-19">
+  <div class="slide-inner">
+    <div class="slide-label">Key Metrics</div>
+    <div class="slide-title">What we <span class="accent">track</span></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Metric</th><th>M6 Target</th><th>M12 Target</th><th>Red Flag</th></tr></thead>
+        <tbody>
+          <tr><td class="bold">Active Starter Subscribers</td><td>65</td><td class="hi">175</td><td class="neg">&lt; 100</td></tr>
+          <tr><td class="bold">Growth Subscribers</td><td>4</td><td class="hi">17</td><td class="neg">&lt; 8</td></tr>
+          <tr><td class="bold">Monthly SaaS MRR</td><td>&#x20B9;44K</td><td class="hi">&#x20B9;1.58L</td><td class="neg">&lt; &#x20B9;80K</td></tr>
+          <tr><td class="bold">Incorporations / Month</td><td>30</td><td class="hi">60</td><td class="neg">&lt; 30</td></tr>
+          <tr><td class="bold">Starter Monthly Churn</td><td>&lt; 8%</td><td class="hi">&lt; 5%</td><td class="neg">&gt; 10%</td></tr>
+          <tr><td class="bold">Starter &rarr; Growth Conversion</td><td>5%</td><td class="hi">8%</td><td class="neg">&lt; 3%</td></tr>
+          <tr><td class="bold">Marketplace Service Attach Rate</td><td>15%</td><td class="hi">22%</td><td class="neg">&lt; 10%</td></tr>
+          <tr><td class="bold">Marketplace GMV</td><td>&#x20B9;40K/mo</td><td class="hi">&#x20B9;1.9L/mo</td><td class="neg">&lt; &#x20B9;50K/mo</td></tr>
+          <tr><td class="bold">Incorporation CAC</td><td>&#x20B9;2,000</td><td>&#x20B9;1,500</td><td class="neg">&gt; &#x20B9;5,000</td></tr>
+          <tr><td class="bold">Active CA Partners</td><td>20</td><td class="hi">100</td><td class="neg">&lt; 30</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 20: RISKS & MITIGATIONS -->
+<!-- ============================================================ -->
+<section class="slide" id="slide-20">
+  <div class="slide-inner">
+    <div class="slide-label">Risks</div>
+    <div class="slide-title">Honest <span class="accent">risk assessment</span></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Risk</th><th>Probability</th><th>Impact</th><th>Mitigation</th></tr></thead>
+        <tbody>
+          <tr><td class="bold">Starter churn &gt; 10%/mo</td><td><span class="tag red" style="font-size:10px;padding:3px 10px;">40%</span></td><td>Breaks revenue model</td><td>Annual billing default, compliance value, reprice to &#x20B9;299 if needed</td></tr>
+          <tr><td class="bold">Growth adoption &lt; 3%</td><td><span class="tag yellow" style="font-size:10px;padding:3px 10px;">30%</span></td><td>Delays profitability</td><td>Design partners, &#x20B9;1,499 intermediate tier, time upsell to fundraise</td></tr>
+          <tr><td class="bold">MCA portal/regulation changes</td><td><span class="tag yellow" style="font-size:10px;padding:3px 10px;">25%</span></td><td>Feature rework</td><td>Modular form service, monitor MCA circulars</td></tr>
+          <tr><td class="bold">CA marketplace supply</td><td><span class="tag" style="font-size:10px;padding:3px 10px;">20%</span></td><td>Service quality</td><td>Free listing, guaranteed payment, rating system</td></tr>
+          <tr><td class="bold">Vakilsearch adds equity tools</td><td><span class="tag" style="font-size:10px;padding:3px 10px;">15%</span></td><td>Direct competition</td><td>Speed, depth of integration, data lock-in</td></tr>
+          <tr><td class="bold">Price sensitivity in SME segment</td><td><span class="tag yellow" style="font-size:10px;padding:3px 10px;">35%</span></td><td>Lower adoption</td><td>Transparent pricing, annual discounts, free compliance tracking</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="insight-box" style="margin-top:20px;">
+      <h4>The Biggest Risk, Honestly</h4>
+      <p>Starter churn. If companies incorporate, download documents, and don't see value in &#x20B9;499/mo compliance tracking, churn will kill the model. Mitigation: make the compliance calendar genuinely indispensable (one avoided &#x20B9;100/day penalty pays for months of subscription), push annual billing at &#x20B9;4,999/yr.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 21: TECH STACK -->
+<!-- ============================================================ -->
+<section class="slide" id="slide-21">
+  <div class="slide-inner">
+    <div class="slide-label">Technology</div>
+    <div class="slide-title">Built and <span class="accent">functional</span></div>
+    <div class="slide-subtitle">Not a prototype. The platform is live with all 12 modules operational.</div>
+    <div class="two-col">
+      <div class="card stagger-children" style="padding:8px 0;">
+        <div class="tech-item" style="border-bottom:1px solid var(--border);"><span class="tech-label">Backend</span><span class="tech-value">FastAPI (Python)</span></div>
+        <div class="tech-item" style="border-bottom:1px solid var(--border);"><span class="tech-label">Frontend</span><span class="tech-value">Next.js (React)</span></div>
+        <div class="tech-item" style="border-bottom:1px solid var(--border);"><span class="tech-label">Database</span><span class="tech-value">PostgreSQL on Cloud SQL</span></div>
+        <div class="tech-item" style="border-bottom:1px solid var(--border);"><span class="tech-label">Cache</span><span class="tech-value">Redis (Memorystore)</span></div>
+        <div class="tech-item"><span class="tech-label">Task Queue</span><span class="tech-value">Celery + Redis</span></div>
+      </div>
+      <div class="card stagger-children" style="padding:8px 0;">
+        <div class="tech-item" style="border-bottom:1px solid var(--border);"><span class="tech-label">AI</span><span class="tech-value">GPT-4o + Gemini</span></div>
+        <div class="tech-item" style="border-bottom:1px solid var(--border);"><span class="tech-label">Payments</span><span class="tech-value">Razorpay</span></div>
+        <div class="tech-item" style="border-bottom:1px solid var(--border);"><span class="tech-label">Infra</span><span class="tech-value">GCP Cloud Run (Serverless)</span></div>
+        <div class="tech-item" style="border-bottom:1px solid var(--border);"><span class="tech-label">CI/CD</span><span class="tech-value">Cloud Build</span></div>
+        <div class="tech-item"><span class="tech-label">Infra Cost</span><span class="tech-value">&#x20B9;35K&ndash;60K/mo at launch</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 22: TEAM -->
+<!-- ============================================================ -->
+<section class="slide" id="slide-22">
+  <div class="slide-inner">
+    <div class="slide-label">Team</div>
+    <div class="slide-title">The people building <span class="accent">Anvils</span></div>
+    <div class="grid-3 stagger-children" style="margin-bottom:24px;">
+      <div class="card team-card">
+        <div class="team-avatar">F</div>
+        <h4>[Founder Name]</h4>
+        <p style="color:var(--accent-light);font-weight:600;margin-bottom:8px;">Founder &amp; CEO</p>
+        <p>Full-stack product builder. Built the entire Anvils platform end-to-end &mdash; 12 modules, 4 user personas, 37+ marketplace services.</p>
+      </div>
+      <div class="card team-card" style="border-style:dashed;">
+        <div class="team-avatar" style="background:linear-gradient(135deg,var(--text-dim),#4B5563);">+</div>
+        <h4>Hire #1: Engineer</h4>
+        <p style="color:var(--yellow);font-weight:600;margin-bottom:8px;">Month 1</p>
+        <p>Full-stack developer. Platform feature velocity, integrations, mobile.</p>
+      </div>
+      <div class="card team-card" style="border-style:dashed;">
+        <div class="team-avatar" style="background:linear-gradient(135deg,var(--text-dim),#4B5563);">+</div>
+        <h4>Hire #2: Ops / CS</h4>
+        <p style="color:var(--yellow);font-weight:600;margin-bottom:8px;">Month 1</p>
+        <p>Contract customer success. Incorporation support, onboarding, Starter retention.</p>
+      </div>
+    </div>
+    <div class="card" style="padding:20px 28px;text-align:center;">
+      <div style="font-size:12px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:6px;">Advisory Board</div>
+      <div style="font-size:14px;color:var(--text-muted);">Seeking advisors with CA/CS practice, SaaS scaling, and regulatory expertise</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 23: THE ASK -->
+<!-- ============================================================ -->
+<section class="slide" id="slide-23">
+  <div class="slide-inner">
+    <div class="slide-label">The Ask</div>
+    <div class="slide-title">Raising <span class="accent">&#x20B9;25&ndash;35L</span> Pre-Seed</div>
+    <div class="two-col">
+      <div>
+        <div class="slide-label" style="margin-bottom:14px;">Use of Funds</div>
+        <div class="fund-bar">
+          <div class="fund-segment" style="width:45%;background:var(--accent);">45% Team</div>
+          <div class="fund-segment" style="width:25%;background:var(--blue);">25% Mktg</div>
+          <div class="fund-segment" style="width:15%;background:var(--green);">15% Ops</div>
+          <div class="fund-segment" style="width:15%;background:var(--yellow);color:#1a1a1a;">15% Infra</div>
+        </div>
+        <div class="card" style="margin-top:16px;padding:20px;">
+          <div class="metric-row">
+            <span class="label" style="display:flex;align-items:center;gap:8px;"><span style="width:10px;height:10px;border-radius:3px;background:var(--accent);display:inline-block;"></span> Team (45%)</span>
+            <span class="value">&#x20B9;11&ndash;16L</span>
+          </div>
+          <div style="font-size:11px;color:var(--text-dim);padding:0 0 10px 22px;border-bottom:1px solid var(--border);">Engineer + ops hire for 12 months</div>
+          <div class="metric-row">
+            <span class="label" style="display:flex;align-items:center;gap:8px;"><span style="width:10px;height:10px;border-radius:3px;background:var(--blue);display:inline-block;"></span> Marketing (25%)</span>
+            <span class="value">&#x20B9;6&ndash;9L</span>
+          </div>
+          <div style="font-size:11px;color:var(--text-dim);padding:0 0 10px 22px;border-bottom:1px solid var(--border);">Google Ads, SEO content, founder community</div>
+          <div class="metric-row">
+            <span class="label" style="display:flex;align-items:center;gap:8px;"><span style="width:10px;height:10px;border-radius:3px;background:var(--green);display:inline-block;"></span> Operations (15%)</span>
+            <span class="value">&#x20B9;4&ndash;5L</span>
+          </div>
+          <div style="font-size:11px;color:var(--text-dim);padding:0 0 10px 22px;border-bottom:1px solid var(--border);">CA marketplace setup, working capital</div>
+          <div class="metric-row">
+            <span class="label" style="display:flex;align-items:center;gap:8px;"><span style="width:10px;height:10px;border-radius:3px;background:var(--yellow);display:inline-block;"></span> Tech Infra (15%)</span>
+            <span class="value">&#x20B9;4&ndash;5L</span>
+          </div>
+          <div style="font-size:11px;color:var(--text-dim);padding:0 0 0 22px;">GCP, APIs, tools &amp; software</div>
+        </div>
+      </div>
+      <div>
+        <div class="slide-label" style="margin-bottom:14px;">12-Month Milestones</div>
+        <div class="card" style="padding:32px;text-align:center;border-color:var(--border-accent);">
+          <div style="font-size:48px;font-weight:800;color:var(--accent-light);letter-spacing:-2px;">360</div>
+          <div style="font-size:14px;color:var(--text-muted);margin-bottom:12px;">companies incorporated</div>
+          <div class="divider"></div>
+          <div style="font-size:36px;font-weight:800;color:var(--accent-light);letter-spacing:-1px;margin-top:12px;">175 + 17 + 2</div>
+          <div style="font-size:14px;color:var(--text-muted);margin-bottom:12px;">Starter + Growth + Scale subscribers</div>
+          <div class="divider"></div>
+          <div style="font-size:48px;font-weight:800;color:var(--green);letter-spacing:-2px;margin-top:12px;">&#x20B9;18L</div>
+          <div style="font-size:14px;color:var(--text-muted);margin-bottom:12px;">Year 1 revenue</div>
+          <div class="divider"></div>
+          <div style="font-size:36px;font-weight:800;color:var(--green);letter-spacing:-1px;margin-top:12px;">89%</div>
+          <div style="font-size:14px;color:var(--text-muted);">revenue / burn at M12</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 24: THANK YOU -->
+<!-- ============================================================ -->
+<section class="slide" id="slide-24">
+  <div class="bg-glow" style="top: 50%; left: 50%; transform: translate(-50%, -50%); width: 600px; height: 600px; opacity: 0.4;"></div>
+  <div class="slide-inner cta-slide">
+    <div class="logo">Anvils</div>
+    <div class="big-text">Let's build the<br><span style="color:var(--accent-light);">Company OS</span> for India.</div>
+    <div style="display:flex;flex-direction:column;gap:8px;align-items:center;margin-bottom:40px;">
+      <div class="cta-link"><strong>Email:</strong>&nbsp; [founder@anvils.in]</div>
+      <div class="cta-link"><strong>Website:</strong>&nbsp; anvils.in</div>
+    </div>
+    <div class="round-info" style="font-size:13px;">
+      Pre-Seed &mdash; &#x20B9;25&ndash;35L &mdash; Founder-Fundable &mdash; March 2026
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- JAVASCRIPT -->
+<!-- ============================================================ -->
+<script>
+(function() {
+  const TOTAL_SLIDES = 25;
+  const slides = document.querySelectorAll('.slide');
+  const progressBar = document.getElementById('progress-bar');
+  const slideCounter = document.getElementById('slide-counter');
+  const navDotsContainer = document.getElementById('nav-dots');
+
+  for (let i = 0; i < TOTAL_SLIDES; i++) {
+    const dot = document.createElement('button');
+    dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+    dot.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+    dot.addEventListener('click', () => { slides[i].scrollIntoView({ behavior: 'smooth' }); });
+    navDotsContainer.appendChild(dot);
+  }
+  const navDots = document.querySelectorAll('.nav-dot');
+
+  let currentSlide = 0;
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const slideInner = entry.target.querySelector('.slide-inner');
+      const staggerChildren = entry.target.querySelectorAll('.stagger-children');
+      if (entry.isIntersecting && entry.intersectionRatio > 0.3) {
+        const idx = Array.from(slides).indexOf(entry.target);
+        currentSlide = idx;
+        progressBar.style.width = ((idx + 1) / TOTAL_SLIDES * 100) + '%';
+        slideCounter.innerHTML = '<span>' + (idx + 1) + '</span> / ' + TOTAL_SLIDES;
+        navDots.forEach((dot, i) => { dot.classList.toggle('active', i === idx); });
+        if (slideInner) slideInner.classList.add('visible');
+        staggerChildren.forEach(el => el.classList.add('visible'));
+      }
+    });
+  }, { threshold: [0.3, 0.5] });
+
+  slides.forEach(slide => observer.observe(slide));
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') {
+      e.preventDefault();
+      slides[Math.min(currentSlide + 1, TOTAL_SLIDES - 1)].scrollIntoView({ behavior: 'smooth' });
+    } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft' || e.key === 'PageUp') {
+      e.preventDefault();
+      slides[Math.max(currentSlide - 1, 0)].scrollIntoView({ behavior: 'smooth' });
+    } else if (e.key === 'Home') { e.preventDefault(); slides[0].scrollIntoView({ behavior: 'smooth' }); }
+    else if (e.key === 'End') { e.preventDefault(); slides[TOTAL_SLIDES - 1].scrollIntoView({ behavior: 'smooth' }); }
+  });
+
+  const firstInner = slides[0].querySelector('.slide-inner');
+  if (firstInner) setTimeout(() => firstInner.classList.add('visible'), 100);
+  slides[0].querySelectorAll('.stagger-children').forEach(el => { setTimeout(() => el.classList.add('visible'), 200); });
+})();
+</script>
+</body>
+</html>

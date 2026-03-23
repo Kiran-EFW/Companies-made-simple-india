@@ -7,6 +7,8 @@ Endpoints:
 - GET  /companies/{id}/fundraising/rounds                              List rounds
 - GET  /companies/{id}/fundraising/rounds/{round_id}                   Get round detail
 - PUT  /companies/{id}/fundraising/rounds/{round_id}                   Update round
+- PUT  /companies/{id}/fundraising/rounds/{round_id}/checklist-state   Save checklist state
+- GET  /companies/{id}/fundraising/rounds/{round_id}/checklist-state   Get checklist state
 - POST /companies/{id}/fundraising/rounds/{round_id}/investors         Add investor
 - PUT  /companies/{id}/fundraising/rounds/{round_id}/investors/{inv}   Update investor
 - DELETE /companies/{id}/fundraising/rounds/{round_id}/investors/{inv} Remove investor
@@ -17,6 +19,7 @@ Endpoints:
 - POST /companies/{id}/fundraising/share-deal                          Share deal with investor
 - GET  /companies/{id}/fundraising/shared-deals                        List shared deals
 - DELETE /companies/{id}/fundraising/shared-deals/{share_id}           Revoke a share
+- GET  /companies/{id}/fundraising/valuation-reference                 Valuation for pre-money ref
 """
 
 from typing import Optional, List
@@ -31,6 +34,7 @@ from src.models.user import User
 from src.models.stakeholder import StakeholderProfile
 from src.models.deal_share import DealShare, DealShareStatus
 from src.utils.security import get_current_user
+from src.utils.tier_gate import require_tier
 from src.services.fundraising_service import fundraising_service
 from src.schemas.fundraising import (
     FundingRoundCreate,
@@ -40,6 +44,7 @@ from src.schemas.fundraising import (
     LinkDocumentRequest,
     InitiateClosingRequest,
     CompleteAllotmentRequest,
+    ChecklistStateUpdate,
 )
 
 router = APIRouter(prefix="/companies", tags=["Fundraising"])
@@ -55,6 +60,7 @@ def create_round(
     data: FundingRoundCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Create a new funding round."""
     return fundraising_service.create_round(db, company_id, data.model_dump())
@@ -65,6 +71,7 @@ def list_rounds(
     company_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """List all funding rounds for a company."""
     return fundraising_service.list_rounds(db, company_id)
@@ -76,6 +83,7 @@ def get_round(
     round_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Get round detail with investors and documents."""
     result = fundraising_service.get_round(db, round_id, company_id)
@@ -91,6 +99,7 @@ def update_round(
     data: FundingRoundUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Update round details."""
     result = fundraising_service.update_round(
@@ -99,6 +108,43 @@ def update_round(
     if "error" in result:
         raise HTTPException(status_code=400, detail=result["error"])
     return result
+
+
+# ---------------------------------------------------------------------------
+# Checklist State
+# ---------------------------------------------------------------------------
+
+@router.put("/{company_id}/fundraising/rounds/{round_id}/checklist-state")
+def save_checklist_state(
+    company_id: int,
+    round_id: int,
+    data: ChecklistStateUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
+):
+    """Save the frontend 7-step checklist state for a funding round."""
+    result = fundraising_service.save_checklist_state(
+        db, round_id, company_id, data.state
+    )
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
+    return result
+
+
+@router.get("/{company_id}/fundraising/rounds/{round_id}/checklist-state")
+def get_checklist_state(
+    company_id: int,
+    round_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
+):
+    """Get the current checklist state for a funding round."""
+    result = fundraising_service.get_checklist_state(db, round_id, company_id)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Round not found")
+    return {"checklist_state": result}
 
 
 # ---------------------------------------------------------------------------
@@ -112,6 +158,7 @@ def add_investor(
     data: RoundInvestorCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Add an investor to a round."""
     result = fundraising_service.add_investor(
@@ -130,6 +177,7 @@ def update_investor(
     data: RoundInvestorUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Update investor details and status flags."""
     result = fundraising_service.update_investor(
@@ -147,6 +195,7 @@ def remove_investor(
     investor_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Remove an investor from a round."""
     result = fundraising_service.remove_investor(db, investor_id, company_id)
@@ -166,6 +215,7 @@ def link_document(
     data: LinkDocumentRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Link a legal document (term_sheet/sha/ssa) to a round."""
     result = fundraising_service.link_document(
@@ -183,6 +233,7 @@ def initiate_closing(
     data: InitiateClosingRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Start the closing room — send documents for e-sign."""
     result = fundraising_service.initiate_closing(
@@ -199,6 +250,7 @@ def get_closing_room(
     round_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Get signing status for the closing room."""
     result = fundraising_service.get_closing_room_status(db, round_id, company_id)
@@ -218,6 +270,7 @@ def complete_allotment(
     data: CompleteAllotmentRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Allot shares to investors after closing. Updates cap table."""
     result = fundraising_service.complete_allotment(
@@ -239,6 +292,7 @@ def conversion_preview(
     trigger_round_id: Optional[int] = Query(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Preview SAFE/CCD/Note conversion to equity (read-only)."""
     result = fundraising_service.preview_conversion(
@@ -256,6 +310,7 @@ def convert_round(
     data: Optional[dict] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Execute SAFE/CCD/Note conversion to equity shares."""
     trigger_round_id = (data or {}).get("trigger_round_id")
@@ -282,6 +337,7 @@ def share_deal(
     data: ShareDealRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Share a fundraising deal with a specific investor by email.
 
@@ -352,6 +408,7 @@ def list_shared_deals(
     company_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """List all investors this company's deal has been shared with."""
     shares = (
@@ -377,12 +434,40 @@ def list_shared_deals(
     return {"shared_deals": results}
 
 
+# ---------------------------------------------------------------------------
+# Valuation reference for pre-money valuation
+# ---------------------------------------------------------------------------
+
+@router.get("/{company_id}/fundraising/valuation-reference")
+def get_valuation_reference(
+    company_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
+):
+    """Get latest company valuation for fundraising pre-money reference."""
+    from src.services.valuation_service import valuation_service
+
+    summary = valuation_service.get_latest_valuation_summary(db, company_id)
+    if summary is None:
+        return {
+            "has_valuation": False,
+            "message": "No valuation report found. A valuation can help determine the pre-money valuation for fundraising.",
+        }
+    return {
+        "has_valuation": True,
+        **summary,
+        "fundraising_note": "This valuation can be used as a starting point for pre-money valuation negotiation.",
+    }
+
+
 @router.delete("/{company_id}/fundraising/shared-deals/{share_id}")
 def revoke_shared_deal(
     company_id: int,
     share_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Revoke a deal share — investor will no longer see this deal."""
     share = (

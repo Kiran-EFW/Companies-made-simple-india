@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { useCompany } from "@/lib/company-context";
 import { getCompanies, getTaxOverview, getAuditPack } from "@/lib/api";
 import Link from "next/link";
+import UpsellBanner from "@/components/upsell-banner";
 
 const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
   completed: { bg: "var(--color-success-light)", color: "var(--color-success)" },
@@ -16,6 +18,7 @@ const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
 
 export default function TaxOverviewPage() {
   const { user, loading: authLoading } = useAuth();
+  const { selectedCompany: selectedCompanyCtx } = useCompany();
   const [companies, setCompanies] = useState<any[]>([]);
   const [selectedCompany, setSelectedCompany] = useState<number | null>(null);
   const [taxData, setTaxData] = useState<any>(null);
@@ -98,6 +101,7 @@ export default function TaxOverviewPage() {
       </nav>
 
       <div className="max-w-7xl mx-auto px-6 py-8">
+        {selectedCompanyCtx && <UpsellBanner pageKey="tax" companyId={selectedCompanyCtx.id} />}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
             <h1 className="text-3xl font-bold mb-2" style={{ fontFamily: "var(--font-display)" }}>Tax Overview</h1>

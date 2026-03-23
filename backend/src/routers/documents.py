@@ -12,6 +12,7 @@ from src.models.document import Document, DocumentType
 from src.schemas.document import DocumentOut, DocumentUploadResponse
 from src.utils.security import get_current_user
 from src.utils.admin_auth import get_admin_user
+from src.utils.tier_gate import get_active_subscription_tier, TIER_ORDER
 from src.services.orchestrator import ProcessOrchestrator
 from pydantic import BaseModel
 
@@ -176,6 +177,20 @@ async def upload_pitch_deck(
     ).first()
     if not comp:
         raise HTTPException(status_code=404, detail="Company not found")
+
+    # Pitch deck is a Growth-tier feature
+    current_tier = get_active_subscription_tier(company_id, db)
+    if TIER_ORDER.get(current_tier, 0) < TIER_ORDER["growth"]:
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "error": "subscription_required",
+                "message": "Pitch deck upload requires the Growth plan or higher.",
+                "current_tier": current_tier,
+                "required_tier": "growth",
+                "upgrade_url": "/dashboard/services?upgrade=growth",
+            },
+        )
 
     safe_filename = f"comp_{company_id}_pitch_deck{file_ext}"
     file_path = os.path.join(UPLOAD_DIR, safe_filename)

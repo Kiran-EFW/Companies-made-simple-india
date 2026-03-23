@@ -1,5 +1,5 @@
 import enum
-from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, ForeignKey, Enum, Text
+from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, ForeignKey, Enum, Text, JSON
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 from src.database import Base
@@ -64,6 +64,12 @@ class FundingRound(Base):
     # Post-close
     allotment_date = Column(DateTime, nullable=True)
     allotment_completed = Column(Boolean, default=False)
+
+    # Workflow checklist state (persisted from frontend 7-step checklist)
+    checklist_state = Column(JSON, default=dict)
+    # Keys: term_sheet_finalized, sha_drafted, sha_signed, board_resolution_passed,
+    #   shareholder_resolution_passed, filings_submitted (MGT-14, SH-7),
+    #   allotment_done, post_close_complete
 
     notes = Column(Text, nullable=True)
 

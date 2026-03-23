@@ -31,6 +31,24 @@ class ESOPService:
         self, db: Session, company_id: int, data: Dict[str, Any]
     ) -> Dict[str, Any]:
         """Create a new ESOP plan."""
+        from src.models.company import Company, EntityType
+
+        # Entity type guard — block entity types that don't support ESOPs
+        company = db.query(Company).filter(Company.id == company_id).first()
+        if not company:
+            return {"error": "Company not found"}
+
+        blocked_types = {
+            EntityType.SOLE_PROPRIETORSHIP,
+            EntityType.PARTNERSHIP,
+            EntityType.LLP,
+            EntityType.SECTION_8,
+        }
+        if company.entity_type in blocked_types:
+            return {
+                "error": f"ESOP plans are not available for {company.entity_type.value} entities"
+            }
+
         effective_date = None
         if data.get("effective_date"):
             effective_date = datetime.strptime(
@@ -172,9 +190,25 @@ class ESOPService:
         ):
             return {"error": f"Cannot activate plan in '{plan.status.value}' status"}
 
+        # Validate required documents are linked before activation
+        if not plan.board_resolution_document_id:
+            return {"error": "Board resolution document must be linked before activating the plan"}
+        if not plan.shareholder_resolution_document_id:
+            return {"error": "Shareholder resolution document must be linked before activating the plan"}
+
+        # Warn (log only) if special resolution hasn't been passed
+        approval_state = plan.approval_state or {}
+        if not approval_state.get("special_resolution_passed"):
+            logger.warning(
+                "Plan %s activated without special_resolution_passed in approval_state",
+                plan_id,
+            )
+
         plan.status = ESOPPlanStatus.ACTIVE
         if not plan.effective_date:
             plan.effective_date = datetime.now(timezone.utc)
+        if not plan.board_resolution_date:
+            plan.board_resolution_date = datetime.now(timezone.utc)
 
         try:
             db.commit()
@@ -666,6 +700,157 @@ class ESOPService:
         }
 
     # ------------------------------------------------------------------
+    # Approval State & Document Linking
+    # ------------------------------------------------------------------
+
+    def save_approval_state(
+        self, db: Session, plan_id: int, company_id: int, state: dict
+    ) -> Dict[str, Any]:
+        """Persist the frontend approval-wizard state on the plan."""
+        plan = (
+            db.query(ESOPPlan)
+            .filter(ESOPPlan.id == plan_id, ESOPPlan.company_id == company_id)
+            .first()
+        )
+        if not plan:
+            return {"error": "Plan not found"}
+
+        plan.approval_state = state
+
+        try:
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
+        db.refresh(plan)
+
+        return self._serialize_plan(db, plan)
+
+    def link_document(
+        self,
+        db: Session,
+        plan_id: int,
+        company_id: int,
+        doc_type: str,
+        document_id: int,
+    ) -> Dict[str, Any]:
+        """Link a document (board resolution, shareholder resolution, or plan doc) to a plan."""
+        plan = (
+            db.query(ESOPPlan)
+            .filter(ESOPPlan.id == plan_id, ESOPPlan.company_id == company_id)
+            .first()
+        )
+        if not plan:
+            return {"error": "Plan not found"}
+
+        field_map = {
+            "board_resolution": "board_resolution_document_id",
+            "shareholder_resolution": "shareholder_resolution_document_id",
+            "plan_document": "plan_document_id",
+        }
+
+        if doc_type not in field_map:
+            return {
+                "error": (
+                    f"Invalid doc_type '{doc_type}'. "
+                    f"Must be one of: {', '.join(field_map.keys())}"
+                )
+            }
+
+        setattr(plan, field_map[doc_type], document_id)
+
+        # Also record in approval_state
+        current_state = plan.approval_state or {}
+        current_state[f"{doc_type}_document_id"] = document_id
+        plan.approval_state = current_state
+
+        try:
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
+        db.refresh(plan)
+
+        return self._serialize_plan(db, plan)
+
+    # ------------------------------------------------------------------
+    # Grant Acceptance Tracking
+    # ------------------------------------------------------------------
+
+    def check_grant_acceptance(
+        self, db: Session, grant_id: int, company_id: int
+    ) -> Dict[str, Any]:
+        """
+        Check whether the grantee has signed the grant letter.
+        If all signatories have signed, update grant status to ACCEPTED.
+        """
+        from src.models.esign import SignatureRequest, Signatory
+
+        grant = (
+            db.query(ESOPGrant)
+            .filter(ESOPGrant.id == grant_id, ESOPGrant.company_id == company_id)
+            .first()
+        )
+        if not grant:
+            return {"error": "Grant not found"}
+
+        if not grant.acceptance_signature_request_id:
+            return {
+                "grant_id": grant.id,
+                "status": grant.status.value if grant.status else "draft",
+                "acceptance_status": "no_signature_request",
+                "accepted_at": None,
+            }
+
+        sig_request = (
+            db.query(SignatureRequest)
+            .filter(SignatureRequest.id == grant.acceptance_signature_request_id)
+            .first()
+        )
+        if not sig_request:
+            return {
+                "grant_id": grant.id,
+                "status": grant.status.value if grant.status else "draft",
+                "acceptance_status": "signature_request_not_found",
+                "accepted_at": None,
+            }
+
+        signatories = (
+            db.query(Signatory)
+            .filter(Signatory.signature_request_id == sig_request.id)
+            .all()
+        )
+
+        all_signed = all(s.status == "signed" for s in signatories) and len(signatories) > 0
+
+        if all_signed and grant.status != ESOPGrantStatus.ACCEPTED:
+            grant.status = ESOPGrantStatus.ACCEPTED
+            grant.accepted_at = datetime.now(timezone.utc)
+            try:
+                db.commit()
+            except Exception:
+                db.rollback()
+                raise
+            db.refresh(grant)
+
+        return {
+            "grant_id": grant.id,
+            "status": grant.status.value if grant.status else "draft",
+            "acceptance_status": "accepted" if all_signed else "pending",
+            "accepted_at": grant.accepted_at.isoformat() if grant.accepted_at else None,
+            "signature_request_status": sig_request.status,
+            "signatories": [
+                {
+                    "name": s.name,
+                    "email": s.email,
+                    "status": s.status,
+                    "signed_at": s.signed_at.isoformat() if s.signed_at else None,
+                }
+                for s in signatories
+            ],
+        }
+
+    # ------------------------------------------------------------------
     # Private helpers
     # ------------------------------------------------------------------
 
@@ -827,6 +1012,12 @@ class ESOPService:
             "dpiit_recognized": plan.dpiit_recognized or False,
             "dpiit_recognition_number": plan.dpiit_recognition_number,
             "tax_deferral_eligible": bool(plan.dpiit_recognized and plan.dpiit_recognition_number),
+            "approval_state": plan.approval_state or {},
+            "board_resolution_document_id": plan.board_resolution_document_id,
+            "shareholder_resolution_document_id": plan.shareholder_resolution_document_id,
+            "plan_document_id": plan.plan_document_id,
+            "board_resolution_date": plan.board_resolution_date.isoformat() if plan.board_resolution_date else None,
+            "shareholder_resolution_date": plan.shareholder_resolution_date.isoformat() if plan.shareholder_resolution_date else None,
             "total_grants": len(grants),
             "active_grants": sum(1 for g in grants if g.status in active_statuses),
             "created_at": plan.created_at.isoformat() if plan.created_at else None,
@@ -873,6 +1064,8 @@ class ESOPService:
             "options_lapsed": grant.options_lapsed,
             "status": grant.status.value if grant.status else "draft",
             "grant_letter_document_id": grant.grant_letter_document_id,
+            "accepted_at": grant.accepted_at.isoformat() if grant.accepted_at else None,
+            "acceptance_signature_request_id": grant.acceptance_signature_request_id,
             "vesting_schedule": schedule,
             "created_at": grant.created_at.isoformat() if grant.created_at else None,
             "updated_at": grant.updated_at.isoformat() if grant.updated_at else None,

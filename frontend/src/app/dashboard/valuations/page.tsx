@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { calculateNAV, calculateDCF, createValuation, listValuations } from "@/lib/api";
 import { useCompany } from "@/lib/company-context";
+import FeatureGate from "@/components/feature-gate";
 import {
   LineChart,
   Line,
@@ -111,8 +112,13 @@ export default function ValuationsPage() {
     return `Rs ${val.toLocaleString()}`;
   }
 
-  if (!companyId) {
-    return (
+  return (
+    <FeatureGate
+      moduleKey="valuations"
+      featureName="Company Valuations"
+      featureDescription="NAV and DCF valuation calculators for Rule 11UA FMV compliance."
+    >
+    {!companyId ? (
       <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="text-center mb-8">
           <div className="badge badge-purple mb-4 mx-auto w-fit">Valuation Engine</div>
@@ -127,10 +133,7 @@ export default function ValuationsPage() {
           </p>
         </div>
       </div>
-    );
-  }
-
-  return (
+    ) : (
     <div>
       <div className="max-w-6xl mx-auto px-6 py-8">
         {/* Header */}
@@ -594,5 +597,7 @@ export default function ValuationsPage() {
         )}
       </div>
     </div>
+    )}
+    </FeatureGate>
   );
 }

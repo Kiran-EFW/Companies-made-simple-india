@@ -81,6 +81,48 @@ def _clause(
 
 
 # ---------------------------------------------------------------------------
+# Entity type applicability for each template
+# None = available to all entity types
+# ---------------------------------------------------------------------------
+
+TEMPLATE_ENTITY_TYPES = {
+    # Core templates available to ALL entity types
+    "founder_agreement": None,
+    "nda": None,
+    "employment_agreement": None,
+    "consultancy_agreement": None,
+    "privacy_policy": None,
+    "terms_of_service": None,
+    "offer_letter": None,
+    "ip_assignment": None,
+    "posh_policy": None,
+    "msa": None,
+    "vendor_agreement": None,
+    "saas_agreement": None,
+    "freelancer_agreement": None,
+    "internship_agreement": None,
+    "letter_of_intent": None,
+    "power_of_attorney": None,
+    "legal_notice": None,
+    "annual_compliance_checklist": None,
+    "advisor_agreement": None,
+
+    # Share-based templates — only for companies with share capital
+    "shareholders_agreement": ["private_limited", "opc", "public_limited", "section_8", "nidhi", "producer_company"],
+    "term_sheet": ["private_limited", "opc", "public_limited", "section_8"],
+    "share_transfer": ["private_limited", "opc", "public_limited", "section_8", "nidhi", "producer_company"],
+    "esop_plan": ["private_limited", "public_limited", "section_8"],
+    "convertible_note": ["private_limited", "public_limited"],
+
+    # Board/meeting templates — only entities with boards
+    "board_resolution": ["private_limited", "opc", "public_limited", "section_8", "nidhi", "producer_company"],
+    "agm_notice": ["private_limited", "public_limited", "section_8", "nidhi", "producer_company"],
+    "egm_notice": ["private_limited", "public_limited", "section_8", "nidhi", "producer_company"],
+    "circular_resolution": ["private_limited", "opc", "public_limited", "section_8", "nidhi", "producer_company"],
+}
+
+
+# ---------------------------------------------------------------------------
 # ContractTemplateService
 # ---------------------------------------------------------------------------
 
@@ -92,10 +134,18 @@ class ContractTemplateService:
 
     # -- public API ---------------------------------------------------------
 
-    def get_available_templates(self) -> List[dict]:
-        """Return list of available template metadata (no clause details)."""
+    def get_available_templates(self, entity_type: Optional[str] = None) -> List[dict]:
+        """Return list of available template metadata (no clause details).
+
+        If *entity_type* is provided, templates whose ``entity_types`` list
+        does not include the given type are excluded from the result.
+        """
         result = []
         for key, tpl in self._templates.items():
+            tpl_entity_types = tpl.get("entity_types")
+            # Filter: if entity_type given and template has restrictions, check membership
+            if entity_type and tpl_entity_types is not None and entity_type not in tpl_entity_types:
+                continue
             result.append({
                 "template_type": key,
                 "name": tpl["name"],
@@ -103,6 +153,7 @@ class ContractTemplateService:
                 "category": tpl["category"],
                 "total_steps": len(tpl["steps"]),
                 "total_clauses": sum(len(s["clauses"]) for s in tpl["steps"]),
+                "entity_types": tpl_entity_types,  # None means all
             })
         return result
 
@@ -151,6 +202,7 @@ class ContractTemplateService:
             "name": tpl["name"],
             "description": tpl["description"],
             "category": tpl["category"],
+            "entity_types": tpl.get("entity_types"),
             "steps": api_steps,
             "clauses": flat_clauses,
         }
@@ -282,6 +334,11 @@ class ContractTemplateService:
         templates.update(TIER3A_TEMPLATES)
         templates.update(TIER3B_TEMPLATES)
         templates.update(TIER4_TEMPLATES)
+
+        # Apply entity type restrictions from the module-level mapping
+        for key, tpl in templates.items():
+            tpl["entity_types"] = TEMPLATE_ENTITY_TYPES.get(key)  # None means all types
+
         return templates
 
     # -- private helpers ----------------------------------------------------

@@ -1,9 +1,15 @@
+import uuid
+from datetime import datetime, timedelta, timezone
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from src.database import get_db
 from src.models.user import User, UserRole
-from src.schemas.auth import UserCreate, UserLogin, UserOut, UserUpdate, PasswordChange, Token
+from src.schemas.auth import (
+    UserCreate, UserLogin, UserOut, UserUpdate, PasswordChange, Token,
+    ForgotPasswordRequest, ResetPasswordRequest,
+)
 from src.utils.security import get_password_hash, verify_password, create_access_token, get_current_user
 from src.utils.validators import validate_phone
 from src.services.email_service import email_service
@@ -100,6 +106,64 @@ def change_password(
     current_user.hashed_password = get_password_hash(data.new_password)
     db.commit()
     return {"message": "Password updated successfully"}
+
+
+@router.post("/forgot-password")
+def forgot_password(data: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    """Request a password reset link.
+
+    Always returns a generic success message regardless of whether the email
+    exists, to avoid leaking user-existence information.
+    """
+    user = db.query(User).filter(User.email == data.email).first()
+
+    if user:
+        token = uuid.uuid4().hex
+        user.reset_token = token
+        user.reset_token_expiry = datetime.now(timezone.utc) + timedelta(hours=1)
+        db.commit()
+
+        email_service.send_password_reset_email(
+            user_email=user.email,
+            user_name=user.full_name,
+            reset_token=token,
+        )
+
+    return {"message": "If that email is registered, you will receive a password reset link shortly."}
+
+
+@router.post("/reset-password")
+def reset_password(data: ResetPasswordRequest, db: Session = Depends(get_db)):
+    """Reset the user's password using a valid reset token."""
+    user = db.query(User).filter(User.reset_token == data.token).first()
+
+    if not user or user.reset_token_expiry is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired reset token",
+        )
+
+    # Ensure the expiry is timezone-aware for comparison
+    expiry = user.reset_token_expiry
+    if expiry.tzinfo is None:
+        expiry = expiry.replace(tzinfo=timezone.utc)
+
+    if datetime.now(timezone.utc) > expiry:
+        # Token has expired — clear it and reject
+        user.reset_token = None
+        user.reset_token_expiry = None
+        db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired reset token",
+        )
+
+    user.hashed_password = get_password_hash(data.new_password)
+    user.reset_token = None
+    user.reset_token_expiry = None
+    db.commit()
+
+    return {"message": "Password has been reset successfully."}
 
 
 # ── Dev Bypass (demo/investor preview) ──────────────────────────────────────

@@ -928,6 +928,115 @@ class ESignService:
         )
         db.add(log)
 
+    def _auto_file_signed_document(
+        self,
+        db: Session,
+        signature_request: SignatureRequest,
+    ) -> None:
+        """Auto-file a completed signed document to the company's data room.
+
+        Creates a physical HTML file on disk and a corresponding DataRoomFile
+        record under a "Signed Documents" folder.  The operation is idempotent
+        -- if a record already exists for this document it is silently skipped.
+
+        All I/O is wrapped in try/except so a failure here never breaks the
+        signing flow.
+        """
+        import os
+        from src.models.data_room import DataRoomFile, DataRoomFolder
+        from src.models.legal_template import LegalDocument
+
+        try:
+            # Get the associated legal document
+            if not signature_request.legal_document_id:
+                return
+
+            doc = (
+                db.query(LegalDocument)
+                .filter(LegalDocument.id == signature_request.legal_document_id)
+                .first()
+            )
+            if not doc or not doc.company_id:
+                return
+
+            company_id = doc.company_id
+
+            # Find or create "Signed Documents" folder in the data room
+            folder = (
+                db.query(DataRoomFolder)
+                .filter(
+                    DataRoomFolder.company_id == company_id,
+                    DataRoomFolder.folder_type == "SIGNED_DOCUMENTS",
+                )
+                .first()
+            )
+            if not folder:
+                folder = DataRoomFolder(
+                    company_id=company_id,
+                    name="Signed Documents",
+                    folder_type="SIGNED_DOCUMENTS",
+                    sort_order=99,
+                )
+                db.add(folder)
+                db.flush()
+
+            # Build a deterministic filename for idempotency
+            filename = "signed_{template}_{doc_id}.html".format(
+                template=doc.template_type,
+                doc_id=doc.id,
+            )
+
+            # Check if already filed
+            existing = (
+                db.query(DataRoomFile)
+                .filter(
+                    DataRoomFile.company_id == company_id,
+                    DataRoomFile.folder_id == folder.id,
+                    DataRoomFile.filename == filename,
+                )
+                .first()
+            )
+            if existing:
+                return  # Already filed
+
+            # Write the signed HTML to disk
+            upload_dir = os.path.join("uploads/data_room", str(company_id))
+            os.makedirs(upload_dir, exist_ok=True)
+            file_path = os.path.join(upload_dir, filename)
+
+            # Prefer the fully-signed HTML that includes embedded signatures;
+            # fall back to the original generated HTML from the legal document.
+            html_content = signature_request.signed_document_html or doc.generated_html
+            if not html_content:
+                return  # No content to file
+
+            with open(file_path, "w", encoding="utf-8") as f:
+                f.write(html_content)
+
+            file_record = DataRoomFile(
+                company_id=company_id,
+                folder_id=folder.id,
+                uploaded_by=doc.user_id,
+                filename=filename,
+                original_filename="{title}.html".format(
+                    title=doc.title or doc.template_type,
+                ),
+                file_path=file_path,
+                file_size=(
+                    len(html_content.encode("utf-8")) if html_content else 0
+                ),
+                mime_type="text/html",
+                description="Signed: {title}".format(
+                    title=signature_request.title or doc.title,
+                ),
+                tags=["signed", "esign", doc.template_type],
+                retention_category="PERMANENT",
+            )
+            db.add(file_record)
+        except Exception:
+            # Never let a filing failure break the signing flow.
+            pass
+
     def _complete_request(self, db: Session, sig_request: SignatureRequest) -> None:
         """All parties signed -- generate final signed document and certificate.
 
@@ -935,6 +1044,7 @@ class ESignService:
         2. Generates audit certificate with tamper-detection hash
         3. Updates request status to completed
         4. Sends completion emails to creator and all signatories
+        5. Auto-files the signed document to the company data room
         """
         signatories = (
             db.query(Signatory)
@@ -981,6 +1091,9 @@ class ESignService:
                 ).hexdigest(),
             },
         )
+
+        # Auto-file the signed document to the company data room
+        self._auto_file_signed_document(db, sig_request)
 
         # Send completion email to creator
         if creator:

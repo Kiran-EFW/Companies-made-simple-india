@@ -4,6 +4,8 @@ Anvils Financial Planning Model — Interactive Streamlit App
 Run: streamlit run tools/financial-model/app.py
 """
 
+import sys
+import os
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
@@ -89,6 +91,125 @@ DEFAULT_ROLES = [
     # Finance & Admin
     {"role": "Finance / Accounts", "dept": "Finance & Admin", "min_ctc": 2_00_000, "max_ctc": 5_00_000, "default_ctc": 3_00_000, "default_count": 0, "required": False, "description": "Internal bookkeeping, payroll, vendor payments"},
 ]
+
+# ─── Import services catalog from backend (fallback to inline) ────────────────
+
+_backend_path = os.path.join(os.path.dirname(__file__), "..", "..", "backend", "src", "services")
+_backend_path = os.path.abspath(_backend_path)
+if os.path.isdir(_backend_path):
+    sys.path.insert(0, _backend_path)
+
+try:
+    from services_catalog import SERVICES_CATALOG, SUBSCRIPTION_PLANS
+    _CATALOG_IMPORTED = True
+except ImportError:
+    _CATALOG_IMPORTED = False
+    SERVICES_CATALOG = []
+    SUBSCRIPTION_PLANS = []
+
+try:
+    from pricing_engine import PLATFORM_FEES as _BACKEND_PLATFORM_FEES, STAMP_DUTY_RATES, STATE_DISPLAY_NAMES, calc_stamp_duty, DSC_PRICES, DSC_TOKEN_PRICE, PAN_APPLICATION_FEE, TAN_APPLICATION_FEE, calc_mca_name_reservation_fee, calc_fillip_filing_fee
+    _PRICING_IMPORTED = True
+except ImportError:
+    _PRICING_IMPORTED = False
+    _BACKEND_PLATFORM_FEES = {}
+    STAMP_DUTY_RATES = {}
+    STATE_DISPLAY_NAMES = {}
+
+# ─── Market Rates Data (from research — March 2026) ──────────────────────────
+
+# Market rate ranges for each service (professional/platform fees only, excl. govt)
+# Keys match services_catalog.py service keys
+MARKET_RATES = {
+    # Registration
+    "gst_registration":      {"low": 499,   "high": 1999,  "sources": "Vakilsearch, LegalWiz"},
+    "msme_udyam":            {"low": 499,   "high": 2899,  "sources": "IndiaFilings; govt portal free"},
+    "trademark_registration":{"low": 1899,  "high": 4999,  "sources": "IndiaFilings, LegalWiz"},
+    "iec_code":              {"low": 1499,  "high": 3999,  "sources": "Typical platform pricing"},
+    "fssai_basic":           {"low": 1899,  "high": 3499,  "sources": "IndiaFilings"},
+    "fssai_state":           {"low": 4999,  "high": 9999,  "sources": "IndiaFilings"},
+    "dpiit_startup":         {"low": 1999,  "high": 4999,  "sources": "Govt portal free for self-filing"},
+    "professional_tax":      {"low": 999,   "high": 2499,  "sources": "Typical CA charges"},
+    "esi_registration":      {"low": 1499,  "high": 3999,  "sources": "Typical CA charges"},
+    "epfo_registration":     {"low": 1499,  "high": 3999,  "sources": "Typical CA charges"},
+    "iso_9001":              {"low": 15000, "high": 40000, "sources": "Certification body + consultant"},
+    # Compliance (annual)
+    "annual_roc_filing":     {"low": 5000,  "high": 15000, "sources": "IndiaFilings, typical CA/CS"},
+    "llp_annual_filing":     {"low": 3299,  "high": 8000,  "sources": "LegalWiz"},
+    "dir3_kyc":              {"low": 300,   "high": 1000,  "sources": "Typical CA charges"},
+    "adt1_auditor":          {"low": 1500,  "high": 3000,  "sources": "Typical CS filing charge"},
+    "inc20a_commencement":   {"low": 1500,  "high": 3500,  "sources": "Typical CS/CA firms"},
+    # Tax
+    "itr_company":           {"low": 3000,  "high": 15000, "sources": "LegalWiz, typical CA firms"},
+    "itr_llp":               {"low": 2000,  "high": 8000,  "sources": "Typical CA charges"},
+    "itr_individual":        {"low": 500,   "high": 3000,  "sources": "LegalWiz (from Rs 768)"},
+    "gst_monthly_filing":    {"low": 400,   "high": 2500,  "sources": "MyOnlineCA, LegalWiz, IndiaFilings"},
+    "tds_quarterly":         {"low": 1500,  "high": 5000,  "sources": "LegalWiz (Rs 4,699+)"},
+    "gst_annual_return":     {"low": 3000,  "high": 10000, "sources": "Typical CA firms"},
+    "statutory_audit":       {"low": 10000, "high": 50000, "sources": "Quote-based; turnover-dependent"},
+    # Accounting
+    "bookkeeping_basic":     {"low": 1500,  "high": 5000,  "sources": "Freelance CA / platforms"},
+    "bookkeeping_standard":  {"low": 4000,  "high": 10000, "sources": "Typical CA firm charges"},
+    "payroll":               {"low": 1000,  "high": 5000,  "sources": "Rs 50-150/employee/month"},
+    # Amendments
+    "director_change":       {"low": 2999,  "high": 7999,  "sources": "Typical CS/CA firms"},
+    "share_transfer":        {"low": 3999,  "high": 9999,  "sources": "Varies by complexity"},
+    "share_allotment":       {"low": 4999,  "high": 12000, "sources": "Typical CS charges"},
+    "increase_capital":      {"low": 5499,  "high": 15000, "sources": "LegalWiz (from Rs 5,499)"},
+    "registered_office_change":{"low": 2999,"high": 7999,  "sources": "Typical CS firms"},
+    "company_name_change":   {"low": 4999,  "high": 9999,  "sources": "Typical CS firms"},
+    "company_closure":       {"low": 7999,  "high": 15000, "sources": "Complex process"},
+    "partner_change_llp":    {"low": 2999,  "high": 5999,  "sources": "Typical CS charges"},
+    # Legal
+    "trademark_objection":   {"low": 3999,  "high": 9999,  "sources": "IP attorney charges"},
+    "legal_notice_drafting": {"low": 2999,  "high": 7999,  "sources": "Advocate charges"},
+    "virtual_office":        {"low": 7999,  "high": 14000, "sources": "IndiaFilings (from Rs 14,000/yr)"},
+}
+
+# Market rates for incorporation platform fees (professional fee only)
+INCORP_MARKET_RATES = {
+    "Private Limited": {"low": 999,  "high": 10999, "sources": "Vakilsearch, LegalWiz, MyOnlineCA, LegalRaasta"},
+    "OPC":             {"low": 999,  "high": 5999,  "sources": "Vakilsearch"},
+    "LLP":             {"low": 2899, "high": 8999,  "sources": "IndiaFilings, MyOnlineCA"},
+}
+
+# Stamp duty typical ranges (most common states)
+STAMP_DUTY_EXAMPLES = {
+    "Delhi":       {"moa": 200, "aoa": 300},
+    "Maharashtra": {"moa": 200, "aoa": 1000},
+    "Karnataka":   {"moa": 500, "aoa": 500},
+    "Tamil Nadu":  {"moa": 300, "aoa": 300},
+    "Gujarat":     {"moa": 200, "aoa": 300},
+    "Punjab":      {"moa": 5000, "aoa": 5000},
+    "Kerala":      {"moa": 200, "aoa": 2000},
+}
+
+# Annual mandatory compliance costs by entity type (Year 1)
+ANNUAL_COMPLIANCE = {
+    "Private Limited": [
+        {"name": "Annual ROC Filing (AOC-4 + MGT-7)", "key": "annual_roc_filing", "anvils": 7999, "govt": 600, "low": 5000, "high": 15000, "freq": "Annual"},
+        {"name": "DIR-3 KYC (2 directors)", "key": "dir3_kyc", "anvils": 998, "govt": 0, "low": 600, "high": 2000, "freq": "Annual"},
+        {"name": "ADT-1 Auditor Appointment", "key": "adt1_auditor", "anvils": 1999, "govt": 300, "low": 1500, "high": 3000, "freq": "Annual"},
+        {"name": "Statutory Audit", "key": "statutory_audit", "anvils": 14999, "govt": 0, "low": 10000, "high": 25000, "freq": "Annual"},
+        {"name": "ITR-6 Filing", "key": "itr_company", "anvils": 4999, "govt": 0, "low": 3000, "high": 15000, "freq": "Annual"},
+        {"name": "INC-20A Commencement (Year 1)", "key": "inc20a_commencement", "anvils": 1999, "govt": 500, "low": 1500, "high": 3500, "freq": "One-time"},
+        {"name": "TDS Returns (4 quarters)", "key": "tds_quarterly", "anvils": 9996, "govt": 0, "low": 6000, "high": 20000, "freq": "4x/year"},
+        {"name": "GST Monthly Filing (12 months)", "key": "gst_monthly_filing", "anvils": 11988, "govt": 0, "low": 4800, "high": 30000, "freq": "12x/year"},
+    ],
+    "OPC": [
+        {"name": "Annual ROC Filing (AOC-4 + MGT-7A)", "key": "annual_roc_filing", "anvils": 7999, "govt": 600, "low": 5000, "high": 12000, "freq": "Annual"},
+        {"name": "DIR-3 KYC (1 director)", "key": "dir3_kyc", "anvils": 499, "govt": 0, "low": 300, "high": 1000, "freq": "Annual"},
+        {"name": "Statutory Audit", "key": "statutory_audit", "anvils": 14999, "govt": 0, "low": 8000, "high": 20000, "freq": "Annual"},
+        {"name": "ITR-6 Filing", "key": "itr_company", "anvils": 4999, "govt": 0, "low": 3000, "high": 10000, "freq": "Annual"},
+        {"name": "INC-20A Commencement (Year 1)", "key": "inc20a_commencement", "anvils": 1999, "govt": 500, "low": 1500, "high": 3500, "freq": "One-time"},
+    ],
+    "LLP": [
+        {"name": "LLP Annual Filing (Form 8 + Form 11)", "key": "llp_annual_filing", "anvils": 5999, "govt": 200, "low": 3299, "high": 8000, "freq": "Annual"},
+        {"name": "DIR-3 KYC (2 partners)", "key": "dir3_kyc", "anvils": 998, "govt": 0, "low": 600, "high": 2000, "freq": "Annual"},
+        {"name": "ITR-5 Filing", "key": "itr_llp", "anvils": 2999, "govt": 0, "low": 2000, "high": 8000, "freq": "Annual"},
+        {"name": "Statutory Audit (if turnover > Rs 40L)", "key": "statutory_audit", "anvils": 14999, "govt": 0, "low": 8000, "high": 20000, "freq": "Annual (conditional)"},
+    ],
+}
 
 
 # ─── Session State Initialization ─────────────────────────────────────────────
@@ -231,13 +352,14 @@ free_incorp_pct = st.sidebar.slider(
 st.title("Anvils — Financial Planning Model")
 st.caption("Interactive financial model for staffing, revenue, and P&L projections. Adjust inputs in the sidebar and staffing below.")
 
-tab_staff, tab_pricing, tab_revenue, tab_unit, tab_pl, tab_scenario = st.tabs([
+tab_staff, tab_pricing, tab_revenue, tab_unit, tab_pl, tab_scenario, tab_market = st.tabs([
     "Staffing & Salaries",
     "Pricing Configuration",
     "Revenue Projections",
     "Unit Economics",
     "P&L Dashboard",
     "Scenario Analysis",
+    "Market Rates & Pricing",
 ])
 
 
@@ -1072,6 +1194,674 @@ with tab_scenario:
             st.markdown(f"- {rec}")
     else:
         st.success("Configuration looks healthy. No major flags.")
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# TAB 7: MARKET RATES & PRICING
+# ══════════════════════════════════════════════════════════════════════════════
+
+with tab_market:
+    st.header("Market Rates & Pricing Comparison")
+    st.caption("Compare Anvils marketplace fees against market rates from Vakilsearch, IndiaFilings, LegalWiz, MyOnlineCA, and other platforms. Data surveyed March 2026.")
+
+    mkt_sec1, mkt_sec2, mkt_sec3, mkt_sec4 = st.tabs([
+        "Services Comparison",
+        "Incorporation Calculator",
+        "Annual Compliance",
+        "Pricing Modeler",
+    ])
+
+    # Fallback Anvils fees (used when backend import unavailable)
+    _FALLBACK_ANVILS_FEES = {
+        "gst_registration": 499, "msme_udyam": 499, "trademark_registration": 4999,
+        "iec_code": 1999, "fssai_basic": 2499, "fssai_state": 5999,
+        "dpiit_startup": 2999, "professional_tax": 1499, "esi_registration": 2499,
+        "epfo_registration": 2499, "iso_9001": 19999,
+        "annual_roc_filing": 7999, "llp_annual_filing": 5999, "dir3_kyc": 499,
+        "adt1_auditor": 1999, "inc20a_commencement": 1999,
+        "itr_company": 4999, "itr_llp": 2999, "itr_individual": 999,
+        "gst_monthly_filing": 999, "tds_quarterly": 2499, "gst_annual_return": 4999,
+        "statutory_audit": 14999,
+        "bookkeeping_basic": 2999, "bookkeeping_standard": 5999, "payroll": 1999,
+        "director_change": 3499, "share_transfer": 4999, "share_allotment": 5999,
+        "increase_capital": 5999, "registered_office_change": 3499,
+        "company_name_change": 5999, "company_closure": 7999,
+        "partner_change_llp": 3499,
+        "trademark_objection": 4999, "legal_notice_drafting": 3499, "virtual_office": 7999,
+    }
+
+    # ── Section 1: Services Marketplace Comparison ────────────────────────
+    with mkt_sec1:
+        st.subheader("Anvils Marketplace vs Market Rates")
+        st.markdown("All prices are platform/professional fees in Rs. Government fees are pass-through and identical across platforms.")
+
+        # Build comparison data from services catalog or fallback
+        svc_comparison = []
+        if _CATALOG_IMPORTED and SERVICES_CATALOG:
+            for svc in SERVICES_CATALOG:
+                mkt = MARKET_RATES.get(svc["key"])
+                if mkt:
+                    anvils_fee = svc["platform_fee"]
+                    mkt_low = mkt["low"]
+                    mkt_high = mkt["high"]
+                    mkt_mid = (mkt_low + mkt_high) / 2
+
+                    if anvils_fee < mkt_low:
+                        position = "Below Market"
+                    elif anvils_fee <= mkt_mid:
+                        position = "At Market"
+                    else:
+                        position = "Above Market"
+
+                    svc_comparison.append({
+                        "Service": svc["name"],
+                        "Category": svc["category"].title(),
+                        "Frequency": svc["frequency"].replace("_", " ").title(),
+                        "Anvils Fee": anvils_fee,
+                        "Market Low": mkt_low,
+                        "Market High": mkt_high,
+                        "Position": position,
+                        "Govt Fee": svc["government_fee"],
+                        "Sources": mkt["sources"],
+                    })
+        else:
+            for key, mkt in MARKET_RATES.items():
+                anvils_fee = _FALLBACK_ANVILS_FEES.get(key, 0)
+                mkt_low = mkt["low"]
+                mkt_high = mkt["high"]
+                mkt_mid = (mkt_low + mkt_high) / 2
+                if anvils_fee < mkt_low:
+                    position = "Below Market"
+                elif anvils_fee <= mkt_mid:
+                    position = "At Market"
+                else:
+                    position = "Above Market"
+                svc_comparison.append({
+                    "Service": key.replace("_", " ").title(),
+                    "Category": "",
+                    "Frequency": "",
+                    "Anvils Fee": anvils_fee,
+                    "Market Low": mkt_low,
+                    "Market High": mkt_high,
+                    "Position": position,
+                    "Govt Fee": 0,
+                    "Sources": mkt["sources"],
+                })
+
+        if svc_comparison:
+            svc_df = pd.DataFrame(svc_comparison)
+
+            # Summary metrics
+            below = len(svc_df[svc_df["Position"] == "Below Market"])
+            at_mkt = len(svc_df[svc_df["Position"] == "At Market"])
+            above = len(svc_df[svc_df["Position"] == "Above Market"])
+            total_svcs = len(svc_df)
+
+            col_pos = st.columns(4)
+            with col_pos[0]:
+                st.metric("Total Services", total_svcs)
+            with col_pos[1]:
+                st.metric("Below Market", f"{below} ({below * 100 // total_svcs}%)")
+            with col_pos[2]:
+                st.metric("At Market", f"{at_mkt} ({at_mkt * 100 // total_svcs}%)")
+            with col_pos[3]:
+                st.metric("Above Market", f"{above} ({above * 100 // total_svcs}%)")
+
+            # Position distribution chart
+            pos_df = pd.DataFrame([
+                {"Position": "Below Market", "Count": below},
+                {"Position": "At Market", "Count": at_mkt},
+                {"Position": "Above Market", "Count": above},
+            ])
+            fig_pos = px.pie(
+                pos_df, values="Count", names="Position",
+                title="Pricing Position Distribution",
+                color="Position",
+                color_discrete_map={
+                    "Below Market": "#4CAF50",
+                    "At Market": "#FF9800",
+                    "Above Market": "#F44336",
+                },
+                hole=0.4,
+            )
+            fig_pos.update_traces(textinfo="label+value+percent", textposition="outside")
+            st.plotly_chart(fig_pos, use_container_width=True)
+
+            # Horizontal bar chart: Anvils vs Market Range
+            st.subheader("Anvils Fee vs Market Range")
+
+            categories = ["All"] + sorted(svc_df["Category"].unique().tolist())
+            selected_cat = st.selectbox("Filter by category", categories, key="mkt_cat_filter")
+            if selected_cat != "All":
+                chart_df = svc_df[svc_df["Category"] == selected_cat].copy()
+            else:
+                chart_df = svc_df.copy()
+
+            chart_df = chart_df.sort_values("Anvils Fee", ascending=True)
+
+            fig_compare = go.Figure()
+
+            # Market range as background bar
+            fig_compare.add_trace(go.Bar(
+                y=chart_df["Service"],
+                x=chart_df["Market Low"],
+                name="Market Low",
+                orientation="h",
+                marker_color="rgba(200,200,200,0.5)",
+                showlegend=False,
+            ))
+            fig_compare.add_trace(go.Bar(
+                y=chart_df["Service"],
+                x=chart_df["Market High"] - chart_df["Market Low"],
+                name="Market Range",
+                orientation="h",
+                marker_color="rgba(100,100,100,0.2)",
+                base=chart_df["Market Low"],
+            ))
+            # Anvils fee as diamond markers
+            colors = [
+                "#4CAF50" if p == "Below Market"
+                else "#FF9800" if p == "At Market"
+                else "#F44336"
+                for p in chart_df["Position"]
+            ]
+            fig_compare.add_trace(go.Scatter(
+                y=chart_df["Service"],
+                x=chart_df["Anvils Fee"],
+                mode="markers",
+                name="Anvils Fee",
+                marker=dict(color=colors, size=12, symbol="diamond",
+                            line=dict(width=1, color="black")),
+            ))
+
+            fig_compare.update_layout(
+                title="Anvils Fee (diamonds) vs Market Range (bars)",
+                xaxis_title="Fee (Rs)",
+                height=max(400, len(chart_df) * 28),
+                barmode="overlay",
+                legend=dict(orientation="h", yanchor="bottom", y=1.02),
+                margin=dict(l=250),
+            )
+            st.plotly_chart(fig_compare, use_container_width=True)
+
+            # Detailed table
+            with st.expander("View detailed comparison table"):
+                display_svc = svc_df[["Service", "Category", "Frequency", "Anvils Fee",
+                                       "Market Low", "Market High", "Govt Fee",
+                                       "Position", "Sources"]].copy()
+                for col in ["Anvils Fee", "Market Low", "Market High", "Govt Fee"]:
+                    display_svc[col] = display_svc[col].apply(lambda x: f"Rs {x:,}")
+                st.dataframe(display_svc, use_container_width=True, hide_index=True)
+
+    # ── Section 2: Incorporation Cost Calculator ─────────────────────────
+    with mkt_sec2:
+        st.subheader("Incorporation Cost: Anvils vs Market")
+        st.markdown("Full cost comparison including platform fee, government fees, stamp duty, and DSC.")
+
+        col_entity, col_state, col_tier = st.columns(3)
+        with col_entity:
+            entity_choice = st.selectbox("Entity Type", ["Private Limited", "OPC", "LLP"],
+                                          key="incorp_entity")
+        with col_state:
+            if _PRICING_IMPORTED and STATE_DISPLAY_NAMES:
+                state_options = sorted(STATE_DISPLAY_NAMES.items(), key=lambda x: x[1])
+                state_labels = [v for _, v in state_options]
+                state_keys = [k for k, _ in state_options]
+                state_idx = state_keys.index("maharashtra") if "maharashtra" in state_keys else 0
+                selected_state_label = st.selectbox("State", state_labels, index=state_idx,
+                                                     key="incorp_state")
+                selected_state = state_keys[state_labels.index(selected_state_label)]
+            else:
+                selected_state = st.selectbox("State", list(STAMP_DUTY_EXAMPLES.keys()),
+                                               key="incorp_state_fallback")
+        with col_tier:
+            tier_choice = st.selectbox("Plan Tier", ["Launch", "Grow", "Scale"],
+                                        key="incorp_tier")
+
+        col_dirs, col_capital = st.columns(2)
+        with col_dirs:
+            num_directors = st.number_input("Number of Directors/Partners", 1, 10, 2,
+                                             key="incorp_dirs")
+        with col_capital:
+            auth_capital = st.number_input("Authorised Capital (Rs)", 10000, 10000000, 100000,
+                                            step=100000, key="incorp_capital")
+
+        st.markdown("---")
+
+        # Calculate Anvils costs
+        anvils_platform = INCORP_PLATFORM_FEES.get(entity_choice, {}).get(tier_choice, 1499)
+
+        if _PRICING_IMPORTED:
+            stamp = calc_stamp_duty(selected_state, auth_capital)
+            stamp_total = stamp["total_stamp_duty"]
+            name_fee = calc_mca_name_reservation_fee(
+                "llp" if entity_choice == "LLP" else "private_limited"
+            )
+            if entity_choice == "LLP":
+                filing_fee = calc_fillip_filing_fee(auth_capital)
+                roc_fee = 0
+            else:
+                filing_fee = 0  # SPICe+ free for capital <= 15L
+                if auth_capital <= 100000:
+                    roc_fee = 0
+                elif auth_capital <= 500000:
+                    roc_fee = 2000
+                else:
+                    roc_fee = 2000 + (((auth_capital - 500000) + 99999) // 100000) * 400
+            dsc_per = DSC_PRICES["signing"].get(2, 1500)
+            dsc_total = (dsc_per + DSC_TOKEN_PRICE) * num_directors
+            pan_tan = PAN_APPLICATION_FEE + TAN_APPLICATION_FEE
+        else:
+            # Fallback estimates
+            sd = STAMP_DUTY_EXAMPLES.get(selected_state, {"moa": 500, "aoa": 1000})
+            stamp_total = sd["moa"] + sd["aoa"]
+            name_fee = 200 if entity_choice == "LLP" else 1000
+            filing_fee = 500 if entity_choice == "LLP" else 0
+            roc_fee = 0 if auth_capital <= 100000 else 2000
+            dsc_total = 2100 * num_directors
+            pan_tan = 208
+
+        govt_total = name_fee + filing_fee + roc_fee + stamp_total + pan_tan
+        anvils_total = anvils_platform + govt_total + dsc_total
+
+        # Market comparison
+        mkt_rates = INCORP_MARKET_RATES.get(entity_choice, {"low": 1499, "high": 5999})
+        market_low_total = mkt_rates["low"] + govt_total + dsc_total
+        market_high_total = mkt_rates["high"] + govt_total + dsc_total
+
+        # Display side by side
+        col_anvils, col_mkt_low, col_mkt_high = st.columns(3)
+        with col_anvils:
+            st.markdown(f"**Anvils ({tier_choice})**")
+            st.metric("Platform Fee", format_inr(anvils_platform))
+            st.metric("Government Fees", format_inr(govt_total))
+            st.metric("DSC Cost", format_inr(dsc_total))
+            st.metric("Total", format_inr(anvils_total))
+        with col_mkt_low:
+            st.markdown("**Market (Low End)**")
+            st.metric("Professional Fee", format_inr(mkt_rates["low"]))
+            st.metric("Government Fees", format_inr(govt_total))
+            st.metric("DSC Cost", format_inr(dsc_total))
+            st.metric("Total", format_inr(market_low_total))
+        with col_mkt_high:
+            st.markdown("**Market (High End)**")
+            st.metric("Professional Fee", format_inr(mkt_rates["high"]))
+            st.metric("Government Fees", format_inr(govt_total))
+            st.metric("DSC Cost", format_inr(dsc_total))
+            st.metric("Total", format_inr(market_high_total))
+
+        # Savings indicator
+        if anvils_total < market_low_total:
+            savings = market_low_total - anvils_total
+            st.success(f"Anvils is Rs {savings:,} cheaper than the lowest market rate.")
+        elif anvils_total <= market_high_total:
+            st.info("Anvils pricing is within the market range.")
+        else:
+            premium = anvils_total - market_high_total
+            st.warning(f"Anvils is Rs {premium:,} above the highest market rate.")
+
+        # Stacked bar chart
+        fig_incorp = go.Figure()
+        labels = [f"Anvils ({tier_choice})", "Market Low", "Market High"]
+        platform_fees = [anvils_platform, mkt_rates["low"], mkt_rates["high"]]
+        govt_fees = [govt_total] * 3
+        dsc_fees = [dsc_total] * 3
+
+        fig_incorp.add_trace(go.Bar(x=labels, y=platform_fees, name="Platform Fee",
+                                     marker_color="#2196F3"))
+        fig_incorp.add_trace(go.Bar(x=labels, y=govt_fees, name="Govt Fees + Stamp Duty",
+                                     marker_color="#FF9800"))
+        fig_incorp.add_trace(go.Bar(x=labels, y=dsc_fees, name="DSC Cost",
+                                     marker_color="#9C27B0"))
+
+        fig_incorp.update_layout(
+            barmode="stack",
+            title=f"{entity_choice} Incorporation — Cost Breakdown",
+            yaxis_title="Total Cost (Rs)",
+            height=450,
+        )
+        st.plotly_chart(fig_incorp, use_container_width=True)
+
+        # Cost breakdown table
+        with st.expander("View itemised cost breakdown"):
+            breakdown = pd.DataFrame([
+                {"Component": "Platform / Professional Fee",
+                 "Anvils": f"Rs {anvils_platform:,}",
+                 "Market Low": f"Rs {mkt_rates['low']:,}",
+                 "Market High": f"Rs {mkt_rates['high']:,}"},
+                {"Component": "Name Reservation",
+                 "Anvils": f"Rs {name_fee:,}",
+                 "Market Low": f"Rs {name_fee:,}",
+                 "Market High": f"Rs {name_fee:,}"},
+                {"Component": "Filing Fee",
+                 "Anvils": f"Rs {filing_fee:,}",
+                 "Market Low": f"Rs {filing_fee:,}",
+                 "Market High": f"Rs {filing_fee:,}"},
+                {"Component": "ROC Registration",
+                 "Anvils": f"Rs {roc_fee:,}",
+                 "Market Low": f"Rs {roc_fee:,}",
+                 "Market High": f"Rs {roc_fee:,}"},
+                {"Component": "Stamp Duty",
+                 "Anvils": f"Rs {stamp_total:,}",
+                 "Market Low": f"Rs {stamp_total:,}",
+                 "Market High": f"Rs {stamp_total:,}"},
+                {"Component": "PAN + TAN",
+                 "Anvils": f"Rs {pan_tan:,}",
+                 "Market Low": f"Rs {pan_tan:,}",
+                 "Market High": f"Rs {pan_tan:,}"},
+                {"Component": f"DSC ({num_directors} directors)",
+                 "Anvils": f"Rs {dsc_total:,}",
+                 "Market Low": f"Rs {dsc_total:,}",
+                 "Market High": f"Rs {dsc_total:,}"},
+                {"Component": "TOTAL",
+                 "Anvils": f"Rs {anvils_total:,}",
+                 "Market Low": f"Rs {market_low_total:,}",
+                 "Market High": f"Rs {market_high_total:,}"},
+            ])
+            st.dataframe(breakdown, use_container_width=True, hide_index=True)
+
+        st.caption(f"Sources: {mkt_rates.get('sources', 'Multiple platforms')}")
+
+    # ── Section 3: Annual Compliance Cost by Entity Type ─────────────────
+    with mkt_sec3:
+        st.subheader("Year 1 Mandatory Compliance Cost")
+        st.markdown("Total cost of all mandatory annual filings and services for a newly incorporated company.")
+
+        entity_tabs = st.tabs(list(ANNUAL_COMPLIANCE.keys()))
+
+        for tab_idx, (entity_name, items) in enumerate(ANNUAL_COMPLIANCE.items()):
+            with entity_tabs[tab_idx]:
+                st.markdown(f"### {entity_name}")
+
+                # Calculate totals
+                total_anvils = sum(item["anvils"] + item["govt"] for item in items)
+                total_low = sum(item["low"] + item["govt"] for item in items)
+                total_high = sum(item["high"] + item["govt"] for item in items)
+
+                # Summary metrics
+                col_t = st.columns(3)
+                with col_t[0]:
+                    st.metric("Anvils Total (Year 1)", format_inr(total_anvils))
+                with col_t[1]:
+                    st.metric("Market Low Total", format_inr(total_low))
+                with col_t[2]:
+                    st.metric("Market High Total", format_inr(total_high))
+
+                # Comparison bar chart
+                comp_items = []
+                for item in items:
+                    comp_items.append({
+                        "Activity": item["name"],
+                        "Anvils": item["anvils"],
+                        "Market Low": item["low"],
+                        "Market High": item["high"],
+                        "Govt Fee": item["govt"],
+                        "Frequency": item["freq"],
+                    })
+                comp_df = pd.DataFrame(comp_items)
+
+                fig_comp = go.Figure()
+                fig_comp.add_trace(go.Bar(
+                    x=comp_df["Activity"], y=comp_df["Market Low"],
+                    name="Market Low", marker_color="rgba(76,175,80,0.4)",
+                ))
+                fig_comp.add_trace(go.Bar(
+                    x=comp_df["Activity"], y=comp_df["Anvils"],
+                    name="Anvils Fee", marker_color="#2196F3",
+                ))
+                fig_comp.add_trace(go.Bar(
+                    x=comp_df["Activity"], y=comp_df["Market High"],
+                    name="Market High", marker_color="rgba(244,67,54,0.4)",
+                ))
+                fig_comp.update_layout(
+                    barmode="group",
+                    title=f"{entity_name} — Annual Compliance Comparison",
+                    yaxis_title="Fee (Rs)",
+                    height=450,
+                    xaxis_tickangle=-30,
+                    legend=dict(orientation="h", yanchor="bottom", y=1.02),
+                )
+                st.plotly_chart(fig_comp, use_container_width=True)
+
+                # Compliance cost donut
+                donut_df = pd.DataFrame([
+                    {"Activity": item["name"], "Cost": item["anvils"] + item["govt"]}
+                    for item in items
+                ])
+                fig_donut = px.pie(
+                    donut_df, values="Cost", names="Activity",
+                    title=f"{entity_name} — Anvils Compliance Cost Breakdown",
+                    hole=0.45,
+                )
+                fig_donut.update_traces(textinfo="label+percent", textposition="outside")
+                st.plotly_chart(fig_donut, use_container_width=True)
+
+                # Data table
+                with st.expander("View detailed breakdown"):
+                    table_data = []
+                    for item in items:
+                        table_data.append({
+                            "Activity": item["name"],
+                            "Frequency": item["freq"],
+                            "Anvils Fee": f"Rs {item['anvils']:,}",
+                            "Govt Fee": f"Rs {item['govt']:,}",
+                            "Total (Anvils)": f"Rs {item['anvils'] + item['govt']:,}",
+                            "Market Low": f"Rs {item['low']:,}",
+                            "Market High": f"Rs {item['high']:,}",
+                        })
+                    table_data.append({
+                        "Activity": "TOTAL",
+                        "Frequency": "",
+                        "Anvils Fee": f"Rs {sum(i['anvils'] for i in items):,}",
+                        "Govt Fee": f"Rs {sum(i['govt'] for i in items):,}",
+                        "Total (Anvils)": f"Rs {total_anvils:,}",
+                        "Market Low": f"Rs {total_low:,}",
+                        "Market High": f"Rs {total_high:,}",
+                    })
+                    st.dataframe(pd.DataFrame(table_data), use_container_width=True,
+                                  hide_index=True)
+
+    # ── Section 4: Pricing Position Modeler ───────────────────────────────
+    with mkt_sec4:
+        st.subheader("Interactive Pricing Modeler")
+        st.markdown("Adjust Anvils service prices to see real-time impact on competitive position and revenue.")
+
+        st.markdown("#### Key Service Price Adjustments")
+
+        key_services = [
+            {"key": "annual_roc_filing", "name": "Annual ROC Filing", "default": 7999,
+             "min": 2000, "max": 20000, "step": 500},
+            {"key": "llp_annual_filing", "name": "LLP Annual Filing", "default": 5999,
+             "min": 1500, "max": 12000, "step": 500},
+            {"key": "itr_company", "name": "ITR — Company", "default": 4999,
+             "min": 1500, "max": 20000, "step": 500},
+            {"key": "itr_llp", "name": "ITR — LLP", "default": 2999,
+             "min": 1000, "max": 10000, "step": 500},
+            {"key": "gst_monthly_filing", "name": "GST Monthly Filing", "default": 999,
+             "min": 200, "max": 3000, "step": 100},
+            {"key": "tds_quarterly", "name": "TDS Quarterly Return", "default": 2499,
+             "min": 500, "max": 8000, "step": 500},
+            {"key": "statutory_audit", "name": "Statutory Audit", "default": 14999,
+             "min": 5000, "max": 60000, "step": 1000},
+            {"key": "bookkeeping_basic", "name": "Bookkeeping (Basic)", "default": 2999,
+             "min": 500, "max": 8000, "step": 500},
+            {"key": "gst_registration", "name": "GST Registration", "default": 499,
+             "min": 0, "max": 3000, "step": 100},
+            {"key": "dir3_kyc", "name": "DIR-3 KYC", "default": 499,
+             "min": 0, "max": 2000, "step": 100},
+        ]
+
+        adjusted_prices = {}
+        cols_per_row = 3
+        for row_start in range(0, len(key_services), cols_per_row):
+            row_items = key_services[row_start:row_start + cols_per_row]
+            cols = st.columns(cols_per_row)
+            for col_idx, svc in enumerate(row_items):
+                with cols[col_idx]:
+                    mkt = MARKET_RATES.get(svc["key"], {"low": 0, "high": 0})
+                    val = st.slider(
+                        svc["name"],
+                        min_value=svc["min"],
+                        max_value=svc["max"],
+                        value=svc["default"],
+                        step=svc["step"],
+                        key=f"price_adj_{svc['key']}",
+                        help=f"Market: Rs {mkt['low']:,} - Rs {mkt['high']:,}",
+                    )
+                    adjusted_prices[svc["key"]] = val
+
+                    mkt_mid = (mkt["low"] + mkt["high"]) / 2
+                    if val < mkt["low"]:
+                        st.caption(f"Rs {val:,} — Below market")
+                    elif val <= mkt_mid:
+                        st.caption(f"Rs {val:,} — At market")
+                    else:
+                        st.caption(f"Rs {val:,} — Above market")
+
+        st.markdown("---")
+
+        # Recalculate position with adjusted prices
+        st.markdown("#### Adjusted Competitive Position")
+
+        adj_below = 0
+        adj_at = 0
+        adj_above = 0
+        for key, mkt in MARKET_RATES.items():
+            price = adjusted_prices.get(key)
+            if price is None:
+                if _CATALOG_IMPORTED:
+                    svc_entry = next((s for s in SERVICES_CATALOG if s["key"] == key), None)
+                    price = svc_entry["platform_fee"] if svc_entry else 0
+                else:
+                    price = _FALLBACK_ANVILS_FEES.get(key, 0)
+            mkt_mid = (mkt["low"] + mkt["high"]) / 2
+            if price < mkt["low"]:
+                adj_below += 1
+            elif price <= mkt_mid:
+                adj_at += 1
+            else:
+                adj_above += 1
+
+        adj_total = adj_below + adj_at + adj_above
+
+        col_adj = st.columns(3)
+        with col_adj[0]:
+            st.metric("Below Market", f"{adj_below}/{adj_total}",
+                       delta=f"{adj_below * 100 // max(adj_total, 1)}%")
+        with col_adj[1]:
+            st.metric("At Market", f"{adj_at}/{adj_total}",
+                       delta=f"{adj_at * 100 // max(adj_total, 1)}%")
+        with col_adj[2]:
+            st.metric("Above Market", f"{adj_above}/{adj_total}",
+                       delta=f"{adj_above * 100 // max(adj_total, 1)}%")
+
+        # Radar chart: Anvils vs Market by category
+        st.markdown("#### Category Position Map")
+
+        categories_for_radar = {
+            "Registration": ["gst_registration", "msme_udyam", "trademark_registration",
+                              "iec_code", "dpiit_startup"],
+            "Compliance": ["annual_roc_filing", "llp_annual_filing", "dir3_kyc", "adt1_auditor"],
+            "Tax": ["itr_company", "itr_llp", "gst_monthly_filing", "tds_quarterly",
+                     "gst_annual_return"],
+            "Audit": ["statutory_audit"],
+            "Accounting": ["bookkeeping_basic", "bookkeeping_standard", "payroll"],
+            "Amendments": ["director_change", "share_transfer", "increase_capital",
+                            "company_name_change"],
+            "Legal": ["trademark_objection", "legal_notice_drafting", "virtual_office"],
+        }
+
+        radar_data = []
+        for cat_name, cat_keys in categories_for_radar.items():
+            scores = []
+            for key in cat_keys:
+                mkt = MARKET_RATES.get(key)
+                if not mkt:
+                    continue
+                adj_price = adjusted_prices.get(key)
+                if adj_price is None:
+                    if _CATALOG_IMPORTED:
+                        svc_entry = next((s for s in SERVICES_CATALOG if s["key"] == key), None)
+                        adj_price = svc_entry["platform_fee"] if svc_entry else mkt["low"]
+                    else:
+                        adj_price = _FALLBACK_ANVILS_FEES.get(key, mkt["low"])
+                # Score: 0 = at market high, 100 = at market low
+                mkt_range = mkt["high"] - mkt["low"]
+                if mkt_range > 0:
+                    score = (mkt["high"] - adj_price) / mkt_range * 100
+                else:
+                    score = 50
+                scores.append(max(0, min(100, score)))
+            avg_score = sum(scores) / len(scores) if scores else 50
+            radar_data.append({"Category": cat_name, "Competitiveness": round(avg_score)})
+
+        radar_df = pd.DataFrame(radar_data)
+
+        fig_radar = go.Figure()
+        fig_radar.add_trace(go.Scatterpolar(
+            r=radar_df["Competitiveness"].tolist() + [radar_df["Competitiveness"].iloc[0]],
+            theta=radar_df["Category"].tolist() + [radar_df["Category"].iloc[0]],
+            fill="toself",
+            name="Anvils Position",
+            line_color="#2196F3",
+            fillcolor="rgba(33,150,243,0.2)",
+        ))
+        fig_radar.add_trace(go.Scatterpolar(
+            r=[50] * (len(radar_df) + 1),
+            theta=radar_df["Category"].tolist() + [radar_df["Category"].iloc[0]],
+            name="Market Midpoint",
+            line=dict(color="gray", dash="dash"),
+        ))
+
+        fig_radar.update_layout(
+            polar=dict(radialaxis=dict(visible=True, range=[0, 100], ticksuffix="%")),
+            title="Competitiveness by Category (100% = cheapest, 50% = midpoint, 0% = most expensive)",
+            height=500,
+            showlegend=True,
+        )
+        st.plotly_chart(fig_radar, use_container_width=True)
+
+        # Revenue impact estimate
+        st.markdown("---")
+        st.markdown("#### Revenue Impact (Annual — per Pvt Ltd customer)")
+
+        pvt_items = ANNUAL_COMPLIANCE["Private Limited"]
+        annual_rev_default = sum(item["anvils"] for item in pvt_items)
+        annual_rev_adjusted = 0
+
+        for item in pvt_items:
+            adj = adjusted_prices.get(item["key"])
+            if adj is not None:
+                if item["key"] == "tds_quarterly":
+                    annual_rev_adjusted += adj * 4
+                elif item["key"] == "gst_monthly_filing":
+                    annual_rev_adjusted += adj * 12
+                else:
+                    annual_rev_adjusted += adj
+            else:
+                annual_rev_adjusted += item["anvils"]
+
+        delta_rev = annual_rev_adjusted - annual_rev_default
+        col_rev = st.columns(3)
+        with col_rev[0]:
+            st.metric("Default Annual Revenue / Customer", format_inr(annual_rev_default))
+        with col_rev[1]:
+            st.metric("Adjusted Annual Revenue / Customer", format_inr(annual_rev_adjusted),
+                       delta=format_inr(delta_rev))
+        with col_rev[2]:
+            pct_change = (delta_rev / annual_rev_default * 100) if annual_rev_default > 0 else 0
+            st.metric("Revenue Change", f"{pct_change:+.1f}%")
+
+        if delta_rev < 0:
+            st.info(
+                f"Reducing prices by {format_inr(abs(delta_rev))}/customer/year. "
+                "Ensure higher volume compensates for lower per-customer revenue."
+            )
+        elif delta_rev > 0:
+            st.info(
+                f"Increasing per-customer revenue by {format_inr(delta_rev)}/year. "
+                "Monitor conversion rates — higher prices may reduce attach rate."
+            )
 
 
 # ─── Footer ──────────────────────────────────────────────────────────────────

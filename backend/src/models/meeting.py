@@ -40,6 +40,18 @@ class Meeting(Base):
     resolutions = Column(JSON, default=list)
     # [{resolution_number, type, title, description, votes_for, votes_against, result}]
 
+    # Detailed per-attendee votes (persisted from frontend ResolutionWorkflow)
+    resolution_votes = Column(JSON, default=dict)
+    # {resolution_id: {attendee_name: "for"|"against"|"abstain"}}
+
+    # Document & signature integration
+    notice_document_id = Column(Integer, ForeignKey("legal_documents.id"), nullable=True)
+    minutes_signature_request_id = Column(Integer, ForeignKey("signature_requests.id"), nullable=True)
+
+    # Compliance filing tracking (persisted from frontend)
+    filing_status = Column(JSON, default=dict)
+    # {filing_type: {status: "pending"|"filed"|"acknowledged", filed_date, reference_number}}
+
     status = Column(String, default="scheduled")
     # scheduled, notice_sent, in_progress, minutes_draft, minutes_signed, completed
 

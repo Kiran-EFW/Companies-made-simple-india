@@ -52,6 +52,10 @@ class User(Base):
     role = Column(Enum(UserRole), default=UserRole.USER, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
 
+    # Password reset
+    reset_token = Column(String, nullable=True, index=True)
+    reset_token_expiry = Column(DateTime, nullable=True)
+
     # Staff hierarchy (nullable — only relevant for internal team members)
     department = Column(Enum(StaffDepartment), nullable=True)
     seniority = Column(Enum(StaffSeniority), nullable=True)

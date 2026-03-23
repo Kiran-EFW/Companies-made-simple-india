@@ -21,6 +21,17 @@ export async function apiCall(path: string, options: RequestInit = {}): Promise<
 
   if (!res.ok) {
     const body = await res.json().catch(() => null);
+
+    // Detect subscription tier gating (structured 403 from backend)
+    if (res.status === 403 && body?.detail?.error === "subscription_required") {
+      const err = new Error(body.detail.message) as any;
+      err.upgradeRequired = true;
+      err.requiredTier = body.detail.required_tier;
+      err.currentTier = body.detail.current_tier;
+      err.upgradeUrl = body.detail.upgrade_url;
+      throw err;
+    }
+
     let message =
       body?.error?.message || body?.detail || `Request failed (${res.status})`;
     // Include specific validation field errors if present

@@ -96,14 +96,18 @@ class MeetingOut(BaseModel):
     virtual_link: Optional[str] = None
     notice_date: Optional[str] = None
     notice_html: Optional[str] = None
+    notice_document_id: Optional[int] = None
     agenda_items: List[Dict[str, Any]] = []
     minutes_html: Optional[str] = None
     minutes_signed: bool
     minutes_signed_date: Optional[str] = None
     minutes_signed_by: Optional[str] = None
+    minutes_signature_request_id: Optional[int] = None
     attendees: List[Dict[str, Any]] = []
     quorum_present: bool
     resolutions: List[Dict[str, Any]] = []
+    resolution_votes: Optional[Dict[str, Any]] = None
+    filing_status: Optional[Dict[str, Any]] = None
     status: str
     created_at: str
     updated_at: str
@@ -126,3 +130,19 @@ class MeetingListItem(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class ResolutionVotesUpdate(BaseModel):
+    votes: Dict[str, Any]  # {resolution_id: {attendee_name: "for"|"against"|"abstain"}}
+
+
+class MinutesSigningRequest(BaseModel):
+    chairman_name: str
+    chairman_email: str
+
+
+class FilingStatusUpdate(BaseModel):
+    filing_type: str  # e.g., "mgt14", "aoc4"
+    status: str  # "pending"|"filed"|"acknowledged"
+    filed_date: Optional[str] = None
+    reference_number: Optional[str] = None

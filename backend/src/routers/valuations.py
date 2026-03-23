@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 from src.database import get_db
 from src.models.user import User
 from src.utils.security import get_current_user
+from src.utils.tier_gate import require_tier
 from src.services.valuation_service import valuation_service
 
 router = APIRouter(prefix="/companies", tags=["Valuations"])
@@ -26,6 +27,7 @@ def calculate_nav(
     data: dict,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Calculate FMV using NAV method (preview, not persisted)."""
     result = valuation_service.calculate_nav(db, company_id, data)
@@ -40,6 +42,7 @@ def calculate_dcf(
     data: dict,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Calculate FMV using simplified DCF method (preview, not persisted)."""
     result = valuation_service.calculate_dcf(db, company_id, data)
@@ -54,6 +57,7 @@ def create_valuation(
     data: dict,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Create and persist a valuation record."""
     result = valuation_service.create_valuation(db, company_id, current_user.id, data)
@@ -67,6 +71,7 @@ def list_valuations(
     company_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """List all valuations for a company."""
     return valuation_service.list_valuations(db, company_id)
@@ -77,6 +82,7 @@ def get_latest_valuation(
     company_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Get the most recent finalized valuation."""
     result = valuation_service.get_latest_valuation(db, company_id)
@@ -91,6 +97,7 @@ def get_valuation(
     valuation_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Get a single valuation record."""
     result = valuation_service.get_valuation(db, valuation_id, company_id)

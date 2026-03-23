@@ -2,6 +2,7 @@
 from datetime import datetime, timezone, timedelta
 from typing import Optional, List, Dict, Any
 import logging
+from src.config import get_settings
 
 logger = logging.getLogger(__name__)
 
@@ -9,14 +10,18 @@ logger = logging.getLogger(__name__)
 class InvoiceService:
     """Generate GST-compliant invoices and payment receipts."""
 
-    COMPANY_DETAILS = {
-        "name": "Anvils India Private Limited",
-        "address": "Bangalore, Karnataka, India",
-        "gstin": "29XXXXX1234X1Z5",  # Placeholder
-        "pan": "XXXXX1234X",  # Placeholder
-        "sac_code": "998312",  # Legal advisory services
-        "hsn_code": "9983",
-    }
+    @property
+    def COMPANY_DETAILS(self) -> dict:
+        """Company details loaded from settings (env vars)."""
+        settings = get_settings()
+        return {
+            "name": "Anvils India Private Limited",
+            "address": settings.company_address,
+            "gstin": settings.company_gstin,
+            "pan": settings.company_pan,
+            "sac_code": "998312",  # Legal advisory services
+            "hsn_code": "9983",
+        }
 
     def generate_invoice_html(
         self,

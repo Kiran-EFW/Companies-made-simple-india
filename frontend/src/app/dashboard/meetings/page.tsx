@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/lib/auth-context";
 import Link from "next/link";
+import FeatureGate from "@/components/feature-gate";
 import {
   getCompanies,
   getMeetings,
@@ -337,6 +338,11 @@ export default function MeetingsPage() {
   };
 
   return (
+    <FeatureGate
+      moduleKey="meetings"
+      featureName="Board Meetings"
+      featureDescription="Board meeting management with agenda builder, minutes, and resolution workflows."
+    >
     <div>
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Header */}
@@ -832,5 +838,6 @@ export default function MeetingsPage() {
         )}
       </div>
     </div>
+    </FeatureGate>
   );
 }

@@ -522,7 +522,7 @@ class FundraisingService:
             "round_name", "pre_money_valuation", "post_money_valuation",
             "price_per_share", "target_amount", "valuation_cap",
             "discount_rate", "interest_rate", "maturity_months",
-            "esop_pool_expansion_pct", "notes",
+            "esop_pool_expansion_pct", "notes", "checklist_state",
         ]:
             if field in data and data[field] is not None:
                 setattr(round_obj, field, data[field])
@@ -565,16 +565,25 @@ class FundraisingService:
         if not round_obj:
             return {"error": "Round not found"}
 
+        investor_type = data.get("investor_type", "angel")
+
+        # If foreign investor, append FC-GPR note to investor notes
+        investor_notes = data.get("notes") or ""
+        if investor_type == "foreign":
+            fc_gpr_note = "[FC-GPR filing required — foreign investor]"
+            if fc_gpr_note not in investor_notes:
+                investor_notes = f"{investor_notes}\n{fc_gpr_note}".strip()
+
         investor = RoundInvestor(
             funding_round_id=round_id,
             company_id=company_id,
             investor_name=data["investor_name"],
             investor_email=data.get("investor_email"),
-            investor_type=data.get("investor_type", "angel"),
+            investor_type=investor_type,
             investor_entity=data.get("investor_entity"),
             investment_amount=data["investment_amount"],
             share_type=data.get("share_type", "equity"),
-            notes=data.get("notes"),
+            notes=investor_notes,
         )
         db.add(investor)
 
@@ -905,7 +914,9 @@ class FundraisingService:
         if not investors:
             return {"error": "No investors eligible for allotment"}
 
-        price_per_share = round_obj.price_per_share or 10.0
+        if not round_obj.price_per_share or round_obj.price_per_share <= 0:
+            return {"error": "price_per_share must be set on the round before allotment. Set it via update round."}
+        price_per_share = round_obj.price_per_share
 
         entries = []
         for inv in investors:
@@ -947,12 +958,70 @@ class FundraisingService:
             db.rollback()
             raise
 
+        # Check if any investor is foreign — if so, FC-GPR is required
+        has_foreign = any(
+            inv.investor_type == "foreign" for inv in investors
+        )
+        if has_foreign:
+            filings = list(POST_FUNDRAISE_FILINGS)
+        else:
+            filings = [
+                f for f in POST_FUNDRAISE_FILINGS
+                if f.get("form") != "FC-GPR"
+            ]
+
         return {
             "message": f"Shares allotted to {len(entries)} investor(s)",
             "round_id": round_id,
             "allotment": allotment_result,
-            "post_fundraise_filings": POST_FUNDRAISE_FILINGS,
+            "has_foreign_investors": has_foreign,
+            "post_fundraise_filings": filings,
         }
+
+    # ------------------------------------------------------------------
+    # Checklist State
+    # ------------------------------------------------------------------
+
+    def save_checklist_state(
+        self, db: Session, round_id: int, company_id: int, state: dict
+    ) -> Dict[str, Any]:
+        """Save the frontend 7-step checklist state for a funding round."""
+        round_obj = (
+            db.query(FundingRound)
+            .filter(
+                FundingRound.id == round_id,
+                FundingRound.company_id == company_id,
+            )
+            .first()
+        )
+        if not round_obj:
+            return {"error": "Round not found"}
+
+        round_obj.checklist_state = state
+
+        try:
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
+        db.refresh(round_obj)
+        return {"message": "Checklist state saved", "checklist_state": round_obj.checklist_state or {}}
+
+    def get_checklist_state(
+        self, db: Session, round_id: int, company_id: int
+    ) -> Optional[Dict[str, Any]]:
+        """Return the current checklist state for a funding round."""
+        round_obj = (
+            db.query(FundingRound)
+            .filter(
+                FundingRound.id == round_id,
+                FundingRound.company_id == company_id,
+            )
+            .first()
+        )
+        if not round_obj:
+            return None
+        return round_obj.checklist_state or {}
 
     # ------------------------------------------------------------------
     # Serializers
@@ -981,6 +1050,7 @@ class FundraisingService:
             "ssa_document_id": r.ssa_document_id,
             "allotment_date": r.allotment_date.isoformat() if r.allotment_date else None,
             "allotment_completed": r.allotment_completed or False,
+            "checklist_state": r.checklist_state or {},
             "notes": r.notes,
             "created_at": r.created_at.isoformat() if r.created_at else None,
             "updated_at": r.updated_at.isoformat() if r.updated_at else None,
@@ -1004,6 +1074,8 @@ class FundraisingService:
             "documents_signed": inv.documents_signed or False,
             "shares_issued": inv.shares_issued or False,
             "shareholder_id": inv.shareholder_id,
+            "converted": inv.converted or False,
+            "conversion_event_id": inv.conversion_event_id,
             "notes": inv.notes,
             "created_at": inv.created_at.isoformat() if inv.created_at else None,
             "updated_at": inv.updated_at.isoformat() if inv.updated_at else None,

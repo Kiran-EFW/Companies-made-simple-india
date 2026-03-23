@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useCompany } from "@/lib/company-context";
 import { updateCompanyInfo, getCompanyDocuments, uploadDocument } from "@/lib/api";
+import UpsellBanner from "@/components/upsell-banner";
 
 // ---------------------------------------------------------------------------
 // KYB document definitions
@@ -205,6 +206,7 @@ export default function CompanyInfoPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-8">
+      {selectedCompany && <UpsellBanner pageKey="company-info" companyId={selectedCompany.id} />}
       {/* Page Header */}
       <div style={{ marginBottom: 32 }}>
         <h1

@@ -15,6 +15,7 @@ Endpoints:
 - POST /companies/{id}/esop/grants/{grant_id}/generate-letter   Generate grant letter
 - POST /companies/{id}/esop/grants/{grant_id}/send-for-signing  Send for e-sign
 - GET  /companies/{id}/esop/summary            Pool summary
+- GET  /companies/{id}/esop/valuation-reference Valuation for exercise price
 """
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -23,6 +24,7 @@ from sqlalchemy.orm import Session
 from src.database import get_db
 from src.models.user import User
 from src.utils.security import get_current_user
+from src.utils.tier_gate import require_tier
 from src.services.esop_service import esop_service
 from src.schemas.esop import (
     ESOPPlanCreate,
@@ -44,6 +46,7 @@ def create_plan(
     data: ESOPPlanCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Create a new ESOP plan."""
     return esop_service.create_plan(db, company_id, data.model_dump())
@@ -54,6 +57,7 @@ def list_plans(
     company_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """List all ESOP plans for a company."""
     return esop_service.list_plans(db, company_id)
@@ -65,6 +69,7 @@ def get_plan(
     plan_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Get plan details with computed pool stats."""
     result = esop_service.get_plan(db, plan_id, company_id)
@@ -80,6 +85,7 @@ def update_plan(
     data: ESOPPlanUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Update plan details. Cannot reduce pool below allocated amount."""
     result = esop_service.update_plan(
@@ -96,6 +102,7 @@ def activate_plan(
     plan_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Move plan to active status."""
     result = esop_service.activate_plan(db, plan_id, company_id)
@@ -115,6 +122,7 @@ def create_grant(
     data: ESOPGrantCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Issue a new grant under a plan."""
     result = esop_service.create_grant(db, plan_id, company_id, data.model_dump())
@@ -129,6 +137,7 @@ def list_grants_by_plan(
     plan_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """List all grants under a plan."""
     return esop_service.list_grants(db, plan_id, company_id)
@@ -139,6 +148,7 @@ def list_grants_by_company(
     company_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """List all grants across all plans for a company."""
     return esop_service.get_grants_by_company(db, company_id)
@@ -150,6 +160,7 @@ def get_grant(
     grant_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Get grant detail with computed vesting data."""
     result = esop_service.get_grant(db, grant_id, company_id)
@@ -165,6 +176,7 @@ def exercise_options(
     data: ExerciseOptionsRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Exercise vested options. Creates share allotment via cap table."""
     result = esop_service.exercise_options(
@@ -185,6 +197,7 @@ def generate_grant_letter(
     grant_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Generate the grant letter as a LegalDocument."""
     result = esop_service.generate_grant_letter(
@@ -201,6 +214,7 @@ def send_for_signing(
     grant_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Send grant letter for e-sign via esign_service."""
     result = esop_service.send_grant_letter_for_signing(
@@ -220,6 +234,35 @@ def get_esop_summary(
     company_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
 ):
     """Get ESOP pool summary for cap table display."""
     return esop_service.get_esop_pool_summary(db, company_id)
+
+
+# ---------------------------------------------------------------------------
+# Valuation reference for exercise pricing
+# ---------------------------------------------------------------------------
+
+@router.get("/{company_id}/esop/valuation-reference")
+def get_valuation_reference(
+    company_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
+):
+    """Get latest company valuation for ESOP exercise price reference."""
+    from src.services.valuation_service import valuation_service
+
+    summary = valuation_service.get_latest_valuation_summary(db, company_id)
+    if summary is None:
+        return {
+            "has_valuation": False,
+            "message": "No valuation report found. Create a valuation to determine fair market value for ESOP exercise price.",
+            "suggested_action": "Create a 409A/Rule 11UA valuation report",
+        }
+    return {
+        "has_valuation": True,
+        **summary,
+        "esop_note": "The exercise price should be at or above the fair market value (FMV) as per Rule 11UA of the Income Tax Act.",
+    }

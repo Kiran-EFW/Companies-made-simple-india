@@ -1,3 +1,5 @@
+import hashlib
+import hmac
 import logging
 import uuid
 from src.config import get_settings
@@ -96,6 +98,34 @@ class PaymentService:
         raise RuntimeError(
             "Payment service unavailable: Razorpay credentials not configured."
         )
+
+    def verify_webhook_signature(self, body: bytes, signature: str) -> bool:
+        """Verify Razorpay webhook signature using HMAC-SHA256.
+
+        Args:
+            body: Raw request body bytes from the webhook POST.
+            signature: Value of the X-Razorpay-Signature header.
+
+        Returns:
+            True if the signature is valid, False otherwise.
+        """
+        webhook_secret = settings.razorpay_webhook_secret
+
+        # In mock/dev mode without a webhook secret configured, accept all
+        if not webhook_secret:
+            if self.is_mock:
+                logger.info("MOCK webhook signature verification — auto-approved (no secret configured)")
+                return True
+            logger.warning("Webhook signature verification failed: no webhook secret configured")
+            return False
+
+        expected = hmac.new(
+            key=webhook_secret.encode("utf-8"),
+            msg=body,
+            digestmod=hashlib.sha256,
+        ).hexdigest()
+
+        return hmac.compare_digest(expected, signature)
 
 
 # Module-level singleton

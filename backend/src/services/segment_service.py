@@ -5,6 +5,13 @@ which dashboard modules and features are visible for each segment.
 Segments group customers by needs and willingness to pay, not just
 entity type.  A Private Limited company can be either "sme" or "startup"
 depending on whether they are raising / have raised funding.
+
+Phase 1 entity types (launch): Private Limited, LLP, OPC
+Phase 2 (future): Section 8, Sole Prop, Partnership, Public Limited
+Phase 3 (maybe never): Nidhi, Producer Company
+
+Subscription tiers: Starter (Rs 499/mo), Growth (Rs 2,999/mo), Scale (Rs 9,999/mo)
+Free hook: one-time post-incorporation document bundle only.
 """
 
 from typing import Dict, List, Optional, Any
@@ -139,49 +146,66 @@ SEGMENT_MODULES: Dict[CustomerSegment, List[str]] = {
 
 
 # ── Subscription plan mapping per segment ─────────────────────────────────────
+# All segments start on the Free plan.  Upgrade targets differ by segment:
+#   - Micro-business / SME / Non-Profit / Nidhi / Producer → Free (marketplace upsell)
+#   - Startup → Growth (cap table, ESOP, fundraising tools)
+#   - Enterprise → Scale (board governance, investor reporting)
+#
+# Compliance filing is NOT included in any plan.  Companies buy services
+# à la carte from the marketplace or use their own CA.
 
 SEGMENT_PLANS: Dict[CustomerSegment, Dict[str, Any]] = {
-    CustomerSegment.MICRO_BUSINESS: {
-        "plan_key": "basic",
-        "plan_name": "Anvils Basic",
-        "monthly_price": 999,
-        "annual_price": 9999,
-    },
+    # ── Phase 1 segments (launch) ──────────────────────────────────────────
     CustomerSegment.SME: {
-        "plan_key": "business",
-        "plan_name": "Anvils Business",
-        "monthly_price": 2999,
-        "annual_price": 29999,
+        "plan_key": "starter",
+        "plan_name": "Anvils Starter",
+        "monthly_price": 499,
+        "annual_price": 4999,
+        "upgrade_target": "growth",
     },
     CustomerSegment.STARTUP: {
-        "plan_key": "startup",
-        "plan_name": "Anvils Startup",
-        "monthly_price": 7999,
-        "annual_price": 79999,
-    },
-    CustomerSegment.NON_PROFIT: {
-        "plan_key": "non_profit",
-        "plan_name": "Anvils Non-Profit",
-        "monthly_price": 4999,
-        "annual_price": 49999,
-    },
-    CustomerSegment.NIDHI: {
-        "plan_key": "nidhi",
-        "plan_name": "Anvils Nidhi",
-        "monthly_price": 9999,
-        "annual_price": 99999,
-    },
-    CustomerSegment.PRODUCER: {
-        "plan_key": "producer",
-        "plan_name": "Anvils Producer",
-        "monthly_price": 1999,
-        "annual_price": 19999,
+        "plan_key": "growth",
+        "plan_name": "Anvils Growth",
+        "monthly_price": 2999,
+        "annual_price": 29999,
+        "upgrade_target": "scale",
     },
     CustomerSegment.ENTERPRISE: {
-        "plan_key": "enterprise",
-        "plan_name": "Anvils Enterprise",
-        "monthly_price": 19999,
-        "annual_price": 199999,
+        "plan_key": "scale",
+        "plan_name": "Anvils Scale",
+        "monthly_price": 9999,
+        "annual_price": 99999,
+        "upgrade_target": None,
+    },
+    # ── Phase 2 segments (future) ──────────────────────────────────────────
+    CustomerSegment.MICRO_BUSINESS: {
+        "plan_key": "starter",
+        "plan_name": "Anvils Starter",
+        "monthly_price": 499,
+        "annual_price": 4999,
+        "upgrade_target": None,
+    },
+    CustomerSegment.NON_PROFIT: {
+        "plan_key": "starter",
+        "plan_name": "Anvils Starter",
+        "monthly_price": 499,
+        "annual_price": 4999,
+        "upgrade_target": None,
+    },
+    # ── Phase 3 segments (maybe never) ─────────────────────────────────────
+    CustomerSegment.NIDHI: {
+        "plan_key": "starter",
+        "plan_name": "Anvils Starter",
+        "monthly_price": 499,
+        "annual_price": 4999,
+        "upgrade_target": None,
+    },
+    CustomerSegment.PRODUCER: {
+        "plan_key": "starter",
+        "plan_name": "Anvils Starter",
+        "monthly_price": 499,
+        "annual_price": 4999,
+        "upgrade_target": None,
     },
 }
 
@@ -189,40 +213,43 @@ SEGMENT_PLANS: Dict[CustomerSegment, Dict[str, Any]] = {
 # ── Segment display metadata ─────────────────────────────────────────────────
 
 SEGMENT_META: Dict[CustomerSegment, Dict[str, str]] = {
-    CustomerSegment.MICRO_BUSINESS: {
-        "label": "Micro-Business",
-        "description": "Sole proprietors, partnerships, freelancers",
-        "tagline": "Stay legal, stay simple",
-    },
+    # ── Phase 1 (launch) ───────────────────────────────────────────────────
     CustomerSegment.SME: {
         "label": "Business",
         "description": "LLPs, OPCs, and Private Limited companies",
-        "tagline": "Full compliance, zero hassle",
+        "tagline": "Your company dashboard, compliance calendar, and documents",
     },
     CustomerSegment.STARTUP: {
         "label": "Startup",
         "description": "Funded or funding-stage Private Limited companies",
-        "tagline": "Equity + compliance in one platform",
-    },
-    CustomerSegment.NON_PROFIT: {
-        "label": "Non-Profit",
-        "description": "Section 8 companies, NGOs, social enterprises",
-        "tagline": "12A, 80G, FCRA — handled",
-    },
-    CustomerSegment.NIDHI: {
-        "label": "Nidhi Company",
-        "description": "Mutual benefit societies and member-based micro-finance",
-        "tagline": "NDH compliance on autopilot",
-    },
-    CustomerSegment.PRODUCER: {
-        "label": "Producer / FPO",
-        "description": "Farmer Producer Organizations and artisan collectives",
-        "tagline": "Grow together, stay compliant",
+        "tagline": "Cap table, ESOP, fundraising — one platform",
     },
     CustomerSegment.ENTERPRISE: {
         "label": "Enterprise",
         "description": "Public Limited companies and pre-IPO companies",
-        "tagline": "Corporate governance, simplified",
+        "tagline": "Board governance, investor reporting, closing rooms",
+    },
+    # ── Phase 2 (future) ───────────────────────────────────────────────────
+    CustomerSegment.MICRO_BUSINESS: {
+        "label": "Micro-Business",
+        "description": "Sole proprietors, partnerships, freelancers",
+        "tagline": "Incorporate and manage your business in one place",
+    },
+    CustomerSegment.NON_PROFIT: {
+        "label": "Non-Profit",
+        "description": "Section 8 companies, NGOs, social enterprises",
+        "tagline": "Track 12A, 80G, FCRA deadlines and compliance",
+    },
+    # ── Phase 3 (maybe never) ──────────────────────────────────────────────
+    CustomerSegment.NIDHI: {
+        "label": "Nidhi Company",
+        "description": "Mutual benefit societies and member-based micro-finance",
+        "tagline": "NDH compliance tracking and member management",
+    },
+    CustomerSegment.PRODUCER: {
+        "label": "Producer / FPO",
+        "description": "Farmer Producer Organizations and artisan collectives",
+        "tagline": "Grow together, stay on track",
     },
 }
 

@@ -12,6 +12,7 @@ import {
   getSignatureCertificate,
 } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import FeatureGate from "@/components/feature-gate";
 
 const STATUS_BADGES: Record<string, { bg: string; text: string; label: string }> = {
   draft: { bg: "bg-gray-500/15 border-gray-500/30", text: "text-gray-400", label: "Draft" },
@@ -198,6 +199,11 @@ export default function SignaturesPage() {
   }
 
   return (
+    <FeatureGate
+      moduleKey="signatures"
+      featureName="E-Signatures"
+      featureDescription="Send documents for digital signing with audit trails, reminders, and compliance certificates."
+    >
     <div className="p-6 lg:p-8 max-w-5xl space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -538,5 +544,6 @@ export default function SignaturesPage() {
         </div>
       )}
     </div>
+    </FeatureGate>
   );
 }

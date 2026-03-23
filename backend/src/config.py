@@ -34,6 +34,12 @@ class Settings(BaseSettings):
     llm_provider: str = "auto"  # "auto", "openai", or "gemini"
     llm_rate_limit: int = 60  # max calls per minute
 
+    # Company details (for invoices — MUST update before issuing real invoices)
+    company_gstin: str = "29XXXXX1234X1Z5"  # Placeholder — set COMPANY_GSTIN env var
+    company_pan: str = "XXXXX1234X"  # Placeholder — set COMPANY_PAN env var
+    company_address: str = "Bangalore, Karnataka, India"
+    frontend_url: str = "http://localhost:3000"
+
     # Razorpay
     razorpay_key_id: str = ""
     razorpay_key_secret: str = ""

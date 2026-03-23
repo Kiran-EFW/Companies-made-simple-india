@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useAuth } from "@/lib/auth-context";
 import Link from "next/link";
+import FeatureGate from "@/components/feature-gate";
 import {
   getCompanies,
   getDataRoomFolders,
@@ -346,6 +347,11 @@ export default function DataRoomPage() {
   }
 
   return (
+    <FeatureGate
+      moduleKey="data-room"
+      featureName="Data Room"
+      featureDescription="Secure document sharing with granular access controls and audit trails."
+    >
     <div>
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Header */}
@@ -878,5 +884,6 @@ export default function DataRoomPage() {
         )}
       </div>
     </div>
+    </FeatureGate>
   );
 }

@@ -68,7 +68,7 @@ class FundingRoundOut(BaseModel):
 class RoundInvestorCreate(BaseModel):
     investor_name: str
     investor_email: Optional[str] = None
-    investor_type: str = "angel"  # angel, vc, institutional, strategic
+    investor_type: str = "angel"  # angel, vc, institutional, strategic, foreign
     investor_entity: Optional[str] = None
     investment_amount: float = Field(..., gt=0)
     share_type: str = "equity"
@@ -102,3 +102,7 @@ class InitiateClosingRequest(BaseModel):
 
 class CompleteAllotmentRequest(BaseModel):
     investor_ids: Optional[List[int]] = None  # None = all investors with funds received
+
+
+class ChecklistStateUpdate(BaseModel):
+    state: dict  # Frontend 7-step checklist state

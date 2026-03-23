@@ -21,12 +21,15 @@ from src.routers import services
 from src.routers import accounting
 from src.routers import esop
 from src.routers import fundraising
+from src.routers import share_issuance
 from src.routers import stakeholders
 from src.routers import investor_portal
 from src.routers import cap_table_onboarding
 from src.routers import valuations
 from src.routers import ca_portal
 from src.routers import copilot
+from src.routers import marketplace
+from src.routers import compliance_documents
 from src.routers.company_members import router as company_members_router, invite_router, my_companies_router
 from src.utils.exceptions import APIError
 from src.middleware.security import (
@@ -162,12 +165,15 @@ app.include_router(services.router, prefix=settings.api_v1_prefix)
 app.include_router(accounting.router, prefix=settings.api_v1_prefix)
 app.include_router(esop.router, prefix=settings.api_v1_prefix)
 app.include_router(fundraising.router, prefix=settings.api_v1_prefix)
+app.include_router(share_issuance.router, prefix=settings.api_v1_prefix)
 app.include_router(stakeholders.router, prefix=settings.api_v1_prefix)
 app.include_router(investor_portal.router, prefix=settings.api_v1_prefix)
 app.include_router(cap_table_onboarding.router, prefix=settings.api_v1_prefix)
 app.include_router(valuations.router, prefix=settings.api_v1_prefix)
 app.include_router(ca_portal.router, prefix=settings.api_v1_prefix)
 app.include_router(copilot.router, prefix=settings.api_v1_prefix)
+app.include_router(marketplace.router, prefix=settings.api_v1_prefix)
+app.include_router(compliance_documents.router, prefix=settings.api_v1_prefix)
 app.include_router(company_members_router, prefix=settings.api_v1_prefix)
 app.include_router(invite_router, prefix=settings.api_v1_prefix)
 app.include_router(my_companies_router, prefix=settings.api_v1_prefix)

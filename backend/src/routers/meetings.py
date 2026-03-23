@@ -5,7 +5,6 @@ from datetime import datetime, timedelta, timezone
 from src.database import get_db
 from src.models.user import User
 from src.models.meeting import Meeting
-from src.models.company import Company
 from src.schemas.meeting import (
     MEETING_TYPES,
     MEETING_STATUSES,
@@ -17,8 +16,15 @@ from src.schemas.meeting import (
     MinutesSignRequest,
     MeetingOut,
     MeetingListItem,
+    ResolutionVotesUpdate,
+    MinutesSigningRequest,
+    FilingStatusUpdate,
 )
+from src.models.legal_template import LegalDocument
+from src.models.esign import SignatureRequest, Signatory
+from src.models.company import Company, EntityType
 from src.utils.security import get_current_user
+from src.utils.tier_gate import require_tier
 
 router = APIRouter(
     prefix="/companies/{company_id}/meetings",
@@ -54,6 +60,10 @@ def _serialize_meeting(m: Meeting) -> dict:
         "attendees": m.attendees or [],
         "quorum_present": m.quorum_present if m.quorum_present is not None else True,
         "resolutions": m.resolutions or [],
+        "resolution_votes": m.resolution_votes or {},
+        "notice_document_id": m.notice_document_id,
+        "minutes_signature_request_id": m.minutes_signature_request_id,
+        "filing_status": m.filing_status or {},
         "status": m.status or "scheduled",
         "created_at": m.created_at.isoformat() if m.created_at else "",
         "updated_at": m.updated_at.isoformat() if m.updated_at else "",
@@ -121,6 +131,7 @@ def create_meeting(
     body: MeetingCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("scale")),
 ):
     """Create/schedule a meeting."""
     if body.meeting_type not in MEETING_TYPES:
@@ -128,6 +139,23 @@ def create_meeting(
             status_code=400,
             detail=f"Invalid meeting type. Valid types: {MEETING_TYPES}",
         )
+
+    # Entity type guard — block entity types that don't hold formal board meetings
+    company = db.query(Company).filter(Company.id == company_id).first()
+    entity_note = None
+    if company and company.entity_type:
+        if company.entity_type in (EntityType.SOLE_PROPRIETORSHIP, EntityType.PARTNERSHIP):
+            raise HTTPException(
+                status_code=400,
+                detail="Formal board meetings are not applicable for "
+                f"{company.entity_type.value.replace('_', ' ')} entities.",
+            )
+        if company.entity_type in (EntityType.OPC, EntityType.LLP):
+            entity_note = (
+                f"Note: Board meetings are not mandatory for "
+                f"{company.entity_type.value.replace('_', ' ')} entities, "
+                f"but you may still record them for good governance."
+            )
 
     try:
         meeting_date = datetime.fromisoformat(body.meeting_date)
@@ -157,7 +185,10 @@ def create_meeting(
     db.add(meeting)
     db.commit()
     db.refresh(meeting)
-    return _serialize_meeting(meeting)
+    result = _serialize_meeting(meeting)
+    if entity_note:
+        result["entity_note"] = entity_note
+    return result
 
 
 @router.get("/upcoming")
@@ -165,6 +196,7 @@ def list_upcoming_meetings(
     company_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("scale")),
 ):
     """List upcoming meetings (meeting_date >= now)."""
     now = datetime.now(timezone.utc)
@@ -185,6 +217,7 @@ def list_minutes_pending(
     company_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("scale")),
 ):
     """List meetings where minutes not yet signed (compliance alert)."""
     now = datetime.now(timezone.utc)
@@ -221,6 +254,7 @@ def list_meetings(
     date_to: Optional[str] = Query(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("scale")),
 ):
     """List meetings with optional filters."""
     query = db.query(Meeting).filter(Meeting.company_id == company_id)
@@ -250,6 +284,7 @@ def get_meeting(
     meeting_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("scale")),
 ):
     """Get meeting details."""
     meeting = _get_meeting(db, company_id, meeting_id)
@@ -263,6 +298,7 @@ def update_meeting(
     body: MeetingUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("scale")),
 ):
     """Update meeting details."""
     meeting = _get_meeting(db, company_id, meeting_id)
@@ -296,6 +332,7 @@ def generate_notice(
     meeting_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("scale")),
 ):
     """Generate meeting notice HTML (21 days clear notice for AGM/EGM per Section 101)."""
     meeting = _get_meeting(db, company_id, meeting_id)
@@ -398,6 +435,20 @@ def generate_notice(
 
     meeting.notice_html = notice_html
     meeting.notice_date = notice_date
+
+    # Persist notice as a LegalDocument for document management
+    doc = LegalDocument(
+        user_id=current_user.id,
+        company_id=company_id,
+        template_type="meeting_notice",
+        title=f"Notice - {meeting.title}",
+        generated_html=notice_html,
+        status="finalized",
+    )
+    db.add(doc)
+    db.flush()
+    meeting.notice_document_id = doc.id
+
     if meeting.status == "scheduled":
         meeting.status = "notice_sent"
     db.commit()
@@ -412,14 +463,37 @@ def update_attendance(
     body: AttendanceUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("scale")),
 ):
     """Update attendance for a meeting."""
     meeting = _get_meeting(db, company_id, meeting_id)
-    meeting.attendees = [a.model_dump() for a in body.attendees]
-    meeting.quorum_present = body.quorum_present
+    attendees_data = [a.model_dump() for a in body.attendees]
+    meeting.attendees = attendees_data
+
+    # Auto-calculate quorum for board meetings
+    total_attendees = len(attendees_data)
+    present_count = sum(1 for a in attendees_data if a.get("present", False))
+    quorum_details = None
+
+    if meeting.meeting_type == "BOARD_MEETING" and total_attendees > 0:
+        # Section 174: quorum = max(2, ceil(total_directors / 3))
+        quorum_required = max(2, -(-total_attendees // 3))  # ceiling division
+        quorum_met = present_count >= quorum_required
+        meeting.quorum_present = quorum_met
+        quorum_details = {
+            "required": quorum_required,
+            "present": present_count,
+            "met": quorum_met,
+        }
+    else:
+        meeting.quorum_present = body.quorum_present
+
     db.commit()
     db.refresh(meeting)
-    return _serialize_meeting(meeting)
+    result = _serialize_meeting(meeting)
+    if quorum_details:
+        result["quorum_details"] = quorum_details
+    return result
 
 
 @router.put("/{meeting_id}/agenda")
@@ -429,6 +503,7 @@ def update_agenda(
     body: AgendaUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("scale")),
 ):
     """Update agenda items for a meeting."""
     meeting = _get_meeting(db, company_id, meeting_id)
@@ -444,6 +519,7 @@ def generate_minutes(
     meeting_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("scale")),
 ):
     """Generate professional meeting minutes HTML from agenda + resolutions."""
     meeting = _get_meeting(db, company_id, meeting_id)
@@ -616,6 +692,7 @@ def sign_minutes(
     body: MinutesSignRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("scale")),
 ):
     """Mark minutes as signed (must be within 30 days per Section 118)."""
     meeting = _get_meeting(db, company_id, meeting_id)
@@ -658,6 +735,7 @@ def update_resolutions(
     body: ResolutionsUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("scale")),
 ):
     """Add/update resolutions passed."""
     meeting = _get_meeting(db, company_id, meeting_id)
@@ -673,6 +751,7 @@ def export_meeting(
     meeting_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("scale")),
 ):
     """Export meeting package (notice + agenda + minutes) as HTML."""
     meeting = _get_meeting(db, company_id, meeting_id)
@@ -731,3 +810,180 @@ def export_meeting(
         media_type="text/html",
         headers={"Content-Disposition": f'inline; filename="meeting_package_{meeting_id}.html"'},
     )
+
+
+@router.put("/{meeting_id}/resolution-votes")
+def update_resolution_votes(
+    company_id: int,
+    meeting_id: int,
+    body: ResolutionVotesUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("scale")),
+):
+    """Save per-attendee resolution votes."""
+    meeting = _get_meeting(db, company_id, meeting_id)
+    meeting.resolution_votes = body.votes
+    db.commit()
+    db.refresh(meeting)
+    return _serialize_meeting(meeting)
+
+
+@router.put("/{meeting_id}/filing-status")
+def update_filing_status(
+    company_id: int,
+    meeting_id: int,
+    body: FilingStatusUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("scale")),
+):
+    """Save compliance filing status for a meeting."""
+    meeting = _get_meeting(db, company_id, meeting_id)
+
+    # Merge new filing into existing filing_status dict
+    existing = meeting.filing_status or {}
+    existing[body.filing_type] = {
+        "status": body.status,
+        "filed_date": body.filed_date,
+        "reference_number": body.reference_number,
+    }
+    meeting.filing_status = existing
+    db.commit()
+    db.refresh(meeting)
+    return _serialize_meeting(meeting)
+
+
+@router.post("/{meeting_id}/minutes/send-for-signing")
+def send_minutes_for_signing(
+    company_id: int,
+    meeting_id: int,
+    body: MinutesSigningRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("scale")),
+):
+    """Send minutes to chairman for e-sign."""
+    from src.services.esign_service import esign_service
+    from src.schemas.esign import SignatureRequestCreate, SignatoryCreate
+
+    meeting = _get_meeting(db, company_id, meeting_id)
+
+    if not meeting.minutes_html:
+        raise HTTPException(
+            status_code=400,
+            detail="Minutes must be generated before sending for signing.",
+        )
+
+    # Create a LegalDocument from the minutes HTML
+    doc = LegalDocument(
+        user_id=current_user.id,
+        company_id=company_id,
+        template_type="meeting_minutes",
+        title=f"Minutes - {meeting.title}",
+        generated_html=meeting.minutes_html,
+        status="finalized",
+    )
+    db.add(doc)
+    db.flush()
+
+    # Create a SignatureRequest via esign_service
+    sig_data = SignatureRequestCreate(
+        legal_document_id=doc.id,
+        title=f"Meeting Minutes - {meeting.title}",
+        message="Please review and sign the meeting minutes as Chairman.",
+        signing_order="sequential",
+        expires_in_days=30,
+        signatories=[
+            SignatoryCreate(
+                name=body.chairman_name,
+                email=body.chairman_email,
+                designation="Chairman",
+                signing_order=1,
+            ),
+        ],
+    )
+
+    try:
+        sig_request = esign_service.create_signature_request(
+            db=db, user_id=current_user.id, data=sig_data
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    meeting.minutes_signature_request_id = sig_request.id
+    db.commit()
+    db.refresh(meeting)
+
+    return {
+        "message": "Minutes sent for signing",
+        "signature_request_id": sig_request.id,
+        "meeting_id": meeting.id,
+    }
+
+
+@router.get("/{meeting_id}/minutes/signing-status")
+def get_minutes_signing_status(
+    company_id: int,
+    meeting_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("scale")),
+):
+    """Check if chairman has signed the minutes."""
+    meeting = _get_meeting(db, company_id, meeting_id)
+
+    if not meeting.minutes_signature_request_id:
+        return {
+            "signing_requested": False,
+            "status": "not_requested",
+            "message": "Minutes have not been sent for signing yet.",
+        }
+
+    sig_request = (
+        db.query(SignatureRequest)
+        .filter(SignatureRequest.id == meeting.minutes_signature_request_id)
+        .first()
+    )
+    if not sig_request:
+        return {
+            "signing_requested": True,
+            "status": "error",
+            "message": "Signature request not found.",
+        }
+
+    signatories = (
+        db.query(Signatory)
+        .filter(Signatory.signature_request_id == sig_request.id)
+        .all()
+    )
+
+    all_signed = all(s.status == "signed" for s in signatories) and len(signatories) > 0
+
+    # If all signed, update the meeting record
+    if all_signed and not meeting.minutes_signed:
+        now = datetime.now(timezone.utc)
+        meeting.minutes_signed = True
+        meeting.minutes_signed_date = now
+        # Use the first signatory's name as signed_by
+        if signatories:
+            meeting.minutes_signed_by = signatories[0].name
+        meeting.status = "minutes_signed"
+        db.commit()
+        db.refresh(meeting)
+
+    return {
+        "signing_requested": True,
+        "status": sig_request.status,
+        "all_signed": all_signed,
+        "signatories": [
+            {
+                "name": s.name,
+                "email": s.email,
+                "status": s.status,
+                "signed_at": s.signed_at.isoformat() if s.signed_at else None,
+            }
+            for s in signatories
+        ],
+        "minutes_signed": meeting.minutes_signed or False,
+    }

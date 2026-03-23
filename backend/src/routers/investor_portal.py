@@ -18,8 +18,28 @@ from src.models.esop import ESOPGrant, ESOPPlan
 from src.models.document import Document
 from src.models.investor_interest import InvestorInterest, InterestStatus
 from src.models.deal_share import DealShare, DealShareStatus
+from src.utils.tier_gate import get_active_subscription_tier, TIER_ORDER
 
 router = APIRouter(prefix="/investor-portal", tags=["Investor Portal"])
+
+
+def _require_company_tier(company_id: int, db: Session, minimum_tier: str = "growth"):
+    """Check that the company has an active subscription at the required tier.
+
+    Investor portal uses token auth (not user auth), so the standard
+    ``require_tier`` FastAPI dependency cannot be used here.
+    """
+    current_tier = get_active_subscription_tier(company_id, db)
+    if TIER_ORDER.get(current_tier, 0) < TIER_ORDER.get(minimum_tier, 0):
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "error": "subscription_required",
+                "message": f"This company requires the {minimum_tier.title()} plan to enable investor portal access.",
+                "current_tier": current_tier,
+                "required_tier": minimum_tier,
+            },
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -69,6 +89,11 @@ def get_investor_portfolio(token: str, db: Session = Depends(get_db)):
 
     portfolio = []
     for sh in shareholdings:
+        # Only include holdings from companies with Growth+ subscription
+        company_tier = get_active_subscription_tier(sh.company_id, db)
+        if TIER_ORDER.get(company_tier, 0) < TIER_ORDER["growth"]:
+            continue
+
         company = db.query(Company).filter(Company.id == sh.company_id).first()
         company_name = (company.approved_name or (company.proposed_names[0] if company.proposed_names else "Unnamed")) if company else "Unknown"
 
@@ -101,6 +126,8 @@ def get_investor_company_detail(
     company = db.query(Company).filter(Company.id == company_id).first()
     if not company:
         raise HTTPException(status_code=404, detail="Company not found")
+
+    _require_company_tier(company_id, db)
 
     # Verify investor has a stake in this company
     holdings = (
@@ -168,6 +195,8 @@ def get_investor_cap_table(
     """Full cap table for a company (investor sees all shareholders)."""
     profile = _get_profile_by_token(db, token)
 
+    _require_company_tier(company_id, db)
+
     # Verify access
     has_stake = (
         db.query(Shareholder)
@@ -208,6 +237,8 @@ def get_investor_funding_rounds(
 ):
     """Funding round history for a company, with this investor's participation."""
     profile = _get_profile_by_token(db, token)
+
+    _require_company_tier(company_id, db)
 
     # Verify access
     has_stake = (
@@ -268,6 +299,8 @@ def get_investor_esop_grants(
     from src.services.esop_service import esop_service
 
     profile = _get_profile_by_token(db, token)
+
+    _require_company_tier(company_id, db)
 
     grants = (
         db.query(ESOPGrant)
@@ -339,8 +372,18 @@ def get_esop_summary(token: str, db: Session = Depends(get_db)):
     total_vested = 0
     total_exercised = 0
 
+    # Track which companies have Growth+ subscription (ESOP is a Growth feature)
+    _tier_cache: dict = {}
+
     for g in grants:
         cid = g.company_id
+
+        # Check company tier (cached per company)
+        if cid not in _tier_cache:
+            _tier_cache[cid] = get_active_subscription_tier(cid, db)
+        if TIER_ORDER.get(_tier_cache[cid], 0) < TIER_ORDER["growth"]:
+            continue
+
         if cid not in companies:
             company = db.query(Company).filter(Company.id == cid).first()
             companies[cid] = {
@@ -387,6 +430,8 @@ def get_investor_documents(
 ):
     """Company documents visible to investors (excludes personal ID docs)."""
     profile = _get_profile_by_token(db, token)
+
+    _require_company_tier(company_id, db)
 
     # Verify access
     has_stake = (
@@ -439,6 +484,8 @@ def get_investor_pitch_deck(
 ):
     """Download/view the company's pitch deck (public, token-authenticated)."""
     profile = _get_profile_by_token(db, token)
+
+    _require_company_tier(company_id, db)
 
     # Verify access
     has_stake = (
@@ -512,6 +559,11 @@ def get_shared_deals(
         if not c:
             continue
 
+        # Only show deals from companies with Growth+ subscription
+        company_tier = get_active_subscription_tier(c.id, db)
+        if TIER_ORDER.get(company_tier, 0) < TIER_ORDER["growth"]:
+            continue
+
         cd = c.data or {}
 
         # Check if investor already has holdings
@@ -580,6 +632,8 @@ def express_interest(
     if not company:
         raise HTTPException(status_code=404, detail="Company not found")
 
+    _require_company_tier(company_id, db)
+
     # Check for existing active interest
     existing = (
         db.query(InvestorInterest)
@@ -617,6 +671,8 @@ def withdraw_interest(
 ):
     """Investor withdraws interest in a company."""
     profile = _get_profile_by_token(db, token)
+
+    _require_company_tier(company_id, db)
 
     interest = (
         db.query(InvestorInterest)
