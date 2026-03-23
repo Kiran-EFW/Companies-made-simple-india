@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { getLearningPath, getTemplateContext } from "@/lib/api";
+import Header from "@/components/header";
 import Footer from "@/components/footer";
 
 // Priority badge color mapping
@@ -112,19 +113,7 @@ export default function LearnPage() {
   if (error) {
     return (
       <div className="min-h-screen glow-bg">
-        <nav className="glass-card sticky top-0 z-50 rounded-none border-t-0 border-x-0 border-b">
-          <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-            <Link href="/dashboard" className="flex items-center gap-2">
-              <img src="/logo-icon.png" alt="Anvils" className="w-5 h-5 object-contain" />
-              <span className="font-bold hidden md:block" style={{ fontFamily: "var(--font-display)" }}>Anvils</span>
-            </Link>
-            <div className="flex items-center gap-4">
-              <Link href="/dashboard" className="text-xs font-medium transition-colors hover:text-purple-400" style={{ color: "var(--color-text-secondary)" }}>
-                Dashboard
-              </Link>
-            </div>
-          </div>
-        </nav>
+        <Header />
         <div className="max-w-4xl mx-auto px-6 py-16 text-center">
           <div className="glass-card p-12">
             <div className="text-5xl mb-4">&#128218;</div>
@@ -144,31 +133,7 @@ export default function LearnPage() {
 
   return (
     <div className="min-h-screen glow-bg">
-      {/* Navigation */}
-      <nav className="glass-card sticky top-0 z-50 rounded-none border-t-0 border-x-0 border-b">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <img src="/logo-icon.png" alt="Anvils" className="w-5 h-5 object-contain" />
-            <span className="font-bold hidden md:block" style={{ fontFamily: "var(--font-display)" }}>Anvils</span>
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link
-              href="/dashboard"
-              className="text-xs font-medium transition-colors hover:text-purple-400"
-              style={{ color: "var(--color-text-secondary)" }}
-            >
-              Dashboard
-            </Link>
-            <Link
-              href="/documents"
-              className="text-xs font-medium transition-colors hover:text-purple-400"
-              style={{ color: "var(--color-text-secondary)" }}
-            >
-              Legal Docs
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <Header />
 
       <div className="max-w-5xl mx-auto px-6 py-12">
         {/* Header */}

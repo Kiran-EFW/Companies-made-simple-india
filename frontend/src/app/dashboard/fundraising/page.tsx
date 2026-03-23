@@ -14,6 +14,7 @@ import {
   getFundingRounds,
   getFundingRound,
   createFundingRound,
+  updateFundingRound,
   addRoundInvestor,
   updateRoundInvestor,
   removeRoundInvestor,
@@ -23,6 +24,11 @@ import {
   previewConversion,
   convertRound,
   createLegalDraft,
+  saveFundraisingChecklistState,
+  getFundraisingChecklistState,
+  shareDeal,
+  listSharedDeals,
+  revokeSharedDeal,
 } from "@/lib/api";
 
 
@@ -138,28 +144,40 @@ const DEFAULT_CHECKLIST_STATE: ChecklistState = {
   fc_gpr_filed: false,
 };
 
-function useChecklistState(roundId: number | null): [ChecklistState, (patch: Partial<ChecklistState>) => void] {
+function useChecklistState(roundId: number | null, companyId: number | null): [ChecklistState, (patch: Partial<ChecklistState>) => void] {
   const storageKey = roundId != null ? `anvils_round_checklist_${roundId}` : null;
 
   const [state, setState] = useState<ChecklistState>(DEFAULT_CHECKLIST_STATE);
 
   useEffect(() => {
-    if (!storageKey) {
+    if (!roundId || !companyId) {
       setState(DEFAULT_CHECKLIST_STATE);
       return;
     }
-    try {
-      const saved = localStorage.getItem(storageKey);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        setState({ ...DEFAULT_CHECKLIST_STATE, ...parsed });
-      } else {
+    const loadState = async () => {
+      try {
+        const serverState = await getFundraisingChecklistState(companyId, roundId);
+        if (serverState) {
+          setState({ ...DEFAULT_CHECKLIST_STATE, ...serverState });
+          return;
+        }
+      } catch {
+        // Server unavailable, fall back to localStorage
+      }
+      // Fall back to localStorage
+      try {
+        const stored = localStorage.getItem(`anvils_round_checklist_${roundId}`);
+        if (stored) {
+          setState({ ...DEFAULT_CHECKLIST_STATE, ...JSON.parse(stored) });
+        } else {
+          setState(DEFAULT_CHECKLIST_STATE);
+        }
+      } catch {
         setState(DEFAULT_CHECKLIST_STATE);
       }
-    } catch {
-      setState(DEFAULT_CHECKLIST_STATE);
-    }
-  }, [storageKey]);
+    };
+    loadState();
+  }, [roundId, companyId]);
 
   const updateState = useCallback(
     (patch: Partial<ChecklistState>) => {
@@ -172,10 +190,13 @@ function useChecklistState(roundId: number | null): [ChecklistState, (patch: Par
             // localStorage quota exceeded - silently fail
           }
         }
+        if (companyId && roundId) {
+          saveFundraisingChecklistState(companyId, roundId, next).catch(() => {});
+        }
         return next;
       });
     },
-    [storageKey]
+    [storageKey, companyId, roundId]
   );
 
   return [state, updateState];
@@ -335,7 +356,7 @@ function DocumentChecklist({
   onAllotment: () => void;
   onMessage: (msg: string) => void;
 }) {
-  const [checklist, updateChecklist] = useChecklistState(round.id);
+  const [checklist, updateChecklist] = useChecklistState(round.id, companyId);
   const [expandedSteps, setExpandedSteps] = useState<Set<number>>(new Set([1]));
   const [draftingDoc, setDraftingDoc] = useState<string | null>(null);
 
@@ -928,6 +949,27 @@ export default function FundraisingPage() {
   const [converting, setConverting] = useState(false);
   const [showConversionConfirm, setShowConversionConfirm] = useState(false);
 
+  // Edit round state
+  const [showEditRound, setShowEditRound] = useState(false);
+  const [editRoundForm, setEditRoundForm] = useState({
+    round_name: "",
+    pre_money_valuation: "",
+    target_amount: "",
+    price_per_share: "",
+    valuation_cap: "",
+    discount_rate: "",
+    interest_rate: "",
+    maturity_months: "",
+    notes: "",
+  });
+
+  // Deal sharing state
+  const [showShareDeal, setShowShareDeal] = useState(false);
+  const [shareDealEmail, setShareDealEmail] = useState("");
+  const [shareDealMessage, setShareDealMessage] = useState("");
+  const [sharedDeals, setSharedDeals] = useState<any[]>([]);
+  const [sharingDeal, setSharingDeal] = useState(false);
+
   // Add investor modal
   const [showAddInvestor, setShowAddInvestor] = useState(false);
   const [investorForm, setInvestorForm] = useState({
@@ -1093,6 +1135,89 @@ export default function FundraisingPage() {
       setMessage("Shares allotted! Cap table updated.");
       fetchRoundDetail(selectedRound.id);
       fetchRounds();
+    } catch (err: any) {
+      setMessage(`Error: ${err.message}`);
+    }
+  }
+
+  // ── Edit round ──
+  function openEditRound() {
+    if (!selectedRound) return;
+    setEditRoundForm({
+      round_name: selectedRound.round_name || "",
+      pre_money_valuation: selectedRound.pre_money_valuation?.toString() || "",
+      target_amount: selectedRound.target_amount?.toString() || "",
+      price_per_share: selectedRound.price_per_share?.toString() || "",
+      valuation_cap: selectedRound.valuation_cap?.toString() || "",
+      discount_rate: selectedRound.discount_rate?.toString() || "",
+      interest_rate: selectedRound.interest_rate?.toString() || "",
+      maturity_months: selectedRound.maturity_months?.toString() || "",
+      notes: selectedRound.notes || "",
+    });
+    setShowEditRound(true);
+  }
+
+  async function handleUpdateRound(e: React.FormEvent) {
+    e.preventDefault();
+    if (!selectedRound || !companyId) return;
+    setMessage("");
+    try {
+      const payload: any = { round_name: editRoundForm.round_name };
+      if (editRoundForm.pre_money_valuation) payload.pre_money_valuation = parseFloat(editRoundForm.pre_money_valuation);
+      if (editRoundForm.target_amount) payload.target_amount = parseFloat(editRoundForm.target_amount);
+      if (editRoundForm.price_per_share) payload.price_per_share = parseFloat(editRoundForm.price_per_share);
+      if (editRoundForm.valuation_cap) payload.valuation_cap = parseFloat(editRoundForm.valuation_cap);
+      if (editRoundForm.discount_rate) payload.discount_rate = parseFloat(editRoundForm.discount_rate);
+      if (editRoundForm.interest_rate) payload.interest_rate = parseFloat(editRoundForm.interest_rate);
+      if (editRoundForm.maturity_months) payload.maturity_months = parseInt(editRoundForm.maturity_months);
+      if (editRoundForm.notes) payload.notes = editRoundForm.notes;
+      await updateFundingRound(companyId, selectedRound.id, payload);
+      setMessage("Round updated successfully.");
+      setShowEditRound(false);
+      fetchRoundDetail(selectedRound.id);
+      fetchRounds();
+    } catch (err: any) {
+      setMessage(`Error: ${err.message}`);
+    }
+  }
+
+  // ── Deal sharing ──
+  async function fetchSharedDeals() {
+    if (!companyId) return;
+    try {
+      const data = await listSharedDeals(companyId);
+      setSharedDeals(data.shared_deals || data || []);
+    } catch {
+      // silently fail
+    }
+  }
+
+  async function handleShareDeal(e: React.FormEvent) {
+    e.preventDefault();
+    if (!companyId || !shareDealEmail.trim()) return;
+    setSharingDeal(true);
+    setMessage("");
+    try {
+      await shareDeal(companyId, {
+        investor_email: shareDealEmail.trim(),
+        message: shareDealMessage.trim() || undefined,
+      });
+      setMessage("Deal shared successfully.");
+      setShareDealEmail("");
+      setShareDealMessage("");
+      fetchSharedDeals();
+    } catch (err: any) {
+      setMessage(`Error: ${err.message}`);
+    }
+    setSharingDeal(false);
+  }
+
+  async function handleRevokeDeal(shareId: number) {
+    if (!companyId) return;
+    try {
+      await revokeSharedDeal(companyId, shareId);
+      setMessage("Deal access revoked.");
+      fetchSharedDeals();
     } catch (err: any) {
       setMessage(`Error: ${err.message}`);
     }
@@ -1277,6 +1402,22 @@ export default function FundraisingPage() {
                           <StatusBadge status={selectedRound.status} />
                         </div>
                       </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={openEditRound}
+                          className="text-xs px-3 py-1.5 rounded-lg transition-colors"
+                          style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-secondary)" }}
+                        >
+                          Edit Round
+                        </button>
+                        <button
+                          onClick={() => { setShowShareDeal(true); fetchSharedDeals(); }}
+                          className="text-xs px-3 py-1.5 rounded-lg transition-colors"
+                          style={{ background: "var(--color-purple-bg)", border: "1px solid var(--color-purple-bg)", color: "var(--color-accent-purple-light)" }}
+                        >
+                          Share Deal
+                        </button>
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -1393,7 +1534,15 @@ export default function FundraisingPage() {
                         )}
                         {!selectedRound.valuation_cap && !selectedRound.discount_rate && !selectedRound.interest_rate && !selectedRound.maturity_months && (
                           <div className="col-span-4 text-center text-xs" style={{ color: "var(--color-text-muted)" }}>
-                            No convertible terms set. Edit the round to add valuation cap, discount rate, etc.
+                            No convertible terms set.{" "}
+                            <button
+                              onClick={openEditRound}
+                              className="underline font-semibold"
+                              style={{ color: "var(--color-accent-purple-light)" }}
+                            >
+                              Edit the round
+                            </button>{" "}
+                            to add valuation cap, discount rate, etc.
                           </div>
                         )}
                       </div>
@@ -1861,6 +2010,8 @@ export default function FundraisingPage() {
                     <option value="vc">VC</option>
                     <option value="institutional">Institutional</option>
                     <option value="strategic">Strategic</option>
+                    <option value="foreign">Foreign Investor</option>
+                    <option value="fdi">FDI Entity</option>
                   </select>
                 </div>
                 <div>
@@ -1897,6 +2048,210 @@ export default function FundraisingPage() {
                 Add Investor
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Round Modal */}
+      {showEditRound && selectedRound && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "var(--color-overlay)" }}>
+          <div className="glass-card p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto" style={{ cursor: "default", background: "var(--color-bg-card)" }}>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Edit {selectedRound.round_name}</h3>
+              <button onClick={() => setShowEditRound(false)} className="text-sm" style={{ color: "var(--color-text-muted)" }}>Close</button>
+            </div>
+            <form onSubmit={handleUpdateRound} className="space-y-4">
+              <div>
+                <label className="block text-sm mb-1" style={{ color: "var(--color-text-muted)" }}>Round Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={editRoundForm.round_name}
+                  onChange={(e) => setEditRoundForm({ ...editRoundForm, round_name: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg text-sm"
+                  style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm mb-1" style={{ color: "var(--color-text-muted)" }}>Pre-Money Valuation (Rs)</label>
+                  <input
+                    type="number"
+                    value={editRoundForm.pre_money_valuation}
+                    onChange={(e) => setEditRoundForm({ ...editRoundForm, pre_money_valuation: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg text-sm"
+                    style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                    placeholder="10000000"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm mb-1" style={{ color: "var(--color-text-muted)" }}>Target Amount (Rs)</label>
+                  <input
+                    type="number"
+                    value={editRoundForm.target_amount}
+                    onChange={(e) => setEditRoundForm({ ...editRoundForm, target_amount: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg text-sm"
+                    style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                    placeholder="2500000"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm mb-1" style={{ color: "var(--color-text-muted)" }}>Price Per Share (Rs)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={editRoundForm.price_per_share}
+                  onChange={(e) => setEditRoundForm({ ...editRoundForm, price_per_share: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg text-sm"
+                  style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                  placeholder="100"
+                />
+              </div>
+              {isConvertible(selectedRound.instrument_type) && (
+                <>
+                  <div className="pt-2 border-t" style={{ borderColor: "var(--color-border)" }}>
+                    <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: "var(--color-text-muted)" }}>
+                      Convertible Terms
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm mb-1" style={{ color: "var(--color-text-muted)" }}>Valuation Cap (Rs)</label>
+                      <input
+                        type="number"
+                        value={editRoundForm.valuation_cap}
+                        onChange={(e) => setEditRoundForm({ ...editRoundForm, valuation_cap: e.target.value })}
+                        className="w-full px-3 py-2 rounded-lg text-sm"
+                        style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                        placeholder="50000000"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm mb-1" style={{ color: "var(--color-text-muted)" }}>Discount Rate (%)</label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={editRoundForm.discount_rate}
+                        onChange={(e) => setEditRoundForm({ ...editRoundForm, discount_rate: e.target.value })}
+                        className="w-full px-3 py-2 rounded-lg text-sm"
+                        style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                        placeholder="20"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm mb-1" style={{ color: "var(--color-text-muted)" }}>Interest Rate (%)</label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={editRoundForm.interest_rate}
+                        onChange={(e) => setEditRoundForm({ ...editRoundForm, interest_rate: e.target.value })}
+                        className="w-full px-3 py-2 rounded-lg text-sm"
+                        style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                        placeholder="8"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm mb-1" style={{ color: "var(--color-text-muted)" }}>Maturity (Months)</label>
+                      <input
+                        type="number"
+                        value={editRoundForm.maturity_months}
+                        onChange={(e) => setEditRoundForm({ ...editRoundForm, maturity_months: e.target.value })}
+                        className="w-full px-3 py-2 rounded-lg text-sm"
+                        style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                        placeholder="24"
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+              <div>
+                <label className="block text-sm mb-1" style={{ color: "var(--color-text-muted)" }}>Notes</label>
+                <textarea
+                  value={editRoundForm.notes}
+                  onChange={(e) => setEditRoundForm({ ...editRoundForm, notes: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg text-sm"
+                  style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                  rows={3}
+                  placeholder="Round notes..."
+                />
+              </div>
+              <button type="submit" className="btn-primary w-full text-center justify-center">
+                Update Round
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Share Deal Modal */}
+      {showShareDeal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "var(--color-overlay)" }}>
+          <div className="glass-card p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto" style={{ cursor: "default", background: "var(--color-bg-card)" }}>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Share Deal</h3>
+              <button onClick={() => setShowShareDeal(false)} className="text-sm" style={{ color: "var(--color-text-muted)" }}>Close</button>
+            </div>
+            <form onSubmit={handleShareDeal} className="space-y-4 mb-6">
+              <div>
+                <label className="block text-sm mb-1" style={{ color: "var(--color-text-muted)" }}>Investor Email *</label>
+                <input
+                  type="email"
+                  required
+                  value={shareDealEmail}
+                  onChange={(e) => setShareDealEmail(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg text-sm"
+                  style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                  placeholder="investor@fund.com"
+                />
+              </div>
+              <div>
+                <label className="block text-sm mb-1" style={{ color: "var(--color-text-muted)" }}>Message (optional)</label>
+                <textarea
+                  value={shareDealMessage}
+                  onChange={(e) => setShareDealMessage(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg text-sm"
+                  style={{ background: "var(--color-hover-overlay)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
+                  rows={3}
+                  placeholder="Invitation message for the investor..."
+                />
+              </div>
+              <button type="submit" disabled={sharingDeal} className="btn-primary w-full text-center justify-center">
+                {sharingDeal ? "Sharing..." : "Share Deal"}
+              </button>
+            </form>
+
+            {/* Shared Deals List */}
+            {sharedDeals.length > 0 && (
+              <div>
+                <h4 className="text-sm font-semibold mb-3" style={{ color: "var(--color-text-secondary)" }}>Shared With</h4>
+                <div className="space-y-2">
+                  {sharedDeals.map((sd: any) => (
+                    <div
+                      key={sd.id}
+                      className="flex items-center justify-between p-3 rounded-lg text-sm"
+                      style={{ background: "var(--color-bg-secondary)", border: "1px solid var(--color-border)" }}
+                    >
+                      <div>
+                        <div className="font-medium" style={{ color: "var(--color-text-primary)" }}>{sd.investor_email}</div>
+                        {sd.created_at && (
+                          <div className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>
+                            Shared {new Date(sd.created_at).toLocaleDateString("en-IN")}
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => handleRevokeDeal(sd.id)}
+                        className="text-xs px-2 py-1 rounded hover:bg-red-500/10 transition-colors"
+                        style={{ color: "var(--color-error)" }}
+                      >
+                        Revoke
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

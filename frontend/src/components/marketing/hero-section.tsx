@@ -27,12 +27,12 @@ export default function HeroSection({
           </div>
         )}
         <h1
-          className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-6 text-gray-900"
+          className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-6 text-[var(--color-text-primary)]"
           style={{ fontFamily: "var(--font-display)" }}
         >
           {title}
         </h1>
-        <p className="text-lg md:text-xl text-gray-500 leading-relaxed mb-10">
+        <p className="text-lg md:text-xl text-[var(--color-text-secondary)] leading-relaxed mb-10">
           {subtitle}
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">

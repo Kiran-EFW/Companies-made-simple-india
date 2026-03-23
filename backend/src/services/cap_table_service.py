@@ -894,22 +894,51 @@ class CapTableService:
                     "payout": share_of_remaining,
                 })
         else:
-            # Non-participating: lp holders take GREATER of (pref, pro-rata)
-            for s in shareholders:
-                pct = s.shares / total_shares if total_shares > 0 else 0
-                full_pro_rata = round(exit_valuation * pct, 2)
-                lp_amount = lp_payouts.get(s.id, 0)
-                if s.id in lp_lookup:
-                    # Investor takes greater of pref or pro-rata
-                    payouts[s.id] = max(lp_amount, full_pro_rata)
+            # For non-participating preferred:
+            # Option A: LP holders take preference amount, remaining goes to common pro-rata
+            # Option B: LP converts to common and everyone gets pro-rata
+            # LP holders pick whichever option is better for them as a group
+
+            # Build shareholder list for easier iteration
+            sh_list = [{"id": s.id, "name": s.name, "shares": s.shares} for s in shareholders]
+
+            # Calculate total LP preference
+            total_lp_pref = sum(lp.get("invested_amount", 0) * lp.get("multiple", 1) for lp in lp_lookup.values())
+
+            # Option A payouts: LP takes preference, common splits the rest
+            option_a_payouts = {}
+            remaining_a = exit_valuation - total_lp_pref
+            for sh in sh_list:
+                sh_id = sh["id"]
+                if sh_id in lp_lookup:
+                    lp = lp_lookup[sh_id]
+                    option_a_payouts[sh_id] = lp.get("invested_amount", 0) * lp.get("multiple", 1)
                 else:
-                    # Common holder gets pro-rata of remaining
-                    share_of_remaining = round(remaining * pct, 2)
-                    payouts[s.id] = share_of_remaining
+                    pct = sh["shares"] / total_shares if total_shares > 0 else 0
+                    option_a_payouts[sh_id] = max(remaining_a, 0) * pct
+
+            # Option B payouts: everyone converts to common, pure pro-rata
+            option_b_payouts = {}
+            for sh in sh_list:
+                pct = sh["shares"] / total_shares if total_shares > 0 else 0
+                option_b_payouts[sh["id"]] = exit_valuation * pct
+
+            # LP holders choose whichever option is better for them as a group
+            total_a = sum(option_a_payouts.get(sh_id, 0) for sh_id in lp_lookup)
+            total_b = sum(option_b_payouts.get(sh_id, 0) for sh_id in lp_lookup)
+
+            if total_b > total_a:
+                # LP converts to common, everyone gets pro-rata
+                payouts = option_b_payouts
+            else:
+                # LP takes preference
+                payouts = option_a_payouts
+
+            for s in shareholders:
                 pro_rata_details.append({
                     "shareholder_id": s.id,
                     "name": s.name,
-                    "payout": payouts[s.id] - lp_payouts.get(s.id, 0),
+                    "payout": round(payouts.get(s.id, 0) - lp_payouts.get(s.id, 0), 2),
                 })
 
         waterfall_steps.append({
@@ -974,7 +1003,7 @@ class CapTableService:
         # Fetch company name
         try:
             company = db.query(Company).filter(Company.id == company_id).first()
-            company_name = company.company_name if company else f"Company #{company_id}"
+            company_name = (company.approved_name or (company.proposed_names or [""])[0]) if company else f"Company #{company_id}"
             cin = getattr(company, "cin", "") or ""
         except Exception:
             company_name = f"Company #{company_id}"

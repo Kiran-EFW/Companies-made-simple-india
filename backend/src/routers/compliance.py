@@ -367,7 +367,7 @@ def generate_mgt7(
 ):
     """Generate MGT-7 annual return form data."""
     company = _get_user_company(company_id, db, current_user)
-    return annual_filing_service.generate_mgt7_data(company)
+    return annual_filing_service.generate_mgt7_data(company, db=db)
 
 
 @router.get("/filings/mgt7a")

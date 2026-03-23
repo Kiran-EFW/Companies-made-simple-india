@@ -53,12 +53,12 @@ export default function CTASection({
     <section className="relative z-10 py-20 bg-gray-50">
       <div className="max-w-3xl mx-auto px-6 text-center">
         <h2
-          className="text-3xl md:text-4xl font-bold text-gray-900 mb-4"
+          className="text-3xl md:text-4xl font-bold text-[var(--color-text-primary)] mb-4"
           style={{ fontFamily: "var(--font-display)" }}
         >
           {title}
         </h2>
-        <p className="text-gray-500 text-lg mb-8">{subtitle}</p>
+        <p className="text-[var(--color-text-secondary)] text-lg mb-8">{subtitle}</p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link href={primaryCTA.href} className="btn-primary text-lg !py-3.5 !px-8">
             {primaryCTA.label}

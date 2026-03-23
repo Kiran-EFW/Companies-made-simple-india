@@ -71,7 +71,7 @@ class NotificationService:
             notification_metadata=metadata,
         )
         db.add(notification)
-        db.commit()
+        db.flush()  # Let the caller commit the transaction
         db.refresh(notification)
 
         # Check user preferences before dispatching to other channels

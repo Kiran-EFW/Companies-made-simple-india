@@ -7,7 +7,10 @@ import logging
 from typing import Optional, Dict, Any, List
 from datetime import date, datetime
 
+from sqlalchemy.orm import Session
+
 from src.models.company import Company, EntityType
+from src.models.shareholder import Shareholder
 from src.services.mca_form_service import STATE_CODES, ROC_JURISDICTION
 
 logger = logging.getLogger(__name__)
@@ -99,7 +102,7 @@ class AnnualFilingService:
 
     # ── MGT-7 ────────────────────────────────────────────────────────────
 
-    def generate_mgt7_data(self, company: Company) -> Dict[str, Any]:
+    def generate_mgt7_data(self, company: Company, db: Session = None) -> Dict[str, Any]:
         """MGT-7 annual return form data."""
         company_name = company.approved_name or (company.proposed_names or [""])[0]
         entity = company.entity_type
@@ -122,17 +125,31 @@ class AnnualFilingService:
                 for d in company.directors
             ]
 
-        total_shares = company.authorized_capital // 10  # at face value Rs 10
+        # Try to get real shareholding data from cap table
         shareholding = []
-        if directors:
-            per_director = total_shares // len(directors)
-            for d in directors:
-                shareholding.append({
-                    "name": d["name"],
-                    "din": d["din"],
-                    "shares_held": per_director,
-                    "percentage": round(100.0 / len(directors), 2),
-                })
+        shareholders_query = db.query(Shareholder).filter(Shareholder.company_id == company.id).all() if db else []
+        if shareholders_query:
+            total_real_shares = sum(sh.shares for sh in shareholders_query)
+            shareholding = [{
+                "name": s.name,
+                "shares": s.shares,
+                "percentage": round(s.shares / total_real_shares * 100, 2) if total_real_shares > 0 else 0
+            } for s in shareholders_query]
+            total_shares = total_real_shares
+        else:
+            # Fallback: estimate from authorized capital
+            total_shares = company.authorized_capital // 10  # at face value Rs 10
+            if directors:
+                per_director = total_shares // len(directors)
+                for d in directors:
+                    shareholding.append({
+                        "name": d["name"],
+                        "din": d["din"],
+                        "shares_held": per_director,
+                        "percentage": round(100.0 / len(directors), 2),
+                    })
+
+        paid_up_capital = getattr(company, 'paid_up_capital', company.authorized_capital)
 
         return {
             "form_name": "MGT-7",
@@ -158,7 +175,7 @@ class AnnualFilingService:
                 },
                 "section_3_capital": {
                     "authorized_capital": company.authorized_capital,
-                    "paid_up_capital": company.authorized_capital,
+                    "paid_up_capital": paid_up_capital,
                     "number_of_shares": total_shares,
                     "face_value": 10,
                 },
@@ -218,7 +235,7 @@ class AnnualFilingService:
                     "company_name": company_name,
                     "state": company.state,
                     "authorized_capital": company.authorized_capital,
-                    "paid_up_capital": company.authorized_capital,
+                    "paid_up_capital": getattr(company, 'paid_up_capital', company.authorized_capital),
                 },
                 "directors": directors,
                 "meetings_held": {

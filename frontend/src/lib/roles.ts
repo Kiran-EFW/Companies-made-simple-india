@@ -1,11 +1,16 @@
-export const FOUNDER_ROLES = ["user", "admin", "super_admin"] as const;
+export const FOUNDER_ROLES = ["user", "admin", "super_admin"];
+export const CA_ROLES = ["ca_lead", "cs_lead"];
+export const STAFF_ROLES = ["filing_coordinator", "customer_success"];
+export const ALL_ROLES = [...FOUNDER_ROLES, ...CA_ROLES, ...STAFF_ROLES];
 
-export function isFounderRole(role: string | undefined): boolean {
-  return FOUNDER_ROLES.includes(role as any);
+export function isFounderRole(role: string): boolean {
+  return FOUNDER_ROLES.includes(role);
 }
 
-export const CA_ROLES = ["ca_lead"] as const;
+export function isCaRole(role: string): boolean {
+  return CA_ROLES.includes(role);
+}
 
-export function isCaRole(role: string | undefined): boolean {
-  return CA_ROLES.includes(role as any);
+export function isStaffRole(role: string): boolean {
+  return STAFF_ROLES.includes(role);
 }

@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { quickCapTableSetup } from "@/lib/api";
+import Header from "@/components/header";
+import Footer from "@/components/footer";
 
 interface ShareholderRow {
   name: string;
@@ -65,17 +67,8 @@ export default function CapTableSetupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="max-w-4xl mx-auto flex items-center gap-2">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">A</span>
-          </div>
-          <span className="text-xl font-semibold text-gray-900">Anvils</span>
-          <span className="text-sm text-gray-500 ml-2">Free Cap Table</span>
-        </div>
-      </header>
+    <div className="min-h-screen bg-[var(--color-bg-secondary)]">
+      <Header />
 
       <main className="max-w-4xl mx-auto px-6 py-10">
         {step === 1 && (
@@ -119,7 +112,7 @@ export default function CapTableSetupPage() {
 
             <div className="bg-white rounded-lg border border-gray-200 overflow-hidden mb-4">
               <table className="w-full text-sm">
-                <thead className="bg-gray-50 border-b border-gray-200">
+                <thead className="bg-[var(--color-bg-secondary)] border-b border-gray-200">
                   <tr>
                     <th className="text-left px-4 py-3 font-medium text-gray-600">Name</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-600">Shares</th>
@@ -195,7 +188,7 @@ export default function CapTableSetupPage() {
             <div className="flex gap-3">
               <button
                 onClick={() => setStep(1)}
-                className="px-6 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium"
+                className="px-6 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-[var(--color-bg-secondary)] font-medium"
               >
                 Back
               </button>
@@ -222,7 +215,7 @@ export default function CapTableSetupPage() {
             {/* Cap table visualization */}
             <div className="bg-white rounded-lg border border-gray-200 overflow-hidden mb-8">
               <table className="w-full text-sm">
-                <thead className="bg-gray-50 border-b border-gray-200">
+                <thead className="bg-[var(--color-bg-secondary)] border-b border-gray-200">
                   <tr>
                     <th className="text-left px-4 py-3 font-medium text-gray-600">Shareholder</th>
                     <th className="text-right px-4 py-3 font-medium text-gray-600">Shares</th>
@@ -286,6 +279,7 @@ export default function CapTableSetupPage() {
           </div>
         )}
       </main>
+      <Footer />
     </div>
   );
 }

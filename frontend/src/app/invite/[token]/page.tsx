@@ -14,10 +14,10 @@ interface InviteDetails {
   role: string;
   inviter_name: string;
   inviter_email?: string;
-  message?: string;
-  status: string; // pending, accepted, declined, revoked, expired
-  email: string;
-  name: string;
+  invite_message?: string;
+  invite_status: string; // pending, accepted, declined, revoked, expired
+  invite_email: string;
+  invite_name: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -167,7 +167,7 @@ export default function InviteAcceptPage() {
   }
 
   // ─── Already accepted/declined/revoked/expired ────────────
-  if (invite && invite.status !== "pending") {
+  if (invite && invite.invite_status !== "pending") {
     const statusMessages: Record<string, { title: string; desc: string }> = {
       accepted: {
         title: "Invite Already Accepted",
@@ -187,7 +187,7 @@ export default function InviteAcceptPage() {
       },
     };
 
-    const msg = statusMessages[invite.status] || {
+    const msg = statusMessages[invite.invite_status] || {
       title: "Invite Unavailable",
       desc: "This invite is no longer available.",
     };
@@ -213,7 +213,7 @@ export default function InviteAcceptPage() {
               {msg.desc}
             </p>
 
-            {invite.status === "accepted" && isLoggedIn ? (
+            {invite.invite_status === "accepted" && isLoggedIn ? (
               <Link
                 href="/dashboard"
                 className="btn-primary px-5 py-2.5 rounded-lg text-sm font-semibold inline-block"
@@ -321,7 +321,7 @@ export default function InviteAcceptPage() {
           </div>
 
           {/* Personal message */}
-          {invite?.message && (
+          {invite?.invite_message && (
             <div
               className="rounded-lg p-4 mb-6"
               style={{
@@ -330,7 +330,7 @@ export default function InviteAcceptPage() {
               }}
             >
               <p className="text-sm italic" style={{ color: "var(--color-text-secondary)" }}>
-                &ldquo;{invite.message}&rdquo;
+                &ldquo;{invite.invite_message}&rdquo;
               </p>
             </div>
           )}

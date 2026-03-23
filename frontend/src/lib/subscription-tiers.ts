@@ -37,8 +37,8 @@ export const MODULE_REQUIRED_TIER: Record<string, SubscriptionTier> = {
   "data-room": "growth",
   accounting: "growth",
   signatures: "growth",
-  meetings: "scale",
-  registers: "scale",
+  meetings: "growth",
+  registers: "growth",
 };
 
 export function getRequiredTier(moduleKey: string): SubscriptionTier | null {

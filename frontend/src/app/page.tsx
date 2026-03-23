@@ -53,12 +53,14 @@ const PRODUCT_PILLARS = [
     icon: <Calculator className="w-5 h-5" />,
     title: "Valuations",
     description: "Rule 11UA-compliant fair market valuations using NAV and DCF methods. Essential for ESOP exercise pricing.",
+    href: "/features/valuations",
     accentColor: "blue" as const,
   },
   {
     icon: <FileText className="w-5 h-5" />,
     title: "Legal Documents & E-Signatures",
     description: "Professionally drafted board resolutions, contracts, and statutory forms. Customize clause-by-clause, send for e-signature with full audit trail.",
+    href: "/features/legal-docs",
     accentColor: "emerald" as const,
   },
 ];

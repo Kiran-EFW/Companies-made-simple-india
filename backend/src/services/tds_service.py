@@ -246,7 +246,9 @@ class TDSService:
 
         tds_amount = round(amount * rate / 100, 2)
 
-        cess = round(tds_amount * 0.04, 2)
+        # Note: Cess is shown for informational purposes only.
+        # TDS should be deducted at the flat rate; cess applies to income tax liability.
+        cess = round(tds_amount * 0.04, 2)  # Informational only
         return {
             "section": section,
             "description": rate_info["description"],
@@ -257,11 +259,11 @@ class TDSService:
             "net_payable": round(amount - tds_amount, 2),
             "has_pan": has_pan,
             "surcharge": 0,
-            "cess": cess,
-            "surcharge_health_cess": cess,
-            "total_with_cess": round(tds_amount + cess, 2),
-            "total_tds_with_cess": round(tds_amount + cess, 2),
-            "note": rate_info.get("note", ""),
+            "cess_informational": cess,
+            "note": (
+                rate_info.get("note", "")
+                + " TDS deduction is at the flat rate. Cess of 4% applies to the recipient's income tax, not to TDS."
+            ),
         }
 
     # ── Challan Generator ────────────────────────────────────────────────

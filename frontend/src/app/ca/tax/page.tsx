@@ -284,7 +284,7 @@ export default function CaTaxPage() {
                   className="text-xs"
                   style={{ color: T.textSecondary }}
                 >
-                  AY {taxData.itr.assessment_year}
+                  {taxData.itr.assessment_year}
                 </span>
               )}
               {taxData.itr?.due_date && (

@@ -29,8 +29,8 @@ export default function FeatureCard({
       <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-4 ${colors.bg}`}>
         <div className={colors.text}>{icon}</div>
       </div>
-      <h3 className="text-lg font-bold text-gray-900 mb-2">{title}</h3>
-      <p className="text-sm text-gray-500 leading-relaxed">{description}</p>
+      <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-2">{title}</h3>
+      <p className="text-sm text-[var(--color-text-secondary)] leading-relaxed">{description}</p>
       {href && (
         <div className="mt-4 text-sm font-medium text-purple-600">
           Learn more &rarr;

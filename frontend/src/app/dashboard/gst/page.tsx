@@ -74,26 +74,6 @@ export default function GstDashboardPage() {
 
   return (
     <div className="min-h-screen glow-bg">
-      <nav className="glass-card sticky top-0 z-50 rounded-none border-t-0 border-x-0 border-b">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <img src="/logo-icon.png" alt="Anvils" className="w-5 h-5 object-contain" />
-            <span className="font-bold hidden md:block" style={{ fontFamily: "var(--font-display)" }}>Anvils</span>
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="text-xs font-medium transition-colors hover:text-purple-400" style={{ color: "var(--color-text-secondary)" }}>
-              Dashboard
-            </Link>
-            <Link href="/dashboard/compliance" className="text-xs font-medium transition-colors hover:text-purple-400" style={{ color: "var(--color-text-secondary)" }}>
-              Compliance
-            </Link>
-            <Link href="/dashboard/tax" className="text-xs font-medium transition-colors hover:text-purple-400" style={{ color: "var(--color-text-secondary)" }}>
-              Tax Overview
-            </Link>
-          </div>
-        </div>
-      </nav>
-
       <div className="max-w-7xl mx-auto px-6 py-8">
         {selectedCompanyCtx && <UpsellBanner pageKey="gst" companyId={selectedCompanyCtx.id} />}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">

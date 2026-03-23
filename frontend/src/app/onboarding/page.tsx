@@ -14,6 +14,7 @@ export default function OnboardingPage() {
   const [loading, setLoading] = useState(true);
   const [companyId, setCompanyId] = useState<number | null>(null);
   const [draftConfig, setDraftConfig] = useState<any>(null);
+  const [error, setError] = useState("");
 
   // Form states
   const [names, setNames] = useState(["", ""]);
@@ -38,7 +39,7 @@ export default function OnboardingPage() {
         setDraftConfig(payload);
 
         // Initialize enough director slots
-        const slots = Array(payload.num_directors).fill({ full_name: "", email: "", phone: "" });
+        const slots = Array.from({ length: payload.num_directors }, () => ({ full_name: "", email: "", phone: "" }));
         
         // Auto-fill user into slot 1
         if (slots.length > 0) {
@@ -94,7 +95,7 @@ export default function OnboardingPage() {
       setStep(3); // Move to checkout
     } catch (err) {
       console.error(err);
-      alert("Failed to save details. Please try again.");
+      setError("Failed to save details. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -122,7 +123,7 @@ export default function OnboardingPage() {
           router.push("/dashboard");
         } catch (verifyErr) {
           console.error("Mock payment verification failed:", verifyErr);
-          alert("Payment verification failed. Please contact support.");
+          setError("Payment verification failed. Please contact support.");
           setLoading(false);
         }
         return;
@@ -146,7 +147,7 @@ export default function OnboardingPage() {
             router.push("/dashboard");
           } catch (verifyErr) {
             console.error("Payment verification failed:", verifyErr);
-            alert("Payment verification failed. Please contact support.");
+            setError("Payment verification failed. Please contact support.");
             setLoading(false);
           }
         },
@@ -168,13 +169,13 @@ export default function OnboardingPage() {
       const rzp = new (window as any).Razorpay(options);
       rzp.on("payment.failed", function (response: any) {
         console.error("Payment failed:", response.error);
-        alert(`Payment failed: ${response.error.description}`);
+        setError(`Payment failed: ${response.error.description}`);
         setLoading(false);
       });
       rzp.open();
     } catch (err) {
       console.error("Checkout error:", err);
-      alert("Failed to initiate payment. Please try again.");
+      setError("Failed to initiate payment. Please try again.");
       setLoading(false);
     }
   };
@@ -206,6 +207,12 @@ export default function OnboardingPage() {
              </div>
            </div>
         </div>
+
+        {error && (
+          <div className="p-3 rounded-lg mb-6 text-sm" style={{ background: "rgba(244, 63, 94, 0.1)", color: "var(--color-accent-rose)" }}>
+            {error}
+          </div>
+        )}
 
         <div className="glass-card p-8 animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
           
@@ -288,7 +295,7 @@ export default function OnboardingPage() {
                           value={dir.full_name}
                           onChange={(e) => {
                             const newDirs = [...directors];
-                            newDirs[idx].full_name = e.target.value;
+                            newDirs[idx] = { ...newDirs[idx], full_name: e.target.value };
                             setDirectors(newDirs);
                           }}
                         />
@@ -299,7 +306,7 @@ export default function OnboardingPage() {
                            value={dir.email}
                            onChange={(e) => {
                              const newDirs = [...directors];
-                             newDirs[idx].email = e.target.value;
+                             newDirs[idx] = { ...newDirs[idx], email: e.target.value };
                              setDirectors(newDirs);
                            }}
                         />
@@ -310,7 +317,7 @@ export default function OnboardingPage() {
                            value={dir.phone}
                            onChange={(e) => {
                              const newDirs = [...directors];
-                             newDirs[idx].phone = e.target.value;
+                             newDirs[idx] = { ...newDirs[idx], phone: e.target.value };
                              setDirectors(newDirs);
                            }}
                         />

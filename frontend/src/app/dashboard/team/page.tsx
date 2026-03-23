@@ -18,14 +18,13 @@ import {
 interface Member {
   id: number;
   user_id: number | null;
-  email: string;
-  name: string;
+  invite_email: string;
+  invite_name: string;
   role: string;
   din: string | null;
   designation: string | null;
-  status: string; // pending, accepted, declined, revoked
+  invite_status: string; // pending, accepted, declined, revoked
   invite_token: string | null;
-  invited_at: string;
   accepted_at: string | null;
   created_at: string;
 }
@@ -191,7 +190,7 @@ export default function TeamManagementPage() {
     if (!selectedCompany) return;
     try {
       await resendMemberInvite(selectedCompany.id, member.id);
-      showMsg(`Invite resent to ${member.email}`);
+      showMsg(`Invite resent to ${member.invite_email}`);
     } catch (err: any) {
       showMsg(`Error: ${err.message}`, "error");
     }
@@ -200,7 +199,7 @@ export default function TeamManagementPage() {
   // ─── Stats ─────────────────────────────────────────────────
   const totalMembers = members.length;
   const directors = members.filter((m) => m.role === "director").length;
-  const pending = members.filter((m) => m.status === "pending").length;
+  const pending = members.filter((m) => m.invite_status === "pending").length;
 
   // ─── Render helpers ────────────────────────────────────────
   function RoleBadge({ role }: { role: string }) {
@@ -402,18 +401,18 @@ export default function TeamManagementPage() {
                             background: ROLE_COLORS[member.role]?.text || "var(--color-text-muted)",
                           }}
                         >
-                          {member.name?.charAt(0).toUpperCase() || "?"}
+                          {member.invite_name?.charAt(0).toUpperCase() || "?"}
                         </div>
                         <div className="min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-semibold text-sm" style={{ color: "var(--color-text-primary)" }}>
-                              {member.name}
+                              {member.invite_name}
                             </span>
                             <RoleBadge role={member.role} />
-                            <StatusBadge status={member.status} />
+                            <StatusBadge status={member.invite_status} />
                           </div>
                           <div className="text-xs mt-0.5" style={{ color: "var(--color-text-secondary)" }}>
-                            {member.email}
+                            {member.invite_email}
                           </div>
                           <div className="flex flex-wrap items-center gap-3 mt-1.5">
                             {member.din && (
@@ -427,9 +426,9 @@ export default function TeamManagementPage() {
                               </span>
                             )}
                             <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>
-                              {member.status === "accepted" && member.accepted_at
+                              {member.invite_status === "accepted" && member.accepted_at
                                 ? `Joined on ${new Date(member.accepted_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}`
-                                : `Invite sent on ${new Date(member.invited_at || member.created_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}`}
+                                : `Invite sent on ${new Date(member.created_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}`}
                             </span>
                           </div>
                         </div>
@@ -447,7 +446,7 @@ export default function TeamManagementPage() {
                         >
                           Change Role
                         </button>
-                        {member.status === "pending" && (
+                        {member.invite_status === "pending" && (
                           <button
                             className="text-xs px-3 py-1.5 rounded-lg border transition-colors hover:bg-gray-50"
                             style={{ borderColor: "var(--color-border)", color: "var(--color-accent-amber)" }}
@@ -662,7 +661,7 @@ export default function TeamManagementPage() {
             style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)" }}
           >
             <h2 className="text-lg font-bold mb-4" style={{ color: "var(--color-text-primary)" }}>
-              Update Role for {editingMember.name}
+              Update Role for {editingMember.invite_name}
             </h2>
             <form onSubmit={handleUpdateRole} className="space-y-4">
               <div>
@@ -725,7 +724,7 @@ export default function TeamManagementPage() {
               Remove Member
             </h2>
             <p className="text-sm mb-5" style={{ color: "var(--color-text-secondary)" }}>
-              Are you sure you want to remove <strong>{removingMember.name}</strong> ({removingMember.email}) from {companyName}? This action cannot be undone.
+              Are you sure you want to remove <strong>{removingMember.invite_name}</strong> ({removingMember.invite_email}) from {companyName}? This action cannot be undone.
             </p>
             <div className="flex items-center justify-end gap-3">
               <button

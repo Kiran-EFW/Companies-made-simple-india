@@ -71,7 +71,7 @@ export default function MessagesPage() {
     try {
       const data = await getCompanyMessages(companyId);
       setMessages(data.messages || []);
-      if (data.unread_count > 0) {
+      if (data.unread_count > 0 && document.visibilityState === "visible") {
         setUnreadCount(data.unread_count);
         await markMessagesRead(companyId);
         setUnreadCount(0);

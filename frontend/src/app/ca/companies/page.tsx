@@ -164,7 +164,7 @@ export default function CaCompaniesPage() {
 
               {/* Entity type */}
               <div className="text-xs" style={{ color: T.textSecondary }}>
-                {formatEntityType(company.entity_type)}
+                {company.entity_type ? formatEntityType(company.entity_type) : "\u2014"}
               </div>
 
               {/* Status */}
@@ -173,7 +173,7 @@ export default function CaCompaniesPage() {
                   className="inline-flex text-[11px] font-medium px-2 py-0.5 rounded-full capitalize"
                   style={{ background: T.accentBg, color: T.accent }}
                 >
-                  {company.status.replace(/_/g, " ")}
+                  {(company.status || "").replace(/_/g, " ")}
                 </span>
               </div>
 

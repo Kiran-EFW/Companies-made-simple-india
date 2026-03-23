@@ -16,7 +16,6 @@ import {
   Cell,
 } from "recharts";
 import {
-  getCompanies,
   getComplianceScore,
   getComplianceCalendar,
   getUpcomingDeadlines,
@@ -147,9 +146,7 @@ export default function ComplianceDashboard() {
   const { user, loading: authLoading } = useAuth();
   const { selectedCompany } = useCompany();
 
-  // Company selection
-  const [companies, setCompanies] = useState<any[]>([]);
-  const [selectedCompanyId, setSelectedCompanyId] = useState<number | null>(null);
+  const selectedCompanyId = selectedCompany?.id ?? null;
 
   // Data
   const [scoreData, setScoreData] = useState<ComplianceScoreData | null>(null);
@@ -168,23 +165,12 @@ export default function ComplianceDashboard() {
   const [generating, setGenerating] = useState(false);
   const [activeTab, setActiveTab] = useState<"calendar" | "overdue" | "penalties" | "tds">("calendar");
 
-  // ── Fetch companies ───────────────────────────────────────────────
-  useEffect(() => {
-    if (authLoading || !user) return;
-    getCompanies()
-      .then((comps) => {
-        setCompanies(comps);
-        if (comps.length > 0) {
-          setSelectedCompanyId(comps[0].id);
-        }
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, [user, authLoading]);
-
   // ── Fetch compliance data when company changes ────────────────────
   useEffect(() => {
-    if (!selectedCompanyId) return;
+    if (!selectedCompanyId) {
+      setLoading(false);
+      return;
+    }
     const fetchAll = async () => {
       setLoading(true);
       try {
@@ -298,20 +284,6 @@ export default function ComplianceDashboard() {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            {companies.length > 1 && (
-              <select
-                className="glass-card text-sm px-3 py-2 rounded-lg border-none outline-none"
-                style={{ background: "var(--color-bg-card)", color: "var(--color-text-primary)" }}
-                value={selectedCompanyId || ""}
-                onChange={(e) => setSelectedCompanyId(Number(e.target.value))}
-              >
-                {companies.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.approved_name || c.proposed_names?.[0] || `Company #${c.id}`}
-                  </option>
-                ))}
-              </select>
-            )}
             <button
               onClick={handleGenerate}
               disabled={generating || !selectedCompanyId}
@@ -322,11 +294,11 @@ export default function ComplianceDashboard() {
           </div>
         </div>
 
-        {companies.length === 0 ? (
+        {!selectedCompany ? (
           <div className="p-12 text-center" style={{ background: "var(--color-bg-card)" }}>
             <h2 className="text-xl font-bold mb-2" style={{ color: "var(--color-text-primary)" }}>No company selected</h2>
             <p className="text-sm mb-6" style={{ color: "var(--color-text-secondary)" }}>
-              Select a company from the sidebar to view compliance calendar and deadlines.
+              Select a company from the header to view compliance calendar and deadlines.
             </p>
             <div className="flex items-center justify-center gap-3">
               <Link href="/pricing" className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white" style={{ background: "var(--color-accent-purple-light)" }}>

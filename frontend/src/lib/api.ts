@@ -178,14 +178,14 @@ export async function getCompanyTasks(companyId: number): Promise<any> {
 // ---------------------------------------------------------------------------
 
 export async function updateCompanyInfo(companyId: number, data: Record<string, any>): Promise<any> {
-  return apiCall(`/companies/${companyId}`, {
-    method: "PATCH",
+  return apiCall(`/companies/${companyId}/onboarding`, {
+    method: "PUT",
     body: JSON.stringify(data),
   });
 }
 
 export async function getCompanyDocuments(companyId: number): Promise<any> {
-  return apiCall(`/companies/${companyId}/documents`);
+  return apiCall(`/documents/company/${companyId}`);
 }
 
 // ---------------------------------------------------------------------------
@@ -451,6 +451,70 @@ export async function getAuditPack(companyId: number): Promise<any> {
   return apiCall(`/companies/${companyId}/compliance/audit-pack`);
 }
 
+export async function getAOC4Data(companyId: number) {
+  return apiCall(`/companies/${companyId}/compliance/filings/aoc4`);
+}
+
+export async function generateAOC4(companyId: number, data: any) {
+  return apiCall(`/companies/${companyId}/compliance/filings/aoc4`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getMGT7Data(companyId: number) {
+  return apiCall(`/companies/${companyId}/compliance/filings/mgt7`);
+}
+
+export async function getMGT7AData(companyId: number) {
+  return apiCall(`/companies/${companyId}/compliance/filings/mgt7a`);
+}
+
+export async function getForm11Data(companyId: number) {
+  return apiCall(`/companies/${companyId}/compliance/filings/form11`);
+}
+
+export async function getForm8Data(companyId: number) {
+  return apiCall(`/companies/${companyId}/compliance/filings/form8`);
+}
+
+export async function getTdsDueDates(companyId: number, quarter: string) {
+  return apiCall(`/companies/${companyId}/compliance/tds/due-dates?quarter=${quarter}`);
+}
+
+export async function sendComplianceReminders(companyId: number) {
+  return apiCall(`/companies/${companyId}/compliance/reminders`, { method: "POST" });
+}
+
+// ---------------------------------------------------------------------------
+// Compliance Documents
+// ---------------------------------------------------------------------------
+
+export async function generatePAS3(companyId: number, data: any) {
+  return apiCall(`/companies/${companyId}/compliance-documents/pas-3`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function generateMGT14(companyId: number, data: any) {
+  return apiCall(`/companies/${companyId}/compliance-documents/mgt-14`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function generateSH7(companyId: number, data: any) {
+  return apiCall(`/companies/${companyId}/compliance-documents/sh-7`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getComplianceDocuments(companyId: number) {
+  return apiCall(`/companies/${companyId}/compliance-documents`);
+}
+
 // ---------------------------------------------------------------------------
 // Profile
 // ---------------------------------------------------------------------------
@@ -662,6 +726,34 @@ export async function getPendingMinutes(companyId: number) {
   return apiCall(`/companies/${companyId}/meetings/minutes-pending`);
 }
 
+export async function exportMeeting(companyId: number, meetingId: number) {
+  return apiCall(`/companies/${companyId}/meetings/${meetingId}/export`);
+}
+
+export async function updateResolutionVotes(companyId: number, meetingId: number, data: any) {
+  return apiCall(`/companies/${companyId}/meetings/${meetingId}/resolution-votes`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateMeetingFilingStatus(companyId: number, meetingId: number, data: any) {
+  return apiCall(`/companies/${companyId}/meetings/${meetingId}/filing-status`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function sendMinutesForSigning(companyId: number, meetingId: number) {
+  return apiCall(`/companies/${companyId}/meetings/${meetingId}/minutes/send-for-signing`, {
+    method: "POST",
+  });
+}
+
+export async function getMinutesSigningStatus(companyId: number, meetingId: number) {
+  return apiCall(`/companies/${companyId}/meetings/${meetingId}/minutes/signing-status`);
+}
+
 // ---------------------------------------------------------------------------
 // Data Room
 // ---------------------------------------------------------------------------
@@ -857,8 +949,12 @@ export async function allotShares(companyId: number, data: any) {
   });
 }
 
-export async function getDilutionPreview(companyId: number) {
-  return apiCall(`/companies/${companyId}/cap-table/dilution-preview`);
+export async function getDilutionPreview(companyId: number, newShares: number, investorName?: string, pricePerShare?: number) {
+  const params = new URLSearchParams();
+  params.set("new_shares", String(newShares));
+  if (investorName) params.set("investor_name", investorName);
+  if (pricePerShare != null) params.set("price_per_share", String(pricePerShare));
+  return apiCall(`/companies/${companyId}/cap-table/dilution-preview?${params.toString()}`);
 }
 
 export async function exportCapTable(companyId: number) {
@@ -917,6 +1013,91 @@ export async function simulateExitWaterfall(companyId: number, data: {
 
 export async function getShareCertificate(companyId: number, shareholderId: number) {
   return apiCall(`/companies/${companyId}/cap-table/shareholders/${shareholderId}/certificate`);
+}
+
+export async function sendShareCertificateForSigning(companyId: number, shareholderId: number) {
+  return apiCall(`/companies/${companyId}/cap-table/shareholders/${shareholderId}/certificate/send-for-signing`, {
+    method: "POST",
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Share Issuance
+// ---------------------------------------------------------------------------
+
+export async function createShareIssuance(companyId: number, data: any) {
+  return apiCall(`/companies/${companyId}/share-issuance`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getShareIssuances(companyId: number) {
+  return apiCall(`/companies/${companyId}/share-issuance`);
+}
+
+export async function getShareIssuance(companyId: number, workflowId: number) {
+  return apiCall(`/companies/${companyId}/share-issuance/${workflowId}`);
+}
+
+export async function updateShareIssuance(companyId: number, workflowId: number, data: any) {
+  return apiCall(`/companies/${companyId}/share-issuance/${workflowId}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function linkShareIssuanceDocument(companyId: number, workflowId: number, data: { doc_type: string; document_id: number }) {
+  return apiCall(`/companies/${companyId}/share-issuance/${workflowId}/link-document`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateShareIssuanceFilingStatus(companyId: number, workflowId: number, data: any) {
+  return apiCall(`/companies/${companyId}/share-issuance/${workflowId}/filing-status`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function addShareIssuanceAllottee(companyId: number, workflowId: number, data: any) {
+  return apiCall(`/companies/${companyId}/share-issuance/${workflowId}/allottees`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function removeShareIssuanceAllottee(companyId: number, workflowId: number, index: number) {
+  return apiCall(`/companies/${companyId}/share-issuance/${workflowId}/allottees/${index}`, {
+    method: "DELETE",
+  });
+}
+
+export async function recordShareIssuanceFundReceipt(companyId: number, workflowId: number, data: any) {
+  return apiCall(`/companies/${companyId}/share-issuance/${workflowId}/fund-receipt`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function saveShareIssuanceWizardState(companyId: number, workflowId: number, data: any) {
+  return apiCall(`/companies/${companyId}/share-issuance/${workflowId}/wizard-state`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function completeShareIssuanceAllotment(companyId: number, workflowId: number) {
+  return apiCall(`/companies/${companyId}/share-issuance/${workflowId}/complete-allotment`, {
+    method: "POST",
+  });
+}
+
+export async function sendShareIssuanceForSigning(companyId: number, workflowId: number) {
+  return apiCall(`/companies/${companyId}/share-issuance/${workflowId}/send-for-signing`, {
+    method: "POST",
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -1121,6 +1302,27 @@ export async function cancelSubscription(subId: number): Promise<SubscriptionOut
   return apiCall(`/services/subscriptions/${subId}/cancel`, { method: "POST" });
 }
 
+export async function upgradeSubscription(subId: number, data: { new_plan_key: string }) {
+  return apiCall(`/services/subscriptions/${subId}/upgrade`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function downgradeSubscription(subId: number, data: { new_plan_key: string }) {
+  return apiCall(`/services/subscriptions/${subId}/downgrade`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function verifyServicePayment(requestId: number, data: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) {
+  return apiCall(`/services/requests/${requestId}/verify-payment`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
 export async function getUpsellItems(companyId: number): Promise<UpsellItem[]> {
   return apiCall(`/services/upsell/${companyId}`);
 }
@@ -1250,6 +1452,10 @@ export async function getESOPSummary(companyId: number) {
   return apiCall(`/companies/${companyId}/esop/summary`);
 }
 
+export async function getESOPValuationReference(companyId: number) {
+  return apiCall(`/companies/${companyId}/esop/valuation-reference`);
+}
+
 // ---------------------------------------------------------------------------
 // Fundraising
 // ---------------------------------------------------------------------------
@@ -1319,6 +1525,21 @@ export async function completeAllotment(companyId: number, roundId: number, data
     method: "POST",
     body: JSON.stringify(data || {}),
   });
+}
+
+export async function saveFundraisingChecklistState(companyId: number, roundId: number, data: any) {
+  return apiCall(`/companies/${companyId}/fundraising/rounds/${roundId}/checklist-state`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getFundraisingChecklistState(companyId: number, roundId: number) {
+  return apiCall(`/companies/${companyId}/fundraising/rounds/${roundId}/checklist-state`);
+}
+
+export async function getFundraisingValuationReference(companyId: number) {
+  return apiCall(`/companies/${companyId}/fundraising/valuation-reference`);
 }
 
 // ---------------------------------------------------------------------------
@@ -1500,6 +1721,10 @@ export async function getLatestValuation(companyId: number) {
   return apiCall(`/companies/${companyId}/valuations/latest`);
 }
 
+export async function getValuation(companyId: number, valuationId: number) {
+  return apiCall(`/companies/${companyId}/valuations/${valuationId}`);
+}
+
 // ---------------------------------------------------------------------------
 // Company Members / Team Collaboration
 // ---------------------------------------------------------------------------
@@ -1554,6 +1779,10 @@ export async function acceptInvite(token: string) {
 
 export async function declineInvite(token: string) {
   return apiCall(`/invites/${token}/decline`, { method: "POST" });
+}
+
+export async function getMyCompanies() {
+  return apiCall("/my-companies");
 }
 
 // ---------------------------------------------------------------------------
@@ -1641,6 +1870,17 @@ export async function addCaTaskNote(companyId: number, taskId: number, note: str
 
 export async function getCaTaskNotes(companyId: number, taskId: number): Promise<any> {
   return apiCall(`/ca/companies/${companyId}/tasks/${taskId}/notes`);
+}
+
+export async function getCaCompanyMessages(companyId: number) {
+  return apiCall(`/ca/companies/${companyId}/messages`);
+}
+
+export async function sendCaCompanyMessage(companyId: number, content: string) {
+  return apiCall(`/ca/companies/${companyId}/messages`, {
+    method: "POST",
+    body: JSON.stringify({ content }),
+  });
 }
 
 // ---------------------------------------------------------------------------

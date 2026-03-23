@@ -131,6 +131,19 @@ class SubscriptionService:
 
         count = 0
         for sub in expired_subs:
+            # Apply any pending downgrade before renewal
+            if sub.pending_plan_key:
+                sub.plan_key = sub.pending_plan_key
+                sub.plan_name = sub.pending_plan_name
+                sub.amount = sub.pending_amount
+                sub.pending_plan_key = None
+                sub.pending_plan_name = None
+                sub.pending_amount = None
+                logger.info(
+                    "Applied pending downgrade for subscription %d to plan %s",
+                    sub.id, sub.plan_key,
+                )
+
             if payment_service.is_mock:
                 # Auto-renew in mock mode
                 if sub.interval == SubscriptionInterval.ANNUAL:
@@ -291,12 +304,12 @@ class SubscriptionService:
                 "Use upgrade for switching to a more expensive plan."
             )
 
-        # Update plan details — the change is effective at end of current period.
+        # Store pending downgrade — will take effect at next renewal.
         # current_period_end is NOT changed so the user retains higher-tier
         # access until their current billing cycle ends.
-        sub.plan_key = new_plan_key
-        sub.plan_name = new_plan["name"]
-        sub.amount = new_amount
+        sub.pending_plan_key = new_plan_key
+        sub.pending_plan_name = new_plan["name"]
+        sub.pending_amount = new_amount
         db.commit()
         db.refresh(sub)
 

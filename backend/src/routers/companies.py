@@ -77,7 +77,11 @@ def update_company_onboarding(
     
     # Update names
     comp.proposed_names = details.proposed_names
-    
+
+    # Remove existing directors to prevent duplicates on resubmission
+    db.query(Director).filter(Director.company_id == company_id).delete()
+    db.flush()
+
     # Process directors
     for idx, dir_info in enumerate(details.directors):
         # Optional validation for limits

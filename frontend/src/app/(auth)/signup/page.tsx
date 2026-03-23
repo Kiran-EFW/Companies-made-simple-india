@@ -26,6 +26,12 @@ function SignupForm() {
     setLoading(true);
     setError("");
 
+    if (formData.password.length < 8 || !/[A-Z]/.test(formData.password) || !/[a-z]/.test(formData.password) || !/\d/.test(formData.password)) {
+      setError("Password must be at least 8 characters with uppercase, lowercase, and a digit");
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await apiCall("/auth/signup", {
         method: "POST",

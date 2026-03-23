@@ -111,6 +111,11 @@ class Subscription(Base):
     razorpay_subscription_id = Column(String, nullable=True, index=True)
     razorpay_plan_id = Column(String, nullable=True)
 
+    # Pending downgrade (applied at next renewal)
+    pending_plan_key = Column(String, nullable=True)
+    pending_plan_name = Column(String, nullable=True)
+    pending_amount = Column(Integer, nullable=True)
+
     # Billing cycle
     current_period_start = Column(DateTime, nullable=True)
     current_period_end = Column(DateTime, nullable=True)

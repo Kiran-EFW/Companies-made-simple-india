@@ -13,7 +13,23 @@ function LoginForm() {
   const { login } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [resetMsg, setResetMsg] = useState("");
+  const handleForgotPassword = async () => {
+    const email = (document.getElementById("email") as HTMLInputElement)?.value;
+    if (!email) {
+      setError("Please enter your email address first");
+      return;
+    }
+    try {
+      await apiCall("/auth/forgot-password", {
+        method: "POST",
+        body: JSON.stringify({ email }),
+      });
+      setError("");
+      alert("If an account exists with that email, a password reset link has been sent.");
+    } catch {
+      alert("If an account exists with that email, a password reset link has been sent.");
+    }
+  };
 
   const [formData, setFormData] = useState({
     email: "",
@@ -73,6 +89,7 @@ function LoginForm() {
             Email Address
           </label>
           <input
+            id="email"
             required
             type="email"
             className="input-field"
@@ -87,7 +104,7 @@ function LoginForm() {
             <label className="block text-sm font-medium" style={{ color: "var(--color-text-secondary)" }}>
               Password
             </label>
-            <span className="text-xs cursor-pointer transition-colors" style={{ color: "var(--color-text-muted)" }} onClick={() => setResetMsg("Password reset coming soon. Contact support@anvils.in for help.")}>
+            <span className="text-xs cursor-pointer transition-colors" style={{ color: "var(--color-text-muted)" }} onClick={handleForgotPassword}>
               Forgot password?
             </span>
           </div>
@@ -99,11 +116,6 @@ function LoginForm() {
             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
             placeholder="••••••••"
           />
-          {resetMsg && (
-            <p className="text-xs mt-2" style={{ color: "var(--color-text-muted)" }}>
-              {resetMsg}
-            </p>
-          )}
         </div>
 
         <button
@@ -123,38 +135,40 @@ function LoginForm() {
       </div>
 
       {/* Dev quick-login */}
-      <div className="mt-6 pt-5 border-t" style={{ borderColor: "var(--color-border)" }}>
-        <p className="text-xs text-center mb-3" style={{ color: "var(--color-text-muted)" }}>
-          Demo accounts
-        </p>
-        <div className="grid grid-cols-2 gap-2">
-          {[
-            { label: "Paul", email: "paul@anvils.in", password: "Anvils123" },
-            { label: "Janeevan", email: "janeevan@anvils.in", password: "Anvils123" },
-            { label: "Abey", email: "abey@anvils.in", password: "Anvils123" },
-            { label: "CA Demo", email: "ca@anvils.in", password: "Anvils123" },
-          ].map((acct) => (
-            <button
-              key={acct.email}
-              type="button"
-              className="px-3 py-2 rounded-lg text-xs font-medium transition-colors"
-              style={{ background: "var(--color-overlay)", color: "var(--color-text-secondary)", border: "1px solid var(--color-border)" }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--color-accent-purple-light)"; e.currentTarget.style.color = "var(--color-text-primary)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--color-border)"; e.currentTarget.style.color = "var(--color-text-secondary)"; }}
-              onClick={() => {
-                localStorage.removeItem("pending_company_draft");
-                setFormData({ email: acct.email, password: acct.password });
-                setTimeout(() => {
-                  const form = document.querySelector("form");
-                  if (form) form.requestSubmit();
-                }, 100);
-              }}
-            >
-              {acct.label}
-            </button>
-          ))}
+      {process.env.NODE_ENV === "development" && (
+        <div className="mt-6 pt-5 border-t" style={{ borderColor: "var(--color-border)" }}>
+          <p className="text-xs text-center mb-3" style={{ color: "var(--color-text-muted)" }}>
+            Demo accounts
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { label: "Paul", email: "paul@anvils.in", password: "Anvils123" },
+              { label: "Janeevan", email: "janeevan@anvils.in", password: "Anvils123" },
+              { label: "Abey", email: "abey@anvils.in", password: "Anvils123" },
+              { label: "CA Demo", email: "ca@anvils.in", password: "Anvils123" },
+            ].map((acct) => (
+              <button
+                key={acct.email}
+                type="button"
+                className="px-3 py-2 rounded-lg text-xs font-medium transition-colors"
+                style={{ background: "var(--color-overlay)", color: "var(--color-text-secondary)", border: "1px solid var(--color-border)" }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--color-accent-purple-light)"; e.currentTarget.style.color = "var(--color-text-primary)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--color-border)"; e.currentTarget.style.color = "var(--color-text-secondary)"; }}
+                onClick={() => {
+                  localStorage.removeItem("pending_company_draft");
+                  setFormData({ email: acct.email, password: acct.password });
+                  setTimeout(() => {
+                    const form = document.querySelector("form");
+                    if (form) form.requestSubmit();
+                  }, 100);
+                }}
+              >
+                {acct.label}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
     </div>
   );
