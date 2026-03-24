@@ -1884,5 +1884,56 @@ export async function sendCaCompanyMessage(companyId: number, content: string) {
 }
 
 // ---------------------------------------------------------------------------
+// Marketplace — Partner (CA_LEAD) endpoints
+// ---------------------------------------------------------------------------
+
+export async function registerAsPartner(data: {
+  membership_number: string;
+  membership_type: string;
+  firm_name?: string;
+  specializations?: string[];
+}): Promise<any> {
+  return apiCall("/marketplace/partners/register", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getPartnerDashboard(): Promise<any> {
+  return apiCall("/marketplace/partner/dashboard");
+}
+
+export async function getPartnerAssignments(status?: string): Promise<any> {
+  const qs = status ? `?status=${status}` : "";
+  return apiCall(`/marketplace/partner/assignments${qs}`);
+}
+
+export async function getPartnerEarnings(): Promise<any> {
+  return apiCall("/marketplace/partner/earnings");
+}
+
+export async function acceptAssignment(fulfillmentId: number): Promise<any> {
+  return apiCall(`/marketplace/fulfillments/${fulfillmentId}/accept`, {
+    method: "POST",
+  });
+}
+
+export async function startAssignment(fulfillmentId: number): Promise<any> {
+  return apiCall(`/marketplace/fulfillments/${fulfillmentId}/start`, {
+    method: "POST",
+  });
+}
+
+export async function deliverAssignment(
+  fulfillmentId: number,
+  note?: string,
+): Promise<any> {
+  return apiCall(`/marketplace/fulfillments/${fulfillmentId}/deliver`, {
+    method: "POST",
+    body: JSON.stringify({ note }),
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Admin/Ops functions have been moved to the separate admin-portal app.
 // ---------------------------------------------------------------------------

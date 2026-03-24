@@ -21,11 +21,20 @@ class UserCreate(BaseModel):
     password: str
     full_name: str
     phone: Optional[str] = None
+    role: Optional[str] = "user"
 
     @field_validator("password")
     @classmethod
     def password_strength(cls, v: str) -> str:
         return _validate_password_strength(v)
+
+    @field_validator("role")
+    @classmethod
+    def validate_role(cls, v: str) -> str:
+        allowed = {"user", "ca_lead"}
+        if v not in allowed:
+            raise ValueError("Role must be 'user' or 'ca_lead'")
+        return v
 
 
 class UserLogin(BaseModel):

@@ -5,314 +5,186 @@ import { useRouter } from "next/navigation";
 import type { PricingResponse, StateOption } from "@/lib/api";
 import Header from "@/components/header";
 import Footer from "@/components/footer";
-import {
-  BarChart3, Users, TrendingUp, Shield, Calculator, Calendar, FileText,
-  FolderLock, BookOpen, Receipt, PenTool, UserCheck,
-  Check, Star, Zap, Crown,
-} from "lucide-react";
+import ChatWidget from "@/components/chat-widget";
+import SectionHeader from "@/components/marketing/section-header";
+import CTASection from "@/components/marketing/cta-section";
+import FAQAccordion from "@/components/marketing/faq-accordion";
+import { Check, ChevronDown } from "lucide-react";
 
 // ─── Section Navigation ─────────────────────────────────────────────────────
 
 const SECTIONS = [
-  { id: "platform", label: "Platform Features" },
   { id: "plans", label: "Platform Plans" },
   { id: "incorporation", label: "Incorporation" },
-  { id: "services", label: "Services & Add-Ons" },
-];
-
-// ─── Platform Features (included with every account) ────────────────────────
-
-const PLATFORM_FEATURES = [
-  { icon: <BarChart3 className="w-5 h-5" />, title: "Cap Table Management", desc: "Shareholders, dilution modeling, scenario comparison, share certificates", color: "purple" },
-  { icon: <Users className="w-5 h-5" />, title: "ESOP Management", desc: "Plans, grants, vesting schedules, exercise workflows, FMV pricing", color: "blue" },
-  { icon: <TrendingUp className="w-5 h-5" />, title: "Fundraising", desc: "Rounds, investor tracking, closing rooms, post-raise filings", color: "emerald" },
-  { icon: <Shield className="w-5 h-5" />, title: "Compliance Calendar", desc: "Auto-generated tasks, deadline tracking, escalation alerts", color: "purple" },
-  { icon: <Calculator className="w-5 h-5" />, title: "Valuations", desc: "Rule 11UA NAV & DCF methods, ESOP FMV integration", color: "blue" },
-  { icon: <UserCheck className="w-5 h-5" />, title: "Stakeholder Management", desc: "Shareholders, directors, auditors, KYC documents", color: "emerald" },
-  { icon: <Calendar className="w-5 h-5" />, title: "Board Meetings", desc: "Scheduling, notices, attendance, minutes, resolutions", color: "purple" },
-  { icon: <FileText className="w-5 h-5" />, title: "Legal Documents & E-Sign", desc: "Professional contracts, e-signatures, template library", color: "blue" },
-  { icon: <FolderLock className="w-5 h-5" />, title: "Data Room", desc: "Secure sharing, time-limited links, access tracking", color: "emerald" },
-  { icon: <Receipt className="w-5 h-5" />, title: "GST & Tax Dashboard", desc: "Returns tracking, TDS, advance tax, filing status", color: "purple" },
-  { icon: <BookOpen className="w-5 h-5" />, title: "Accounting Integration", desc: "Zoho Books & Tally sync, financial dashboards", color: "blue" },
-  { icon: <PenTool className="w-5 h-5" />, title: "Statutory Registers", desc: "Members, directors, shares, charges registers", color: "emerald" },
-];
-
-const USER_TYPES = [
-  { label: "Founders", desc: "Full access to all platform features. Manage your company's equity, compliance, and back-office.", href: "/for/founders" },
-  { label: "Investors", desc: "Token-based portal. View portfolio companies, cap tables, funding rounds, and documents — no login needed.", href: "/for/investors" },
+  { id: "faq", label: "FAQ" },
 ];
 
 // ─── Platform Subscription Plans ────────────────────────────────────────────
-// Synced with backend services_catalog.py SUBSCRIPTION_PLANS (3 tiers)
 
 const SUBSCRIPTION_PLANS = [
   {
-    key: "starter",
-    name: "Starter",
-    icon: <Zap className="w-5 h-5" />,
-    target: "All incorporated companies",
-    monthlyPrice: 499,
-    annualPrice: 4999,
+    key: "free",
+    name: "Free",
+    tagline: "For every Indian company",
+    monthlyPrice: 0,
+    annualPrice: 0,
     highlighted: false,
     features: [
-      "Company dashboard with key metrics",
-      "Compliance calendar with deadline reminders",
-      "Email & SMS alerts before due dates",
-      "Document storage (up to 50 documents)",
-      "Director/partner KYC tracker",
-      "Services marketplace access (buy à la carte)",
-      "Company profile management",
-      "Post-incorporation document bundle (one-time free)",
+      "Company dashboard",
+      "Compliance calendar & reminders",
+      "Basic document storage",
+      "Company overview & status",
     ],
   },
   {
     key: "growth",
     name: "Growth",
-    icon: <Star className="w-5 h-5" />,
-    target: "Funded startups & companies planning to raise",
+    tagline: "For funded startups",
     monthlyPrice: 2999,
     annualPrice: 29999,
     highlighted: true,
     features: [
-      "Everything in Starter",
-      "Full cap table management with dilution modeling",
-      "ESOP plan creation and grant management",
-      "Fundraising rounds (SAFE, CCD, CCPS, equity)",
-      "Investor portal (token-based + authenticated)",
-      "Data room with granular access controls",
-      "E-signatures (up to 20/month)",
-      "Valuations (Rule 11UA FMV calculator)",
-      "Unlimited document storage",
-      "Team management (up to 10 users)",
-      "Priority support",
+      "Everything in Free, plus",
+      "Full cap table management",
+      "ESOP plans & grants",
+      "Data room with secure sharing",
+      "E-signatures (up to 10/mo)",
+      "Investor portal",
+      "Fundraising tools",
+      "Valuations (Rule 11UA)",
     ],
   },
   {
     key: "scale",
     name: "Scale",
-    icon: <Crown className="w-5 h-5" />,
-    target: "Series A+ companies, public limited, pre-IPO",
+    tagline: "For scaling companies",
     monthlyPrice: 9999,
     annualPrice: 99999,
     highlighted: false,
     features: [
-      "Everything in Growth",
-      "Board meeting management with agenda builder",
-      "Resolution workflow and voting",
-      "Statutory registers (members, directors, charges)",
-      "Investor reporting and portfolio dashboard",
-      "Closing room for fundraising rounds",
+      "Everything in Growth, plus",
+      "Board governance suite",
+      "Statutory registers",
+      "FEMA compliance tracking",
       "Unlimited e-signatures",
-      "FEMA/RBI compliance tracker (FC-GPR, FLA)",
-      "Quarterly compliance health reports",
-      "Unlimited users",
+      "Investor reporting",
+      "Closing room",
       "Dedicated account manager",
-      "Same-day response SLA",
     ],
   },
+];
+
+// ─── Feature Comparison Table ────────────────────────────────────────────────
+// [name, free, growth, scale] — true = check, false = dash, string = label
+type FV = boolean | string;
+const CMP: { cat: string; rows: [string, FV, FV, FV][] }[] = [
+  { cat: "Core Platform", rows: [
+    ["Company dashboard", true, true, true], ["Compliance calendar & reminders", true, true, true],
+    ["Basic document storage", true, true, true], ["Company overview & status", true, true, true],
+  ]},
+  { cat: "Equity & Fundraising", rows: [
+    ["Cap table management", false, true, true], ["Dilution modeling", false, true, true],
+    ["ESOP plans & grants", false, true, true], ["Fundraising rounds (SAFE, CCD, CCPS, equity)", false, true, true],
+    ["Investor portal", false, true, true], ["Valuations (Rule 11UA)", false, true, true],
+    ["Closing room", false, false, true],
+  ]},
+  { cat: "Documents & Signatures", rows: [
+    ["Document storage", "50 docs", "Unlimited", "Unlimited"],
+    ["Data room with secure sharing", false, true, true], ["E-signatures", false, "10/mo", "Unlimited"],
+  ]},
+  { cat: "Governance & Compliance", rows: [
+    ["Board meeting management", false, false, true], ["Statutory registers", false, false, true],
+    ["FEMA compliance tracking", false, false, true], ["Investor reporting", false, false, true],
+  ]},
+  { cat: "Support", rows: [
+    ["Email support", true, true, true], ["Priority support", false, true, true],
+    ["Dedicated account manager", false, false, true],
+  ]},
 ];
 
 // ─── Incorporation Calculator Data ──────────────────────────────────────────
 
-const ENTITY_TYPES = [
-  { value: "private_limited", label: "Private Limited" },
-  { value: "public_limited", label: "Public Limited" },
-  { value: "opc", label: "OPC" },
-  { value: "llp", label: "LLP" },
-  { value: "partnership", label: "Partnership" },
-  { value: "section_8", label: "Section 8" },
-  { value: "sole_proprietorship", label: "Sole Prop" },
-];
+const ENTITY_TYPES = ([
+  ["private_limited", "Private Limited"], ["public_limited", "Public Limited"], ["opc", "OPC"],
+  ["llp", "LLP"], ["partnership", "Partnership"], ["section_8", "Section 8"],
+  ["sole_proprietorship", "Sole Prop"],
+] as const).map(([value, label]) => ({ value, label }));
 
 const PLAN_TIERS = [
-  {
-    value: "launch", label: "Launch",
-    desc: "Guided incorporation + CS review",
-    descByEntity: {
-      sole_proprietorship: "GST + Udyam + Shop & Establishment registration",
-      partnership: "Deed drafting + ROF registration + PAN",
-    } as Record<string, string>,
-  },
-  {
-    value: "grow", label: "Grow",
-    desc: "Launch + GST + DPIIT + 90-day compliance",
-    descByEntity: {
-      sole_proprietorship: "Launch + FSSAI/trade license + 90-day support",
-      partnership: "Launch + GST + 90-day compliance",
-    } as Record<string, string>,
-  },
-  {
-    value: "scale", label: "Scale",
-    desc: "Grow + 1-year compliance + dedicated RM",
-    descByEntity: {
-      partnership: "Grow + 1-year compliance + dedicated RM",
-    } as Record<string, string>,
-  },
+  { value: "launch", label: "Launch", desc: "Guided incorporation + CS review",
+    descByEntity: { sole_proprietorship: "GST + Udyam + Shop & Establishment registration", partnership: "Deed drafting + ROF registration + PAN" } as Record<string, string> },
+  { value: "grow", label: "Grow", desc: "Launch + GST + DPIIT + 90-day compliance",
+    descByEntity: { sole_proprietorship: "Launch + FSSAI/trade license + 90-day support", partnership: "Launch + GST + 90-day compliance" } as Record<string, string> },
+  { value: "scale", label: "Scale", desc: "Grow + 1-year compliance + dedicated RM",
+    descByEntity: { partnership: "Grow + 1-year compliance + dedicated RM" } as Record<string, string> },
 ];
 
-const STATES: StateOption[] = [
-  { value: "andhra_pradesh", label: "Andhra Pradesh" },
-  { value: "arunachal_pradesh", label: "Arunachal Pradesh" },
-  { value: "assam", label: "Assam" },
-  { value: "bihar", label: "Bihar" },
-  { value: "chhattisgarh", label: "Chhattisgarh" },
-  { value: "delhi", label: "Delhi" },
-  { value: "goa", label: "Goa" },
-  { value: "gujarat", label: "Gujarat" },
-  { value: "haryana", label: "Haryana" },
-  { value: "himachal_pradesh", label: "Himachal Pradesh" },
-  { value: "jammu_kashmir", label: "Jammu & Kashmir" },
-  { value: "jharkhand", label: "Jharkhand" },
-  { value: "karnataka", label: "Karnataka" },
-  { value: "kerala", label: "Kerala" },
-  { value: "ladakh", label: "Ladakh" },
-  { value: "madhya_pradesh", label: "Madhya Pradesh" },
-  { value: "maharashtra", label: "Maharashtra" },
-  { value: "manipur", label: "Manipur" },
-  { value: "meghalaya", label: "Meghalaya" },
-  { value: "mizoram", label: "Mizoram" },
-  { value: "nagaland", label: "Nagaland" },
-  { value: "odisha", label: "Odisha" },
-  { value: "punjab", label: "Punjab" },
-  { value: "rajasthan", label: "Rajasthan" },
-  { value: "sikkim", label: "Sikkim" },
-  { value: "tamil_nadu", label: "Tamil Nadu" },
-  { value: "telangana", label: "Telangana" },
-  { value: "tripura", label: "Tripura" },
-  { value: "uttar_pradesh", label: "Uttar Pradesh" },
-  { value: "uttarakhand", label: "Uttarakhand" },
-  { value: "west_bengal", label: "West Bengal" },
-];
+const STATES: StateOption[] = ([
+  ["andhra_pradesh", "Andhra Pradesh"], ["arunachal_pradesh", "Arunachal Pradesh"], ["assam", "Assam"],
+  ["bihar", "Bihar"], ["chhattisgarh", "Chhattisgarh"], ["delhi", "Delhi"], ["goa", "Goa"],
+  ["gujarat", "Gujarat"], ["haryana", "Haryana"], ["himachal_pradesh", "Himachal Pradesh"],
+  ["jammu_kashmir", "Jammu & Kashmir"], ["jharkhand", "Jharkhand"], ["karnataka", "Karnataka"],
+  ["kerala", "Kerala"], ["ladakh", "Ladakh"], ["madhya_pradesh", "Madhya Pradesh"],
+  ["maharashtra", "Maharashtra"], ["manipur", "Manipur"], ["meghalaya", "Meghalaya"],
+  ["mizoram", "Mizoram"], ["nagaland", "Nagaland"], ["odisha", "Odisha"], ["punjab", "Punjab"],
+  ["rajasthan", "Rajasthan"], ["sikkim", "Sikkim"], ["tamil_nadu", "Tamil Nadu"],
+  ["telangana", "Telangana"], ["tripura", "Tripura"], ["uttar_pradesh", "Uttar Pradesh"],
+  ["uttarakhand", "Uttarakhand"], ["west_bengal", "West Bengal"],
+] as const).map(([value, label]) => ({ value, label }));
 
 const CAPITAL_OPTIONS = [
-  { value: 100000, label: "₹1,00,000" },
-  { value: 500000, label: "₹5,00,000" },
-  { value: 1000000, label: "₹10,00,000" },
-  { value: 2500000, label: "₹25,00,000" },
-  { value: 5000000, label: "₹50,00,000" },
+  [100000, "\u20B91,00,000"], [500000, "\u20B95,00,000"], [1000000, "\u20B910,00,000"],
+  [2500000, "\u20B925,00,000"], [5000000, "\u20B950,00,000"],
+].map(([value, label]) => ({ value: value as number, label: label as string }));
+
+type ECfg = { capitalLabel: string; personLabel: string; personLabelPlural: string; minPersons: number; maxPersons: number; showCapital: boolean; showPersonCount: boolean; showDSC: boolean; hasScale: boolean; filingLabel: string; rocLabel: string; nameResLabel: string; stampDutyLabel: string; panTanLabel: string; ctaLabel: string; };
+const _co = (o: Partial<ECfg>): ECfg => ({ capitalLabel: "Authorized Capital", personLabel: "Director", personLabelPlural: "Directors", minPersons: 2, maxPersons: 15, showCapital: true, showPersonCount: true, showDSC: true, hasScale: true, filingLabel: "SPICe+ Filing", rocLabel: "ROC Registration", nameResLabel: "MCA Name Reservation", stampDutyLabel: "Stamp Duty (MOA + AOA)", panTanLabel: "PAN + TAN Application", ctaLabel: "Proceed to Incorporate", ...o });
+const ENTITY_CONFIG: Record<string, ECfg> = {
+  private_limited: _co({}),
+  public_limited: _co({ minPersons: 3 }),
+  opc: _co({ personLabelPlural: "Director", minPersons: 1, maxPersons: 1, showPersonCount: false }),
+  llp: _co({ capitalLabel: "Capital Contribution", personLabel: "Partner", personLabelPlural: "Partners", maxPersons: 10, filingLabel: "FiLLiP Filing", rocLabel: "", nameResLabel: "RUN-LLP Name Reservation", stampDutyLabel: "Stamp Duty (LLP Agreement)", ctaLabel: "Proceed to Register" }),
+  partnership: _co({ capitalLabel: "Capital Contribution", personLabel: "Partner", personLabelPlural: "Partners", maxPersons: 20, showDSC: false, filingLabel: "", rocLabel: "Registrar of Firms Fee", nameResLabel: "", stampDutyLabel: "Stamp Duty (Partnership Deed)", panTanLabel: "PAN Application", ctaLabel: "Proceed to Register" }),
+  section_8: _co({}),
+  sole_proprietorship: _co({ capitalLabel: "", personLabel: "Proprietor", personLabelPlural: "Proprietor", minPersons: 1, maxPersons: 1, showCapital: false, showPersonCount: false, showDSC: false, hasScale: false, filingLabel: "", rocLabel: "", nameResLabel: "", stampDutyLabel: "", panTanLabel: "PAN Application", ctaLabel: "Proceed to Register" }),
+};
+
+// ─── FAQ Data ────────────────────────────────────────────────────────────────
+
+const FAQ_ITEMS = [
+  { question: "Can I switch plans later?", answer: "Yes. You can upgrade or downgrade at any time. When upgrading, you get immediate access to new features. When downgrading, your current billing period will be honored." },
+  { question: "What happens when my subscription expires?", answer: "You\u2019ll retain access to the free tier features \u2014 compliance calendar, reminders, and basic document storage. Premium features like cap table, ESOP, and data room will become read-only." },
+  { question: "Are government fees included in the incorporation price?", answer: "Government fees (MCA filing fees, stamp duty, DSC charges) are passed through at exact cost with zero markup. Our incorporation calculator shows the complete breakdown." },
+  { question: "Do you offer refunds?", answer: "Yes. If your incorporation application hasn\u2019t been submitted to MCA, we offer a full refund minus government fees already paid. For platform subscriptions, you can cancel anytime." },
+  { question: "Is there a startup discount?", answer: "DPIIT-recognized startups get special pricing on select services. Contact our team for details on available discounts and benefits." },
+  { question: "What payment methods do you accept?", answer: "We accept all major payment methods via Razorpay \u2014 credit/debit cards, UPI, net banking, and wallets." },
 ];
-
-const ENTITY_CONFIG: Record<string, {
-  capitalLabel: string; personLabel: string; personLabelPlural: string;
-  minPersons: number; maxPersons: number; showCapital: boolean;
-  showPersonCount: boolean; showDSC: boolean; hasScale: boolean;
-  filingLabel: string; rocLabel: string; nameResLabel: string;
-  stampDutyLabel: string; panTanLabel: string; ctaLabel: string;
-}> = {
-  private_limited: { capitalLabel: "Authorized Capital", personLabel: "Director", personLabelPlural: "Directors", minPersons: 2, maxPersons: 15, showCapital: true, showPersonCount: true, showDSC: true, hasScale: true, filingLabel: "SPICe+ Filing", rocLabel: "ROC Registration", nameResLabel: "MCA Name Reservation", stampDutyLabel: "Stamp Duty (MOA + AOA)", panTanLabel: "PAN + TAN Application", ctaLabel: "Proceed to Incorporate" },
-  public_limited: { capitalLabel: "Authorized Capital", personLabel: "Director", personLabelPlural: "Directors", minPersons: 3, maxPersons: 15, showCapital: true, showPersonCount: true, showDSC: true, hasScale: true, filingLabel: "SPICe+ Filing", rocLabel: "ROC Registration", nameResLabel: "MCA Name Reservation", stampDutyLabel: "Stamp Duty (MOA + AOA)", panTanLabel: "PAN + TAN Application", ctaLabel: "Proceed to Incorporate" },
-  opc: { capitalLabel: "Authorized Capital", personLabel: "Director", personLabelPlural: "Director", minPersons: 1, maxPersons: 1, showCapital: true, showPersonCount: false, showDSC: true, hasScale: true, filingLabel: "SPICe+ Filing", rocLabel: "ROC Registration", nameResLabel: "MCA Name Reservation", stampDutyLabel: "Stamp Duty (MOA + AOA)", panTanLabel: "PAN + TAN Application", ctaLabel: "Proceed to Incorporate" },
-  llp: { capitalLabel: "Capital Contribution", personLabel: "Partner", personLabelPlural: "Partners", minPersons: 2, maxPersons: 10, showCapital: true, showPersonCount: true, showDSC: true, hasScale: true, filingLabel: "FiLLiP Filing", rocLabel: "", nameResLabel: "RUN-LLP Name Reservation", stampDutyLabel: "Stamp Duty (LLP Agreement)", panTanLabel: "PAN + TAN Application", ctaLabel: "Proceed to Register" },
-  partnership: { capitalLabel: "Capital Contribution", personLabel: "Partner", personLabelPlural: "Partners", minPersons: 2, maxPersons: 20, showCapital: true, showPersonCount: true, showDSC: false, hasScale: true, filingLabel: "", rocLabel: "Registrar of Firms Fee", nameResLabel: "", stampDutyLabel: "Stamp Duty (Partnership Deed)", panTanLabel: "PAN Application", ctaLabel: "Proceed to Register" },
-  section_8: { capitalLabel: "Authorized Capital", personLabel: "Director", personLabelPlural: "Directors", minPersons: 2, maxPersons: 15, showCapital: true, showPersonCount: true, showDSC: true, hasScale: true, filingLabel: "SPICe+ Filing", rocLabel: "ROC Registration", nameResLabel: "MCA Name Reservation", stampDutyLabel: "Stamp Duty (MOA + AOA)", panTanLabel: "PAN + TAN Application", ctaLabel: "Proceed to Incorporate" },
-  sole_proprietorship: { capitalLabel: "", personLabel: "Proprietor", personLabelPlural: "Proprietor", minPersons: 1, maxPersons: 1, showCapital: false, showPersonCount: false, showDSC: false, hasScale: false, filingLabel: "", rocLabel: "", nameResLabel: "", stampDutyLabel: "", panTanLabel: "PAN Application", ctaLabel: "Proceed to Register" },
-};
-
-// ─── Services Catalog ───────────────────────────────────────────────────────
-
-interface Service {
-  name: string;
-  desc: string;
-  platformFee: number;
-  govtFee: number;
-  frequency: string;
-  badge?: string;
-}
-
-const SERVICES_BY_CATEGORY: Record<string, { label: string; services: Service[] }> = {
-  registration: {
-    label: "Registration Services",
-    services: [
-      { name: "GST Registration", desc: "GSTIN allocation", platformFee: 2499, govtFee: 0, frequency: "one-time", badge: "popular" },
-      { name: "MSME / Udyam Registration", desc: "MSME benefits & subsidies", platformFee: 1499, govtFee: 0, frequency: "one-time", badge: "recommended" },
-      { name: "Trademark Registration", desc: "Brand name & logo protection", platformFee: 6499, govtFee: 4500, frequency: "one-time", badge: "popular" },
-      { name: "Import Export Code (IEC)", desc: "DGFT registration", platformFee: 3499, govtFee: 500, frequency: "one-time" },
-      { name: "FSSAI Basic Registration", desc: "Food safety (turnover < ₹12L)", platformFee: 2499, govtFee: 100, frequency: "one-time" },
-      { name: "FSSAI State License", desc: "Food license (₹12L–₹20Cr)", platformFee: 5999, govtFee: 2000, frequency: "one-time" },
-      { name: "DPIIT Startup Recognition", desc: "Tax benefits & fast-track patents", platformFee: 4999, govtFee: 0, frequency: "one-time", badge: "recommended" },
-      { name: "Professional Tax Registration", desc: "State-level employer registration", platformFee: 1999, govtFee: 0, frequency: "one-time" },
-      { name: "ESI Registration", desc: "Employee State Insurance (10+ employees)", platformFee: 2499, govtFee: 0, frequency: "one-time" },
-      { name: "EPFO / PF Registration", desc: "Provident Fund (20+ employees)", platformFee: 2499, govtFee: 0, frequency: "one-time" },
-      { name: "ISO 9001 Certification", desc: "Quality management certification", platformFee: 19999, govtFee: 0, frequency: "one-time" },
-    ],
-  },
-  compliance: {
-    label: "Compliance Services",
-    services: [
-      { name: "Annual ROC Filing (AOC-4 + MGT-7)", desc: "Financial statements & annual return", platformFee: 7999, govtFee: 600, frequency: "annual", badge: "mandatory" },
-      { name: "LLP Annual Filing (Form 8 + Form 11)", desc: "LLP accounts & annual return", platformFee: 5999, govtFee: 200, frequency: "annual", badge: "mandatory" },
-      { name: "DIR-3 KYC (Per Director)", desc: "Annual DIN KYC filing", platformFee: 1499, govtFee: 0, frequency: "annual", badge: "mandatory" },
-      { name: "ADT-1 Auditor Appointment", desc: "Auditor appointment notice", platformFee: 1999, govtFee: 300, frequency: "annual" },
-      { name: "INC-20A Commencement of Business", desc: "180-day mandatory filing", platformFee: 1999, govtFee: 500, frequency: "one-time", badge: "mandatory" },
-    ],
-  },
-  tax: {
-    label: "Tax Services",
-    services: [
-      { name: "ITR Filing (Company — ITR-6)", desc: "Company income tax return", platformFee: 4999, govtFee: 0, frequency: "annual", badge: "mandatory" },
-      { name: "ITR Filing (LLP/Partnership — ITR-5)", desc: "LLP/partnership income tax", platformFee: 2999, govtFee: 0, frequency: "annual", badge: "mandatory" },
-      { name: "ITR Filing (Individual/Sole Prop)", desc: "ITR-3 or ITR-4 filing", platformFee: 999, govtFee: 0, frequency: "annual" },
-      { name: "GST Monthly Return Filing", desc: "GSTR-1 + GSTR-3B monthly", platformFee: 1999, govtFee: 0, frequency: "monthly", badge: "popular" },
-      { name: "TDS Quarterly Return Filing", desc: "Form 24Q/26Q quarterly", platformFee: 2499, govtFee: 0, frequency: "quarterly" },
-      { name: "GST Annual Return (GSTR-9)", desc: "Annual GST consolidation", platformFee: 4999, govtFee: 0, frequency: "annual" },
-      { name: "Statutory Audit", desc: "Annual financial audit coordination", platformFee: 14999, govtFee: 0, frequency: "annual" },
-    ],
-  },
-  accounting: {
-    label: "Accounting & Payroll",
-    services: [
-      { name: "Monthly Bookkeeping (Basic)", desc: "Up to 100 transactions/month", platformFee: 2999, govtFee: 0, frequency: "monthly", badge: "popular" },
-      { name: "Monthly Bookkeeping (Standard)", desc: "100–500 transactions with reconciliation", platformFee: 5999, govtFee: 0, frequency: "monthly" },
-      { name: "Payroll Processing", desc: "Salary slips, PF/ESI challans, Form 16", platformFee: 1999, govtFee: 0, frequency: "monthly" },
-    ],
-  },
-  amendment: {
-    label: "Amendments & Changes",
-    services: [
-      { name: "Director Appointment / Resignation", desc: "DIR-12 filing with ROC", platformFee: 4999, govtFee: 600, frequency: "one-time" },
-      { name: "Share Transfer", desc: "SH-4 deed + PAS-3 filing", platformFee: 4999, govtFee: 400, frequency: "one-time" },
-      { name: "Share Allotment (New Shares)", desc: "PAS-3 + updated certificates", platformFee: 5999, govtFee: 600, frequency: "one-time" },
-      { name: "Increase Authorised Capital", desc: "SH-7 filing with ROC", platformFee: 9999, govtFee: 5000, frequency: "one-time" },
-      { name: "Registered Office Change", desc: "INC-22 / INC-23 filing", platformFee: 4999, govtFee: 600, frequency: "one-time" },
-      { name: "Company Name Change", desc: "Name change with ROC approval", platformFee: 6999, govtFee: 1000, frequency: "one-time" },
-      { name: "Company Closure / Strike Off", desc: "Voluntary strike-off (STK-2)", platformFee: 9999, govtFee: 5000, frequency: "one-time" },
-      { name: "LLP Partner Addition / Removal", desc: "Form 4 filing", platformFee: 3499, govtFee: 100, frequency: "one-time" },
-    ],
-  },
-  legal: {
-    label: "Legal Services",
-    services: [
-      { name: "Trademark Objection Reply", desc: "Reply to examination objection", platformFee: 4999, govtFee: 0, frequency: "one-time" },
-      { name: "Legal Notice Drafting", desc: "Professional notice drafting & dispatch", platformFee: 3499, govtFee: 0, frequency: "one-time" },
-      { name: "Virtual Registered Office", desc: "Virtual address with mail handling", platformFee: 7999, govtFee: 0, frequency: "annual" },
-    ],
-  },
-};
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-function formatCurrency(amount: number): string {
+function fmt(amount: number): string {
   return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(amount);
 }
 
-function formatFrequency(f: string): string {
-  switch (f) {
-    case "monthly": return "/mo";
-    case "quarterly": return "/qtr";
-    case "annual": return "/yr";
-    default: return "";
-  }
+function CostRow({ label, amount, bg = "var(--color-stripe-alt)" }: { label: string; amount: number; bg?: string }) {
+  if (amount <= 0) return null;
+  return (
+    <div className="flex justify-between p-2 rounded" style={{ background: bg }}>
+      <span style={{ color: "var(--color-text-secondary)" }}>{label}</span><span>{fmt(amount)}</span>
+    </div>
+  );
 }
 
-const COLOR_BG: Record<string, string> = { purple: "bg-purple-50", blue: "bg-blue-50", emerald: "bg-emerald-50" };
-const COLOR_TEXT: Record<string, string> = { purple: "text-purple-600", blue: "text-blue-600", emerald: "text-emerald-600" };
+const selectStyle = { background: "var(--color-bg-card)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" } as const;
+const activeBtn = (active: boolean) => ({ background: active ? "rgba(139, 92, 246, 0.2)" : "var(--color-hover-overlay)", border: `1px solid ${active ? "rgba(139, 92, 246, 0.5)" : "var(--color-border)"}` });
 
 // ─── Page Component ─────────────────────────────────────────────────────────
 
 export default function PricingPage() {
   const router = useRouter();
-  const [activeSection, setActiveSection] = useState("platform");
+  const [activeSection, setActiveSection] = useState("plans");
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("annual");
+  const [showComparison, setShowComparison] = useState(false);
 
   // Incorporation calculator state
   const [entityType, setEntityType] = useState("private_limited");
@@ -348,7 +220,7 @@ export default function PricingPage() {
         body: JSON.stringify({ entity_type: entityType, plan_tier: planTier, state, authorized_capital: capital, num_directors: numDirectors, has_existing_dsc: hasDSC, dsc_validity_years: 2 }),
       });
       if (res.ok) setPricing(await res.json());
-    } catch { /* Backend offline — show UI anyway */ }
+    } catch { /* Backend offline -- show UI anyway */ }
   }
 
   function scrollToSection(id: string) {
@@ -361,206 +233,128 @@ export default function PricingPage() {
       <Header />
 
       {/* ─── Hero ─── */}
-      <div className="max-w-7xl mx-auto px-6 pt-12 pb-6 text-center">
-        <h1 className="text-4xl md:text-5xl font-bold mb-3" style={{ fontFamily: "var(--font-display)" }}>
-          <span className="gradient-text">Transparent</span> Pricing
+      <div className="max-w-7xl mx-auto px-6 pt-16 pb-8 text-center">
+        <h1 className="text-4xl md:text-5xl font-bold mb-4" style={{ fontFamily: "var(--font-display)" }}>
+          Simple, <span className="gradient-text">transparent pricing</span>
         </h1>
         <p className="text-lg max-w-2xl mx-auto" style={{ color: "var(--color-text-secondary)" }}>
-          Platform features, compliance plans, incorporation costs, and add-on services.
-          Government fees at exact cost — zero markup.
+          Start free. Upgrade when you raise funding.
         </p>
       </div>
 
       {/* ─── Section Nav ─── */}
       <div className="sticky top-16 z-40 backdrop-blur-sm border-b" style={{ backgroundColor: "var(--color-bg-primary)", borderColor: "var(--color-border)" }}>
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex gap-1 overflow-x-auto py-2">
-            {SECTIONS.map((s) => (
-              <button
-                key={s.id}
-                onClick={() => scrollToSection(s.id)}
-                className="px-4 py-2 text-sm font-medium rounded-lg whitespace-nowrap transition-colors"
-                style={{
-                  backgroundColor: activeSection === s.id ? "rgba(139, 92, 246, 0.15)" : "transparent",
-                  color: activeSection === s.id ? "var(--color-accent-purple)" : "var(--color-text-secondary)",
-                }}
-              >
-                {s.label}
-              </button>
-            ))}
-          </div>
+        <div className="max-w-7xl mx-auto px-6 flex gap-1 overflow-x-auto py-2">
+          {SECTIONS.map((s) => (
+            <button key={s.id} onClick={() => scrollToSection(s.id)} className="px-4 py-2 text-sm font-medium rounded-lg whitespace-nowrap transition-colors"
+              style={{ backgroundColor: activeSection === s.id ? "rgba(139, 92, 246, 0.15)" : "transparent", color: activeSection === s.id ? "var(--color-accent-purple)" : "var(--color-text-secondary)" }}>
+              {s.label}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* ═══════════════════════════════════════════════════════════════════════
-          SECTION 1: Platform Features
-          ═══════════════════════════════════════════════════════════════════════ */}
-      <section id="platform" className="py-16 scroll-mt-28">
+      {/* ── SECTION 1: Platform Subscription Plans ── */}
+      <section id="plans" className="py-16 scroll-mt-28">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl md:text-3xl font-bold mb-2" style={{ fontFamily: "var(--font-display)" }}>
-              Platform Features — <span className="gradient-text">Included Free</span>
-            </h2>
-            <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
-              Every Anvils account includes the full platform. No per-feature charges.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-12">
-            {PLATFORM_FEATURES.map((f) => (
-              <div key={f.title} className="card-static p-5">
-                <div className={`w-9 h-9 rounded-lg flex items-center justify-center mb-3 ${COLOR_BG[f.color]}`}>
-                  <div className={COLOR_TEXT[f.color]}>{f.icon}</div>
-                </div>
-                <h3 className="text-sm font-bold text-gray-900 mb-1">{f.title}</h3>
-                <p className="text-xs text-gray-500">{f.desc}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* User Types */}
-          <div className="text-center mb-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-1" style={{ fontFamily: "var(--font-display)" }}>
-              Built for everyone in the ecosystem
-            </h3>
-          </div>
-          <div className="grid md:grid-cols-2 gap-4 max-w-3xl mx-auto">
-            {USER_TYPES.map((u) => (
-              <a key={u.label} href={u.href} className="card-static p-5 group">
-                <h4 className="text-sm font-bold text-gray-900 mb-1 group-hover:text-purple-600 transition-colors">{u.label}</h4>
-                <p className="text-xs text-gray-500">{u.desc}</p>
-              </a>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════════════════
-          SECTION 2: Compliance Subscription Plans
-          ═══════════════════════════════════════════════════════════════════════ */}
-      <section id="plans" className="py-16 bg-gray-50 scroll-mt-28">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold mb-2" style={{ fontFamily: "var(--font-display)" }}>
-              Platform <span className="gradient-text">Subscription Plans</span>
-            </h2>
-            <p className="text-sm mb-6" style={{ color: "var(--color-text-muted)" }}>
-              Software tools for equity, compliance, fundraising, and governance. Filings available à la carte from the marketplace.
-            </p>
-
-            {/* Billing toggle */}
+          {/* Billing Toggle */}
+          <div className="flex justify-center mb-10">
             <div className="inline-flex items-center rounded-xl p-1" style={{ border: "1px solid var(--color-border)", backgroundColor: "var(--color-bg-card)" }}>
-              <button
-                onClick={() => setBillingCycle("monthly")}
-                className="px-4 py-2 text-sm font-medium rounded-lg transition-colors"
-                style={{
-                  backgroundColor: billingCycle === "monthly" ? "rgba(139, 92, 246, 0.15)" : "transparent",
-                  color: billingCycle === "monthly" ? "var(--color-accent-purple)" : "var(--color-text-secondary)",
-                }}
-              >
-                Monthly
-              </button>
-              <button
-                onClick={() => setBillingCycle("annual")}
-                className="px-4 py-2 text-sm font-medium rounded-lg transition-colors"
-                style={{
-                  backgroundColor: billingCycle === "annual" ? "rgba(139, 92, 246, 0.15)" : "transparent",
-                  color: billingCycle === "annual" ? "var(--color-accent-purple)" : "var(--color-text-secondary)",
-                }}
-              >
-                Annual <span className="text-xs ml-1" style={{ color: "var(--color-accent-emerald-light)" }}>Save ~17%</span>
-              </button>
+              {(["monthly", "annual"] as const).map((cycle) => (
+                <button key={cycle} onClick={() => setBillingCycle(cycle)}
+                  className={`px-5 py-2.5 text-sm font-medium rounded-lg transition-colors ${cycle === "annual" ? "flex items-center gap-2" : ""}`}
+                  style={{ backgroundColor: billingCycle === cycle ? "rgba(139, 92, 246, 0.15)" : "transparent", color: billingCycle === cycle ? "var(--color-accent-purple)" : "var(--color-text-secondary)" }}>
+                  {cycle === "monthly" ? "Monthly" : "Annual"}
+                  {cycle === "annual" && <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ backgroundColor: "rgba(16, 185, 129, 0.15)", color: "var(--color-accent-emerald-light)" }}>Save 17%</span>}
+                </button>
+              ))}
             </div>
           </div>
 
           {/* Plan Cards */}
-          <div className="grid md:grid-cols-3 gap-5 mb-8">
+          <div className="grid md:grid-cols-3 gap-6 mb-10">
             {SUBSCRIPTION_PLANS.map((plan) => (
-              <div
-                key={plan.key}
-                className="rounded-2xl p-6 flex flex-col"
-                style={{
-                  backgroundColor: "var(--color-bg-card)",
-                  border: plan.highlighted ? "2px solid var(--color-accent-purple)" : "1px solid var(--color-border)",
-                }}
-              >
-                {plan.highlighted && (
-                  <div className="text-xs font-semibold mb-3 px-2 py-1 rounded-full self-start" style={{ backgroundColor: "rgba(139, 92, 246, 0.15)", color: "var(--color-accent-purple)" }}>
-                    Most Popular
-                  </div>
-                )}
-                <div className="flex items-center gap-2 mb-1">
-                  <div style={{ color: "var(--color-accent-purple)" }}>{plan.icon}</div>
-                  <h3 className="text-lg font-bold text-gray-900">{plan.name}</h3>
+              <div key={plan.key} className="rounded-2xl p-7 flex flex-col relative" style={{ backgroundColor: "var(--color-bg-card)", border: plan.highlighted ? "2px solid var(--color-accent-purple)" : "1px solid var(--color-border)", boxShadow: plan.highlighted ? "0 0 0 4px rgba(139, 92, 246, 0.1)" : undefined }}>
+                {plan.highlighted && <div className="text-xs font-semibold mb-4 px-3 py-1 rounded-full self-start" style={{ backgroundColor: "rgba(139, 92, 246, 0.15)", color: "var(--color-accent-purple)" }}>Most Popular</div>}
+                <h3 className="text-xl font-bold" style={{ color: "var(--color-text-primary)", fontFamily: "var(--font-display)" }}>{plan.name}</h3>
+                <div className="mt-3 mb-1">
+                  <span className="text-4xl font-bold" style={{ color: "var(--color-text-primary)", fontFamily: "var(--font-display)" }}>{plan.monthlyPrice === 0 ? "\u20B90" : fmt(billingCycle === "annual" ? plan.annualPrice : plan.monthlyPrice)}</span>
+                  <span className="text-sm ml-1" style={{ color: "var(--color-text-muted)" }}>{plan.monthlyPrice === 0 ? "/forever" : billingCycle === "annual" ? "/year" : "/month"}</span>
+                  {plan.monthlyPrice > 0 && billingCycle === "annual" && <div className="text-xs mt-1" style={{ color: "var(--color-text-muted)" }}>{fmt(Math.round(plan.annualPrice / 12))}/month billed annually</div>}
                 </div>
-                <p className="text-xs text-gray-500 mb-4">{plan.target}</p>
-
-                <div className="mb-4">
-                  <span className="text-3xl font-bold text-gray-900" style={{ fontFamily: "var(--font-display)" }}>
-                    {formatCurrency(billingCycle === "annual" ? plan.annualPrice : plan.monthlyPrice)}
-                  </span>
-                  <span className="text-sm text-gray-500">
-                    {billingCycle === "annual" ? "/year" : "/month"}
-                  </span>
-                  {billingCycle === "annual" && (
-                    <div className="text-xs text-gray-400 mt-0.5">
-                      {formatCurrency(Math.round(plan.annualPrice / 12))}/month billed annually
-                    </div>
-                  )}
-                </div>
-
-                <ul className="space-y-2 flex-1 mb-6">
+                <p className="text-sm mb-5" style={{ color: "var(--color-text-secondary)" }}>{plan.tagline}</p>
+                <ul className="space-y-2.5 flex-1 mb-7">
                   {plan.features.map((f) => (
-                    <li key={f} className="flex items-start gap-2 text-xs text-gray-600">
-                      <Check className="w-3.5 h-3.5 mt-0.5 shrink-0 text-emerald-500" />
-                      {f}
-                    </li>
+                    <li key={f} className="flex items-start gap-2.5 text-sm" style={{ color: "var(--color-text-secondary)" }}><Check className="w-4 h-4 mt-0.5 shrink-0 text-emerald-500" />{f}</li>
                   ))}
                 </ul>
-
-                <a
-                  href="/signup"
-                  className={plan.highlighted ? "btn-primary w-full text-center text-sm" : "block text-center text-sm font-medium py-2.5 rounded-xl transition-colors"}
-                  style={plan.highlighted ? {} : { border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}
-                >
-                  Get Started
+                <a href="/signup" className={plan.highlighted ? "btn-primary w-full text-center text-sm" : "block text-center text-sm font-medium py-2.5 rounded-xl transition-colors hover:bg-[var(--color-bg-secondary)]"} style={plan.highlighted ? {} : { border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}>
+                  {plan.monthlyPrice === 0 ? "Get Started Free" : "Get Started"}
                 </a>
               </div>
             ))}
           </div>
 
-          {/* Marketplace note */}
-          <div className="text-center p-6 rounded-xl" style={{ backgroundColor: "var(--color-bg-card)", border: "1px solid var(--color-border)" }}>
-            <p className="text-sm text-gray-500">
-              Need compliance filings, tax returns, or professional services?
-              Browse our <a href="/services" className="font-semibold" style={{ color: "var(--color-accent-purple)" }}>Services Marketplace</a> — 50+ services fulfilled by verified CAs and professionals.
-            </p>
+          {/* Compare All Features (expandable) */}
+          <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid var(--color-border)", backgroundColor: "var(--color-bg-card)" }}>
+            <button
+              onClick={() => setShowComparison(!showComparison)}
+              className="w-full flex items-center justify-center gap-2 px-6 py-4 text-sm font-semibold transition-colors hover:bg-[var(--color-bg-secondary)]"
+              style={{ color: "var(--color-accent-purple)" }}
+            >
+              Compare all features
+              <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${showComparison ? "rotate-180" : ""}`} />
+            </button>
+
+            <div className={`overflow-hidden transition-all duration-500 ${showComparison ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"}`}>
+              <div className="px-6 pb-6">
+                {/* Table header */}
+                <div className="grid grid-cols-4 gap-4 py-3 border-b" style={{ borderColor: "var(--color-border)" }}>
+                  <div className="text-sm font-semibold" style={{ color: "var(--color-text-muted)" }}>Feature</div>
+                  <div className="text-sm font-semibold text-center" style={{ color: "var(--color-text-muted)" }}>Free</div>
+                  <div className="text-sm font-semibold text-center" style={{ color: "var(--color-accent-purple)" }}>Growth</div>
+                  <div className="text-sm font-semibold text-center" style={{ color: "var(--color-text-muted)" }}>Scale</div>
+                </div>
+
+                {CMP.map((cat) => (
+                  <div key={cat.cat}>
+                    <div className="py-3 mt-2"><span className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>{cat.cat}</span></div>
+                    {cat.rows.map(([name, ...vals]) => (
+                      <div key={name as string} className="grid grid-cols-4 gap-4 py-2.5 border-b last:border-b-0" style={{ borderColor: "var(--color-border)" }}>
+                        <div className="text-sm" style={{ color: "var(--color-text-secondary)" }}>{name}</div>
+                        {vals.map((val, i) => (
+                          <div key={i} className="text-center">
+                            {val === true ? <Check className="w-4 h-4 mx-auto text-emerald-500" />
+                              : val === false ? <span className="text-sm" style={{ color: "var(--color-text-muted)" }}>&mdash;</span>
+                              : <span className="text-xs font-medium" style={{ color: "var(--color-text-secondary)" }}>{val}</span>}
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════════════════════════════════
-          SECTION 3: Incorporation Calculator
-          ═══════════════════════════════════════════════════════════════════════ */}
-      <section id="incorporation" className="py-16 scroll-mt-28">
+      {/* ── SECTION 2: Incorporation Calculator ── */}
+      <section id="incorporation" className="py-16 scroll-mt-28" style={{ backgroundColor: "var(--color-bg-secondary)" }}>
         <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl md:text-3xl font-bold mb-2" style={{ fontFamily: "var(--font-display)" }}>
-              Incorporation <span className="gradient-text">Cost Calculator</span>
-            </h2>
-            <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
-              Real costs, zero surprises. Configure your entity and see the exact breakdown.
-            </p>
-          </div>
+          <SectionHeader
+            title={<>Calculate your <span className="gradient-text">incorporation cost</span></>}
+            subtitle="Transparent pricing with government fees at exact cost. \u20B90 markup."
+          />
 
           <div className="grid lg:grid-cols-5 gap-8">
             {/* Left: Configuration */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="lg:col-span-2 space-y-5">
               <div className="glass-card p-6" style={{ cursor: "default" }}>
                 <label className="text-sm font-semibold mb-3 block" style={{ color: "var(--color-text-secondary)" }}>Entity Type</label>
                 <div className="grid grid-cols-2 gap-2">
                   {ENTITY_TYPES.map((e) => (
-                    <button key={e.value} onClick={() => setEntityType(e.value)} className="p-3 rounded-xl text-left transition-all text-sm" style={{ background: entityType === e.value ? "rgba(139, 92, 246, 0.2)" : "var(--color-hover-overlay)", border: `1px solid ${entityType === e.value ? "rgba(139, 92, 246, 0.5)" : "var(--color-border)"}` }}>
+                    <button key={e.value} onClick={() => setEntityType(e.value)} className="p-3 rounded-xl text-left transition-all text-sm" style={activeBtn(entityType === e.value)}>
                       <div className="font-medium">{e.label}</div>
                     </button>
                   ))}
@@ -573,7 +367,7 @@ export default function PricingPage() {
                   {availablePlans.map((p) => {
                     const desc = p.descByEntity?.[entityType] || p.desc;
                     return (
-                      <button key={p.value} onClick={() => setPlanTier(p.value)} className="w-full p-3 rounded-xl text-left transition-all" style={{ background: planTier === p.value ? "rgba(139, 92, 246, 0.2)" : "var(--color-hover-overlay)", border: `1px solid ${planTier === p.value ? "rgba(139, 92, 246, 0.5)" : "var(--color-border)"}` }}>
+                      <button key={p.value} onClick={() => setPlanTier(p.value)} className="w-full p-3 rounded-xl text-left transition-all" style={activeBtn(planTier === p.value)}>
                         <div className="font-semibold text-sm">{p.label}</div>
                         <div className="text-xs mt-0.5" style={{ color: "var(--color-text-muted)" }}>{desc}</div>
                       </button>
@@ -586,7 +380,7 @@ export default function PricingPage() {
                 <label className="text-sm font-semibold mb-3 block" style={{ color: "var(--color-text-secondary)" }}>
                   {entityType === "partnership" ? "State (Principal Place of Business)" : "State of Registration"}
                 </label>
-                <select value={state} onChange={(e) => setState(e.target.value)} className="w-full p-3 rounded-xl text-sm" style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}>
+                <select value={state} onChange={(e) => setState(e.target.value)} className="w-full p-3 rounded-xl text-sm" style={selectStyle}>
                   {STATES.map((s) => (<option key={s.value} value={s.value}>{s.label}</option>))}
                 </select>
               </div>
@@ -598,7 +392,7 @@ export default function PricingPage() {
                       {config.showCapital && (
                         <div>
                           <label className="text-sm font-semibold mb-2 block" style={{ color: "var(--color-text-secondary)" }}>{config.capitalLabel}</label>
-                          <select value={capital} onChange={(e) => setCapital(Number(e.target.value))} className="w-full p-3 rounded-xl text-sm" style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}>
+                          <select value={capital} onChange={(e) => setCapital(Number(e.target.value))} className="w-full p-3 rounded-xl text-sm" style={selectStyle}>
                             {CAPITAL_OPTIONS.map((c) => (<option key={c.value} value={c.value}>{c.label}</option>))}
                           </select>
                         </div>
@@ -606,7 +400,7 @@ export default function PricingPage() {
                       {config.showPersonCount && (
                         <div>
                           <label className="text-sm font-semibold mb-2 block" style={{ color: "var(--color-text-secondary)" }}>{config.personLabelPlural}</label>
-                          <select value={numDirectors} onChange={(e) => setNumDirectors(Number(e.target.value))} className="w-full p-3 rounded-xl text-sm" style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}>
+                          <select value={numDirectors} onChange={(e) => setNumDirectors(Number(e.target.value))} className="w-full p-3 rounded-xl text-sm" style={selectStyle}>
                             {personOptions.map((n) => (<option key={n} value={n}>{n}</option>))}
                           </select>
                         </div>
@@ -628,9 +422,9 @@ export default function PricingPage() {
             {/* Right: Cost Breakdown */}
             <div className="lg:col-span-3">
               <div className="glass-card p-8 sticky top-32" style={{ cursor: "default" }}>
-                <h2 className="text-xl font-bold mb-6" style={{ fontFamily: "var(--font-display)" }}>
+                <h3 className="text-xl font-bold mb-6" style={{ fontFamily: "var(--font-display)" }}>
                   Your {entityType === "sole_proprietorship" || entityType === "partnership" ? "Registration" : "Incorporation"} Cost Breakdown
-                </h2>
+                </h3>
 
                 {pricing ? (
                   <div className="space-y-6">
@@ -642,7 +436,7 @@ export default function PricingPage() {
                       </div>
                       <div className="flex justify-between items-center p-3 rounded-lg" style={{ background: "rgba(139, 92, 246, 0.1)" }}>
                         <span>{PLAN_TIERS.find((p) => p.value === planTier)?.label} Package ({ENTITY_TYPES.find((e) => e.value === entityType)?.label})</span>
-                        <span className="font-bold">{formatCurrency(pricing.platform_fee)}</span>
+                        <span className="font-bold">{fmt(pricing.platform_fee)}</span>
                       </div>
                     </div>
 
@@ -650,48 +444,17 @@ export default function PricingPage() {
                     <div>
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-sm font-semibold" style={{ color: "var(--color-accent-emerald-light)" }}>GOVERNMENT FEES</span>
-                        <span className="text-sm" style={{ color: "var(--color-text-muted)" }}>pass-through, ₹0 markup</span>
+                        <span className="text-sm" style={{ color: "var(--color-text-muted)" }}>pass-through, {"\u20B9"}0 markup</span>
                       </div>
                       <div className="space-y-1">
-                        {pricing.government_fees.name_reservation > 0 && (
-                          <div className="flex justify-between p-2 rounded" style={{ background: "var(--color-stripe-alt)" }}>
-                            <span style={{ color: "var(--color-text-secondary)" }}>{config.nameResLabel}</span>
-                            <span>{formatCurrency(pricing.government_fees.name_reservation)}</span>
-                          </div>
-                        )}
-                        {pricing.government_fees.filing_fee > 0 && (
-                          <div className="flex justify-between p-2 rounded" style={{ background: "var(--color-stripe-alt)" }}>
-                            <span style={{ color: "var(--color-text-secondary)" }}>{config.filingLabel}</span>
-                            <span>{formatCurrency(pricing.government_fees.filing_fee)}</span>
-                          </div>
-                        )}
-                        {pricing.government_fees.roc_registration > 0 && (
-                          <div className="flex justify-between p-2 rounded" style={{ background: "var(--color-stripe-alt)" }}>
-                            <span style={{ color: "var(--color-text-secondary)" }}>{config.rocLabel || "ROC Registration"}</span>
-                            <span>{formatCurrency(pricing.government_fees.roc_registration)}</span>
-                          </div>
-                        )}
-                        {pricing.government_fees.section8_license > 0 && (
-                          <div className="flex justify-between p-2 rounded" style={{ background: "var(--color-stripe-alt)" }}>
-                            <span style={{ color: "var(--color-text-secondary)" }}>INC-12 License Fee</span>
-                            <span>{formatCurrency(pricing.government_fees.section8_license)}</span>
-                          </div>
-                        )}
-                        {pricing.government_fees.stamp_duty.total_stamp_duty > 0 && (
-                          <div className="flex justify-between p-2 rounded" style={{ background: "var(--color-stripe-alt)" }}>
-                            <span style={{ color: "var(--color-text-secondary)" }}>{config.stampDutyLabel} ({pricing.state_display})</span>
-                            <span>{formatCurrency(pricing.government_fees.stamp_duty.total_stamp_duty)}</span>
-                          </div>
-                        )}
-                        {pricing.government_fees.pan_tan > 0 && (
-                          <div className="flex justify-between p-2 rounded" style={{ background: "var(--color-stripe-alt)" }}>
-                            <span style={{ color: "var(--color-text-secondary)" }}>{config.panTanLabel}</span>
-                            <span>{formatCurrency(pricing.government_fees.pan_tan)}</span>
-                          </div>
-                        )}
+                        <CostRow label={config.nameResLabel} amount={pricing.government_fees.name_reservation} />
+                        <CostRow label={config.filingLabel} amount={pricing.government_fees.filing_fee} />
+                        <CostRow label={config.rocLabel || "ROC Registration"} amount={pricing.government_fees.roc_registration} />
+                        <CostRow label="INC-12 License Fee" amount={pricing.government_fees.section8_license} />
+                        <CostRow label={`${config.stampDutyLabel} (${pricing.state_display})`} amount={pricing.government_fees.stamp_duty.total_stamp_duty} />
+                        <CostRow label={config.panTanLabel} amount={pricing.government_fees.pan_tan} />
                         <div className="flex justify-between p-2 rounded-lg font-medium mt-1" style={{ background: "rgba(16, 185, 129, 0.1)" }}>
-                          <span>Government Subtotal</span>
-                          <span>{formatCurrency(pricing.government_fees.subtotal)}</span>
+                          <span>Government Subtotal</span><span>{fmt(pricing.government_fees.subtotal)}</span>
                         </div>
                       </div>
                     </div>
@@ -704,17 +467,10 @@ export default function PricingPage() {
                           <span className="text-sm" style={{ color: "var(--color-text-muted)" }}>wholesale rate</span>
                         </div>
                         <div className="space-y-1">
-                          <div className="flex justify-between p-2 rounded" style={{ background: "var(--color-stripe-alt)" }}>
-                            <span style={{ color: "var(--color-text-secondary)" }}>DSC × {pricing.dsc.num_directors} (2-year)</span>
-                            <span>{formatCurrency(pricing.dsc.dsc_per_unit * pricing.dsc.num_directors)}</span>
-                          </div>
-                          <div className="flex justify-between p-2 rounded" style={{ background: "var(--color-stripe-alt)" }}>
-                            <span style={{ color: "var(--color-text-secondary)" }}>USB Tokens × {pricing.dsc.num_directors}</span>
-                            <span>{formatCurrency(pricing.dsc.token_per_unit * pricing.dsc.num_directors)}</span>
-                          </div>
+                          <CostRow label={`DSC x ${pricing.dsc.num_directors} (2-year)`} amount={pricing.dsc.dsc_per_unit * pricing.dsc.num_directors} />
+                          <CostRow label={`USB Tokens x ${pricing.dsc.num_directors}`} amount={pricing.dsc.token_per_unit * pricing.dsc.num_directors} />
                           <div className="flex justify-between p-2 rounded-lg font-medium mt-1" style={{ background: "rgba(59, 130, 246, 0.1)" }}>
-                            <span>DSC Subtotal</span>
-                            <span>{formatCurrency(pricing.dsc.total_dsc)}</span>
+                            <span>DSC Subtotal</span><span>{fmt(pricing.dsc.total_dsc)}</span>
                           </div>
                         </div>
                       </div>
@@ -728,15 +484,9 @@ export default function PricingPage() {
                           <span className="text-sm" style={{ color: "var(--color-text-muted)" }}>estimated</span>
                         </div>
                         <div className="space-y-1">
-                          <div className="flex justify-between p-2 rounded" style={{ background: "var(--color-stripe-alt)" }}>
-                            <span style={{ color: "var(--color-text-secondary)" }}>Secretarial Audit (annual)</span>
-                            <span>{formatCurrency(pricing.public_limited_recurring.secretarial_audit_annual)}</span>
-                          </div>
-                          <div className="flex justify-between p-2 rounded" style={{ background: "var(--color-stripe-alt)" }}>
-                            <span style={{ color: "var(--color-text-secondary)" }}>CS Compliance (annual)</span>
-                            <span>{formatCurrency(pricing.public_limited_recurring.cs_compliance_annual)}</span>
-                          </div>
-                          <div className="text-xs mt-1 px-1" style={{ color: "var(--color-text-muted)" }}>{pricing.public_limited_recurring.note}</div>
+                          <CostRow label="Secretarial Audit (annual)" amount={pricing.public_limited_recurring.secretarial_audit_annual} />
+                          <CostRow label="CS Compliance (annual)" amount={pricing.public_limited_recurring.cs_compliance_annual} />
+                          <p className="text-xs mt-1 px-1" style={{ color: "var(--color-text-muted)" }}>{pricing.public_limited_recurring.note}</p>
                         </div>
                       </div>
                     )}
@@ -744,49 +494,39 @@ export default function PricingPage() {
                     {/* Grand Total */}
                     <div className="flex justify-between items-center p-4 rounded-xl mt-4" style={{ background: "var(--gradient-primary)" }}>
                       <span className="text-lg font-bold">TOTAL</span>
-                      <span className="text-2xl font-extrabold" style={{ fontFamily: "var(--font-display)" }}>{formatCurrency(pricing.grand_total)}</span>
+                      <span className="text-2xl font-extrabold" style={{ fontFamily: "var(--font-display)" }}>{fmt(pricing.grand_total)}</span>
                     </div>
 
                     {/* Guarantees */}
                     <div className="space-y-2 mt-4">
-                      {["No hidden fees", "Government fees at exact cost (₹0 markup)", ...(config.showDSC ? ["DSC at wholesale rate"] : [])].map((g) => (
-                        <div key={g} className="flex items-center gap-2 text-sm" style={{ color: "var(--color-accent-emerald-light)" }}>
-                          <Check className="w-4 h-4 shrink-0" />
-                          {g}
-                        </div>
+                      {["No hidden fees", "Government fees at exact cost (\u20B90 markup)", ...(config.showDSC ? ["DSC at wholesale rate"] : [])].map((g) => (
+                        <div key={g} className="flex items-center gap-2 text-sm" style={{ color: "var(--color-accent-emerald-light)" }}><Check className="w-4 h-4 shrink-0" />{g}</div>
                       ))}
+                    </div>
+
+                    {/* Competitive comparison */}
+                    <div className="p-4 rounded-xl" style={{ background: "rgba(139, 92, 246, 0.06)", border: "1px solid rgba(139, 92, 246, 0.15)" }}>
+                      <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}><strong style={{ color: "var(--color-text-primary)" }}>Compare:</strong> Vakilsearch charges {"\u20B9"}6,499&ndash;15,999 for the same incorporation.</p>
                     </div>
 
                     {/* Optimization Tip */}
                     {pricing.optimization_tip && pricing.optimization_tip.potential_saving > 0 && entityType !== "sole_proprietorship" && (
-                      <div className="p-4 rounded-xl mt-2" style={{ background: "var(--color-warning-light)", border: "1px solid rgba(245, 158, 11, 0.3)" }}>
-                        <div className="text-sm font-semibold mb-1" style={{ color: "var(--color-accent-amber)" }}>Cost Optimization Tip</div>
-                        <div className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
-                          Registering in <strong style={{ color: "var(--color-text-primary)" }}>{pricing.optimization_tip.cheapest_state_display}</strong> instead of <strong style={{ color: "var(--color-text-primary)" }}>{pricing.state_display}</strong> could save you <strong style={{ color: "var(--color-accent-emerald-light)" }}>{formatCurrency(pricing.optimization_tip.potential_saving)}</strong> in stamp duty.
-                        </div>
+                      <div className="p-4 rounded-xl" style={{ background: "var(--color-warning-light)", border: "1px solid rgba(245, 158, 11, 0.3)" }}>
+                        <p className="text-sm font-semibold mb-1" style={{ color: "var(--color-accent-amber)" }}>Cost Optimization Tip</p>
+                        <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>Registering in <strong style={{ color: "var(--color-text-primary)" }}>{pricing.optimization_tip.cheapest_state_display}</strong> instead of <strong style={{ color: "var(--color-text-primary)" }}>{pricing.state_display}</strong> could save you <strong style={{ color: "var(--color-accent-emerald-light)" }}>{fmt(pricing.optimization_tip.potential_saving)}</strong> in stamp duty.</p>
                       </div>
                     )}
 
-                    <button
-                      onClick={() => {
-                        if (!pricing) return;
-                        localStorage.setItem("pending_company_draft", JSON.stringify({ entity_type: entityType, plan_tier: planTier, state, authorized_capital: capital, num_directors: numDirectors, pricing_snapshot: pricing }));
-                        router.push("/signup");
-                      }}
-                      className="btn-primary w-full text-center justify-center mt-4 text-lg !py-4"
-                    >
-                      {config.ctaLabel} →
+                    <button onClick={() => { localStorage.setItem("pending_company_draft", JSON.stringify({ entity_type: entityType, plan_tier: planTier, state, authorized_capital: capital, num_directors: numDirectors, pricing_snapshot: pricing })); router.push("/signup"); }}
+                      className="btn-primary w-full text-center justify-center mt-4 text-lg !py-4">
+                      {config.ctaLabel} &rarr;
                     </button>
                   </div>
                 ) : (
                   <div className="text-center py-16" style={{ color: "var(--color-text-muted)" }}>
-                    <div className="mb-4">
-                      <svg className="w-10 h-10 mx-auto" style={{ color: "var(--color-text-muted)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
+                    <svg className="w-10 h-10 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     <p>Start the backend to see real-time pricing</p>
-                    <code className="text-xs mt-2 block" style={{ color: "var(--color-text-muted)" }}>cd backend && uvicorn src.main:app --reload --port 8000</code>
+                    <code className="text-xs mt-2 block">cd backend && uvicorn src.main:app --reload --port 8000</code>
                   </div>
                 )}
               </div>
@@ -795,93 +535,26 @@ export default function PricingPage() {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════════════════════════════════
-          SECTION 4: Services & Add-Ons Catalog
-          ═══════════════════════════════════════════════════════════════════════ */}
-      <section id="services" className="py-16 bg-gray-50 scroll-mt-28">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl md:text-3xl font-bold mb-2" style={{ fontFamily: "var(--font-display)" }}>
-              Services & <span className="gradient-text">Add-Ons</span>
-            </h2>
-            <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
-              One-time registrations, filings, amendments, and professional services. Order from your dashboard.
-            </p>
-          </div>
-
-          {Object.entries(SERVICES_BY_CATEGORY).map(([catKey, category]) => (
-            <div key={catKey} className="mb-10">
-              <h3 className="text-lg font-bold text-gray-900 mb-4" style={{ fontFamily: "var(--font-display)" }}>
-                {category.label}
-              </h3>
-              <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--color-border)" }}>
-                {/* Table header */}
-                <div className="hidden md:grid grid-cols-12 gap-4 px-5 py-3 text-xs font-semibold uppercase tracking-wider" style={{ backgroundColor: "var(--color-bg-secondary)", color: "var(--color-text-muted)" }}>
-                  <div className="col-span-5">Service</div>
-                  <div className="col-span-2 text-right">Platform Fee</div>
-                  <div className="col-span-2 text-right">Govt Fee</div>
-                  <div className="col-span-2 text-right">Total</div>
-                  <div className="col-span-1 text-right">Freq.</div>
-                </div>
-                {/* Rows */}
-                {category.services.map((svc, i) => (
-                  <div
-                    key={svc.name}
-                    className="grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 px-5 py-4 items-center"
-                    style={{
-                      backgroundColor: i % 2 === 0 ? "var(--color-bg-card)" : "var(--color-bg-secondary)",
-                      borderTop: i > 0 ? "1px solid var(--color-border)" : undefined,
-                    }}
-                  >
-                    <div className="md:col-span-5">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-gray-900">{svc.name}</span>
-                        {svc.badge && (
-                          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={{
-                            backgroundColor: svc.badge === "mandatory" ? "rgba(239, 68, 68, 0.12)" : svc.badge === "popular" ? "rgba(139, 92, 246, 0.12)" : "rgba(16, 185, 129, 0.12)",
-                            color: svc.badge === "mandatory" ? "#ef4444" : svc.badge === "popular" ? "var(--color-accent-purple)" : "#10b981",
-                          }}>
-                            {svc.badge}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-gray-500 mt-0.5">{svc.desc}</p>
-                    </div>
-                    <div className="md:col-span-2 md:text-right">
-                      <span className="md:hidden text-xs text-gray-400">Platform: </span>
-                      <span className="text-sm font-medium text-gray-900">{formatCurrency(svc.platformFee)}</span>
-                    </div>
-                    <div className="md:col-span-2 md:text-right">
-                      <span className="md:hidden text-xs text-gray-400">Govt: </span>
-                      <span className="text-sm text-gray-500">{svc.govtFee > 0 ? formatCurrency(svc.govtFee) : "₹0"}</span>
-                    </div>
-                    <div className="md:col-span-2 md:text-right">
-                      <span className="md:hidden text-xs text-gray-400">Total: </span>
-                      <span className="text-sm font-bold text-gray-900">{formatCurrency(svc.platformFee + svc.govtFee)}{formatFrequency(svc.frequency)}</span>
-                    </div>
-                    <div className="md:col-span-1 md:text-right">
-                      <span className="text-xs text-gray-400 capitalize">{svc.frequency.replace("_", "-")}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-
-          {/* Bottom note */}
-          <div className="text-center mt-8 p-6 rounded-xl" style={{ backgroundColor: "var(--color-bg-card)", border: "1px solid var(--color-border)" }}>
-            <p className="text-sm text-gray-500">
-              All services are handled by our verified compliance team.
-              Government fees are passed through at exact cost with zero markup.
-            </p>
-            <a href="/services" className="inline-block mt-3 text-sm font-semibold" style={{ color: "var(--color-accent-purple)" }}>
-              Browse all services on your dashboard →
-            </a>
-          </div>
+      {/* ── SECTION 3: FAQ ── */}
+      <section id="faq" className="py-16 scroll-mt-28">
+        <div className="max-w-3xl mx-auto px-6">
+          <SectionHeader
+            title={<>Pricing <span className="gradient-text">FAQ</span></>}
+          />
+          <FAQAccordion items={FAQ_ITEMS} />
         </div>
       </section>
 
+      {/* ─── Bottom CTA ─── */}
+      <CTASection
+        variant="purple"
+        title="Start building today"
+        subtitle="No credit card required. Get your compliance dashboard free."
+        primaryCTA={{ label: "Get Started Free", href: "/signup" }}
+      />
+
       <Footer />
+      <ChatWidget />
     </div>
   );
 }

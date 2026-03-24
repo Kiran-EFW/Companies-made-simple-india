@@ -700,6 +700,63 @@ export async function getServicesStats(): Promise<any> {
 }
 
 // ---------------------------------------------------------------------------
+// Marketplace Fulfillment (Admin)
+// ---------------------------------------------------------------------------
+
+export async function getMarketplacePartners(): Promise<any[]> {
+  return apiCall("/marketplace/partners");
+}
+
+export async function verifyPartner(partnerId: number): Promise<any> {
+  return apiCall(`/marketplace/partners/${partnerId}/verify`, { method: "PUT" });
+}
+
+export async function getAvailablePartners(category?: string): Promise<any[]> {
+  const qs = category ? `?category=${category}` : "";
+  return apiCall(`/marketplace/available-partners${qs}`);
+}
+
+export async function assignToPartner(data: {
+  service_request_id: number;
+  partner_id: number;
+}): Promise<any> {
+  return apiCall("/marketplace/assign", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function approveDelivery(fulfillmentId: number): Promise<any> {
+  return apiCall(`/marketplace/fulfillments/${fulfillmentId}/approve`, {
+    method: "POST",
+  });
+}
+
+export async function requestRevision(
+  fulfillmentId: number,
+  note: string,
+): Promise<any> {
+  return apiCall(`/marketplace/fulfillments/${fulfillmentId}/revision`, {
+    method: "POST",
+    body: JSON.stringify({ note }),
+  });
+}
+
+export async function getSettlements(): Promise<any[]> {
+  return apiCall("/marketplace/settlements");
+}
+
+export async function markSettlementPaid(
+  settlementId: number,
+  data: { payment_reference: string; partner_invoice_number?: string },
+): Promise<any> {
+  return apiCall(`/marketplace/settlements/${settlementId}/mark-paid`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Admin Compliance Workflow
 // ---------------------------------------------------------------------------
 

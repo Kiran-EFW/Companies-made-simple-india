@@ -26,12 +26,14 @@ def signup(user_data: UserCreate, db: Session = Depends(get_db)):
             detail="Email already registered"
         )
 
-    # Create user
+    # Create user with requested role (only 'user' or 'ca_lead' allowed)
+    role = UserRole(user_data.role) if user_data.role else UserRole.USER
     new_user = User(
         email=user_data.email,
         full_name=user_data.full_name,
         phone=user_data.phone,
-        hashed_password=get_password_hash(user_data.password)
+        hashed_password=get_password_hash(user_data.password),
+        role=role,
     )
     db.add(new_user)
     db.commit()

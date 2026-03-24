@@ -18,11 +18,12 @@ import {
   Eye,
   Briefcase,
   Rocket,
-  ShoppingBag,
   Compass,
   GitCompare,
   GraduationCap,
   Table2,
+  Building2,
+  HelpCircle,
   Menu,
   X,
   ChevronDown,
@@ -56,8 +57,8 @@ const PRODUCTS = [
     heading: "Portals",
     items: [
       { label: "Investor Portal", desc: "Token-based portfolio dashboard", href: "/for/investors", icon: Eye },
+      { label: "Partner Portal", desc: "Multi-client compliance dashboard", href: "/for/cas", icon: Building2 },
       { label: "Incorporation", desc: "Guided entity wizard & filing", href: "/wizard", icon: Rocket },
-      { label: "Services Marketplace", desc: "GST, trademark, DPIIT & more", href: "/features/services", icon: ShoppingBag },
     ],
   },
 ];
@@ -65,6 +66,7 @@ const PRODUCTS = [
 const SOLUTIONS = [
   { label: "For Founders", desc: "Cap table, ESOP, fundraising, compliance", href: "/for/founders", icon: Rocket },
   { label: "For Investors", desc: "Portfolio dashboard & company discovery", href: "/for/investors", icon: Eye },
+  { label: "For CAs & Professionals", desc: "Multi-client dashboard & marketplace", href: "/for/cas", icon: Building2 },
 ];
 
 const RESOURCES = [
@@ -72,6 +74,7 @@ const RESOURCES = [
   { label: "Compare Entities", desc: "Side-by-side comparison", href: "/compare", icon: GitCompare },
   { label: "Learning Center", desc: "Guides & best practices", href: "/learn", icon: GraduationCap },
   { label: "Free Cap Table Tool", desc: "Build your cap table instantly", href: "/cap-table-setup", icon: Table2 },
+  { label: "FAQ", desc: "Common questions answered", href: "/faq", icon: HelpCircle },
 ];
 
 type DropdownKey = "products" | "solutions" | "resources" | null;
@@ -283,6 +286,15 @@ export default function Header() {
             >
               Pricing
             </Link>
+
+            {/* Services direct link */}
+            <Link
+              href="/services"
+              className="px-3 py-2 text-sm font-medium rounded-lg transition-colors"
+              style={{ color: "var(--color-text-secondary)" }}
+            >
+              Services
+            </Link>
           </div>
 
           {/* Right side */}
@@ -428,6 +440,14 @@ export default function Header() {
               style={{ color: "var(--color-text-primary)" }}
             >
               Pricing
+            </Link>
+
+            <Link
+              href="/services"
+              className="block px-3 py-2.5 text-sm font-medium rounded-lg"
+              style={{ color: "var(--color-text-primary)" }}
+            >
+              Services
             </Link>
 
             <div className="pt-3 space-y-2 px-3" style={{ borderTop: "1px solid var(--color-border)" }}>

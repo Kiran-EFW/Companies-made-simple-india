@@ -5,7 +5,7 @@ from typing import List, Optional
 from src.database import get_db
 from src.models.user import User
 from src.models.company import Company, CompanyStatus, EntityType
-from src.utils.security import get_current_user
+from src.utils.security import get_current_user, get_optional_user
 from src.config import get_settings
 from src.agents.chatbot_knowledge import KNOWLEDGE_BASE, keyword_search
 
@@ -205,12 +205,12 @@ def _fallback_response(user_message: str) -> tuple:
 async def send_message(
     req: ChatRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: Optional[User] = Depends(get_optional_user),
 ):
     """Send a message to the chatbot and receive an AI-powered response."""
-    # Optionally load company context
+    # Optionally load company context (only when authenticated)
     company_context: Optional[str] = None
-    if req.company_id is not None:
+    if req.company_id is not None and current_user is not None:
         company = (
             db.query(Company)
             .filter(
