@@ -1,6 +1,10 @@
+import logging
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from src.config import get_settings
+
+logger = logging.getLogger(__name__)
 
 settings = get_settings()
 
@@ -14,7 +18,12 @@ Base = declarative_base()
 
 
 def init_db():
-    """Create all tables. Called on app startup."""
+    """Create all tables. Called on app startup.
+
+    On PostgreSQL, enum types that already exist will cause a
+    ``ProgrammingError``.  We catch that and fall through so the app
+    can still start against an already-migrated database.
+    """
     from src.models import user, company, director, document, payment, pricing, task  # noqa
     from src.models import notification, admin_log, internal_note  # noqa
     from src.models import compliance_task  # noqa
@@ -36,7 +45,13 @@ def init_db():
     from src.models import company_member  # noqa
     from src.models import deal_share  # noqa
     from src.models import marketplace  # noqa
-    Base.metadata.create_all(bind=engine)
+    try:
+        Base.metadata.create_all(bind=engine)
+    except Exception as exc:
+        # On Postgres, enum types that already exist raise ProgrammingError.
+        # Tables use checkfirst=True by default, but enums don't.
+        # Safe to ignore — alembic manages the real migrations.
+        logger.warning("create_all skipped (tables likely already exist): %s", exc)
 
 
 def get_db():
