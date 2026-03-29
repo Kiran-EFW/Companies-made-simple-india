@@ -62,10 +62,120 @@ def _run_escalation_loop(stop_event: threading.Event):
         stop_event.wait(900)  # 15 minutes
 
 
+def _seed_demo_subscriptions():
+    """In development, ensure demo users have access to companies with Scale
+    subscriptions so they can see the full dashboard.
+
+    1. Add demo users as accepted members of all existing companies.
+    2. Give every company an active Scale subscription.
+
+    Uses raw SQL to avoid ORM column-mismatch issues with un-migrated SQLite.
+    """
+    if settings.environment != "development":
+        return
+
+    from src.database import engine
+    from datetime import datetime, timezone, timedelta
+    from sqlalchemy import text
+
+    DEMO_EMAILS = ("paul@anvils.in", "janeevan@anvils.in", "abey@anvils.in")
+
+    now = datetime.now(timezone.utc).isoformat()
+    end = (datetime.now(timezone.utc) + timedelta(days=365)).isoformat()
+
+    with engine.connect() as conn:
+        try:
+            # Collect all company IDs
+            all_companies = conn.execute(
+                text("SELECT id, user_id FROM companies")
+            ).fetchall()
+            if not all_companies:
+                return
+
+            # Step 1: Add demo users as members of all companies
+            for email in DEMO_EMAILS:
+                row = conn.execute(
+                    text("SELECT id FROM users WHERE email = :e"), {"e": email}
+                ).fetchone()
+                if not row:
+                    continue
+                user_id = row[0]
+
+                existing_memberships = set(
+                    r[0]
+                    for r in conn.execute(
+                        text("SELECT company_id FROM company_members WHERE user_id = :uid"),
+                        {"uid": user_id},
+                    ).fetchall()
+                )
+
+                for company_id, owner_id in all_companies:
+                    if owner_id == user_id:
+                        continue  # Already the owner
+                    if company_id in existing_memberships:
+                        continue  # Already a member
+                    conn.execute(
+                        text(
+                            "INSERT INTO company_members "
+                            "(company_id, user_id, invite_email, invite_name, role, "
+                            "invite_status, invited_by, created_at, accepted_at) "
+                            "VALUES (:cid, :uid, :email, 'Demo', 'admin', "
+                            "'accepted', :owner, :now, :now)"
+                        ),
+                        {
+                            "cid": company_id, "uid": user_id,
+                            "email": email, "owner": owner_id, "now": now,
+                        },
+                    )
+                    logger.info("Added %s as member of company %d", email, company_id)
+
+            # Step 2: Ensure every company has a Scale subscription
+            for company_id, owner_id in all_companies:
+                existing = conn.execute(
+                    text(
+                        "SELECT id, plan_key FROM subscriptions "
+                        "WHERE company_id = :cid AND status = 'active'"
+                    ),
+                    {"cid": company_id},
+                ).fetchone()
+
+                if existing:
+                    if existing[1] == "scale":
+                        continue
+                    conn.execute(
+                        text(
+                            "UPDATE subscriptions SET plan_key = 'scale', "
+                            "plan_name = 'Anvils Scale', amount = 99999 "
+                            "WHERE id = :sid"
+                        ),
+                        {"sid": existing[0]},
+                    )
+                    logger.info("Upgraded company %d to Scale", company_id)
+                else:
+                    conn.execute(
+                        text(
+                            "INSERT INTO subscriptions "
+                            "(company_id, user_id, plan_key, plan_name, \"interval\", "
+                            "amount, status, current_period_start, current_period_end, "
+                            "created_at, updated_at) "
+                            "VALUES (:cid, :uid, 'scale', 'Anvils Scale', 'annual', "
+                            "99999, 'active', :now, :end, :now, :now)"
+                        ),
+                        {"cid": company_id, "uid": owner_id, "now": now, "end": end},
+                    )
+                    logger.info("Seeded Scale subscription for company %d", company_id)
+
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            logger.exception("Failed to seed demo subscriptions")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifecycle: startup and shutdown."""
     init_db()
+    _seed_demo_subscriptions()
     # Initialize structured JSON logging
     setup_structured_logging(settings.log_level if hasattr(settings, 'log_level') else "INFO")
     # Start background escalation checker
