@@ -62,58 +62,117 @@ def _run_escalation_loop(stop_event: threading.Event):
         stop_event.wait(900)  # 15 minutes
 
 
-def _seed_demo_subscriptions():
-    """In development, ensure demo users have access to companies with Scale
-    subscriptions so they can see the full dashboard.
+def _seed_demo_data():
+    """In development, bootstrap demo users, a demo company, memberships, and
+    Scale subscriptions so the full dashboard is accessible out of the box.
 
-    1. Add demo users as accepted members of all existing companies.
-    2. Give every company an active Scale subscription.
-
-    Uses raw SQL to avoid ORM column-mismatch issues with un-migrated SQLite.
+    Runs only when ENVIRONMENT=development.  Fully idempotent — safe to call
+    on every startup.  Uses raw SQL to avoid ORM column-mismatch issues with
+    un-migrated SQLite schemas.
     """
     if settings.environment != "development":
         return
 
     from src.database import engine
+    from src.utils.security import get_password_hash
     from datetime import datetime, timezone, timedelta
     from sqlalchemy import text
 
-    DEMO_EMAILS = ("paul@anvils.in", "janeevan@anvils.in", "abey@anvils.in")
+    DEMO_USERS = [
+        {"email": "paul@anvils.in", "name": "Paul", "role": "SUPER_ADMIN"},
+        {"email": "janeevan@anvils.in", "name": "Janeevan", "role": "SUPER_ADMIN"},
+        {"email": "abey@anvils.in", "name": "Abey", "role": "SUPER_ADMIN"},
+        {"email": "ca@anvils.in", "name": "CA Demo", "role": "CA_LEAD"},
+    ]
+    DEMO_PASSWORD_HASH = get_password_hash("Anvils123")
 
     now = datetime.now(timezone.utc).isoformat()
     end = (datetime.now(timezone.utc) + timedelta(days=365)).isoformat()
 
     with engine.connect() as conn:
         try:
-            # Collect all company IDs
+            # ----------------------------------------------------------
+            # Step 1: Create demo users if they don't exist
+            # ----------------------------------------------------------
+            user_ids = {}
+            for u in DEMO_USERS:
+                row = conn.execute(
+                    text("SELECT id FROM users WHERE email = :e"),
+                    {"e": u["email"]},
+                ).fetchone()
+                if row:
+                    user_ids[u["email"]] = row[0]
+                else:
+                    conn.execute(
+                        text(
+                            "INSERT INTO users (email, full_name, hashed_password, role, is_active, created_at, updated_at) "
+                            "VALUES (:email, :name, :pw, :role, 1, :now, :now)"
+                        ),
+                        {"email": u["email"], "name": u["name"], "pw": DEMO_PASSWORD_HASH, "role": u["role"], "now": now},
+                    )
+                    new_row = conn.execute(
+                        text("SELECT id FROM users WHERE email = :e"),
+                        {"e": u["email"]},
+                    ).fetchone()
+                    user_ids[u["email"]] = new_row[0]
+                    logger.info("Created demo user %s", u["email"])
+
+            # ----------------------------------------------------------
+            # Step 2: Ensure at least one company exists
+            # ----------------------------------------------------------
             all_companies = conn.execute(
                 text("SELECT id, user_id FROM companies")
             ).fetchall()
+
             if not all_companies:
-                return
+                # Create a demo company owned by the first demo user
+                first_uid = user_ids[DEMO_USERS[0]["email"]]
+                conn.execute(
+                    text(
+                        "INSERT INTO companies "
+                        "(user_id, entity_type, proposed_names, state, "
+                        "authorized_capital, num_directors, status, priority, "
+                        "created_at, updated_at) "
+                        "VALUES (:uid, 'private_limited', :names, 'Karnataka', "
+                        "1000000, 2, 'INCORPORATED', 'NORMAL', :now, :now)"
+                    ),
+                    {
+                        "uid": first_uid,
+                        "names": '["Anvils Demo Private Limited"]',
+                        "now": now,
+                    },
+                )
+                # Update approved name
+                demo_cid = conn.execute(
+                    text("SELECT id FROM companies WHERE user_id = :uid ORDER BY id DESC LIMIT 1"),
+                    {"uid": first_uid},
+                ).fetchone()[0]
+                conn.execute(
+                    text("UPDATE companies SET approved_name = 'Anvils Demo Private Limited' WHERE id = :cid"),
+                    {"cid": demo_cid},
+                )
+                logger.info("Created demo company (id=%d)", demo_cid)
+                all_companies = conn.execute(
+                    text("SELECT id, user_id FROM companies")
+                ).fetchall()
 
-            # Step 1: Add demo users as members of all companies
-            for email in DEMO_EMAILS:
-                row = conn.execute(
-                    text("SELECT id FROM users WHERE email = :e"), {"e": email}
-                ).fetchone()
-                if not row:
-                    continue
-                user_id = row[0]
-
+            # ----------------------------------------------------------
+            # Step 3: Add demo users as members of all companies
+            # ----------------------------------------------------------
+            for email, uid in user_ids.items():
                 existing_memberships = set(
                     r[0]
                     for r in conn.execute(
                         text("SELECT company_id FROM company_members WHERE user_id = :uid"),
-                        {"uid": user_id},
+                        {"uid": uid},
                     ).fetchall()
                 )
 
                 for company_id, owner_id in all_companies:
-                    if owner_id == user_id:
-                        continue  # Already the owner
+                    if owner_id == uid:
+                        continue
                     if company_id in existing_memberships:
-                        continue  # Already a member
+                        continue
                     conn.execute(
                         text(
                             "INSERT INTO company_members "
@@ -122,14 +181,13 @@ def _seed_demo_subscriptions():
                             "VALUES (:cid, :uid, :email, 'Demo', 'admin', "
                             "'accepted', :owner, :now, :now)"
                         ),
-                        {
-                            "cid": company_id, "uid": user_id,
-                            "email": email, "owner": owner_id, "now": now,
-                        },
+                        {"cid": company_id, "uid": uid, "email": email, "owner": owner_id, "now": now},
                     )
                     logger.info("Added %s as member of company %d", email, company_id)
 
-            # Step 2: Ensure every company has a Scale subscription
+            # ----------------------------------------------------------
+            # Step 4: Ensure every company has a Scale subscription
+            # ----------------------------------------------------------
             for company_id, owner_id in all_companies:
                 existing = conn.execute(
                     text(
@@ -166,16 +224,17 @@ def _seed_demo_subscriptions():
                     logger.info("Seeded Scale subscription for company %d", company_id)
 
             conn.commit()
+            logger.info("Demo data seed complete")
         except Exception:
             conn.rollback()
-            logger.exception("Failed to seed demo subscriptions")
+            logger.exception("Failed to seed demo data")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifecycle: startup and shutdown."""
     init_db()
-    _seed_demo_subscriptions()
+    _seed_demo_data()
     # Initialize structured JSON logging
     setup_structured_logging(settings.log_level if hasattr(settings, 'log_level') else "INFO")
     # Start background escalation checker
