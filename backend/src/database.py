@@ -71,7 +71,7 @@ def _ensure_pg_columns():
                     f"END IF; END $$;"
                 ))
             except Exception as exc:
-                print(f"[ensure_pg] enum {ename}: {exc}", flush=True)
+                logger.warning("ensure_pg enum %s: %s", ename, exc)
 
         # Step 2: Add enum values to entitytype
         for val in ("nidhi", "producer_company"):
@@ -80,7 +80,7 @@ def _ensure_pg_columns():
                     f"ALTER TYPE entitytype ADD VALUE IF NOT EXISTS '{val}'"
                 ))
             except Exception as exc:
-                print(f"[ensure_pg] entitytype+{val}: {exc}", flush=True)
+                logger.warning("ensure_pg entitytype+%s: %s", val, exc)
 
         # Step 3: Add missing columns (one at a time)
         for table, col, col_type in COLUMNS:
@@ -93,9 +93,9 @@ def _ensure_pg_columns():
                     conn.execute(text(
                         f"ALTER TABLE {table} ADD COLUMN {col} {col_type}"
                     ))
-                    print(f"[ensure_pg] Added {table}.{col}", flush=True)
+                    logger.info("ensure_pg: added %s.%s", table, col)
             except Exception as exc:
-                print(f"[ensure_pg] {table}.{col}: {exc}", flush=True)
+                logger.warning("ensure_pg %s.%s: %s", table, col, exc)
 
         # Step 4: Fix plan_tier type if it was created as VARCHAR
         try:
@@ -108,12 +108,12 @@ def _ensure_pg_columns():
                     "ALTER TABLE companies ALTER COLUMN plan_tier "
                     "TYPE plantier USING plan_tier::plantier"
                 ))
-                print("[ensure_pg] Converted plan_tier to enum", flush=True)
+                logger.info("ensure_pg: converted plan_tier to enum")
         except Exception as exc:
-            print(f"[ensure_pg] plan_tier fix: {exc}", flush=True)
+            logger.warning("ensure_pg plan_tier fix: %s", exc)
 
         conn.commit()
-    print("[ensure_pg] completed", flush=True)
+    logger.info("ensure_pg: completed")
 
 
 def init_db():
