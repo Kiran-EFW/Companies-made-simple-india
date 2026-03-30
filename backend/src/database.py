@@ -20,76 +20,100 @@ Base = declarative_base()
 def _ensure_pg_columns():
     """Idempotently add any columns that the ORM models expect but that
     may be missing from the PostgreSQL schema.  Runs raw DDL so it works
-    regardless of whether alembic migrations succeeded."""
+    regardless of whether alembic migrations succeeded.
+
+    Each statement runs individually so one failure doesn't block others.
+    """
     from sqlalchemy import text
 
-    DDL = [
-        # --- enum types ---
-        """
-        DO $$ BEGIN
-            IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'customersegment') THEN
-                CREATE TYPE customersegment AS ENUM (
-                    'micro_business','sme','startup','non_profit',
-                    'nidhi','producer','enterprise'
-                );
-            END IF;
-        END $$;
-        """,
-        """
-        DO $$ BEGIN
-            IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'plantier') THEN
-                CREATE TYPE plantier AS ENUM ('launch','grow','scale');
-            END IF;
-        END $$;
-        """,
-        # --- enum values ---
-        "ALTER TYPE entitytype ADD VALUE IF NOT EXISTS 'nidhi'",
-        "ALTER TYPE entitytype ADD VALUE IF NOT EXISTS 'producer_company'",
-        # --- columns ---
-        """
-        DO $$ BEGIN
-            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='reset_token') THEN
-                ALTER TABLE users ADD COLUMN reset_token VARCHAR;
-            END IF;
-            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='reset_token_expiry') THEN
-                ALTER TABLE users ADD COLUMN reset_token_expiry TIMESTAMP;
-            END IF;
-            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='companies' AND column_name='segment') THEN
-                ALTER TABLE companies ADD COLUMN segment customersegment;
-            END IF;
-            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='companies' AND column_name='plan_tier') THEN
-                ALTER TABLE companies ADD COLUMN plan_tier plantier;
-            ELSE
-                -- Fix: migration 006 may have created this as VARCHAR
-                IF (SELECT data_type FROM information_schema.columns WHERE table_name='companies' AND column_name='plan_tier') = 'character varying' THEN
-                    ALTER TABLE companies ALTER COLUMN plan_tier TYPE plantier USING plan_tier::plantier;
-                END IF;
-            END IF;
-            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='shareholders' AND column_name='stakeholder_profile_id') THEN
-                ALTER TABLE shareholders ADD COLUMN stakeholder_profile_id INTEGER REFERENCES stakeholder_profiles(id);
-            END IF;
-            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='subscriptions' AND column_name='pending_plan_key') THEN
-                ALTER TABLE subscriptions ADD COLUMN pending_plan_key VARCHAR;
-            END IF;
-            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='subscriptions' AND column_name='pending_plan_name') THEN
-                ALTER TABLE subscriptions ADD COLUMN pending_plan_name VARCHAR;
-            END IF;
-            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='subscriptions' AND column_name='pending_amount') THEN
-                ALTER TABLE subscriptions ADD COLUMN pending_amount INTEGER;
-            END IF;
-        END $$;
-        """,
+    # Individual ALTER TABLE statements — one per column for resilience.
+    # Format: (table, column, type_sql)
+    COLUMNS = [
+        # users
+        ("users", "reset_token", "VARCHAR"),
+        ("users", "reset_token_expiry", "TIMESTAMP"),
+        ("users", "department", "staffdepartment"),
+        ("users", "seniority", "staffseniority"),
+        ("users", "reports_to", "INTEGER REFERENCES users(id)"),
+        # companies
+        ("companies", "segment", "customersegment"),
+        ("companies", "plan_tier", "plantier"),
+        ("companies", "employee_count", "INTEGER"),
+        ("companies", "incorporation_date", "TIMESTAMP"),
+        ("companies", "pricing_snapshot", "JSONB"),
+        ("companies", "assigned_to", "INTEGER REFERENCES users(id)"),
+        ("companies", "cin", "VARCHAR"),
+        ("companies", "pan", "VARCHAR"),
+        ("companies", "tan", "VARCHAR"),
+        ("companies", "data", "JSONB DEFAULT '{}'::jsonb"),
+        # shareholders
+        ("shareholders", "stakeholder_profile_id", "INTEGER REFERENCES stakeholder_profiles(id)"),
+        # subscriptions
+        ("subscriptions", "pending_plan_key", "VARCHAR"),
+        ("subscriptions", "pending_plan_name", "VARCHAR"),
+        ("subscriptions", "pending_amount", "INTEGER"),
     ]
 
     with engine.connect() as conn:
-        for i, stmt in enumerate(DDL):
+        # Step 1: Ensure enum types exist
+        enum_types = {
+            "customersegment": "'micro_business','sme','startup','non_profit','nidhi','producer','enterprise'",
+            "plantier": "'launch','grow','scale'",
+            "staffdepartment": "'cs','ca','filing','support','admin'",
+            "staffseniority": "'junior','mid','senior','lead','head'",
+        }
+        for ename, evalues in enum_types.items():
             try:
-                conn.execute(text(stmt))
-                print(f"[ensure_pg] DDL {i+1}/{len(DDL)} OK", flush=True)
+                conn.execute(text(
+                    f"DO $$ BEGIN "
+                    f"IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = '{ename}') THEN "
+                    f"CREATE TYPE {ename} AS ENUM ({evalues}); "
+                    f"END IF; END $$;"
+                ))
             except Exception as exc:
-                print(f"[ensure_pg] DDL {i+1}/{len(DDL)} SKIPPED: {exc}", flush=True)
+                print(f"[ensure_pg] enum {ename}: {exc}", flush=True)
+
+        # Step 2: Add enum values to entitytype
+        for val in ("nidhi", "producer_company"):
+            try:
+                conn.execute(text(
+                    f"ALTER TYPE entitytype ADD VALUE IF NOT EXISTS '{val}'"
+                ))
+            except Exception as exc:
+                print(f"[ensure_pg] entitytype+{val}: {exc}", flush=True)
+
+        # Step 3: Add missing columns (one at a time)
+        for table, col, col_type in COLUMNS:
+            try:
+                exists = conn.execute(text(
+                    "SELECT 1 FROM information_schema.columns "
+                    "WHERE table_name = :t AND column_name = :c"
+                ), {"t": table, "c": col}).fetchone()
+                if not exists:
+                    conn.execute(text(
+                        f"ALTER TABLE {table} ADD COLUMN {col} {col_type}"
+                    ))
+                    print(f"[ensure_pg] Added {table}.{col}", flush=True)
+            except Exception as exc:
+                print(f"[ensure_pg] {table}.{col}: {exc}", flush=True)
+
+        # Step 4: Fix plan_tier type if it was created as VARCHAR
+        try:
+            row = conn.execute(text(
+                "SELECT data_type FROM information_schema.columns "
+                "WHERE table_name = 'companies' AND column_name = 'plan_tier'"
+            )).fetchone()
+            if row and row[0] == "character varying":
+                conn.execute(text(
+                    "ALTER TABLE companies ALTER COLUMN plan_tier "
+                    "TYPE plantier USING plan_tier::plantier"
+                ))
+                print("[ensure_pg] Converted plan_tier to enum", flush=True)
+        except Exception as exc:
+            print(f"[ensure_pg] plan_tier fix: {exc}", flush=True)
+
         conn.commit()
-    print("[ensure_pg] _ensure_pg_columns completed", flush=True)
+    print("[ensure_pg] completed", flush=True)
 
 
 def init_db():
