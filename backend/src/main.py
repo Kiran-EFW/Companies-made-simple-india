@@ -298,6 +298,9 @@ async def validation_error_handler(request: Request, exc: RequestValidationError
 
 @app.exception_handler(Exception)
 async def generic_error_handler(request: Request, exc: Exception):
+    import traceback, sys
+    tb = traceback.format_exc()
+    print(f"UNHANDLED EXCEPTION on {request.method} {request.url.path}:\n{tb}", file=sys.stderr, flush=True)
     logger.exception("Unhandled exception")
     message = str(exc) if settings.environment == "development" else "Internal server error"
     return JSONResponse(

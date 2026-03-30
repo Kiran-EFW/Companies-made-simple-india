@@ -82,13 +82,14 @@ def _ensure_pg_columns():
     ]
 
     with engine.connect() as conn:
-        for stmt in DDL:
+        for i, stmt in enumerate(DDL):
             try:
                 conn.execute(text(stmt))
+                print(f"[ensure_pg] DDL {i+1}/{len(DDL)} OK", flush=True)
             except Exception as exc:
-                logger.warning("DDL statement skipped: %s", exc)
+                print(f"[ensure_pg] DDL {i+1}/{len(DDL)} SKIPPED: {exc}", flush=True)
         conn.commit()
-    logger.info("_ensure_pg_columns completed")
+    print("[ensure_pg] _ensure_pg_columns completed", flush=True)
 
 
 def init_db():
