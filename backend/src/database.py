@@ -17,6 +17,80 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 
+def _ensure_pg_columns():
+    """Idempotently add any columns that the ORM models expect but that
+    may be missing from the PostgreSQL schema.  Runs raw DDL so it works
+    regardless of whether alembic migrations succeeded."""
+    from sqlalchemy import text
+
+    DDL = [
+        # --- enum types ---
+        """
+        DO $$ BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'customersegment') THEN
+                CREATE TYPE customersegment AS ENUM (
+                    'micro_business','sme','startup','non_profit',
+                    'nidhi','producer','enterprise'
+                );
+            END IF;
+        END $$;
+        """,
+        """
+        DO $$ BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'plantier') THEN
+                CREATE TYPE plantier AS ENUM ('launch','grow','scale');
+            END IF;
+        END $$;
+        """,
+        # --- enum values ---
+        "ALTER TYPE entitytype ADD VALUE IF NOT EXISTS 'nidhi'",
+        "ALTER TYPE entitytype ADD VALUE IF NOT EXISTS 'producer_company'",
+        # --- columns ---
+        """
+        DO $$ BEGIN
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='reset_token') THEN
+                ALTER TABLE users ADD COLUMN reset_token VARCHAR;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='reset_token_expiry') THEN
+                ALTER TABLE users ADD COLUMN reset_token_expiry TIMESTAMP;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='companies' AND column_name='segment') THEN
+                ALTER TABLE companies ADD COLUMN segment customersegment;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='companies' AND column_name='plan_tier') THEN
+                ALTER TABLE companies ADD COLUMN plan_tier plantier;
+            ELSE
+                -- Fix: migration 006 may have created this as VARCHAR
+                IF (SELECT data_type FROM information_schema.columns WHERE table_name='companies' AND column_name='plan_tier') = 'character varying' THEN
+                    ALTER TABLE companies ALTER COLUMN plan_tier TYPE plantier USING plan_tier::plantier;
+                END IF;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='shareholders' AND column_name='stakeholder_profile_id') THEN
+                ALTER TABLE shareholders ADD COLUMN stakeholder_profile_id INTEGER REFERENCES stakeholder_profiles(id);
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='subscriptions' AND column_name='pending_plan_key') THEN
+                ALTER TABLE subscriptions ADD COLUMN pending_plan_key VARCHAR;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='subscriptions' AND column_name='pending_plan_name') THEN
+                ALTER TABLE subscriptions ADD COLUMN pending_plan_name VARCHAR;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='subscriptions' AND column_name='pending_amount') THEN
+                ALTER TABLE subscriptions ADD COLUMN pending_amount INTEGER;
+            END IF;
+        END $$;
+        """,
+    ]
+
+    with engine.connect() as conn:
+        for stmt in DDL:
+            try:
+                conn.execute(text(stmt))
+            except Exception as exc:
+                logger.warning("DDL statement skipped: %s", exc)
+        conn.commit()
+    logger.info("_ensure_pg_columns completed")
+
+
 def init_db():
     """Create / migrate all tables. Called on app startup.
 
@@ -65,7 +139,9 @@ def init_db():
             from sqlalchemy import inspect, text
 
             # Resolve alembic.ini relative to the backend root (/app)
-            backend_root = os.path.join(os.path.dirname(__file__), "..")
+            backend_root = os.path.normpath(
+                os.path.join(os.path.dirname(__file__), "..")
+            )
             alembic_ini = os.path.join(backend_root, "alembic.ini")
             alembic_cfg = Config(alembic_ini)
             alembic_cfg.set_main_option(
@@ -85,6 +161,10 @@ def init_db():
             logger.info("Alembic migrations applied successfully")
         except Exception as exc:
             logger.exception("Alembic migration error (continuing): %s", exc)
+
+        # Belt-and-suspenders: ensure critical columns exist via raw SQL.
+        # This handles cases where alembic migrations fail silently.
+        _ensure_pg_columns()
 
 
 def get_db():
