@@ -1013,14 +1013,22 @@ def admin_update_compliance_task(
 
 @router.post("/subscriptions/upgrade")
 def upgrade_subscriptions(
-    company_ids: List[int],
-    plan_key: str,
-    plan_name: str,
-    amount: int,
+    company_ids: List[int] = Query(...),
+    plan_key: str = Query(...),
+    plan_name: str = Query(...),
+    amount: int = Query(...),
+    request: Request = None,
     db: Session = Depends(get_db),
     admin_user: User = Depends(get_admin_user),
 ):
-    """Admin endpoint to upgrade subscriptions to a specified tier."""
+    """Admin endpoint to upgrade subscriptions to a specified tier.
+
+    Query params:
+    - company_ids: List of company IDs to upgrade
+    - plan_key: Plan key (e.g. "compliance_scale")
+    - plan_name: Plan name (e.g. "Compliance Scale")
+    - amount: Amount in rupees
+    """
     require_role(admin_user, [UserRole.ADMIN, UserRole.SUPER_ADMIN])
 
     subscriptions = db.query(Subscription).filter(
@@ -1039,7 +1047,7 @@ def upgrade_subscriptions(
         _log_admin_action(
             db, admin_user, "upgrade_subscription", "subscription", sub.id,
             details={"old_plan": old_plan, "new_plan": plan_key, "amount": amount},
-            ip_address=request.client.host if request.client else None,
+            ip_address=request.client.host if request and request.client else None,
         )
 
     db.commit()
