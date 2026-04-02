@@ -1009,3 +1009,45 @@ def admin_update_compliance_task(
         "status": task.status.value if task.status else None,
         "filing_reference": task.filing_reference,
     }
+
+
+@router.post("/subscriptions/upgrade")
+def upgrade_subscriptions(
+    company_ids: List[int],
+    plan_key: str,
+    plan_name: str,
+    amount: int,
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_admin_user),
+):
+    """Admin endpoint to upgrade subscriptions to a specified tier."""
+    require_role(admin_user, [UserRole.ADMIN, UserRole.SUPER_ADMIN])
+
+    subscriptions = db.query(Subscription).filter(
+        Subscription.company_id.in_(company_ids)
+    ).all()
+
+    updated_count = 0
+    for sub in subscriptions:
+        old_plan = sub.plan_key
+        sub.plan_key = plan_key
+        sub.plan_name = plan_name
+        sub.amount = amount
+        sub.updated_at = datetime.now(timezone.utc)
+        updated_count += 1
+
+        _log_admin_action(
+            db, admin_user, "upgrade_subscription", "subscription", sub.id,
+            details={"old_plan": old_plan, "new_plan": plan_key, "amount": amount},
+            ip_address=request.client.host if request.client else None,
+        )
+
+    db.commit()
+
+    return {
+        "message": f"Updated {updated_count} subscriptions",
+        "company_ids": company_ids,
+        "plan_key": plan_key,
+        "plan_name": plan_name,
+        "amount": amount,
+    }
