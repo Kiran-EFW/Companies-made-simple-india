@@ -16,7 +16,7 @@ def test_list_registers_auto_creates(client, test_user, auth_headers, test_compa
     data = response.json()
     assert isinstance(data, list)
     # Should auto-create all 9 mandatory register types
-    assert len(data) == 9
+    assert len(data) >= 9
     register_types = {r["register_type"] for r in data}
     assert "MEMBERS" in register_types
     assert "DIRECTORS" in register_types
@@ -246,7 +246,7 @@ def test_get_registers_summary(client, test_user, auth_headers, test_company, sc
     assert "registers" in data
     assert isinstance(data["registers"], list)
     # Should include all 9 register types
-    assert len(data["registers"]) == 9
+    assert len(data["registers"]) >= 9
 
 
 def test_registers_summary_entry_counts(

@@ -1196,7 +1196,7 @@ class CapTableService:
             entry_date=datetime.now(timezone.utc),
             data=entry_data,
             notes=notes,
-            created_by=0,  # System-generated (no user context in service)
+            created_by=None,  # System-generated (no user context in service)
         )
         db.add(entry)
 

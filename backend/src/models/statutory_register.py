@@ -31,7 +31,7 @@ class RegisterEntry(Base):
     entry_date = Column(DateTime, nullable=False)
     data = Column(JSON, nullable=False)  # Flexible JSON for different register types
     notes = Column(Text, nullable=True)
-    created_by = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    created_by = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
 
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(
