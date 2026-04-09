@@ -20,6 +20,7 @@ from src.models.accounting_connection import (
 from src.models.esop import (
     ESOPPlan, ESOPGrant, ESOPPlanStatus, ESOPGrantStatus, VestingType,
 )
+from src.models.conversion_event import ConversionEvent
 from src.models.funding_round import (
     FundingRound, RoundInvestor, FundingRoundStatus, InstrumentType,
 )
@@ -32,6 +33,16 @@ from src.models.share_issuance import (
 from src.models.meeting import Meeting
 from src.models.legal_template import LegalDocument
 from src.models.esign import SignatureRequest
+from src.models.message import Message, SenderType
+from src.models.audit_trail import AuditTrail
+from src.models.ca_assignment import CAAssignment
+from src.models.escalation_rule import EscalationRule
+from src.models.filing_task import FilingTask
+from src.models.investor_interest import InvestorInterest
+from src.models.marketplace import CAPartnerProfile
+from src.models.statutory_register import StatutoryRegister
+from src.models.valuation import Valuation
+from src.models.verification_queue import VerificationQueue
 
 __all__ = [
     "User", "UserRole",
@@ -50,6 +61,7 @@ __all__ = [
     "Subscription", "SubscriptionStatus", "SubscriptionInterval",
     "AccountingConnection", "AccountingPlatform", "ConnectionStatus",
     "ESOPPlan", "ESOPGrant", "ESOPPlanStatus", "ESOPGrantStatus", "VestingType",
+    "ConversionEvent",
     "FundingRound", "RoundInvestor", "FundingRoundStatus", "InstrumentType",
     "StakeholderProfile", "StakeholderType",
     "CompanyMember", "CompanyRole", "InviteStatus",
@@ -58,4 +70,14 @@ __all__ = [
     "Meeting",
     "LegalDocument",
     "SignatureRequest",
+    "Message", "SenderType",
+    "AuditTrail",
+    "CAAssignment",
+    "EscalationRule",
+    "FilingTask",
+    "InvestorInterest",
+    "CAPartnerProfile",
+    "StatutoryRegister",
+    "Valuation",
+    "VerificationQueue",
 ]

@@ -6,7 +6,7 @@
 # ---------------------------------------------------------------------------
 
 
-def test_get_cap_table_empty(client, test_company):
+def test_get_cap_table_empty(client, test_company, scale_subscription):
     """GET /api/v1/companies/{id}/cap-table returns empty table initially."""
     response = client.get(
         f"/api/v1/companies/{test_company.id}/cap-table",
@@ -20,7 +20,7 @@ def test_get_cap_table_empty(client, test_company):
 
 
 def test_get_cap_table_with_shareholders(
-    client, test_company, test_shareholder
+    client, test_company, test_shareholder, scale_subscription
 ):
     """Cap table reflects existing shareholders."""
     response = client.get(
@@ -38,7 +38,7 @@ def test_get_cap_table_with_shareholders(
 # ---------------------------------------------------------------------------
 
 
-def test_add_shareholder(client, test_company):
+def test_add_shareholder(client, test_company, scale_subscription):
     """POST /api/v1/companies/{id}/cap-table/shareholders adds a shareholder."""
     response = client.post(
         f"/api/v1/companies/{test_company.id}/cap-table/shareholders",
@@ -58,7 +58,7 @@ def test_add_shareholder(client, test_company):
     assert data["shareholder"]["shares"] == 1000
 
 
-def test_add_shareholder_promoter(client, test_company):
+def test_add_shareholder_promoter(client, test_company, scale_subscription):
     """Adding a shareholder with is_promoter=True succeeds."""
     response = client.post(
         f"/api/v1/companies/{test_company.id}/cap-table/shareholders",
@@ -79,7 +79,7 @@ def test_add_shareholder_promoter(client, test_company):
 # ---------------------------------------------------------------------------
 
 
-def test_record_allotment(client, test_company, test_shareholder):
+def test_record_allotment(client, test_company, test_shareholder, scale_subscription):
     """POST /api/v1/companies/{id}/cap-table/allotment records new share allotment."""
     response = client.post(
         f"/api/v1/companies/{test_company.id}/cap-table/allotment",
@@ -101,7 +101,7 @@ def test_record_allotment(client, test_company, test_shareholder):
     assert "transaction_id" in data or "allotment" in data or isinstance(data, dict)
 
 
-def test_record_allotment_to_new_shareholder(client, test_company):
+def test_record_allotment_to_new_shareholder(client, test_company, scale_subscription):
     """Allotment can include a new shareholder (name provided, no shareholder_id)."""
     response = client.post(
         f"/api/v1/companies/{test_company.id}/cap-table/allotment",
@@ -128,7 +128,7 @@ def test_record_allotment_to_new_shareholder(client, test_company):
 
 
 def test_record_transfer(
-    client, test_company, test_shareholder, second_shareholder
+    client, test_company, test_shareholder, second_shareholder, scale_subscription
 ):
     """POST /api/v1/companies/{id}/cap-table/transfer records a share transfer."""
     response = client.post(
@@ -146,7 +146,7 @@ def test_record_transfer(
 
 
 def test_record_transfer_updates_shareholdings(
-    client, test_company, test_shareholder, second_shareholder
+    client, test_company, test_shareholder, second_shareholder, scale_subscription
 ):
     """After a transfer, the cap table reflects updated shareholdings."""
     client.post(
@@ -172,7 +172,7 @@ def test_record_transfer_updates_shareholdings(
 # ---------------------------------------------------------------------------
 
 
-def test_dilution_preview(client, test_company, test_shareholder):
+def test_dilution_preview(client, test_company, test_shareholder, scale_subscription):
     """GET /api/v1/companies/{id}/cap-table/dilution-preview returns dilution data."""
     response = client.get(
         f"/api/v1/companies/{test_company.id}/cap-table/dilution-preview",
@@ -187,7 +187,7 @@ def test_dilution_preview(client, test_company, test_shareholder):
     assert "pre_money" in data or "post_money" in data or isinstance(data, dict)
 
 
-def test_dilution_preview_requires_new_shares(client, test_company):
+def test_dilution_preview_requires_new_shares(client, test_company, scale_subscription):
     """Dilution preview requires the new_shares query parameter."""
     response = client.get(
         f"/api/v1/companies/{test_company.id}/cap-table/dilution-preview",

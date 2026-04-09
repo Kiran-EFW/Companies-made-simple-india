@@ -13,6 +13,7 @@ from src.models.compliance_task import ComplianceTask, ComplianceTaskStatus
 from src.models.accounting_connection import AccountingConnection, ConnectionStatus
 from src.models.notification import NotificationType
 from src.utils.security import get_current_user
+from src.utils.company_access import get_user_company
 from src.services.compliance_engine import compliance_engine
 from src.services.notification_service import notification_service
 from src.services.annual_filing_service import annual_filing_service
@@ -25,26 +26,6 @@ from src.services.gst_return_service import (
 from src.utils.cache import cache_get, cache_set, cache_delete_pattern
 
 router = APIRouter(prefix="/companies/{company_id}/compliance", tags=["Compliance"])
-
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
-def _get_user_company(
-    company_id: int,
-    db: Session,
-    current_user: User,
-) -> Company:
-    """Fetch company ensuring it belongs to the current user."""
-    comp = (
-        db.query(Company)
-        .filter(Company.id == company_id, Company.user_id == current_user.id)
-        .first()
-    )
-    if not comp:
-        raise HTTPException(status_code=404, detail="Company not found")
-    return comp
 
 
 def _task_to_dict(task: ComplianceTask) -> Dict[str, Any]:
@@ -111,7 +92,7 @@ def get_compliance_calendar(
     current_user: User = Depends(get_current_user),
 ):
     """Full compliance calendar for a given financial year."""
-    company = _get_user_company(company_id, db, current_user)
+    company = get_user_company(company_id, db, current_user)
 
     # Check cache
     fy = financial_year or "current"
@@ -134,7 +115,7 @@ def get_upcoming_deadlines(
     current_user: User = Depends(get_current_user),
 ):
     """Upcoming compliance deadlines within N days."""
-    _get_user_company(company_id, db, current_user)
+    get_user_company(company_id, db, current_user)
     tasks = compliance_engine.get_upcoming_deadlines(db, company_id, days)
     return {
         "company_id": company_id,
@@ -150,7 +131,7 @@ def get_overdue_tasks(
     current_user: User = Depends(get_current_user),
 ):
     """Overdue compliance tasks for the company."""
-    _get_user_company(company_id, db, current_user)
+    get_user_company(company_id, db, current_user)
     # Check and update statuses first
     compliance_engine.check_overdue_tasks(db)
     overdue = (
@@ -176,7 +157,7 @@ def get_compliance_score(
     current_user: User = Depends(get_current_user),
 ):
     """Compliance health score (0-100)."""
-    _get_user_company(company_id, db, current_user)
+    get_user_company(company_id, db, current_user)
     score = compliance_engine.get_compliance_score(db, company_id)
     return {"company_id": company_id, **score}
 
@@ -192,7 +173,7 @@ def generate_compliance_tasks(
     current_user: User = Depends(get_current_user),
 ):
     """Generate compliance tasks for the next financial year."""
-    company = _get_user_company(company_id, db, current_user)
+    company = get_user_company(company_id, db, current_user)
     created = compliance_engine.create_compliance_tasks(db, company_id)
 
     # Notify company owner for each created task
@@ -224,7 +205,7 @@ def update_compliance_task(
     current_user: User = Depends(get_current_user),
 ):
     """Update a compliance task status, filing reference, or form data."""
-    _get_user_company(company_id, db, current_user)
+    get_user_company(company_id, db, current_user)
 
     task = (
         db.query(ComplianceTask)
@@ -289,7 +270,7 @@ def estimate_penalties(
     current_user: User = Depends(get_current_user),
 ):
     """Estimate penalties for all overdue tasks."""
-    _get_user_company(company_id, db, current_user)
+    get_user_company(company_id, db, current_user)
 
     now = datetime.now(timezone.utc)
     overdue_tasks = (
@@ -330,7 +311,7 @@ def send_compliance_reminders(
     current_user: User = Depends(get_current_user),
 ):
     """Trigger compliance reminder notifications for this company's due/overdue tasks."""
-    _get_user_company(company_id, db, current_user)
+    get_user_company(company_id, db, current_user)
     from src.services.notification_service import notification_service
     count = notification_service.send_compliance_reminders(db, company_id)
     return {"notifications_sent": count}
@@ -347,7 +328,7 @@ def generate_aoc4(
     current_user: User = Depends(get_current_user),
 ):
     """Generate AOC-4 financial statements form data."""
-    company = _get_user_company(company_id, db, current_user)
+    company = get_user_company(company_id, db, current_user)
     return annual_filing_service.generate_aoc4_data(company)
 
 
@@ -359,7 +340,7 @@ def generate_aoc4_with_data(
     current_user: User = Depends(get_current_user),
 ):
     """Generate AOC-4 form data with provided financial data."""
-    company = _get_user_company(company_id, db, current_user)
+    company = get_user_company(company_id, db, current_user)
     return annual_filing_service.generate_aoc4_data(company, body.model_dump())
 
 
@@ -370,7 +351,7 @@ def generate_mgt7(
     current_user: User = Depends(get_current_user),
 ):
     """Generate MGT-7 annual return form data."""
-    company = _get_user_company(company_id, db, current_user)
+    company = get_user_company(company_id, db, current_user)
     return annual_filing_service.generate_mgt7_data(company, db=db)
 
 
@@ -381,7 +362,7 @@ def generate_mgt7a(
     current_user: User = Depends(get_current_user),
 ):
     """Generate MGT-7A simplified annual return for small companies."""
-    company = _get_user_company(company_id, db, current_user)
+    company = get_user_company(company_id, db, current_user)
     return annual_filing_service.generate_mgt7a_data(company)
 
 
@@ -392,7 +373,7 @@ def generate_form11(
     current_user: User = Depends(get_current_user),
 ):
     """Generate Form 11 LLP Annual Return data."""
-    company = _get_user_company(company_id, db, current_user)
+    company = get_user_company(company_id, db, current_user)
     return annual_filing_service.generate_form11_data(company)
 
 
@@ -403,7 +384,7 @@ def generate_form8(
     current_user: User = Depends(get_current_user),
 ):
     """Generate Form 8 LLP Statement of Account & Solvency data."""
-    company = _get_user_company(company_id, db, current_user)
+    company = get_user_company(company_id, db, current_user)
     return annual_filing_service.generate_form8_data(company)
 
 
@@ -419,7 +400,7 @@ def calculate_tds(
     current_user: User = Depends(get_current_user),
 ):
     """TDS calculator — calculate TDS for a given section and amount."""
-    _get_user_company(company_id, db, current_user)
+    get_user_company(company_id, db, current_user)
     result = tds_service.calculate_tds(
         section=body.section,
         amount=body.amount,
@@ -436,7 +417,7 @@ def get_tds_sections(
     current_user: User = Depends(get_current_user),
 ):
     """List all TDS sections with rates."""
-    _get_user_company(company_id, db, current_user)
+    get_user_company(company_id, db, current_user)
     return {"sections": tds_service.get_all_sections()}
 
 
@@ -448,7 +429,7 @@ def get_tds_due_dates(
     current_user: User = Depends(get_current_user),
 ):
     """Get TDS filing due dates for a quarter."""
-    _get_user_company(company_id, db, current_user)
+    get_user_company(company_id, db, current_user)
     return tds_service.get_filing_due_dates(quarter)
 
 
@@ -471,7 +452,7 @@ async def get_gst_dashboard(
     current_user: User = Depends(get_current_user),
 ):
     """GST filing dashboard — return schedule, status, and Zoho Books data if connected."""
-    company = _get_user_company(company_id, db, current_user)
+    company = get_user_company(company_id, db, current_user)
 
     today = date.today()
     fy_start_year = today.year if today.month >= 4 else today.year - 1
@@ -597,7 +578,7 @@ async def get_tax_overview(
     current_user: User = Depends(get_current_user),
 ):
     """Comprehensive tax overview — ITR, TDS, advance tax, and financial summary."""
-    company = _get_user_company(company_id, db, current_user)
+    company = get_user_company(company_id, db, current_user)
 
     today = date.today()
     fy_start_year = today.year if today.month >= 4 else today.year - 1
@@ -721,7 +702,7 @@ async def get_audit_pack(
     current_user: User = Depends(get_current_user),
 ):
     """Generate an audit-ready data pack from accounting data and compliance status."""
-    company = _get_user_company(company_id, db, current_user)
+    company = get_user_company(company_id, db, current_user)
 
     today = date.today()
     fy_start_year = today.year if today.month >= 4 else today.year - 1
@@ -821,7 +802,7 @@ def validate_gstin_endpoint(
     current_user: User = Depends(get_current_user),
 ):
     """Validate a GSTIN and return state information."""
-    _get_user_company(company_id, db, current_user)
+    get_user_company(company_id, db, current_user)
     return validate_gstin(body.gstin)
 
 
@@ -832,7 +813,7 @@ def get_state_codes(
     current_user: User = Depends(get_current_user),
 ):
     """List all GST state codes."""
-    _get_user_company(company_id, db, current_user)
+    get_user_company(company_id, db, current_user)
     return {"state_codes": STATE_CODES}
 
 
@@ -854,7 +835,7 @@ def generate_gstr1(
     Accepts a list of invoices and auto-classifies them into B2B, B2CL,
     B2CS, CDNR, exports, and HSN summary sections per GSTN schema.
     """
-    _get_user_company(company_id, db, current_user)
+    get_user_company(company_id, db, current_user)
 
     # Validate GSTIN
     v = validate_gstin(body.gstin)
@@ -894,7 +875,7 @@ def generate_gstr3b(
     Accepts table-wise data (3.1 outward supplies, 4 ITC, 6.1 payment)
     and produces GSTN-compliant JSON.
     """
-    _get_user_company(company_id, db, current_user)
+    get_user_company(company_id, db, current_user)
 
     v = validate_gstin(body.gstin)
     if not v.get("valid"):
@@ -947,7 +928,7 @@ def trigger_compliance_event(
     registered_office_change, capital_increase, board_resolution_special,
     charge_creation, charge_satisfaction, loan_or_investment, rpt_approval.
     """
-    company = _get_user_company(company_id, db, current_user)
+    company = get_user_company(company_id, db, current_user)
 
     valid_events = list(compliance_engine.EVENT_TRIGGERS.keys())
     if body.event_name not in valid_events:
@@ -991,7 +972,7 @@ def list_event_types(
     current_user: User = Depends(get_current_user),
 ):
     """List all available compliance event triggers."""
-    _get_user_company(company_id, db, current_user)
+    get_user_company(company_id, db, current_user)
     return {
         "events": [
             {
@@ -1022,7 +1003,7 @@ def check_threshold_triggers(
 
     Automatically creates tasks if thresholds are crossed for the first time.
     """
-    company = _get_user_company(company_id, db, current_user)
+    company = get_user_company(company_id, db, current_user)
     tasks = compliance_engine.check_threshold_triggers(db, company)
     return {
         "thresholds_triggered": len(tasks),

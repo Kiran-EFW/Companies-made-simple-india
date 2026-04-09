@@ -544,6 +544,71 @@ def upload_new_version(
     return _serialize_file(new_file)
 
 
+@router.get("/files/{file_id}/versions")
+def get_file_versions(
+    company_id: int,
+    file_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    _tier=Depends(require_tier("growth")),
+):
+    """Get version history for a file by walking the previous_version_id chain."""
+    company = get_user_company(company_id, db, current_user)
+    db_file = (
+        db.query(DataRoomFile)
+        .filter(DataRoomFile.id == file_id, DataRoomFile.company_id == company_id)
+        .first()
+    )
+    if not db_file:
+        raise HTTPException(status_code=404, detail="File not found")
+
+    # Walk backwards to root
+    versions = [db_file]
+    visited = {db_file.id}
+    current = db_file
+    while current.previous_version_id:
+        prev = (
+            db.query(DataRoomFile)
+            .filter(DataRoomFile.id == current.previous_version_id, DataRoomFile.company_id == company_id)
+            .first()
+        )
+        if not prev or prev.id in visited:
+            break
+        versions.append(prev)
+        visited.add(prev.id)
+        current = prev
+
+    # Walk forwards from root to find newer versions
+    newer = (
+        db.query(DataRoomFile)
+        .filter(
+            DataRoomFile.company_id == company_id,
+            DataRoomFile.previous_version_id.in_([v.id for v in versions]),
+        )
+        .all()
+    )
+    for n in newer:
+        if n.id not in visited:
+            versions.append(n)
+            visited.add(n.id)
+
+    # Sort by version number
+    versions.sort(key=lambda f: f.version or 1)
+
+    return {
+        "file_id": file_id,
+        "total_versions": len(versions),
+        "versions": [
+            {
+                **_serialize_file(v),
+                "is_current": v.id == file_id,
+                "uploaded_by": v.uploaded_by,
+            }
+            for v in versions
+        ],
+    }
+
+
 # ---------------------------------------------------------------------------
 # Share link endpoints
 # ---------------------------------------------------------------------------

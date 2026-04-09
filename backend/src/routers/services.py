@@ -1,6 +1,7 @@
 """Router for the Services Marketplace — catalog, service requests, subscriptions, and upsells."""
 
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from typing import List
 from datetime import datetime, timezone, timedelta
@@ -261,12 +262,16 @@ def pay_for_service_request(
     )
 
 
+class VerifyPaymentRequest(BaseModel):
+    razorpay_order_id: str
+    razorpay_payment_id: str
+    razorpay_signature: str
+
+
 @router.post("/requests/{request_id}/verify-payment", response_model=ServiceRequestOut)
 def verify_service_payment(
     request_id: int,
-    razorpay_order_id: str,
-    razorpay_payment_id: str,
-    razorpay_signature: str,
+    body: VerifyPaymentRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -279,9 +284,9 @@ def verify_service_payment(
         raise HTTPException(status_code=404, detail="Service request not found")
 
     is_valid = payment_service.verify_payment(
-        razorpay_order_id=razorpay_order_id,
-        razorpay_payment_id=razorpay_payment_id,
-        razorpay_signature=razorpay_signature,
+        razorpay_order_id=body.razorpay_order_id,
+        razorpay_payment_id=body.razorpay_payment_id,
+        razorpay_signature=body.razorpay_signature,
     )
     if not is_valid:
         raise HTTPException(status_code=400, detail="Payment verification failed")
@@ -290,8 +295,8 @@ def verify_service_payment(
     if sr.payment_id:
         payment = db.query(Payment).filter(Payment.id == sr.payment_id).first()
         if payment:
-            payment.razorpay_payment_id = razorpay_payment_id
-            payment.razorpay_signature = razorpay_signature
+            payment.razorpay_payment_id = body.razorpay_payment_id
+            payment.razorpay_signature = body.razorpay_signature
             payment.status = PaymentStatus.PAID
 
     sr.is_paid = True

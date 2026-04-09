@@ -16,7 +16,7 @@ PAST_DATE = (datetime.utcnow() - timedelta(days=5)).isoformat()
 # ---------------------------------------------------------------------------
 
 
-def test_create_meeting(client, test_user, auth_headers, test_company):
+def test_create_meeting(client, test_user, auth_headers, test_company, scale_subscription):
     """POST /api/v1/companies/{id}/meetings creates a scheduled meeting."""
     response = client.post(
         f"/api/v1/companies/{test_company.id}/meetings/",
@@ -43,7 +43,7 @@ def test_create_meeting(client, test_user, auth_headers, test_company):
     assert data["meeting_number"] == 1
 
 
-def test_create_meeting_requires_auth(client, test_company):
+def test_create_meeting_requires_auth(client, test_company, scale_subscription):
     """POST /api/v1/companies/{id}/meetings without auth returns 401."""
     response = client.post(
         f"/api/v1/companies/{test_company.id}/meetings/",
@@ -57,7 +57,7 @@ def test_create_meeting_requires_auth(client, test_company):
 
 
 def test_create_meeting_invalid_type_returns_400(
-    client, test_user, auth_headers, test_company
+    client, test_user, auth_headers, test_company, scale_subscription
 ):
     """Creating a meeting with an invalid type returns 400."""
     response = client.post(
@@ -73,7 +73,7 @@ def test_create_meeting_invalid_type_returns_400(
 
 
 def test_create_meeting_sequential_numbering(
-    client, test_user, auth_headers, test_company
+    client, test_user, auth_headers, test_company, scale_subscription
 ):
     """Multiple meetings of the same type get sequential meeting numbers."""
     for i in range(3):
@@ -95,7 +95,7 @@ def test_create_meeting_sequential_numbering(
 # ---------------------------------------------------------------------------
 
 
-def test_list_meetings(client, test_user, auth_headers, test_company):
+def test_list_meetings(client, test_user, auth_headers, test_company, scale_subscription):
     """GET /api/v1/companies/{id}/meetings returns all meetings."""
     # Create a meeting first
     client.post(
@@ -119,7 +119,7 @@ def test_list_meetings(client, test_user, auth_headers, test_company):
 
 
 def test_list_meetings_filter_by_type(
-    client, test_user, auth_headers, test_company
+    client, test_user, auth_headers, test_company, scale_subscription
 ):
     """List meetings can filter by meeting_type."""
     # Create meetings of different types
@@ -156,7 +156,7 @@ def test_list_meetings_filter_by_type(
 # ---------------------------------------------------------------------------
 
 
-def test_get_meeting(client, test_user, auth_headers, test_company):
+def test_get_meeting(client, test_user, auth_headers, test_company, scale_subscription):
     """GET /api/v1/companies/{id}/meetings/{id} returns meeting details."""
     create_resp = client.post(
         f"/api/v1/companies/{test_company.id}/meetings/",
@@ -180,7 +180,7 @@ def test_get_meeting(client, test_user, auth_headers, test_company):
 
 
 def test_get_nonexistent_meeting_returns_404(
-    client, test_user, auth_headers, test_company
+    client, test_user, auth_headers, test_company, scale_subscription
 ):
     """Getting a non-existent meeting returns 404."""
     response = client.get(
@@ -195,7 +195,7 @@ def test_get_nonexistent_meeting_returns_404(
 # ---------------------------------------------------------------------------
 
 
-def test_generate_notice(client, test_user, auth_headers, test_company):
+def test_generate_notice(client, test_user, auth_headers, test_company, scale_subscription):
     """POST /api/v1/companies/{id}/meetings/{id}/notice generates notice HTML."""
     create_resp = client.post(
         f"/api/v1/companies/{test_company.id}/meetings/",
@@ -225,7 +225,7 @@ def test_generate_notice(client, test_user, auth_headers, test_company):
 # ---------------------------------------------------------------------------
 
 
-def test_generate_minutes(client, test_user, auth_headers, test_company):
+def test_generate_minutes(client, test_user, auth_headers, test_company, scale_subscription):
     """POST /api/v1/companies/{id}/meetings/{id}/minutes generates minutes HTML."""
     create_resp = client.post(
         f"/api/v1/companies/{test_company.id}/meetings/",
@@ -257,7 +257,7 @@ def test_generate_minutes(client, test_user, auth_headers, test_company):
 # ---------------------------------------------------------------------------
 
 
-def test_sign_minutes(client, test_user, auth_headers, test_company):
+def test_sign_minutes(client, test_user, auth_headers, test_company, scale_subscription):
     """PUT /api/v1/companies/{id}/meetings/{id}/minutes/sign marks minutes as signed."""
     # Create meeting and generate minutes
     create_resp = client.post(
@@ -298,7 +298,7 @@ def test_sign_minutes(client, test_user, auth_headers, test_company):
 
 
 def test_sign_minutes_without_generating_returns_400(
-    client, test_user, auth_headers, test_company
+    client, test_user, auth_headers, test_company, scale_subscription
 ):
     """Signing minutes without generating them first returns 400."""
     create_resp = client.post(
@@ -325,7 +325,7 @@ def test_sign_minutes_without_generating_returns_400(
 # ---------------------------------------------------------------------------
 
 
-def test_list_upcoming_meetings(client, test_user, auth_headers, test_company):
+def test_list_upcoming_meetings(client, test_user, auth_headers, test_company, scale_subscription):
     """GET /api/v1/companies/{id}/meetings/upcoming returns future meetings."""
     # Create a future meeting
     client.post(
@@ -353,7 +353,7 @@ def test_list_upcoming_meetings(client, test_user, auth_headers, test_company):
 # ---------------------------------------------------------------------------
 
 
-def test_list_minutes_pending(client, test_user, auth_headers, test_company):
+def test_list_minutes_pending(client, test_user, auth_headers, test_company, scale_subscription):
     """GET /api/v1/companies/{id}/meetings/minutes-pending returns past meetings without signed minutes."""
     # Create a past meeting (minutes not signed)
     client.post(

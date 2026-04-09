@@ -11,29 +11,10 @@ from src.models.user import User
 from src.models.company import Company
 from src.models.compliance_task import ComplianceTask, ComplianceTaskType, ComplianceTaskStatus
 from src.utils.security import get_current_user
+from src.utils.company_access import get_user_company
 from src.services.post_incorporation_service import post_incorporation_service
 
 router = APIRouter(prefix="/companies/{company_id}/post-incorp", tags=["Post-Incorporation"])
-
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
-def _get_user_company(
-    company_id: int,
-    db: Session,
-    current_user: User,
-) -> Company:
-    """Fetch company ensuring it belongs to the current user."""
-    comp = (
-        db.query(Company)
-        .filter(Company.id == company_id, Company.user_id == current_user.id)
-        .first()
-    )
-    if not comp:
-        raise HTTPException(status_code=404, detail="Company not found")
-    return comp
 
 
 # ---------------------------------------------------------------------------
@@ -75,7 +56,7 @@ def get_post_incorp_checklist(
     current_user: User = Depends(get_current_user),
 ):
     """Returns post-incorporation task list for the company."""
-    company = _get_user_company(company_id, db, current_user)
+    company = get_user_company(company_id, db, current_user)
     checklist = post_incorporation_service.get_post_incorp_checklist(company)
     return {"company_id": company_id, "checklist": checklist}
 
@@ -87,7 +68,7 @@ def get_post_incorp_deadlines(
     current_user: User = Depends(get_current_user),
 ):
     """Returns deadline alerts for post-incorporation tasks."""
-    company = _get_user_company(company_id, db, current_user)
+    company = get_user_company(company_id, db, current_user)
     deadlines = post_incorporation_service.check_deadlines(company)
     return {"company_id": company_id, "deadlines": deadlines}
 
@@ -99,7 +80,7 @@ def generate_inc20a(
     current_user: User = Depends(get_current_user),
 ):
     """Generate INC-20A form data for commencement of business."""
-    company = _get_user_company(company_id, db, current_user)
+    company = get_user_company(company_id, db, current_user)
     form_data = post_incorporation_service.generate_inc20a_form(company)
     return form_data
 
@@ -111,7 +92,7 @@ def generate_gst_reg01(
     current_user: User = Depends(get_current_user),
 ):
     """Generate GST REG-01 registration form data."""
-    company = _get_user_company(company_id, db, current_user)
+    company = get_user_company(company_id, db, current_user)
     form_data = post_incorporation_service.generate_gst_reg01(company)
     return form_data
 
@@ -124,7 +105,7 @@ def generate_board_meeting(
     current_user: User = Depends(get_current_user),
 ):
     """Generate board meeting agenda + resolutions."""
-    company = _get_user_company(company_id, db, current_user)
+    company = get_user_company(company_id, db, current_user)
     agenda = post_incorporation_service.generate_board_meeting_agenda(
         company, meeting_type=body.meeting_type or "first"
     )
@@ -139,7 +120,7 @@ def generate_resolution(
     current_user: User = Depends(get_current_user),
 ):
     """Generate a board resolution template."""
-    company = _get_user_company(company_id, db, current_user)
+    company = get_user_company(company_id, db, current_user)
     resolution = post_incorporation_service.generate_board_resolution(
         company, body.resolution_type, body.context
     )
@@ -154,7 +135,7 @@ def generate_minutes(
     current_user: User = Depends(get_current_user),
 ):
     """Generate minutes of meeting template."""
-    company = _get_user_company(company_id, db, current_user)
+    company = get_user_company(company_id, db, current_user)
     minutes = post_incorporation_service.generate_minutes_template(
         company, body.agenda_items
     )
@@ -169,7 +150,7 @@ def generate_adt1(
     current_user: User = Depends(get_current_user),
 ):
     """Generate ADT-1 auditor appointment form data."""
-    company = _get_user_company(company_id, db, current_user)
+    company = get_user_company(company_id, db, current_user)
     auditor_details = body.model_dump()
     form_data = post_incorporation_service.generate_adt1_form(company, auditor_details)
     return form_data
@@ -183,7 +164,7 @@ def mark_task_completed(
     current_user: User = Depends(get_current_user),
 ):
     """Mark a post-incorporation compliance task as completed."""
-    company = _get_user_company(company_id, db, current_user)
+    company = get_user_company(company_id, db, current_user)
 
     task = (
         db.query(ComplianceTask)

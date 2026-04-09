@@ -6,7 +6,7 @@
 # ---------------------------------------------------------------------------
 
 
-def test_list_folders_empty(client, test_user, auth_headers, test_company):
+def test_list_folders_empty(client, test_user, auth_headers, test_company, scale_subscription):
     """GET /api/v1/companies/{id}/data-room/folders returns empty list initially."""
     response = client.get(
         f"/api/v1/companies/{test_company.id}/data-room/folders",
@@ -17,7 +17,7 @@ def test_list_folders_empty(client, test_user, auth_headers, test_company):
     assert isinstance(data, list)
 
 
-def test_list_folders_requires_auth(client, test_company):
+def test_list_folders_requires_auth(client, test_company, scale_subscription):
     """GET /api/v1/companies/{id}/data-room/folders without auth returns 401."""
     response = client.get(
         f"/api/v1/companies/{test_company.id}/data-room/folders",
@@ -30,7 +30,7 @@ def test_list_folders_requires_auth(client, test_company):
 # ---------------------------------------------------------------------------
 
 
-def test_create_folder(client, test_user, auth_headers, test_company):
+def test_create_folder(client, test_user, auth_headers, test_company, scale_subscription):
     """POST /api/v1/companies/{id}/data-room/folders creates a folder."""
     response = client.post(
         f"/api/v1/companies/{test_company.id}/data-room/folders",
@@ -48,7 +48,7 @@ def test_create_folder(client, test_user, auth_headers, test_company):
     assert data["company_id"] == test_company.id
 
 
-def test_create_subfolder(client, test_user, auth_headers, test_company):
+def test_create_subfolder(client, test_user, auth_headers, test_company, scale_subscription):
     """Creating a folder with parent_id nests it under the parent."""
     # Create parent
     parent_resp = client.post(
@@ -69,7 +69,7 @@ def test_create_subfolder(client, test_user, auth_headers, test_company):
 
 
 def test_create_folder_nonexistent_parent_returns_404(
-    client, test_user, auth_headers, test_company
+    client, test_user, auth_headers, test_company, scale_subscription
 ):
     """Creating a folder under a non-existent parent returns 404."""
     response = client.post(
@@ -85,7 +85,7 @@ def test_create_folder_nonexistent_parent_returns_404(
 # ---------------------------------------------------------------------------
 
 
-def test_setup_default_folders(client, test_user, auth_headers, test_company):
+def test_setup_default_folders(client, test_user, auth_headers, test_company, scale_subscription):
     """POST /api/v1/companies/{id}/data-room/setup-defaults creates default folder structure."""
     response = client.post(
         f"/api/v1/companies/{test_company.id}/data-room/setup-defaults",
@@ -98,7 +98,7 @@ def test_setup_default_folders(client, test_user, auth_headers, test_company):
 
 
 def test_setup_default_folders_twice_returns_400(
-    client, test_user, auth_headers, test_company
+    client, test_user, auth_headers, test_company, scale_subscription
 ):
     """Setting up defaults again when folders already exist returns 400."""
     client.post(
@@ -113,7 +113,7 @@ def test_setup_default_folders_twice_returns_400(
 
 
 def test_setup_defaults_creates_tree_structure(
-    client, test_user, auth_headers, test_company
+    client, test_user, auth_headers, test_company, scale_subscription
 ):
     """After setup-defaults, listing folders returns a tree."""
     client.post(
@@ -134,7 +134,7 @@ def test_setup_defaults_creates_tree_structure(
 # ---------------------------------------------------------------------------
 
 
-def test_create_share_link(client, test_user, auth_headers, test_company):
+def test_create_share_link(client, test_user, auth_headers, test_company, scale_subscription):
     """POST /api/v1/companies/{id}/data-room/share-links creates a share link."""
     response = client.post(
         f"/api/v1/companies/{test_company.id}/data-room/share-links",
@@ -153,7 +153,7 @@ def test_create_share_link(client, test_user, auth_headers, test_company):
 
 
 def test_create_share_link_with_expiry(
-    client, test_user, auth_headers, test_company
+    client, test_user, auth_headers, test_company, scale_subscription
 ):
     """Share link can be created with an expiry date."""
     from datetime import datetime, timedelta, timezone
@@ -175,7 +175,7 @@ def test_create_share_link_with_expiry(
     assert data["expires_at"] is not None
 
 
-def test_list_share_links(client, test_user, auth_headers, test_company):
+def test_list_share_links(client, test_user, auth_headers, test_company, scale_subscription):
     """GET /api/v1/companies/{id}/data-room/share-links lists active share links."""
     # Create a link
     client.post(
@@ -194,7 +194,7 @@ def test_list_share_links(client, test_user, auth_headers, test_company):
     assert len(data) >= 1
 
 
-def test_list_share_links_requires_auth(client, test_company):
+def test_list_share_links_requires_auth(client, test_company, scale_subscription):
     """GET /api/v1/companies/{id}/data-room/share-links without auth returns 401."""
     response = client.get(
         f"/api/v1/companies/{test_company.id}/data-room/share-links",
@@ -207,7 +207,7 @@ def test_list_share_links_requires_auth(client, test_company):
 # ---------------------------------------------------------------------------
 
 
-def test_retention_summary(client, test_user, auth_headers, test_company):
+def test_retention_summary(client, test_user, auth_headers, test_company, scale_subscription):
     """GET /api/v1/companies/{id}/data-room/retention/summary returns retention stats."""
     response = client.get(
         f"/api/v1/companies/{test_company.id}/data-room/retention/summary",
@@ -223,7 +223,7 @@ def test_retention_summary(client, test_user, auth_headers, test_company):
 
 
 def test_retention_summary_empty_initially(
-    client, test_user, auth_headers, test_company
+    client, test_user, auth_headers, test_company, scale_subscription
 ):
     """Retention summary shows all zeros when no files exist."""
     response = client.get(

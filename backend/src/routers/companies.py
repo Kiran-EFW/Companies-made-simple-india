@@ -651,3 +651,47 @@ def generate_company_letterhead(
 
     letterhead = generate_letterhead_from_company(company, **overrides)
     return letterhead
+
+
+# ---------------------------------------------------------------------------
+# Audit trail
+# ---------------------------------------------------------------------------
+
+
+@router.get("/{company_id}/audit-trail")
+def get_company_audit_trail(
+    company_id: int,
+    entity_type: Optional[str] = None,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Get audit trail for all changes within a company.
+
+    Optionally filter by entity_type (e.g. 'legal_document', 'shareholder').
+    """
+    company = db.query(Company).filter(
+        Company.id == company_id, Company.user_id == current_user.id
+    ).first()
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+
+    from src.services.audit_service import get_company_history
+    entries = get_company_history(db, company_id, limit=min(limit, 500), entity_type=entity_type)
+    return {
+        "company_id": company_id,
+        "total": len(entries),
+        "entries": [
+            {
+                "id": e.id,
+                "user_id": e.user_id,
+                "entity_type": e.entity_type,
+                "entity_id": e.entity_id,
+                "action": e.action,
+                "changes": e.changes,
+                "metadata": e.metadata_,
+                "created_at": e.created_at.isoformat() if e.created_at else None,
+            }
+            for e in entries
+        ],
+    }

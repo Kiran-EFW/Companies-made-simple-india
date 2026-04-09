@@ -152,6 +152,8 @@ def init_db():
     from src.models import company_member  # noqa
     from src.models import deal_share  # noqa
     from src.models import marketplace  # noqa
+    from src.models import share_issuance  # noqa
+    from src.models import audit_trail  # noqa
 
     if "sqlite" in settings.database_url:
         # Dev / SQLite — create_all is fine

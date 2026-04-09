@@ -744,9 +744,10 @@ export async function updateMeetingFilingStatus(companyId: number, meetingId: nu
   });
 }
 
-export async function sendMinutesForSigning(companyId: number, meetingId: number) {
+export async function sendMinutesForSigning(companyId: number, meetingId: number, data: { chairman_name: string; chairman_email: string }) {
   return apiCall(`/companies/${companyId}/meetings/${meetingId}/minutes/send-for-signing`, {
     method: "POST",
+    body: JSON.stringify(data),
   });
 }
 
@@ -1015,9 +1016,10 @@ export async function getShareCertificate(companyId: number, shareholderId: numb
   return apiCall(`/companies/${companyId}/cap-table/shareholders/${shareholderId}/certificate`);
 }
 
-export async function sendShareCertificateForSigning(companyId: number, shareholderId: number) {
+export async function sendShareCertificateForSigning(companyId: number, shareholderId: number, data: { director_name: string; director_email: string; cs_name?: string; cs_email?: string }) {
   return apiCall(`/companies/${companyId}/cap-table/shareholders/${shareholderId}/certificate/send-for-signing`, {
     method: "POST",
+    body: JSON.stringify(data),
   });
 }
 
@@ -2017,8 +2019,7 @@ export async function generateGSTR1(
   companyId: number,
   data: {
     gstin: string;
-    financial_year: string;
-    period: string;
+    filing_period: string;
     invoices: any[];
   },
 ): Promise<any> {
@@ -2032,7 +2033,7 @@ export async function generateGSTR3B(
   companyId: number,
   data: {
     gstin: string;
-    period: string;
+    filing_period: string;
     outward_taxable?: any;
     itc?: any;
     payment?: any;
@@ -2080,13 +2081,13 @@ export async function checkComplianceThresholds(
 export async function getPostIncorporationChecklist(
   companyId: number,
 ): Promise<any> {
-  return apiCall(`/post-incorporation/checklist?company_id=${companyId}`);
+  return apiCall(`/companies/${companyId}/post-incorp/checklist`);
 }
 
 export async function getPostIncorporationDeadlines(
   companyId: number,
 ): Promise<any> {
-  return apiCall(`/post-incorporation/deadlines?company_id=${companyId}`);
+  return apiCall(`/companies/${companyId}/post-incorp/deadlines`);
 }
 
 export async function completePostIncorporationTask(
@@ -2094,9 +2095,62 @@ export async function completePostIncorporationTask(
   taskId: string,
 ): Promise<any> {
   return apiCall(
-    `/post-incorporation/tasks/${taskId}/complete?company_id=${companyId}`,
+    `/companies/${companyId}/post-incorp/tasks/${taskId}/complete`,
     { method: "PUT" },
   );
+}
+
+// ---------------------------------------------------------------------------
+// Audit Trail
+// ---------------------------------------------------------------------------
+
+export async function getCompanyAuditTrail(
+  companyId: number,
+  entityType?: string,
+  limit?: number,
+): Promise<any> {
+  const params = new URLSearchParams();
+  if (entityType) params.set("entity_type", entityType);
+  if (limit) params.set("limit", String(limit));
+  const qs = params.toString() ? `?${params.toString()}` : "";
+  return apiCall(`/companies/${companyId}/audit-trail${qs}`);
+}
+
+export async function getDocumentAuditTrail(
+  draftId: number,
+): Promise<any> {
+  return apiCall(`/legal-docs/drafts/${draftId}/audit-trail`);
+}
+
+// ---------------------------------------------------------------------------
+// Document Revision
+// ---------------------------------------------------------------------------
+
+export async function reviseDocument(
+  draftId: number,
+  reason?: string,
+): Promise<any> {
+  return apiCall(`/legal-docs/drafts/${draftId}/revise`, {
+    method: "POST",
+    body: JSON.stringify({ reason }),
+  });
+}
+
+export async function getDocumentVersions(
+  draftId: number,
+): Promise<any> {
+  return apiCall(`/legal-docs/drafts/${draftId}/versions`);
+}
+
+// ---------------------------------------------------------------------------
+// Data Room Version History
+// ---------------------------------------------------------------------------
+
+export async function getDataRoomFileVersions(
+  companyId: number,
+  fileId: number,
+): Promise<any> {
+  return apiCall(`/companies/${companyId}/data-room/files/${fileId}/versions`);
 }
 
 // ---------------------------------------------------------------------------

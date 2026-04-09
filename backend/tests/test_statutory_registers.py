@@ -6,7 +6,7 @@
 # ---------------------------------------------------------------------------
 
 
-def test_list_registers_auto_creates(client, test_user, auth_headers, test_company):
+def test_list_registers_auto_creates(client, test_user, auth_headers, test_company, scale_subscription):
     """GET /api/v1/companies/{id}/registers auto-creates all register types."""
     response = client.get(
         f"/api/v1/companies/{test_company.id}/registers/",
@@ -23,7 +23,7 @@ def test_list_registers_auto_creates(client, test_user, auth_headers, test_compa
     assert "CHARGES" in register_types
 
 
-def test_list_registers_requires_auth(client, test_company):
+def test_list_registers_requires_auth(client, test_company, scale_subscription):
     """GET /api/v1/companies/{id}/registers without auth returns 401."""
     response = client.get(
         f"/api/v1/companies/{test_company.id}/registers/",
@@ -36,7 +36,7 @@ def test_list_registers_requires_auth(client, test_company):
 # ---------------------------------------------------------------------------
 
 
-def test_get_register_members(client, test_user, auth_headers, test_company):
+def test_get_register_members(client, test_user, auth_headers, test_company, scale_subscription):
     """GET /api/v1/companies/{id}/registers/MEMBERS returns the register."""
     response = client.get(
         f"/api/v1/companies/{test_company.id}/registers/MEMBERS",
@@ -49,7 +49,7 @@ def test_get_register_members(client, test_user, auth_headers, test_company):
     assert isinstance(data["entries"], list)
 
 
-def test_get_register_case_insensitive(client, test_user, auth_headers, test_company):
+def test_get_register_case_insensitive(client, test_user, auth_headers, test_company, scale_subscription):
     """Register type lookup is case-insensitive."""
     response = client.get(
         f"/api/v1/companies/{test_company.id}/registers/members",
@@ -61,7 +61,7 @@ def test_get_register_case_insensitive(client, test_user, auth_headers, test_com
 
 
 def test_get_register_invalid_type_returns_400(
-    client, test_user, auth_headers, test_company
+    client, test_user, auth_headers, test_company, scale_subscription
 ):
     """Invalid register type returns 400."""
     response = client.get(
@@ -77,7 +77,7 @@ def test_get_register_invalid_type_returns_400(
 
 
 def test_add_entry_to_members_register(
-    client, test_user, auth_headers, test_company
+    client, test_user, auth_headers, test_company, scale_subscription
 ):
     """POST /api/v1/companies/{id}/registers/MEMBERS/entries adds an entry."""
     entry_data = {
@@ -104,7 +104,7 @@ def test_add_entry_to_members_register(
 
 
 def test_add_multiple_entries_sequential_numbering(
-    client, test_user, auth_headers, test_company
+    client, test_user, auth_headers, test_company, scale_subscription
 ):
     """Adding multiple entries produces sequential entry numbers."""
     entry_payload = {
@@ -128,7 +128,7 @@ def test_add_multiple_entries_sequential_numbering(
 
 
 def test_add_entry_invalid_date_format(
-    client, test_user, auth_headers, test_company
+    client, test_user, auth_headers, test_company, scale_subscription
 ):
     """Adding an entry with an invalid date format returns 400."""
     entry_data = {
@@ -148,7 +148,7 @@ def test_add_entry_invalid_date_format(
 # ---------------------------------------------------------------------------
 
 
-def test_update_entry(client, test_user, auth_headers, test_company):
+def test_update_entry(client, test_user, auth_headers, test_company, scale_subscription):
     """PUT /api/v1/companies/{id}/registers/MEMBERS/entries/{id} updates the entry."""
     # Create an entry first
     create_resp = client.post(
@@ -177,7 +177,7 @@ def test_update_entry(client, test_user, auth_headers, test_company):
 
 
 def test_update_nonexistent_entry_returns_404(
-    client, test_user, auth_headers, test_company
+    client, test_user, auth_headers, test_company, scale_subscription
 ):
     """Updating a non-existent entry returns 404."""
     # Ensure registers exist first
@@ -198,7 +198,7 @@ def test_update_nonexistent_entry_returns_404(
 # ---------------------------------------------------------------------------
 
 
-def test_export_register_returns_html(client, test_user, auth_headers, test_company):
+def test_export_register_returns_html(client, test_user, auth_headers, test_company, scale_subscription):
     """GET /api/v1/companies/{id}/registers/MEMBERS/export returns HTML."""
     response = client.get(
         f"/api/v1/companies/{test_company.id}/registers/MEMBERS/export",
@@ -209,7 +209,7 @@ def test_export_register_returns_html(client, test_user, auth_headers, test_comp
     assert "Register of Members" in response.text
 
 
-def test_export_register_with_entries(client, test_user, auth_headers, test_company):
+def test_export_register_with_entries(client, test_user, auth_headers, test_company, scale_subscription):
     """Export includes entry data in the HTML table."""
     # Add an entry
     client.post(
@@ -234,7 +234,7 @@ def test_export_register_with_entries(client, test_user, auth_headers, test_comp
 # ---------------------------------------------------------------------------
 
 
-def test_get_registers_summary(client, test_user, auth_headers, test_company):
+def test_get_registers_summary(client, test_user, auth_headers, test_company, scale_subscription):
     """GET /api/v1/companies/{id}/registers/summary returns summary of all registers."""
     response = client.get(
         f"/api/v1/companies/{test_company.id}/registers/summary",
@@ -250,7 +250,7 @@ def test_get_registers_summary(client, test_user, auth_headers, test_company):
 
 
 def test_registers_summary_entry_counts(
-    client, test_user, auth_headers, test_company
+    client, test_user, auth_headers, test_company, scale_subscription
 ):
     """Summary shows correct entry counts after adding entries."""
     # Add an entry to MEMBERS

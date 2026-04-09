@@ -1,10 +1,14 @@
 import pytest
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
 from src.database import Base, get_db
 from src.main import app
 from fastapi.testclient import TestClient
 from src.utils.security import get_password_hash, create_access_token
+# Import all models via __init__ so Base.metadata has every table
+# (ordering matters for foreign-key resolution, and __init__ handles it)
+import src.models  # noqa: F401
 from src.models.user import User, UserRole
 from src.models.company import Company, EntityType, CompanyStatus, PlanTier
 from src.models.legal_template import LegalDocument
@@ -13,15 +17,28 @@ from src.models.shareholder import Shareholder, ShareType
 from src.models.meeting import Meeting
 from src.models.data_room import DataRoomFolder, DataRoomFile, DataRoomShareLink
 from src.models.esign import SignatureRequest, Signatory, SignatureAuditLog
+from src.models.service_catalog import Subscription, SubscriptionStatus, SubscriptionInterval
 from datetime import datetime, timedelta, timezone
 
-# Use in-memory SQLite for tests (avoids stale file issues between runs)
-TEST_DB_URL = "sqlite:///./test.db"
+# Use in-memory SQLite for tests.  StaticPool ensures every connection
+# shares the same underlying database so the app sees test data.
+TEST_DB_URL = "sqlite://"
 
 
 @pytest.fixture
 def db_session():
-    engine = create_engine(TEST_DB_URL, connect_args={"check_same_thread": False})
+    engine = create_engine(
+        TEST_DB_URL,
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    # Enable SQLite foreign-key enforcement
+    @event.listens_for(engine, "connect")
+    def _set_sqlite_pragma(dbapi_conn, connection_record):
+        cursor = dbapi_conn.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
+
     Base.metadata.create_all(bind=engine)
     Session = sessionmaker(bind=engine)
     session = Session()
@@ -227,3 +244,21 @@ def test_folder(db_session, test_company):
     db_session.commit()
     db_session.refresh(folder)
     return folder
+
+
+@pytest.fixture
+def scale_subscription(db_session, test_company, test_user):
+    """Create an active 'scale' subscription so tier-gated endpoints pass."""
+    sub = Subscription(
+        company_id=test_company.id,
+        user_id=test_user.id,
+        plan_key="scale",
+        plan_name="Scale",
+        interval=SubscriptionInterval.ANNUAL,
+        amount=99900,
+        status=SubscriptionStatus.ACTIVE,
+    )
+    db_session.add(sub)
+    db_session.commit()
+    db_session.refresh(sub)
+    return sub

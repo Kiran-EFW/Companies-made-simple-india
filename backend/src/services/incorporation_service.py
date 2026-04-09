@@ -96,9 +96,9 @@ class IncorporationService:
                 level=level,
             )
             db.add(entry)
-            db.commit()
+            db.flush()
         except Exception:
-            db.rollback()
+            db.expunge(entry)
 
     # ------------------------------------------------------------------
     # Workflow Routing

@@ -19,37 +19,47 @@ import {
 // ---------------------------------------------------------------------------
 
 interface ChecklistTask {
-  id: string;
+  task_type: string;
   title: string;
   description: string;
   deadline: string | null;
-  status: string; // pending | completed
+  deadline_days: number;
   days_remaining: number | null;
+  is_overdue: boolean;
   category: string;
+  priority: number;
+  status?: string; // added locally when task is completed
 }
 
 interface DeadlineItem {
-  task_id: string;
+  task_type: string;
   title: string;
   deadline: string;
   days_remaining: number;
-  status: string;
+  is_overdue: boolean;
 }
 
 interface EventType {
   event_name: string;
-  display_name: string;
-  description: string;
-  related_forms: string[];
-  related_sections: string[];
+  tasks: {
+    type: string;
+    title: string;
+    form: string;
+    section: string;
+    deadline_days: number;
+  }[];
+}
+
+interface ThresholdTask {
+  id: number;
+  type: string;
+  title: string;
+  due_date: string | null;
 }
 
 interface ThresholdResult {
-  threshold_name: string;
-  current_value: number;
-  threshold_value: number;
-  triggered: boolean;
-  tasks_created: string[];
+  thresholds_triggered: number;
+  tasks: ThresholdTask[];
 }
 
 // ---------------------------------------------------------------------------
@@ -130,7 +140,7 @@ export default function PostIncorporationPage() {
   const [triggering, setTriggering] = useState(false);
 
   // Tab 3: Thresholds
-  const [thresholdResults, setThresholdResults] = useState<ThresholdResult[]>([]);
+  const [thresholdResults, setThresholdResults] = useState<ThresholdResult | null>(null);
   const [checkingThresholds, setCheckingThresholds] = useState(false);
 
   // UI
@@ -152,11 +162,11 @@ export default function PostIncorporationPage() {
         const [checklistRes, deadlinesRes, eventTypesRes] = await Promise.all([
           getPostIncorporationChecklist(selectedCompanyId).catch(() => ({ checklist: [] })),
           getPostIncorporationDeadlines(selectedCompanyId).catch(() => ({ deadlines: [] })),
-          getComplianceEventTypes(selectedCompanyId).catch(() => ({ event_types: [] })),
+          getComplianceEventTypes(selectedCompanyId).catch(() => ({ events: [] })),
         ]);
-        setChecklist(checklistRes?.checklist || checklistRes?.tasks || []);
+        setChecklist(checklistRes?.checklist || []);
         setDeadlines(deadlinesRes?.deadlines || []);
-        setEventTypes(eventTypesRes?.event_types || []);
+        setEventTypes(eventTypesRes?.events || []);
       } catch (err) {
         console.error("Failed to fetch post-incorporation data:", err);
       } finally {
@@ -194,7 +204,7 @@ export default function PostIncorporationPage() {
         getPostIncorporationChecklist(selectedCompanyId).catch(() => ({ checklist: [] })),
         getPostIncorporationDeadlines(selectedCompanyId).catch(() => ({ deadlines: [] })),
       ]);
-      setChecklist(checklistRes?.checklist || checklistRes?.tasks || []);
+      setChecklist(checklistRes?.checklist || []);
       setDeadlines(deadlinesRes?.deadlines || []);
     } catch (err) {
       console.error("Failed to complete task:", err);
@@ -234,10 +244,9 @@ export default function PostIncorporationPage() {
     setErrorMessage(null);
     try {
       const result = await checkComplianceThresholds(selectedCompanyId);
-      setThresholdResults(result?.thresholds || result?.results || []);
-      const triggered = (result?.thresholds || result?.results || []).filter((t: ThresholdResult) => t.triggered);
-      if (triggered.length > 0) {
-        setSuccessMessage(`Threshold check complete. ${triggered.length} threshold(s) triggered.`);
+      setThresholdResults(result);
+      if (result?.thresholds_triggered > 0) {
+        setSuccessMessage(`Threshold check complete. ${result.thresholds_triggered} threshold(s) triggered — ${result.tasks?.length || 0} tasks created.`);
       } else {
         setSuccessMessage("Threshold check complete. All metrics within limits.");
       }
@@ -253,6 +262,9 @@ export default function PostIncorporationPage() {
   const getTaskBorderStyle = (task: ChecklistTask) => {
     if (task.status === "completed") {
       return { borderColor: "rgba(16, 185, 129, 0.3)", background: "rgba(16, 185, 129, 0.05)" };
+    }
+    if (task.is_overdue) {
+      return { borderColor: "rgba(244, 63, 94, 0.3)", background: "rgba(244, 63, 94, 0.05)" };
     }
     if (!task.deadline) {
       return { borderColor: "var(--color-border)", background: "var(--color-bg-secondary)" };
@@ -433,11 +445,11 @@ export default function PostIncorporationPage() {
 
                         return (
                           <div
-                            key={task.id}
+                            key={task.task_type}
                             className="p-4 rounded-lg border flex gap-3"
                             style={borderStyle}
                           >
-                            <UrgencyIndicator deadline={task.deadline} status={task.status} />
+                            <UrgencyIndicator deadline={task.deadline} status={task.status || "pending"} />
                             <div className="flex-1 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
                               <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-1">
@@ -447,7 +459,7 @@ export default function PostIncorporationPage() {
                                   >
                                     {task.title}
                                   </h4>
-                                  <StatusBadge status={isOverdue ? "overdue" : task.status} />
+                                  <StatusBadge status={isOverdue ? "overdue" : (task.status || "pending")} />
                                 </div>
                                 <p className="text-xs" style={{ color: "var(--color-text-secondary)" }}>
                                   {task.description}
@@ -483,11 +495,11 @@ export default function PostIncorporationPage() {
                                 </div>
                                 {task.status !== "completed" && (
                                   <button
-                                    onClick={() => handleCompleteTask(task.id)}
-                                    disabled={completingTaskId === task.id}
+                                    onClick={() => handleCompleteTask(task.task_type)}
+                                    disabled={completingTaskId === task.task_type}
                                     className="text-xs font-bold text-emerald-400 hover:text-emerald-300 border border-emerald-500/30 px-3 py-1.5 rounded-lg hover:bg-emerald-500/10 transition-colors"
                                   >
-                                    {completingTaskId === task.id ? "Saving..." : "Mark Complete"}
+                                    {completingTaskId === task.task_type ? "Saving..." : "Mark Complete"}
                                   </button>
                                 )}
                               </div>
@@ -566,33 +578,23 @@ export default function PostIncorporationPage() {
                               : "var(--color-bg-secondary)",
                           }}
                         >
-                          <h4 className="text-sm font-semibold mb-1">{evt.display_name || evt.event_name}</h4>
-                          <p className="text-xs mb-3" style={{ color: "var(--color-text-secondary)" }}>
-                            {evt.description}
-                          </p>
-                          {evt.related_forms && evt.related_forms.length > 0 && (
-                            <div className="flex flex-wrap gap-1 mb-2">
-                              {evt.related_forms.map((form) => (
-                                <span
-                                  key={form}
-                                  className="text-[10px] px-1.5 py-0.5 rounded font-mono"
-                                  style={{ background: "var(--color-bg-card)", color: "var(--color-text-secondary)" }}
-                                >
-                                  {form}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                          {evt.related_sections && evt.related_sections.length > 0 && (
-                            <div className="flex flex-wrap gap-1">
-                              {evt.related_sections.map((section) => (
-                                <span
-                                  key={section}
-                                  className="text-[10px] px-1.5 py-0.5 rounded"
-                                  style={{ background: "var(--color-purple-bg)", color: "var(--color-accent-purple-light)" }}
-                                >
-                                  {section}
-                                </span>
+                          <h4 className="text-sm font-semibold mb-2">
+                            {evt.event_name.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                          </h4>
+                          {evt.tasks.length > 0 && (
+                            <div className="space-y-1.5">
+                              {evt.tasks.map((t) => (
+                                <div key={t.type} className="flex items-start gap-2">
+                                  <span
+                                    className="text-[10px] px-1.5 py-0.5 rounded font-mono shrink-0"
+                                    style={{ background: "var(--color-bg-card)", color: "var(--color-text-secondary)" }}
+                                  >
+                                    {t.form}
+                                  </span>
+                                  <span className="text-[10px]" style={{ color: "var(--color-text-secondary)" }}>
+                                    {t.title} ({t.deadline_days}d)
+                                  </span>
+                                </div>
                               ))}
                             </div>
                           )}
@@ -606,9 +608,11 @@ export default function PostIncorporationPage() {
                     <div className="mt-6 p-5 rounded-lg border" style={{ borderColor: "rgba(139, 92, 246, 0.3)", background: "rgba(139, 92, 246, 0.05)" }}>
                       <div className="flex justify-between items-start mb-4">
                         <div>
-                          <h4 className="text-sm font-bold">{selectedEvent.display_name || selectedEvent.event_name}</h4>
+                          <h4 className="text-sm font-bold">
+                            {selectedEvent.event_name.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                          </h4>
                           <p className="text-xs mt-0.5" style={{ color: "var(--color-text-secondary)" }}>
-                            {selectedEvent.description}
+                            {selectedEvent.tasks.length} compliance task(s) will be created
                           </p>
                         </div>
                         <button
@@ -726,7 +730,7 @@ export default function PostIncorporationPage() {
                     </button>
                   </div>
 
-                  {thresholdResults.length === 0 ? (
+                  {!thresholdResults ? (
                     <div className="text-center py-12">
                       <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: "var(--color-bg-secondary)" }}>
                         <svg className="w-8 h-8" fill="none" stroke="var(--color-text-muted)" viewBox="0 0 24 24" strokeWidth={1.5}>
@@ -740,84 +744,62 @@ export default function PostIncorporationPage() {
                         Click &quot;Check Thresholds&quot; to evaluate your company metrics against compliance requirements.
                       </p>
                     </div>
+                  ) : thresholdResults.thresholds_triggered === 0 ? (
+                    <div className="text-center py-12">
+                      <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: "rgba(16, 185, 129, 0.1)" }}>
+                        <svg className="w-8 h-8" fill="none" stroke="var(--color-success)" viewBox="0 0 24 24" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <p className="text-sm font-semibold" style={{ color: "var(--color-success)" }}>
+                        All metrics within limits
+                      </p>
+                      <p className="text-xs mt-1" style={{ color: "var(--color-text-muted)" }}>
+                        No compliance thresholds have been crossed. Your company metrics are within regulatory limits.
+                      </p>
+                    </div>
                   ) : (
-                    <div className="space-y-4">
-                      {thresholdResults.map((threshold, idx) => {
-                        const percentage = threshold.threshold_value > 0
-                          ? Math.min((threshold.current_value / threshold.threshold_value) * 100, 100)
-                          : 0;
-
-                        return (
-                          <div
-                            key={idx}
-                            className="p-4 rounded-lg border"
-                            style={{
-                              borderColor: threshold.triggered
-                                ? "rgba(244, 63, 94, 0.3)"
-                                : "var(--color-border)",
-                              background: threshold.triggered
-                                ? "rgba(244, 63, 94, 0.05)"
-                                : "var(--color-bg-secondary)",
-                            }}
-                          >
-                            <div className="flex justify-between items-center mb-3">
-                              <div>
-                                <h4 className="text-sm font-semibold">{threshold.threshold_name}</h4>
-                                <p className="text-xs mt-0.5" style={{ color: "var(--color-text-secondary)" }}>
-                                  Current: {threshold.current_value} / Threshold: {threshold.threshold_value}
-                                </p>
-                              </div>
-                              <span
-                                className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
-                                  threshold.triggered
-                                    ? "bg-red-500/10 text-red-400 border-red-500/30"
-                                    : "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
-                                }`}
-                              >
-                                {threshold.triggered ? "TRIGGERED" : "WITHIN LIMIT"}
-                              </span>
-                            </div>
-
-                            {/* Progress bar */}
-                            <div className="w-full h-2 rounded-full mb-3" style={{ background: "var(--color-hover-overlay)" }}>
+                    <div>
+                      <div className="p-4 rounded-lg border mb-4" style={{ borderColor: "rgba(244, 63, 94, 0.3)", background: "rgba(244, 63, 94, 0.05)" }}>
+                        <div className="flex justify-between items-center">
+                          <h4 className="text-sm font-semibold">Thresholds Crossed</h4>
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-red-500/10 text-red-400 border-red-500/30">
+                            {thresholdResults.thresholds_triggered} TRIGGERED
+                          </span>
+                        </div>
+                      </div>
+                      {thresholdResults.tasks.length > 0 && (
+                        <div>
+                          <p className="text-[10px] font-semibold uppercase tracking-wider mb-3" style={{ color: "var(--color-text-muted)" }}>
+                            Tasks Created
+                          </p>
+                          <div className="space-y-2">
+                            {thresholdResults.tasks.map((task) => (
                               <div
-                                className="h-2 rounded-full transition-all duration-500"
-                                style={{
-                                  width: `${percentage}%`,
-                                  background: threshold.triggered
-                                    ? "var(--color-error)"
-                                    : percentage >= 80
-                                    ? "var(--color-warning)"
-                                    : "var(--color-success)",
-                                }}
-                              />
-                            </div>
-
-                            {/* Triggered tasks */}
-                            {threshold.triggered && threshold.tasks_created && threshold.tasks_created.length > 0 && (
-                              <div className="mt-3 pt-3" style={{ borderTop: "1px solid var(--color-border)" }}>
-                                <p className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--color-text-muted)" }}>
-                                  Tasks Created
-                                </p>
-                                <div className="space-y-1">
-                                  {threshold.tasks_created.map((taskName, tIdx) => (
-                                    <div
-                                      key={tIdx}
-                                      className="flex items-center gap-2 text-xs p-2 rounded"
-                                      style={{ background: "var(--color-bg-card)" }}
-                                    >
-                                      <svg className="w-3 h-3 shrink-0" fill="none" stroke="var(--color-warning)" viewBox="0 0 24 24" strokeWidth={2}>
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-                                      </svg>
-                                      <span style={{ color: "var(--color-text-secondary)" }}>{taskName}</span>
-                                    </div>
-                                  ))}
+                                key={task.id}
+                                className="p-3 rounded-lg border flex justify-between items-center"
+                                style={{ borderColor: "var(--color-border)", background: "var(--color-bg-secondary)" }}
+                              >
+                                <div>
+                                  <p className="text-sm font-semibold">{task.title}</p>
+                                  <p className="text-[10px] mt-0.5 font-mono" style={{ color: "var(--color-text-muted)" }}>
+                                    {task.type}
+                                  </p>
                                 </div>
+                                {task.due_date && (
+                                  <p className="text-xs font-mono" style={{ color: "var(--color-text-secondary)" }}>
+                                    Due: {new Date(task.due_date).toLocaleDateString("en-IN", {
+                                      day: "2-digit",
+                                      month: "short",
+                                      year: "numeric",
+                                    })}
+                                  </p>
+                                )}
                               </div>
-                            )}
+                            ))}
                           </div>
-                        );
-                      })}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
