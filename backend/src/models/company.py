@@ -105,6 +105,12 @@ class Company(Base):
     pan = Column(String, nullable=True)
     tan = Column(String, nullable=True)
 
+    # Section 12(3)(c) — mandatory letterhead fields
+    registered_office = Column(String, nullable=True)
+    phone = Column(String, nullable=True)
+    email = Column(String, nullable=True)
+    website = Column(String, nullable=True)
+
     # Operational details
     employee_count = Column(Integer, nullable=True, default=0)
     incorporation_date = Column(DateTime, nullable=True)

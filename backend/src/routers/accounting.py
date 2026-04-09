@@ -15,6 +15,7 @@ from src.models.accounting_connection import (
     AccountingConnection, AccountingPlatform, ConnectionStatus,
 )
 from src.services.zoho_books_service import zoho_books_service
+from src.utils.company_access import get_user_company
 
 router = APIRouter(prefix="/accounting", tags=["Accounting"])
 
@@ -83,12 +84,7 @@ async def connect_zoho_books(
 ):
     """Exchange OAuth code and connect Zoho Books to a company."""
     # Verify company ownership
-    company = db.query(Company).filter(
-        Company.id == payload.company_id,
-        Company.user_id == current_user.id,
-    ).first()
-    if not company:
-        raise HTTPException(status_code=404, detail="Company not found")
+    company = get_user_company(payload.company_id, db, current_user)
 
     # Check for existing connection
     existing = db.query(AccountingConnection).filter(
@@ -152,12 +148,7 @@ def connect_tally(
     current_user: User = Depends(get_current_user),
 ):
     """Connect Tally Prime to a company."""
-    company = db.query(Company).filter(
-        Company.id == payload.company_id,
-        Company.user_id == current_user.id,
-    ).first()
-    if not company:
-        raise HTTPException(status_code=404, detail="Company not found")
+    company = get_user_company(payload.company_id, db, current_user)
 
     existing = db.query(AccountingConnection).filter(
         AccountingConnection.company_id == payload.company_id,
@@ -199,6 +190,7 @@ def get_connection(
     current_user: User = Depends(get_current_user),
 ):
     """Get the accounting connection for a company."""
+    get_user_company(company_id, db, current_user)
     conn = db.query(AccountingConnection).filter(
         AccountingConnection.company_id == company_id,
     ).first()
@@ -230,6 +222,7 @@ def disconnect_accounting(
     current_user: User = Depends(get_current_user),
 ):
     """Disconnect accounting platform from a company."""
+    get_user_company(company_id, db, current_user)
     conn = db.query(AccountingConnection).filter(
         AccountingConnection.company_id == company_id,
         AccountingConnection.user_id == current_user.id,
@@ -254,6 +247,7 @@ async def sync_accounting_data(
     current_user: User = Depends(get_current_user),
 ):
     """Trigger a data sync from the connected accounting platform."""
+    get_user_company(company_id, db, current_user)
     conn = db.query(AccountingConnection).filter(
         AccountingConnection.company_id == company_id,
         AccountingConnection.user_id == current_user.id,

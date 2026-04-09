@@ -14,6 +14,7 @@ REGISTER_TYPES = [
     "RELATED_PARTY_CONTRACTS",
     "SHARE_TRANSFERS",
     "DEBENTURE_HOLDERS",
+    "SIGNIFICANT_BENEFICIAL_OWNERS",
 ]
 
 # --- Expected data fields per register type ---
@@ -53,6 +54,25 @@ REGISTER_DATA_FIELDS: Dict[str, List[str]] = {
     "DEBENTURE_HOLDERS": [
         "holder_name", "address", "debenture_type", "face_value",
         "date_of_allotment", "date_of_redemption",
+    ],
+    "SIGNIFICANT_BENEFICIAL_OWNERS": [
+        # Section 90, Companies Act 2013 read with Companies (Significant
+        # Beneficial Owners) Rules, 2018. SBO = person holding >= 10% shares
+        # or voting rights or right to receive/participate in >= 10% of
+        # distributable dividend/proceeds, or who exercises significant
+        # influence or control (directly or through natural persons).
+        "sbo_name", "nationality", "pan_passport", "aadhaar",
+        "address", "date_of_birth", "shares_held_percentage",
+        "voting_rights_percentage", "right_to_dividend_percentage",
+        "date_of_declaration",           # Date BEN-1 received from member
+        "date_of_entry_in_register",     # Date entered in register
+        "nature_of_interest",            # Direct / Indirect / Through trust etc.
+        "registered_owner_name",         # Name of the registered member
+        "registered_owner_holding",      # Holding of registered member
+        "ben1_filed_date",               # Date member filed BEN-1
+        "ben2_filed_date",               # Date company filed BEN-2 with ROC
+        "changes",                       # Details of any change in SBO interest
+        "date_of_cessation",
     ],
 }
 

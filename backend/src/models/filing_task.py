@@ -64,15 +64,15 @@ class FilingTask(Base):
     __tablename__ = "filing_tasks"
 
     id = Column(Integer, primary_key=True, index=True)
-    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False, index=True)
+    company_id = Column(Integer, ForeignKey("companies.id", ondelete="CASCADE"), nullable=False, index=True)
     task_type = Column(Enum(FilingTaskType), nullable=False)
     title = Column(String, nullable=False)
     description = Column(Text, nullable=True)
     priority = Column(Enum(FilingTaskPriority), default=FilingTaskPriority.NORMAL)
 
     # Assignment
-    assigned_to = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
-    assigned_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    assigned_to = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+    assigned_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     assigned_at = Column(DateTime, nullable=True)
 
     # Status tracking
@@ -89,10 +89,10 @@ class FilingTask(Base):
     # Escalation
     escalation_level = Column(Integer, default=0)
     escalated_at = Column(DateTime, nullable=True)
-    escalated_to = Column(Integer, ForeignKey("users.id"), nullable=True)
+    escalated_to = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
 
     # Sequential dependency
-    parent_task_id = Column(Integer, ForeignKey("filing_tasks.id"), nullable=True)
+    parent_task_id = Column(Integer, ForeignKey("filing_tasks.id", ondelete="SET NULL"), nullable=True)
 
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(

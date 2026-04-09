@@ -20,7 +20,7 @@ class Valuation(Base):
     __tablename__ = "valuations"
 
     id = Column(Integer, primary_key=True, index=True)
-    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
+    company_id = Column(Integer, ForeignKey("companies.id", ondelete="CASCADE"), nullable=False, index=True)
 
     method = Column(Enum(ValuationMethod), nullable=False)
     valuation_date = Column(DateTime, default=lambda: datetime.now(timezone.utc))
@@ -33,7 +33,7 @@ class Valuation(Base):
     report_data = Column(JSON, nullable=True)
 
     status = Column(Enum(ValuationStatus), default=ValuationStatus.DRAFT)
-    prepared_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    prepared_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     notes = Column(Text, nullable=True)
 
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))

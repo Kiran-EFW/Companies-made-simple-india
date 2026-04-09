@@ -18,6 +18,7 @@ from sqlalchemy.orm import Session
 from src.database import get_db
 from src.models.user import User
 from src.utils.security import get_current_user
+from src.utils.company_access import get_user_company
 from src.services.stakeholder_service import stakeholder_service
 
 router = APIRouter(prefix="/stakeholders", tags=["Stakeholders"])
@@ -51,6 +52,7 @@ def get_my_company_detail(
     current_user: User = Depends(get_current_user),
 ):
     """Get detailed investment view in a specific company."""
+    company = get_user_company(company_id, db, current_user)
     profile = stakeholder_service.get_profile_by_user_id(db, current_user.id)
     if not profile:
         raise HTTPException(status_code=404, detail="Stakeholder profile not found for current user")

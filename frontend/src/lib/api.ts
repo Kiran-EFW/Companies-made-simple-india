@@ -1935,5 +1935,170 @@ export async function deliverAssignment(
 }
 
 // ---------------------------------------------------------------------------
+// Letterhead System
+// ---------------------------------------------------------------------------
+
+export async function getLetterheadDesigns(): Promise<any> {
+  return apiCall("/companies/letterhead/designs");
+}
+
+export async function getLetterheadSettings(companyId: number): Promise<any> {
+  return apiCall(`/companies/${companyId}/letterhead`);
+}
+
+export async function updateLetterheadSettings(
+  companyId: number,
+  data: {
+    design?: string;
+    accent_color?: string;
+    tagline?: string;
+    show_pan_tan?: boolean;
+    registered_office?: string;
+    phone?: string;
+    email?: string;
+    website?: string;
+  },
+): Promise<any> {
+  return apiCall(`/companies/${companyId}/letterhead`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function previewLetterhead(
+  companyId: number,
+  data: {
+    design?: string;
+    accent_color?: string;
+    tagline?: string;
+    show_pan_tan?: boolean;
+  },
+): Promise<Response> {
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
+  const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+  return fetch(`${API}/companies/${companyId}/letterhead/preview`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(data),
+  });
+}
+
+export async function generateLetterhead(
+  companyId: number,
+  design?: string,
+): Promise<any> {
+  const qs = design ? `?design=${design}` : "";
+  return apiCall(`/companies/${companyId}/letterhead/generate${qs}`);
+}
+
+// ---------------------------------------------------------------------------
+// GST Return Generation
+// ---------------------------------------------------------------------------
+
+export async function validateGSTIN(
+  companyId: number,
+  gstin: string,
+): Promise<any> {
+  return apiCall(`/companies/${companyId}/compliance/gst/validate-gstin`, {
+    method: "POST",
+    body: JSON.stringify({ gstin }),
+  });
+}
+
+export async function getGSTStateCodes(companyId: number): Promise<any> {
+  return apiCall(`/companies/${companyId}/compliance/gst/state-codes`);
+}
+
+export async function generateGSTR1(
+  companyId: number,
+  data: {
+    gstin: string;
+    financial_year: string;
+    period: string;
+    invoices: any[];
+  },
+): Promise<any> {
+  return apiCall(`/companies/${companyId}/compliance/gst/gstr1/generate`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function generateGSTR3B(
+  companyId: number,
+  data: {
+    gstin: string;
+    period: string;
+    outward_taxable?: any;
+    itc?: any;
+    payment?: any;
+    [key: string]: any;
+  },
+): Promise<any> {
+  return apiCall(`/companies/${companyId}/compliance/gst/gstr3b/generate`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Event-Triggered Compliance
+// ---------------------------------------------------------------------------
+
+export async function triggerComplianceEvent(
+  companyId: number,
+  data: { event_name: string; event_date?: string; notes?: string },
+): Promise<any> {
+  return apiCall(`/companies/${companyId}/compliance/events/trigger`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getComplianceEventTypes(
+  companyId: number,
+): Promise<any> {
+  return apiCall(`/companies/${companyId}/compliance/events/types`);
+}
+
+export async function checkComplianceThresholds(
+  companyId: number,
+): Promise<any> {
+  return apiCall(`/companies/${companyId}/compliance/thresholds/check`, {
+    method: "POST",
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Post-Incorporation
+// ---------------------------------------------------------------------------
+
+export async function getPostIncorporationChecklist(
+  companyId: number,
+): Promise<any> {
+  return apiCall(`/post-incorporation/checklist?company_id=${companyId}`);
+}
+
+export async function getPostIncorporationDeadlines(
+  companyId: number,
+): Promise<any> {
+  return apiCall(`/post-incorporation/deadlines?company_id=${companyId}`);
+}
+
+export async function completePostIncorporationTask(
+  companyId: number,
+  taskId: string,
+): Promise<any> {
+  return apiCall(
+    `/post-incorporation/tasks/${taskId}/complete?company_id=${companyId}`,
+    { method: "PUT" },
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Admin/Ops functions have been moved to the separate admin-portal app.
 // ---------------------------------------------------------------------------

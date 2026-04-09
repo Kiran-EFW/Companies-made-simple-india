@@ -52,6 +52,12 @@ class CompanyOut(BaseModel):
     proposed_names: List[str]
     approved_name: Optional[str]
     cin: Optional[str] = None
+    pan: Optional[str] = None
+    tan: Optional[str] = None
+    registered_office: Optional[str] = None
+    phone: Optional[str] = None
+    email: Optional[str] = None
+    website: Optional[str] = None
     pricing_snapshot: dict
     priority: Optional[str] = None
     assigned_to: Optional[int] = None

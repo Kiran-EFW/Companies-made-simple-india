@@ -433,12 +433,314 @@ def get_legal_notices(
 _LEGAL_NOTICES = get_legal_notices()
 
 
+# ---------------------------------------------------------------------------
+# Company Letterhead System — Section 12(3)(c) Compliance
+#
+# Companies Act 2013, Section 12(3)(c): Every company shall have its name,
+# address of its registered office, CIN, telephone number, fax number (if any),
+# email and website addresses (if any) printed on all business letters,
+# bill-heads, letter papers, notices and other official publications.
+# Penalty: Rs 1,000 per day, max Rs 1,00,000 (Section 12(8)).
+# ---------------------------------------------------------------------------
+
+# Available letterhead designs
+LETTERHEAD_DESIGNS = {
+    "classic": "Classic — centered header with serif typography, traditional Indian corporate style",
+    "modern": "Modern — clean left-aligned layout with accent color bar, contemporary look",
+    "formal": "Formal — structured box-framed header with tabular detail layout",
+    "minimal": "Minimal — lightweight text header with subtle separator, suits tech companies",
+    "executive": "Executive — premium dual-tone header with logo placement, suited for board documents",
+}
+
+# Default accent colors per design
+_DEFAULT_COLORS = {
+    "classic": "#1a365d",    # Navy
+    "modern": "#0d6efd",     # Blue
+    "formal": "#2c3e50",     # Dark slate
+    "minimal": "#374151",    # Gray-700
+    "executive": "#0f172a",  # Slate-900
+}
+
+
+def generate_letterhead(
+    *,
+    company_name: str,
+    cin: str = "",
+    registered_office: str = "",
+    phone: str = "",
+    email: str = "",
+    website: str = "",
+    pan: str = "",
+    tan: str = "",
+    design: str = "classic",
+    accent_color: str = "",
+    logo_html: str = "",
+    tagline: str = "",
+    show_pan_tan: bool = False,
+) -> dict:
+    """Generate letterhead header and footer HTML.
+
+    Returns dict with keys:
+        header: HTML for document header / letterhead
+        footer: HTML for document footer
+        design: Design name used
+
+    All designs include Section 12(3)(c) mandatory elements.
+    """
+    color = accent_color or _DEFAULT_COLORS.get(design, "#1a365d")
+
+    # Build the contact line (used by all designs)
+    contact_parts: list[str] = []
+    if phone:
+        contact_parts.append(f"Tel: {phone}")
+    if email:
+        contact_parts.append(f"Email: {email}")
+    if website:
+        contact_parts.append(website)
+    contact_line = " &nbsp;|&nbsp; ".join(contact_parts) if contact_parts else ""
+
+    # PAN/TAN line
+    id_parts: list[str] = []
+    if show_pan_tan:
+        if pan:
+            id_parts.append(f"PAN: {pan}")
+        if tan:
+            id_parts.append(f"TAN: {tan}")
+    id_line = " &nbsp;|&nbsp; ".join(id_parts) if id_parts else ""
+
+    generators = {
+        "classic": _letterhead_classic,
+        "modern": _letterhead_modern,
+        "formal": _letterhead_formal,
+        "minimal": _letterhead_minimal,
+        "executive": _letterhead_executive,
+    }
+    gen = generators.get(design, _letterhead_classic)
+    header = gen(
+        company_name=company_name, cin=cin, registered_office=registered_office,
+        contact_line=contact_line, id_line=id_line, color=color,
+        logo_html=logo_html, tagline=tagline,
+    )
+    footer = _letterhead_footer(company_name=company_name, cin=cin, color=color, design=design)
+    return {"header": header, "footer": footer, "design": design}
+
+
+def _letterhead_classic(
+    *, company_name: str, cin: str, registered_office: str,
+    contact_line: str, id_line: str, color: str,
+    logo_html: str, tagline: str,
+) -> str:
+    """Classic — centered, serif, traditional Indian corporate."""
+    return (
+        f'<div style="text-align:center; border-bottom:3px double {color}; '
+        f'padding-bottom:15px; margin-bottom:25px;">'
+        + (f'<div style="margin-bottom:8px;">{logo_html}</div>' if logo_html else '')
+        + f'<h1 style="margin:0; font-size:22px; font-family:Georgia,serif; '
+        f'color:{color}; text-transform:uppercase; letter-spacing:2px;">'
+        f'{company_name}</h1>'
+        + (f'<p style="margin:3px 0; font-size:11px; font-style:italic; '
+           f'color:#666;">{tagline}</p>' if tagline else '')
+        + (f'<p style="margin:4px 0; font-size:10px; color:#555;">CIN: {cin}</p>'
+           if cin else '')
+        + (f'<p style="margin:3px 0; font-size:10px; color:#555;">'
+           f'Registered Office: {registered_office}</p>'
+           if registered_office else '')
+        + (f'<p style="margin:3px 0; font-size:9px; color:#777;">'
+           f'{contact_line}</p>'
+           if contact_line else '')
+        + (f'<p style="margin:2px 0; font-size:9px; color:#888;">'
+           f'{id_line}</p>'
+           if id_line else '')
+        + '</div>'
+    )
+
+
+def _letterhead_modern(
+    *, company_name: str, cin: str, registered_office: str,
+    contact_line: str, id_line: str, color: str,
+    logo_html: str, tagline: str,
+) -> str:
+    """Modern — left-aligned with accent bar, contemporary."""
+    return (
+        f'<div style="border-left:5px solid {color}; padding-left:18px; '
+        f'margin-bottom:25px; padding-bottom:12px; '
+        f'border-bottom:1px solid #e5e7eb;">'
+        + (f'<div style="margin-bottom:6px;">{logo_html}</div>' if logo_html else '')
+        + f'<h1 style="margin:0; font-size:20px; font-family:\'Helvetica Neue\','
+        f'Arial,sans-serif; color:{color}; letter-spacing:1px;">'
+        f'{company_name}</h1>'
+        + (f'<p style="margin:2px 0; font-size:11px; color:#6b7280;">'
+           f'{tagline}</p>' if tagline else '')
+        + f'<div style="display:flex; flex-wrap:wrap; gap:12px; margin-top:6px; '
+        f'font-size:9px; color:#6b7280;">'
+        + (f'<span>CIN: {cin}</span>' if cin else '')
+        + (f'<span>{contact_line}</span>' if contact_line else '')
+        + '</div>'
+        + (f'<p style="margin:2px 0; font-size:9px; color:#9ca3af;">'
+           f'Regd. Office: {registered_office}</p>'
+           if registered_office else '')
+        + (f'<p style="margin:1px 0; font-size:8px; color:#9ca3af;">'
+           f'{id_line}</p>'
+           if id_line else '')
+        + '</div>'
+    )
+
+
+def _letterhead_formal(
+    *, company_name: str, cin: str, registered_office: str,
+    contact_line: str, id_line: str, color: str,
+    logo_html: str, tagline: str,
+) -> str:
+    """Formal — box-framed with tabular layout, government/institutional."""
+    return (
+        f'<div style="border:2px solid {color}; padding:15px; margin-bottom:25px;">'
+        '<div style="display:flex; align-items:center; gap:15px;">'
+        + (f'<div style="flex-shrink:0;">{logo_html}</div>' if logo_html else '')
+        + '<div style="flex:1;">'
+        + f'<h1 style="margin:0; font-size:20px; font-family:Georgia,serif; '
+        f'color:{color}; text-transform:uppercase; text-align:center; '
+        f'letter-spacing:1.5px;">{company_name}</h1>'
+        + (f'<p style="text-align:center; margin:2px 0; font-size:10px; '
+           f'font-style:italic; color:#666;">{tagline}</p>'
+           if tagline else '')
+        + '</div></div>'
+        + f'<table style="width:100%; border-collapse:collapse; margin-top:10px; '
+        f'font-size:9px; color:#555; border:none;">'
+        + (f'<tr><td style="padding:2px 8px; border:none; width:50%;">'
+           f'<strong>CIN:</strong> {cin}</td>'
+           f'<td style="padding:2px 8px; border:none;">'
+           f'<strong>Regd. Office:</strong> {registered_office}</td></tr>'
+           if cin or registered_office else '')
+        + (f'<tr><td colspan="2" style="padding:2px 8px; border:none;">'
+           f'{contact_line}</td></tr>'
+           if contact_line else '')
+        + (f'<tr><td colspan="2" style="padding:2px 8px; border:none; '
+           f'font-size:8px; color:#888;">{id_line}</td></tr>'
+           if id_line else '')
+        + '</table>'
+        + '</div>'
+    )
+
+
+def _letterhead_minimal(
+    *, company_name: str, cin: str, registered_office: str,
+    contact_line: str, id_line: str, color: str,
+    logo_html: str, tagline: str,
+) -> str:
+    """Minimal — lightweight, suits tech/startup companies."""
+    return (
+        '<div style="margin-bottom:25px; padding-bottom:10px; '
+        'border-bottom:1px solid #e5e7eb;">'
+        '<div style="display:flex; align-items:baseline; gap:12px;">'
+        + (f'<div>{logo_html}</div>' if logo_html else '')
+        + f'<h1 style="margin:0; font-size:18px; font-family:\'Helvetica Neue\','
+        f'Arial,sans-serif; color:{color}; font-weight:600;">'
+        f'{company_name}</h1>'
+        + (f'<span style="font-size:10px; color:#9ca3af;">|&nbsp;{tagline}</span>'
+           if tagline else '')
+        + '</div>'
+        + f'<p style="margin:4px 0 0 0; font-size:8px; color:#9ca3af;">'
+        + ' &nbsp;&middot;&nbsp; '.join(
+            [x for x in [
+                f'CIN: {cin}' if cin else '',
+                registered_office if registered_office else '',
+                contact_line.replace(' &nbsp;|&nbsp; ', ' &middot; ') if contact_line else '',
+                id_line.replace(' &nbsp;|&nbsp; ', ' &middot; ') if id_line else '',
+            ] if x]
+        )
+        + '</p></div>'
+    )
+
+
+def _letterhead_executive(
+    *, company_name: str, cin: str, registered_office: str,
+    contact_line: str, id_line: str, color: str,
+    logo_html: str, tagline: str,
+) -> str:
+    """Executive — premium dual-tone, suited for board documents."""
+    return (
+        f'<div style="margin-bottom:25px;">'
+        f'<div style="background:{color}; color:white; padding:14px 20px; '
+        f'display:flex; align-items:center; gap:15px;">'
+        + (f'<div style="flex-shrink:0;">{logo_html}</div>' if logo_html else '')
+        + f'<div style="flex:1;">'
+        f'<h1 style="margin:0; font-size:20px; font-family:Georgia,serif; '
+        f'color:white; text-transform:uppercase; letter-spacing:2px;">'
+        f'{company_name}</h1>'
+        + (f'<p style="margin:2px 0 0 0; font-size:10px; color:rgba(255,255,255,0.8); '
+           f'font-style:italic;">{tagline}</p>' if tagline else '')
+        + '</div></div>'
+        + f'<div style="background:#f8f9fa; padding:8px 20px; '
+        f'border-bottom:2px solid {color}; font-size:9px; color:#555; '
+        f'display:flex; flex-wrap:wrap; gap:15px;">'
+        + (f'<span><strong>CIN:</strong> {cin}</span>' if cin else '')
+        + (f'<span><strong>Regd. Office:</strong> {registered_office}</span>'
+           if registered_office else '')
+        + (f'<span>{contact_line}</span>' if contact_line else '')
+        + (f'<span style="font-size:8px; color:#888;">{id_line}</span>'
+           if id_line else '')
+        + '</div></div>'
+    )
+
+
+def _letterhead_footer(
+    *, company_name: str, cin: str, color: str, design: str,
+) -> str:
+    """Generate a matching footer for the letterhead design."""
+    if design == "executive":
+        return (
+            f'<div style="margin-top:40px; padding-top:8px; '
+            f'border-top:2px solid {color}; font-size:8px; color:#999; '
+            f'text-align:center;">'
+            f'<p style="margin:0;">{company_name}'
+            + (f' &nbsp;|&nbsp; CIN: {cin}' if cin else '')
+            + '</p></div>'
+        )
+    elif design == "formal":
+        return (
+            f'<div style="margin-top:40px; padding:6px; '
+            f'border:1px solid {color}; font-size:8px; color:#888; '
+            f'text-align:center;">'
+            f'<p style="margin:0;">{company_name}'
+            + (f' (CIN: {cin})' if cin else '')
+            + '</p></div>'
+        )
+    else:
+        return (
+            f'<div style="margin-top:40px; padding-top:8px; '
+            f'border-top:1px solid #ddd; font-size:8px; color:#aaa; '
+            f'text-align:center;">'
+            f'<p style="margin:0;">{company_name}'
+            + (f' &nbsp;&middot;&nbsp; CIN: {cin}' if cin else '')
+            + '</p></div>'
+        )
+
+
+def generate_letterhead_from_company(company, **overrides) -> dict:
+    """Convenience: generate letterhead from a Company ORM object.
+
+    Pass keyword overrides to customize design, accent_color, etc.
+    """
+    return generate_letterhead(
+        company_name=company.approved_name or "[Company Name]",
+        cin=company.cin or "",
+        registered_office=getattr(company, "registered_office", "") or "",
+        phone=getattr(company, "phone", "") or "",
+        email=getattr(company, "email", "") or "",
+        website=getattr(company, "website", "") or "",
+        pan=company.pan or "",
+        tan=company.tan or "",
+        **overrides,
+    )
+
+
 def base_html_wrap(
     title: str,
     body: str,
     date: str = "",
     state: Optional[str] = None,
     entity_type: Optional[str] = None,
+    letterhead: Optional[dict] = None,
 ) -> str:
     """Wrap body in a legal-compliant HTML shell with page numbers and notices.
 
@@ -450,6 +752,9 @@ def base_html_wrap(
         entity_type: Optional entity type for entity-specific notices.
             One of: 'private_limited', 'opc', 'section_8', 'llp',
             'partnership', 'sole_proprietorship'.
+        letterhead: Optional dict from generate_letterhead() with 'header' and
+            'footer' keys. When provided, the letterhead header replaces the
+            default <h1> title and the footer is appended before legal notices.
     """
     display_date = format_date_indian(date) if date else ""
     date_line = (
@@ -458,6 +763,14 @@ def base_html_wrap(
         else '<p class="meta">Date: ________________________</p>'
     )
     notices = get_legal_notices(state, entity_type)
+
+    # Letterhead replaces the default title block
+    if letterhead:
+        title_block = letterhead.get("header", f"<h1>{title}</h1>")
+        footer_block = letterhead.get("footer", "")
+    else:
+        title_block = f"<h1>{title}</h1>"
+        footer_block = ""
 
     return f'''<!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
@@ -504,11 +817,17 @@ th{{background:#f0f0f0;font-weight:bold;}}
 .status-ok{{color:#27ae60;font-weight:bold;}}
 .status-fail{{color:#e74c3c;font-weight:bold;}}
 .score{{font-size:20px;font-weight:bold;text-align:center;margin:20px 0;}}
+.letterhead-header{{page-break-inside:avoid;page-break-after:avoid;flex-shrink:0;}}
+.letterhead-footer{{flex-shrink:0;margin-top:auto;page-break-inside:avoid;}}
+.content-area{{flex:1 1 auto;overflow:visible;}}
 @media print{{body{{padding:20px;}}body::before{{display:none;}}@page{{margin:2cm;size:A4;}}}}
 </style>
-</head><body>
-<h1>{title}</h1>
+</head><body{' style="display:flex;flex-direction:column;min-height:calc(100vh - 80px);"' if letterhead else ''}>
+{('<div class="letterhead-header">' + title_block + '</div>') if letterhead else title_block}
+<div class="content-area">
 {date_line}
 {body}
+</div>
+{('<div class="letterhead-footer">' + footer_block + '</div>') if letterhead else ''}
 {notices}
 </body></html>'''

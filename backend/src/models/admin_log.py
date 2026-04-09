@@ -8,7 +8,7 @@ class AdminLog(Base):
     __tablename__ = "admin_logs"
 
     id = Column(Integer, primary_key=True, index=True)
-    admin_user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    admin_user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     action = Column(String, nullable=False)
     target_type = Column(String, nullable=False)  # e.g. "company", "user"
     target_id = Column(Integer, nullable=False)

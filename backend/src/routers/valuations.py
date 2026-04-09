@@ -16,6 +16,7 @@ from src.database import get_db
 from src.models.user import User
 from src.utils.security import get_current_user
 from src.utils.tier_gate import require_tier
+from src.utils.company_access import get_user_company
 from src.services.valuation_service import valuation_service
 
 router = APIRouter(prefix="/companies", tags=["Valuations"])
@@ -30,6 +31,7 @@ def calculate_nav(
     _tier=Depends(require_tier("growth")),
 ):
     """Calculate FMV using NAV method (preview, not persisted)."""
+    company = get_user_company(company_id, db, current_user)
     result = valuation_service.calculate_nav(db, company_id, data)
     if "error" in result:
         raise HTTPException(status_code=400, detail=result["error"])
@@ -45,6 +47,7 @@ def calculate_dcf(
     _tier=Depends(require_tier("growth")),
 ):
     """Calculate FMV using simplified DCF method (preview, not persisted)."""
+    company = get_user_company(company_id, db, current_user)
     result = valuation_service.calculate_dcf(db, company_id, data)
     if "error" in result:
         raise HTTPException(status_code=400, detail=result["error"])
@@ -60,6 +63,7 @@ def create_valuation(
     _tier=Depends(require_tier("growth")),
 ):
     """Create and persist a valuation record."""
+    company = get_user_company(company_id, db, current_user)
     result = valuation_service.create_valuation(db, company_id, current_user.id, data)
     if "error" in result:
         raise HTTPException(status_code=400, detail=result["error"])
@@ -74,6 +78,7 @@ def list_valuations(
     _tier=Depends(require_tier("growth")),
 ):
     """List all valuations for a company."""
+    company = get_user_company(company_id, db, current_user)
     return valuation_service.list_valuations(db, company_id)
 
 
@@ -85,6 +90,7 @@ def get_latest_valuation(
     _tier=Depends(require_tier("growth")),
 ):
     """Get the most recent finalized valuation."""
+    company = get_user_company(company_id, db, current_user)
     result = valuation_service.get_latest_valuation(db, company_id)
     if result is None:
         raise HTTPException(status_code=404, detail="No finalized valuation found")
@@ -100,6 +106,7 @@ def get_valuation(
     _tier=Depends(require_tier("growth")),
 ):
     """Get a single valuation record."""
+    company = get_user_company(company_id, db, current_user)
     result = valuation_service.get_valuation(db, valuation_id, company_id)
     if result is None:
         raise HTTPException(status_code=404, detail="Valuation not found")

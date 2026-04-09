@@ -1,5 +1,5 @@
 import enum
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Enum
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Enum, UniqueConstraint
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 from src.database import Base
@@ -17,7 +17,7 @@ class Director(Base):
     __tablename__ = "directors"
 
     id = Column(Integer, primary_key=True, index=True)
-    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
+    company_id = Column(Integer, ForeignKey("companies.id", ondelete="CASCADE"), nullable=False, index=True)
 
     full_name = Column(String, nullable=False)
     email = Column(String, nullable=True)
@@ -43,3 +43,7 @@ class Director(Base):
 
     # Relationships
     company = relationship("Company", back_populates="directors")
+
+    __table_args__ = (
+        UniqueConstraint("company_id", "din", name="uq_director_company_din"),
+    )

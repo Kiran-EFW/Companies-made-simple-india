@@ -200,6 +200,71 @@ def board_resolution_template() -> dict:
                             "is invalid and cannot be enforced."
                         ),
                     ),
+                    _clause(
+                        "br_meeting_serial",
+                        "Meeting Serial Number",
+                        "number",
+                        "Serial number of this board meeting (e.g., 1, 2, 3)",
+                        required=False,
+                        min_value=1,
+                        learn_more=(
+                            "Board meetings are sequentially numbered from incorporation. "
+                            "The first board meeting must be held within 30 days of incorporation "
+                            "(Section 173(1)). This serial number helps maintain proper minutes "
+                            "records as required under Secretarial Standard SS-1 issued by ICSI."
+                        ),
+                    ),
+                    _clause(
+                        "br_chairperson_name",
+                        "Chairperson",
+                        "text",
+                        "Name of the director presiding as Chairperson of this meeting",
+                        required=False,
+                        learn_more=(
+                            "Under Section 175 of the Companies Act, 2013, if the Articles "
+                            "provide for a Chairman, they shall preside. Otherwise, directors "
+                            "present may elect one of themselves as Chairman. The Chairman signs "
+                            "the minutes and has a casting vote in case of a tie."
+                        ),
+                    ),
+                    _clause(
+                        "br_company_secretary",
+                        "Company Secretary",
+                        "text",
+                        "Name of the Company Secretary (if appointed)",
+                        required=False,
+                        learn_more=(
+                            "Under Section 203, every listed company and every company with "
+                            "paid-up share capital of Rs 10 crore or more must appoint a "
+                            "whole-time Company Secretary. The CS attests the minutes and "
+                            "ensures compliance with Secretarial Standards."
+                        ),
+                    ),
+                    _clause(
+                        "br_registered_office",
+                        "Registered Office Address",
+                        "textarea",
+                        "Registered office address of the company (for document header)",
+                        required=False,
+                        learn_more=(
+                            "Section 12(3)(c) requires every company to print its registered "
+                            "office address on all business letters and letter papers. Including "
+                            "this in board resolution minutes is standard practice per SS-1."
+                        ),
+                    ),
+                    _clause(
+                        "br_directors_leave",
+                        "Directors Absent (Leave of Absence)",
+                        "textarea",
+                        "Names of directors absent from the meeting (one per line)",
+                        required=False,
+                        learn_more=(
+                            "Under Section 167(1)(b), if a director is absent from all board "
+                            "meetings for twelve months, the office is automatically vacated. "
+                            "Granting leave of absence in the minutes protects directors from "
+                            "this provision. This is standard practice per SS-1."
+                        ),
+                    ),
                 ],
             },
             # Step 2: Resolution-Specific Details
@@ -297,6 +362,74 @@ def board_resolution_template() -> dict:
                             "Being detailed here helps create a complete and defensible corporate record."
                         ),
                     ),
+                    _clause(
+                        "br_director_designation",
+                        "Director Designation",
+                        "dropdown",
+                        "Type/designation of director being appointed",
+                        options=[
+                            "Additional Director",
+                            "Non-Executive Director",
+                            "Independent Director",
+                            "Whole-Time Director",
+                            "Managing Director",
+                        ],
+                        required=False,
+                        depends_on="br_resolution_type",
+                        learn_more=(
+                            "The Companies Act, 2013 recognizes different categories. Additional "
+                            "Directors (§ 161) hold office until the next AGM. Independent Directors "
+                            "(§ 149) serve a fixed term and are not liable to retire by rotation. "
+                            "Managing/Whole-Time Directors require approvals under §§ 196\u2013197."
+                        ),
+                    ),
+                    _clause(
+                        "br_num_shares",
+                        "Number of Shares",
+                        "number",
+                        "Number of equity shares to be allotted",
+                        required=False,
+                        depends_on="br_resolution_type",
+                        min_value=1,
+                    ),
+                    _clause(
+                        "br_face_value",
+                        "Face Value per Share (INR)",
+                        "number",
+                        "Nominal/face value per equity share in INR",
+                        required=False,
+                        depends_on="br_resolution_type",
+                        default=10,
+                        min_value=1,
+                    ),
+                    _clause(
+                        "br_premium",
+                        "Premium per Share (INR)",
+                        "number",
+                        "Share premium per equity share, if any",
+                        required=False,
+                        depends_on="br_resolution_type",
+                        default=0,
+                        min_value=0,
+                    ),
+                    _clause(
+                        "br_auditor_frn",
+                        "Auditor Firm Registration No.",
+                        "text",
+                        "ICAI Firm Registration Number (FRN) of the statutory auditor",
+                        required=False,
+                        depends_on="br_resolution_type",
+                    ),
+                    _clause(
+                        "br_account_operation",
+                        "Account Operation Mandate",
+                        "dropdown",
+                        "How the bank account will be operated",
+                        options=["Singly", "Jointly", "Either or Survivor"],
+                        required=False,
+                        depends_on="br_resolution_type",
+                        default="Singly",
+                    ),
                 ],
             },
             # Step 3: Authorization & Compliance
@@ -340,8 +473,52 @@ def board_resolution_template() -> dict:
     }
 
 
+def _ordinal(n: int) -> str:
+    """Return ordinal string (1 -> '1st', 2 -> '2nd', etc.)."""
+    if 11 <= (n % 100) <= 13:
+        suffix = "th"
+    else:
+        suffix = {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
+    return f"{n}{suffix}"
+
+
+def _indian_amount(n) -> str:
+    """Format number in Indian numbering system (e.g., 10,00,000)."""
+    try:
+        n = int(n)
+    except (ValueError, TypeError):
+        return "0"
+    if n < 0:
+        return "-" + _indian_amount(-n)
+    s = str(n)
+    if len(s) <= 3:
+        return s
+    last3 = s[-3:]
+    rest = s[:-3]
+    parts: List[str] = []
+    while rest:
+        parts.append(rest[-2:] if len(rest) >= 2 else rest)
+        rest = rest[:-2]
+    parts.reverse()
+    return ",".join(parts) + "," + last3
+
+
+# MCA filing requirements per resolution type: (e-Form, Section, Deadline)
+_BR_FILING_MAP = {
+    "Director Appointment": ("DIR-12", "170(2)", "30 days"),
+    "Director Resignation Acceptance": ("DIR-12", "168(1)", "30 days"),
+    "Share Allotment": ("PAS-3", "39(4)", "30 days"),
+    "Auditor Appointment": ("ADT-1", "139(1)", "15 days"),
+    "Registered Office Change": ("INC-22", "12(4)", "30 days"),
+    "Authorized Capital Increase": ("SH-7", "64(1)", "30 days"),
+    "ESOP Pool Creation": ("PAS-3 / SH-7", "62(1)(b)", "30 days"),
+    "Loan/Borrowing Approval": ("MGT-14", "179(3)(d)", "30 days"),
+    "Related Party Transaction": ("MGT-14", "188 / 117", "30 days"),
+}
+
+
 def render_board_resolution(tpl: dict, config: dict, parties: dict) -> str:
-    """Render Board Resolution HTML."""
+    """Render Board Resolution HTML per Companies Act 2013 & Secretarial Standard SS-1."""
     company = config.get("br_company_name", "[Company Name]")
     cin = config.get("br_cin", "")
     res_type = config.get("br_resolution_type", "[Resolution Type]")
@@ -356,173 +533,750 @@ def render_board_resolution(tpl: dict, config: dict, parties: dict) -> str:
     additional = config.get("br_additional_details", "")
     signatory = config.get("br_authorized_signatory", "[Authorized Signatory]")
     filing = config.get("br_filing_required", False)
+    # New fields
+    serial = config.get("br_meeting_serial", "")
+    chairperson = config.get("br_chairperson_name", "")
+    cs_name = config.get("br_company_secretary", "")
+    reg_office = config.get("br_registered_office", "")
+    directors_leave = config.get("br_directors_leave", "")
+    designation = config.get("br_director_designation", "Additional Director")
+    num_shares = config.get("br_num_shares", 0)
+    face_value = config.get("br_face_value", 10)
+    premium_val = config.get("br_premium", 0)
+    auditor_frn = config.get("br_auditor_frn", "")
+    account_op = config.get("br_account_operation", "Singly")
+
+    # Safe integer parsing
+    try:
+        amount = int(amount) if amount else 0
+    except (ValueError, TypeError):
+        amount = 0
+    try:
+        num_shares = int(num_shares) if num_shares else 0
+    except (ValueError, TypeError):
+        num_shares = 0
+    try:
+        face_value = int(face_value) if face_value else 10
+    except (ValueError, TypeError):
+        face_value = 10
+    try:
+        premium_val = int(premium_val) if premium_val else 0
+    except (ValueError, TypeError):
+        premium_val = 0
 
     sections: List[str] = []
 
-    # Meeting header
+    # ----------------------------------------------------------------
+    # Company letterhead
+    # ----------------------------------------------------------------
+    serial_num = ""
+    if serial and str(serial).isdigit():
+        serial_num = _ordinal(int(serial)).upper()
+    else:
+        serial_num = f"{serial or '____'}TH"
+
     sections.append(
-        f'<div class="parties">'
-        f'<p><strong>Company:</strong> {company}'
-        f'{" (CIN: " + cin + ")" if cin else ""}</p>'
-        f'<p><strong>Meeting Date:</strong> {meeting_date or "________________________"}</p>'
-        f'<p><strong>Meeting Place:</strong> {meeting_place}</p>'
-        f'</div>'
+        '<div style="text-align:center; border-bottom:2px solid #333; '
+        'padding-bottom:12px; margin-bottom:20px;">'
+        f'<p style="font-size:18px; font-weight:bold; text-transform:uppercase; '
+        f'margin:0; letter-spacing:1px;">{company}</p>'
+        + (f'<p style="font-size:11px; margin:2px 0;">CIN: {cin}</p>' if cin else '')
+        + (f'<p style="font-size:11px; margin:2px 0;">Registered Office: {reg_office}</p>'
+           if reg_office else '')
+        + '</div>'
     )
 
-    # Directors present
-    director_lines = [d.strip() for d in directors.split("\n") if d.strip()] if directors else []
-    dir_html = "<ol>" + "".join(f"<li>{d}</li>" for d in director_lines) + "</ol>" if director_lines else "<p>________________________</p>"
+    # ----------------------------------------------------------------
+    # Meeting title per Secretarial Standard SS-1
+    # ----------------------------------------------------------------
     sections.append(
-        f'<h2>Directors Present</h2>'
-        f'{dir_html}'
+        '<div style="text-align:center; margin-bottom:20px;">'
+        '<p style="font-size:13px; font-weight:bold; text-transform:uppercase; '
+        'text-decoration:underline; margin:0;">'
+        f'MINUTES OF THE {serial_num} MEETING OF THE BOARD OF DIRECTORS</p>'
+        '<p style="font-size:13px; font-weight:bold; text-transform:uppercase; '
+        f'margin:4px 0;">OF {company.upper()}</p>'
+        f'<p style="font-size:12px; margin:8px 0;">Held on '
+        f'<strong>{meeting_date or "________________"}</strong> at '
+        f'<strong>{meeting_place}</strong></p>'
+        '</div>'
     )
 
-    # Quorum
+    # ----------------------------------------------------------------
+    # Directors Present (tabular)
+    # ----------------------------------------------------------------
+    director_lines = [
+        d.strip() for d in directors.split("\n") if d.strip()
+    ] if directors else []
+
     sections.append(
-        '<p class="clause">The Chairperson noted that the requisite quorum was present '
-        'and called the meeting to order.</p>'
+        '<h2 style="font-size:12px; text-transform:uppercase; margin-top:20px;">'
+        'Directors Present:</h2>'
     )
+    if director_lines:
+        sections.append(
+            '<table style="width:100%; border-collapse:collapse; margin-bottom:10px;">'
+            '<tr style="border-bottom:1px solid #ccc;">'
+            '<th style="text-align:left; padding:4px; width:40px;">Sr.</th>'
+            '<th style="text-align:left; padding:4px;">Name &amp; DIN</th></tr>'
+        )
+        for i, d in enumerate(director_lines, 1):
+            sections.append(
+                f'<tr style="border-bottom:1px solid #eee;">'
+                f'<td style="padding:4px;">{i}.</td>'
+                f'<td style="padding:4px;">{d}</td></tr>'
+            )
+        sections.append('</table>')
+    else:
+        sections.append(
+            '<p>1. ________________________</p>'
+            '<p>2. ________________________</p>'
+        )
 
-    # Resolution body — varies by type
-    cn = 1
-    sections.append(f'<h2>Resolution {cn}: {res_type}</h2>')
-
-    if res_type == "Director Appointment":
+    # ----------------------------------------------------------------
+    # Leave of Absence
+    # ----------------------------------------------------------------
+    leave_lines = [
+        d.strip() for d in directors_leave.split("\n") if d.strip()
+    ] if directors_leave else []
+    sections.append(
+        '<h2 style="font-size:12px; text-transform:uppercase; margin-top:15px;">'
+        'Leave of Absence:</h2>'
+    )
+    if leave_lines:
         sections.append(
-            f'<p class="clause"><span class="clause-number">{cn}.1</span> '
-            f'"RESOLVED THAT pursuant to Section 152 and other applicable provisions of '
-            f'the Companies Act, 2013 and the rules made thereunder, '
-            f'<strong>{person_name or "[Director Name]"}</strong>'
-            f'{" (DIN: " + person_din + ")" if person_din else ""} '
-            f'be and is hereby appointed as a Director of the Company, liable to retire '
-            f'by rotation."</p>'
-        )
-    elif res_type == "Director Resignation Acceptance":
-        sections.append(
-            f'<p class="clause"><span class="clause-number">{cn}.1</span> '
-            f'"RESOLVED THAT the resignation of '
-            f'<strong>{person_name or "[Director Name]"}</strong>'
-            f'{" (DIN: " + person_din + ")" if person_din else ""} '
-            f'from the position of Director of the Company be and is hereby accepted '
-            f'with effect from {meeting_date or "[Date]"}."</p>'
-        )
-    elif res_type == "Bank Account Opening":
-        sections.append(
-            f'<p class="clause"><span class="clause-number">{cn}.1</span> '
-            f'"RESOLVED THAT a current account be and is hereby authorized to be opened '
-            f'with <strong>{bank_name or "[Bank Name]"}</strong> in the name of the Company, '
-            f'and that <strong>{signatory}</strong> be and is hereby authorized as the '
-            f'authorized signatory for operating the said bank account."</p>'
-        )
-    elif res_type == "Share Allotment":
-        sections.append(
-            f'<p class="clause"><span class="clause-number">{cn}.1</span> '
-            f'"RESOLVED THAT pursuant to Section 62 and other applicable provisions of '
-            f'the Companies Act, 2013, the Board hereby approves the allotment of shares '
-            f'to <strong>{person_name or "[Allottee Name]"}</strong> for a total '
-            f'consideration of INR {amount:,} as detailed herein."</p>'
-        )
-    elif res_type == "Auditor Appointment":
-        sections.append(
-            f'<p class="clause"><span class="clause-number">{cn}.1</span> '
-            f'"RESOLVED THAT pursuant to Section 139 of the Companies Act, 2013, '
-            f'<strong>{person_name or "[Auditor Name/Firm]"}</strong> be and is hereby '
-            f'appointed as the Statutory Auditor of the Company for the financial year, '
-            f'subject to ratification by the members at the ensuing Annual General Meeting."</p>'
-        )
-    elif res_type == "Registered Office Change":
-        sections.append(
-            f'<p class="clause"><span class="clause-number">{cn}.1</span> '
-            f'"RESOLVED THAT pursuant to Section 12 of the Companies Act, 2013, the '
-            f'registered office of the Company be and is hereby changed to:</p>'
-            f'<p class="clause"><strong>{address or "[New Address]"}</strong></p>'
-            f'<p class="clause">with effect from {meeting_date or "[Date]"}."</p>'
-        )
-    elif res_type == "ESOP Pool Creation":
-        sections.append(
-            f'<p class="clause"><span class="clause-number">{cn}.1</span> '
-            f'"RESOLVED THAT pursuant to Section 62(1)(b) of the Companies Act, 2013 '
-            f'and Rule 12 of the Companies (Share Capital and Debentures) Rules, 2014, '
-            f'the Board hereby approves the creation of an Employee Stock Option Pool '
-            f'of INR {amount:,}, subject to approval of the shareholders by special '
-            f'resolution."</p>'
-        )
-    elif res_type == "Authorized Capital Increase":
-        sections.append(
-            f'<p class="clause"><span class="clause-number">{cn}.1</span> '
-            f'"RESOLVED THAT subject to the approval of the shareholders by ordinary '
-            f'resolution, the authorized share capital of the Company be and is hereby '
-            f'proposed to be increased to INR {amount:,} by the creation of additional '
-            f'equity shares."</p>'
-        )
-    elif res_type == "Loan/Borrowing Approval":
-        sections.append(
-            f'<p class="clause"><span class="clause-number">{cn}.1</span> '
-            f'"RESOLVED THAT pursuant to Section 179(3)(d) of the Companies Act, 2013, '
-            f'the Board hereby approves borrowing of up to INR {amount:,} '
-            f'{("from " + bank_name) if bank_name else ""} '
-            f'on such terms and conditions as may be agreed upon by '
-            f'<strong>{signatory}</strong>."</p>'
-        )
-    elif res_type == "Related Party Transaction":
-        sections.append(
-            f'<p class="clause"><span class="clause-number">{cn}.1</span> '
-            f'"RESOLVED THAT pursuant to Section 188 of the Companies Act, 2013 and '
-            f'Rule 15 of the Companies (Meetings of Board and its Powers) Rules, 2014, '
-            f'the Board hereby approves the related party transaction with '
-            f'<strong>{person_name or "[Related Party Name]"}</strong> '
-            f'for an amount of INR {amount:,}, details of which are as follows:</p>'
-            f'<p class="clause">{additional or "[Transaction Details]"}</p>'
+            '<p class="clause">The Board granted leave of absence to the following '
+            'Director(s) who could not attend the meeting:</p>'
+            '<ol>' + ''.join(f'<li>{d}</li>' for d in leave_lines) + '</ol>'
         )
     else:
         sections.append(
-            f'<p class="clause"><span class="clause-number">{cn}.1</span> '
-            f'"RESOLVED THAT {additional or "[Resolution details to be specified]"}."</p>'
+            '<p class="clause">None. All Directors were present.</p>'
         )
 
-    # Additional details (if not already consumed)
-    if additional and res_type != "Related Party Transaction":
+    # ----------------------------------------------------------------
+    # In Attendance
+    # ----------------------------------------------------------------
+    if cs_name:
         sections.append(
-            f'<p class="clause"><span class="clause-number">{cn}.2</span> '
-            f'Additional details: {additional}</p>'
+            '<h2 style="font-size:12px; text-transform:uppercase; margin-top:15px;">'
+            'In Attendance:</h2>'
+            f'<p class="clause">{cs_name}, Company Secretary</p>'
         )
 
-    # Authorization clause
-    cn += 1
+    # ----------------------------------------------------------------
+    # Chairperson & Quorum — Section 174, SS-1
+    # ----------------------------------------------------------------
+    chair_text = chairperson or (
+        director_lines[0].split("(")[0].strip() if director_lines else "[Chairperson]"
+    )
     sections.append(
-        f'<h2>Resolution {cn}: Authorization</h2>'
-        f'<p class="clause"><span class="clause-number">{cn}.1</span> '
-        f'"RESOLVED FURTHER THAT <strong>{signatory}</strong> be and is hereby authorized '
-        f'to do all such acts, deeds, matters, and things as may be necessary, desirable, '
-        f'or expedient to give effect to the above resolution(s), including but not limited '
-        f'to signing and filing of all necessary forms and documents with the Registrar of '
-        f'Companies and other authorities."</p>'
+        '<hr style="border:none; border-top:1px solid #999; margin:20px 0;">'
+        f'<p class="clause"><strong>{chair_text}</strong>, Chairperson of the meeting, '
+        'welcomed the Directors and took the Chair. The Chairperson noted that the '
+        'requisite quorum was present in terms of Section 174 of the Companies Act, 2013 '
+        'read with Secretarial Standard on Meetings of the Board of Directors (SS-1) '
+        'issued by the Institute of Company Secretaries of India, and called the meeting '
+        'to order.</p>'
     )
 
-    # Filing note
-    if filing:
+    # ----------------------------------------------------------------
+    # Notice compliance — Section 173(3)
+    # ----------------------------------------------------------------
+    sections.append(
+        '<p class="clause">The Chairperson informed the Board that due notice of the '
+        'meeting had been given to all the Directors of the Company in accordance with '
+        'Section 173(3) of the Companies Act, 2013 and Secretarial Standard SS-1, and '
+        'the same was taken as read.</p>'
+    )
+
+    # ----------------------------------------------------------------
+    # Resolution Item
+    # ----------------------------------------------------------------
+    sections.append(
+        '<hr style="border:none; border-top:1px solid #999; margin:20px 0;">'
+        f'<h2 style="font-size:13px; text-transform:uppercase;">'
+        f'Item No. 1: {res_type}</h2>'
+    )
+
+    # Shorthand variables for resolution text
+    _person = f'<strong>{person_name or "[Name]"}</strong>'
+    _din = f' (DIN: {person_din})' if person_din else ''
+    _amt = _indian_amount(amount)
+
+    # ================================================================
+    # Resolution bodies — WHEREAS recitals + RESOLVED clauses per type
+    # ================================================================
+
+    if res_type == "Director Appointment":
+        retire_text = (
+            'not liable to retire by rotation'
+            if designation == 'Independent Director'
+            else 'liable to retire by rotation'
+        )
         sections.append(
-            f'<p class="clause"><em>Note: This resolution requires filing with the '
-            f'Ministry of Corporate Affairs (MCA) within the prescribed time limit.</em></p>'
+            f'<p class="clause"><strong>WHEREAS</strong> the Board has received the '
+            f'consent of {_person}{_din} to act as a Director of the Company in Form '
+            f'DIR-2 pursuant to Rule 8 of the Companies (Appointment and Qualification '
+            f'of Directors) Rules, 2014;</p>'
+
+            f'<p class="clause"><strong>AND WHEREAS</strong> the Board has verified that '
+            f'{_person} is not disqualified from being appointed as a Director under '
+            f'Section 164 of the Companies Act, 2013 and has furnished a declaration to '
+            f'that effect;</p>'
+
+            f'<p class="clause"><strong>AND WHEREAS</strong> {_person} has given a '
+            f'declaration pursuant to Rule 14 of the Companies (Appointment and '
+            f'Qualification of Directors) Rules, 2014 confirming that '
+            f'{person_name or "[Name]"} is not debarred from holding the office of '
+            f'director by virtue of any order of NCLT or under the Companies Act, '
+            f'2013;</p>'
+        )
+        sections.append(
+            f'<p class="clause"><strong>\u201cRESOLVED THAT</strong> pursuant to the '
+            f'provisions of Sections 152, 160, and 161 and other applicable provisions, '
+            f'if any, of the Companies Act, 2013 read with the Companies (Appointment '
+            f'and Qualification of Directors) Rules, 2014 (including any statutory '
+            f'modification(s) or re-enactment(s) thereof for the time being in force) '
+            f'and subject to the provisions of the Articles of Association of the '
+            f'Company, {_person}{_din} be and is hereby appointed as '
+            f'<strong>{designation}</strong> of the Company, {retire_text}, with effect '
+            f'from {meeting_date or "[Date]"}.\u201d</p>'
+        )
+        sections.append(
+            f'<p class="clause"><strong>\u201cRESOLVED FURTHER THAT</strong> the Board '
+            f'hereby notes that {_person} has confirmed that {person_name or "[Name]"} '
+            f'is not disqualified from being appointed as a Director in terms of '
+            f'Section 164(2) of the Companies Act, 2013 and has given consent to act as '
+            f'a Director in Form DIR-2.\u201d</p>'
+        )
+        sections.append(
+            f'<p class="clause"><strong>\u201cRESOLVED FURTHER THAT</strong> '
+            f'<strong>{signatory}</strong> be and is hereby authorized to file e-Form '
+            f'DIR-12 with the Registrar of Companies within thirty (30) days of such '
+            f'appointment in terms of Section 170(2) of the Companies Act, 2013, and to '
+            f'do all such acts, deeds, matters, and things as may be necessary, proper, '
+            f'or desirable to give effect to this resolution.\u201d</p>'
         )
 
+    elif res_type == "Director Resignation Acceptance":
+        sections.append(
+            f'<p class="clause"><strong>WHEREAS</strong> the Board has received a letter '
+            f'of resignation dated {meeting_date or "[Date]"} from {_person}{_din} from '
+            f'the office of Director of the Company;</p>'
+
+            f'<p class="clause"><strong>AND WHEREAS</strong> the Board has noted that as '
+            f'per Section 168(1) of the Companies Act, 2013, a director may resign from '
+            f'the office by giving a notice in writing to the Company, and the '
+            f'resignation shall take effect from the date on which the notice is received '
+            f'by the Board or the date, if any, specified in the notice, whichever is '
+            f'later;</p>'
+
+            f'<p class="clause"><strong>AND WHEREAS</strong> {_person} has confirmed '
+            f'that there are no pending matters or obligations requiring attention;</p>'
+        )
+        sections.append(
+            f'<p class="clause"><strong>\u201cRESOLVED THAT</strong> the resignation of '
+            f'{_person}{_din} from the office of Director of the Company be and is '
+            f'hereby noted and accepted with effect from '
+            f'{meeting_date or "[Date]"}, and the Board places on record its '
+            f'appreciation for the valuable services rendered by '
+            f'{person_name or "[Name]"} during the tenure as Director of the '
+            f'Company.\u201d</p>'
+        )
+        sections.append(
+            f'<p class="clause"><strong>\u201cRESOLVED FURTHER THAT</strong> '
+            f'<strong>{signatory}</strong> be and is hereby authorized to file e-Form '
+            f'DIR-12 with the Registrar of Companies within thirty (30) days of such '
+            f'cessation, and to intimate any other regulatory authorities as may be '
+            f'necessary.\u201d</p>'
+        )
+
+    elif res_type == "Bank Account Opening":
+        sections.append(
+            f'<p class="clause"><strong>WHEREAS</strong> the Company requires a current '
+            f'account for its day-to-day business operations and management of '
+            f'funds;</p>'
+
+            f'<p class="clause"><strong>AND WHEREAS</strong> the Board has considered '
+            f'and found it expedient to open a current account with '
+            f'<strong>{bank_name or "[Bank Name]"}</strong>;</p>'
+        )
+        sections.append(
+            f'<p class="clause"><strong>\u201cRESOLVED THAT</strong> pursuant to '
+            f'Section 179 and other applicable provisions of the Companies Act, 2013, '
+            f'a current account be and is hereby authorized to be opened in the name '
+            f'and style of the Company, i.e., <strong>{company}</strong>, with '
+            f'<strong>{bank_name or "[Bank Name]"}</strong>, and the following '
+            f'person(s) be and are hereby authorized as the authorized signatory(ies) '
+            f'for operating the said account '
+            f'<strong>{account_op.lower()}</strong>:</p>'
+            f'<ol><li><strong>{signatory}</strong></li></ol>'
+        )
+        sections.append(
+            f'<p class="clause"><strong>\u201cRESOLVED FURTHER THAT</strong> the '
+            f'authorized signatory(ies) be and are hereby empowered, '
+            f'{account_op.lower()}, to:</p>'
+            f'<ol type="a">'
+            f'<li>sign, execute, and deliver cheques, demand drafts, pay orders, and '
+            f'other negotiable instruments;</li>'
+            f'<li>authorize and execute fund transfers through NEFT, RTGS, IMPS, or any '
+            f'other electronic mode of transfer;</li>'
+            f'<li>operate the account through internet banking, mobile banking, or any '
+            f'other digital banking facility offered by the Bank;</li>'
+            f'<li>authorize standing instructions, auto-debit mandates, and recurring '
+            f'payments;</li>'
+            f'<li>sign any documents, forms, agreements, declarations, or undertakings '
+            f'as may be required by the Bank for opening and operating the said '
+            f'account.</li>'
+            f'</ol>'
+        )
+        sections.append(
+            f'<p class="clause"><strong>\u201cRESOLVED FURTHER THAT</strong> a certified '
+            f'true copy of this resolution, duly signed by a Director of the Company, be '
+            f'furnished to <strong>{bank_name or "[Bank Name]"}</strong> as evidence and '
+            f'proof of the authority herein conferred.\u201d</p>'
+        )
+
+    elif res_type == "Share Allotment":
+        total = num_shares * (face_value + premium_val) if num_shares else amount
+        if num_shares:
+            share_desc = (
+                f'{_indian_amount(num_shares)} equity shares of INR '
+                f'{_indian_amount(face_value)} each'
+                + (f' at a premium of INR {_indian_amount(premium_val)} per share'
+                   if premium_val else '')
+            )
+        else:
+            share_desc = f'equity shares for a total consideration of INR {_amt}'
+
+        sections.append(
+            f'<p class="clause"><strong>WHEREAS</strong> the Board has considered the '
+            f'proposal for allotment of equity shares of the Company in accordance with '
+            f'the provisions of Section 62 of the Companies Act, 2013 read with the '
+            f'Companies (Share Capital and Debentures) Rules, 2014;</p>'
+
+            f'<p class="clause"><strong>AND WHEREAS</strong> the Board has noted that '
+            f'the consideration for the proposed allotment has been received / will be '
+            f'received prior to allotment;</p>'
+        )
+        sections.append(
+            f'<p class="clause"><strong>\u201cRESOLVED THAT</strong> pursuant to the '
+            f'provisions of Section 62 and other applicable provisions, if any, of the '
+            f'Companies Act, 2013 read with the Companies (Share Capital and Debentures) '
+            f'Rules, 2014 (including any statutory modification(s) or re-enactment(s) '
+            f'thereof for the time being in force) and subject to the provisions of the '
+            f'Memorandum and Articles of Association of the Company, the Board hereby '
+            f'approves the allotment of {share_desc}, aggregating to a total '
+            f'consideration of INR {_indian_amount(total or amount)}, to {_person}, on '
+            f'such terms and conditions as set out herein.\u201d</p>'
+        )
+        sections.append(
+            '<p class="clause"><strong>\u201cRESOLVED FURTHER THAT</strong> the equity '
+            'shares so allotted shall rank pari passu in all respects with the existing '
+            'equity shares of the Company.\u201d</p>'
+        )
+        sections.append(
+            '<p class="clause"><strong>\u201cRESOLVED FURTHER THAT</strong> share '
+            'certificates be issued to the allottee(s) within two (2) months from the '
+            'date of allotment in accordance with Section 56(4) of the Companies Act, '
+            '2013.\u201d</p>'
+        )
+        sections.append(
+            f'<p class="clause"><strong>\u201cRESOLVED FURTHER THAT</strong> '
+            f'<strong>{signatory}</strong> be and is hereby authorized to file the '
+            f'return of allotment in e-Form PAS-3 with the Registrar of Companies '
+            f'within thirty (30) days of such allotment in terms of Section 39(4) of '
+            f'the Companies Act, 2013, and to execute all documents and do all acts '
+            f'necessary to give effect to this resolution.\u201d</p>'
+        )
+
+    elif res_type == "Auditor Appointment":
+        frn_text = f' (FRN: {auditor_frn})' if auditor_frn else ''
+        sections.append(
+            f'<p class="clause"><strong>WHEREAS</strong> pursuant to Section 139(1) of '
+            f'the Companies Act, 2013, the Company is required to appoint a Statutory '
+            f'Auditor;</p>'
+
+            f'<p class="clause"><strong>AND WHEREAS</strong> {_person}{frn_text}, '
+            f'Chartered Accountants, have conveyed their written consent and confirmed '
+            f'their eligibility for appointment as Statutory Auditor under Section 141 '
+            f'of the Companies Act, 2013;</p>'
+
+            f'<p class="clause"><strong>AND WHEREAS</strong> {_person} have confirmed '
+            f'that their appointment, if made, would be within the limits prescribed '
+            f'under Section 141(3)(g) of the Companies Act, 2013;</p>'
+        )
+        rem_text = (
+            f' at a remuneration of INR {_amt} (Rupees {_amt} only)'
+            if amount else ''
+        )
+        sections.append(
+            f'<p class="clause"><strong>\u201cRESOLVED THAT</strong> pursuant to the '
+            f'provisions of Section 139 and other applicable provisions, if any, of the '
+            f'Companies Act, 2013 read with the Companies (Audit and Auditors) Rules, '
+            f'2014 (including any statutory modification(s) or re-enactment(s) thereof '
+            f'for the time being in force), and based on the recommendation of the Audit '
+            f'Committee (where applicable), {_person}{frn_text}, Chartered Accountants, '
+            f'be and are hereby appointed as the Statutory Auditor of the Company'
+            f'{rem_text}, plus applicable taxes and reimbursement of out-of-pocket '
+            f'expenses, to hold office from the conclusion of this meeting until the '
+            f'conclusion of the Annual General Meeting to be held for the financial year '
+            f'ending on March 31, [____], subject to ratification of the appointment by '
+            f'the members at every subsequent Annual General Meeting, if '
+            f'applicable.\u201d</p>'
+        )
+        sections.append(
+            f'<p class="clause"><strong>\u201cRESOLVED FURTHER THAT</strong> '
+            f'<strong>{signatory}</strong> be and is hereby authorized to file the '
+            f'notice of appointment in e-Form ADT-1 with the Registrar of Companies '
+            f'within fifteen (15) days of such appointment in terms of Section 139(1) '
+            f'of the Companies Act, 2013.\u201d</p>'
+        )
+
+    elif res_type == "Registered Office Change":
+        sections.append(
+            '<p class="clause"><strong>WHEREAS</strong> the Board has considered and '
+            'found it necessary and expedient in the interest of the Company to shift '
+            'the registered office of the Company;</p>'
+
+            '<p class="clause"><strong>AND WHEREAS</strong> the Board has noted that '
+            'the change of registered office within the local limits of the same '
+            'city/town/village does not require approval of the members;</p>'
+        )
+        sections.append(
+            f'<p class="clause"><strong>\u201cRESOLVED THAT</strong> pursuant to the '
+            f'provisions of Section 12 and other applicable provisions, if any, of the '
+            f'Companies Act, 2013 read with the Companies (Incorporation) Rules, 2014 '
+            f'(including any statutory modification(s) or re-enactment(s) thereof for '
+            f'the time being in force), the registered office of the Company be and is '
+            f'hereby shifted to:</p>'
+            f'<p class="clause" style="padding-left:40px; font-weight:bold;">'
+            f'{address or "[New Registered Office Address with PIN Code]"}</p>'
+            f'<p class="clause">with effect from '
+            f'{meeting_date or "[Date]"}.\u201d</p>'
+        )
+        sections.append(
+            '<p class="clause"><strong>\u201cRESOLVED FURTHER THAT</strong> all '
+            'statutory records, registers, and documents of the Company be kept at the '
+            'new registered office address with effect from the said date.\u201d</p>'
+        )
+        sections.append(
+            '<p class="clause"><strong>\u201cRESOLVED FURTHER THAT</strong> the name '
+            'board displaying the name and registered office address of the Company be '
+            'affixed at the new registered office in accordance with Section 12(3)(a) '
+            'of the Companies Act, 2013, and the letterhead, stationery, and website of '
+            'the Company be updated accordingly.\u201d</p>'
+        )
+        sections.append(
+            f'<p class="clause"><strong>\u201cRESOLVED FURTHER THAT</strong> '
+            f'<strong>{signatory}</strong> be and is hereby authorized to file e-Form '
+            f'INC-22 with the Registrar of Companies within thirty (30) days of such '
+            f'change, along with the proof of the new registered office address, and to '
+            f'do all such acts and things as may be necessary.\u201d</p>'
+        )
+
+    elif res_type == "ESOP Pool Creation":
+        sections.append(
+            '<p class="clause"><strong>WHEREAS</strong> the Board recognizes the need '
+            'to attract, retain, and motivate key employees by offering them an '
+            'opportunity to participate in the growth of the Company through equity '
+            'ownership;</p>'
+
+            '<p class="clause"><strong>AND WHEREAS</strong> the Board has considered '
+            'the creation of an Employee Stock Option Plan (\u201cESOP\u201d) in '
+            'accordance with the provisions of Section 62(1)(b) of the Companies Act, '
+            '2013 read with Rule 12 of the Companies (Share Capital and Debentures) '
+            'Rules, 2014;</p>'
+        )
+        sections.append(
+            f'<p class="clause"><strong>\u201cRESOLVED THAT</strong> pursuant to the '
+            f'provisions of Section 62(1)(b) of the Companies Act, 2013 read with '
+            f'Rule 12 of the Companies (Share Capital and Debentures) Rules, 2014 '
+            f'(including any statutory modification(s) or re-enactment(s) thereof for '
+            f'the time being in force), the Board hereby recommends to the shareholders '
+            f'for their approval by way of Special Resolution, the creation of an '
+            f'Employee Stock Option Plan with a pool of INR {_amt} (Rupees {_amt} '
+            f'only), the key terms of which are as follows:</p>'
+            f'<ol type="a">'
+            f'<li>Total number of options: as may be decided by the Board from time to '
+            f'time;</li>'
+            f'<li>Exercise price: as may be determined by the Board;</li>'
+            f'<li>Vesting period: minimum one (1) year from the date of grant in '
+            f'accordance with Rule 12(1);</li>'
+            f'<li>Exercise period: as determined by the Board;</li>'
+            f'<li>Eligible employees: present and future permanent employees of the '
+            f'Company (excluding Independent Directors and promoters holding more than '
+            f'10% of outstanding equity).</li>'
+            f'</ol>'
+        )
+        if additional:
+            sections.append(
+                f'<p class="clause"><em>Additional terms noted by the Board:</em> '
+                f'{additional}</p>'
+            )
+        sections.append(
+            '<p class="clause"><strong>\u201cRESOLVED FURTHER THAT</strong> the ESOP '
+            'shall be subject to the approval of the shareholders of the Company by way '
+            'of Special Resolution at the next General Meeting in terms of '
+            'Section 62(1)(b).\u201d</p>'
+        )
+        sections.append(
+            f'<p class="clause"><strong>\u201cRESOLVED FURTHER THAT</strong> '
+            f'<strong>{signatory}</strong> be and is hereby authorized to finalize and '
+            f'circulate the detailed ESOP scheme, convene a General Meeting for '
+            f'obtaining shareholder approval, and file the necessary e-forms with the '
+            f'Registrar of Companies.\u201d</p>'
+        )
+
+    elif res_type == "Authorized Capital Increase":
+        sections.append(
+            '<p class="clause"><strong>WHEREAS</strong> the present authorized share '
+            'capital of the Company is insufficient to meet the proposed allotment / '
+            'business requirements;</p>'
+
+            '<p class="clause"><strong>AND WHEREAS</strong> the Board has considered '
+            'and found it necessary to increase the authorized share capital of the '
+            'Company pursuant to Section 61 of the Companies Act, 2013;</p>'
+        )
+        sections.append(
+            f'<p class="clause"><strong>\u201cRESOLVED THAT</strong> pursuant to the '
+            f'provisions of Section 61 and other applicable provisions, if any, of the '
+            f'Companies Act, 2013 read with the Companies (Share Capital and Debentures) '
+            f'Rules, 2014 (including any statutory modification(s) or re-enactment(s) '
+            f'thereof for the time being in force) and subject to the approval of the '
+            f'members by way of Ordinary Resolution, the authorized share capital of '
+            f'the Company be and is hereby proposed to be increased from INR '
+            f'[Existing Authorized Capital] to INR {_amt} (Rupees {_amt} only) by the '
+            f'creation of additional equity shares of INR '
+            f'{_indian_amount(face_value)} each, ranking pari passu with the existing '
+            f'equity shares of the Company.\u201d</p>'
+        )
+        sections.append(
+            '<p class="clause"><strong>\u201cRESOLVED FURTHER THAT</strong> the '
+            'Memorandum of Association of the Company be altered accordingly by '
+            'substituting the existing Clause V (Capital Clause) with the revised '
+            'capital clause reflecting the increased authorized share '
+            'capital.\u201d</p>'
+        )
+        sections.append(
+            f'<p class="clause"><strong>\u201cRESOLVED FURTHER THAT</strong> '
+            f'<strong>{signatory}</strong> be and is hereby authorized to convene an '
+            f'Extraordinary General Meeting / pass the Ordinary Resolution by way of '
+            f'postal ballot, and upon passing of the resolution, to file e-Form SH-7 '
+            f'with the Registrar of Companies within thirty (30) days in terms of '
+            f'Section 64(1) of the Companies Act, 2013.\u201d</p>'
+        )
+
+    elif res_type == "Loan/Borrowing Approval":
+        lender = f'from <strong>{bank_name}</strong> ' if bank_name else ''
+        sections.append(
+            '<p class="clause"><strong>WHEREAS</strong> the Company requires funds for '
+            'its business operations / capital expenditure / working capital '
+            'requirements;</p>'
+
+            f'<p class="clause"><strong>AND WHEREAS</strong> the Board has considered '
+            f'and found it expedient to borrow funds {lender}on such terms and '
+            f'conditions as may be mutually agreed;</p>'
+
+            '<p class="clause"><strong>AND WHEREAS</strong> the aggregate borrowings '
+            'of the Company together with this proposed borrowing [do / do not] exceed '
+            'the aggregate of the paid-up share capital, free reserves and securities '
+            'premium account of the Company, and accordingly [a Board Resolution is '
+            'sufficient / a Special Resolution under Section 180(1)(c) will be '
+            'required];</p>'
+        )
+        sections.append(
+            f'<p class="clause"><strong>\u201cRESOLVED THAT</strong> pursuant to the '
+            f'provisions of Section 179(3)(d) and Section 186 and other applicable '
+            f'provisions, if any, of the Companies Act, 2013 (including any statutory '
+            f'modification(s) or re-enactment(s) thereof for the time being in force), '
+            f'the Board hereby approves borrowing of a sum not exceeding INR {_amt} '
+            f'(Rupees {_amt} only) {lender}on such terms and conditions as may be '
+            f'agreed upon, including but not limited to interest rate, repayment '
+            f'schedule, and security/collateral.\u201d</p>'
+        )
+        if additional:
+            sections.append(
+                f'<p class="clause"><em>Key terms noted:</em> {additional}</p>'
+            )
+        sections.append(
+            f'<p class="clause"><strong>\u201cRESOLVED FURTHER THAT</strong> '
+            f'<strong>{signatory}</strong> be and is hereby authorized to negotiate, '
+            f'finalize, and execute all loan agreements, security documents, '
+            f'guarantees, and other documents as may be required, and to do all such '
+            f'acts, deeds, and things as may be necessary to give effect to this '
+            f'resolution, including filing of e-Form MGT-14 (if applicable) with the '
+            f'Registrar of Companies within thirty (30) days.\u201d</p>'
+        )
+
+    elif res_type == "Related Party Transaction":
+        sections.append(
+            f'<p class="clause"><strong>WHEREAS</strong> the Board has received a '
+            f'proposal for entering into a transaction with {_person}, a related party '
+            f'within the meaning of Section 2(76) of the Companies Act, 2013;</p>'
+
+            '<p class="clause"><strong>AND WHEREAS</strong> the interested Director(s), '
+            'having a concern or interest in the proposed transaction, have disclosed '
+            'their interest pursuant to Section 184 of the Companies Act, 2013 and have '
+            'not participated in the discussion and voting on this item;</p>'
+
+            '<p class="clause"><strong>AND WHEREAS</strong> the Board, having '
+            'considered the terms and conditions of the proposed transaction, is '
+            'satisfied that the same is on an arm\'s length basis and in the ordinary '
+            'course of business;</p>'
+        )
+        sections.append(
+            '<p class="clause"><strong>\u201cRESOLVED THAT</strong> pursuant to the '
+            'provisions of Section 188 and other applicable provisions, if any, of the '
+            'Companies Act, 2013 read with Rule 15 of the Companies (Meetings of Board '
+            'and its Powers) Rules, 2014 (including any statutory modification(s) or '
+            're-enactment(s) thereof for the time being in force), and subject to such '
+            'other approvals as may be required, the consent of the Board be and is '
+            'hereby accorded for entering into the following related party '
+            'transaction:</p>'
+            '<table style="width:100%; border-collapse:collapse; margin:10px 0;">'
+            '<tr style="border:1px solid #999;">'
+            '<td style="padding:6px; border:1px solid #999; width:40%;">'
+            '<strong>Related Party</strong></td>'
+            f'<td style="padding:6px; border:1px solid #999;">'
+            f'{person_name or "[Name]"}</td></tr>'
+            '<tr style="border:1px solid #999;">'
+            '<td style="padding:6px; border:1px solid #999;">'
+            '<strong>Nature of Transaction</strong></td>'
+            f'<td style="padding:6px; border:1px solid #999;">'
+            f'{additional or "[Describe nature and terms]"}</td></tr>'
+            '<tr style="border:1px solid #999;">'
+            '<td style="padding:6px; border:1px solid #999;">'
+            '<strong>Maximum Value (INR)</strong></td>'
+            f'<td style="padding:6px; border:1px solid #999;">{_amt}</td></tr>'
+            '</table>'
+        )
+        sections.append(
+            '<p class="clause"><strong>\u201cRESOLVED FURTHER THAT</strong> the '
+            'transaction be entered in the Register of Contracts maintained under '
+            'Section 189 of the Companies Act, 2013.\u201d</p>'
+        )
+        sections.append(
+            f'<p class="clause"><strong>\u201cRESOLVED FURTHER THAT</strong> '
+            f'<strong>{signatory}</strong> be and is hereby authorized to execute all '
+            f'necessary agreements and documents, and to file e-Form MGT-14 with the '
+            f'Registrar of Companies within thirty (30) days in terms of Section 117 '
+            f'of the Companies Act, 2013 (if applicable), and to do all such acts and '
+            f'things as may be necessary.\u201d</p>'
+        )
+
+    else:
+        sections.append(
+            f'<p class="clause"><strong>\u201cRESOLVED THAT</strong> '
+            f'{additional or "[Resolution details to be specified]"}.\u201d</p>'
+        )
+
+    # ----------------------------------------------------------------
+    # Additional details (if not consumed by type-specific rendering)
+    # ----------------------------------------------------------------
+    if additional and res_type not in (
+        "Related Party Transaction", "ESOP Pool Creation",
+        "Loan/Borrowing Approval",
+    ):
+        sections.append(
+            f'<p class="clause"><em>Additional details noted by the Board:</em> '
+            f'{additional}</p>'
+        )
+
+    # ----------------------------------------------------------------
+    # Filing compliance note with specific form, section, deadline
+    # ----------------------------------------------------------------
+    filing_info = _BR_FILING_MAP.get(res_type)
+    if filing or filing_info:
+        if filing_info:
+            form_name, section_ref, deadline = filing_info
+            sections.append(
+                '<div style="background:#f8f9fa; border-left:4px solid #0d6efd; '
+                'padding:12px; margin:15px 0;">'
+                '<p style="margin:0; font-weight:bold;">Compliance Note:</p>'
+                f'<p style="margin:4px 0;">MCA e-Form: '
+                f'<strong>{form_name}</strong></p>'
+                f'<p style="margin:4px 0;">Statutory Reference: Section {section_ref}, '
+                f'Companies Act, 2013</p>'
+                f'<p style="margin:4px 0;">Filing Deadline: Within '
+                f'<strong>{deadline}</strong> from the date of this resolution</p>'
+                '<p style="margin:4px 0; font-size:11px; color:#666;">Late filing '
+                'attracts additional fees under Section 403 of the Companies Act, 2013 '
+                '(Rs 100 per day of delay).</p>'
+                '</div>'
+            )
+        else:
+            sections.append(
+                '<p class="clause"><em>Note: This resolution requires filing with the '
+                'Ministry of Corporate Affairs (MCA) within the prescribed time '
+                'limit.</em></p>'
+            )
+
+    # ----------------------------------------------------------------
     # Closure
+    # ----------------------------------------------------------------
     sections.append(
-        '<p class="clause">There being no other business, the meeting was concluded '
-        'with a vote of thanks to the Chair.</p>'
+        '<hr style="border:none; border-top:1px solid #999; margin:20px 0;">'
+        '<p class="clause">There being no other business, the Chairperson thanked the '
+        'Directors for their participation and the meeting was concluded with a vote '
+        'of thanks to the Chair.</p>'
+        '<p class="clause"><strong>Time of conclusion:</strong> ____________</p>'
     )
 
-    # Signature block
-    sections.append(
-        '<div class="signature-block"><h2>For and on behalf of the Board</h2>'
-        '<div class="signature-line"><div class="line"></div>'
-        f'<p><strong>{signatory}</strong></p>'
-        '<p>Authorized Signatory</p>'
-        '<p>Date: ________________________</p></div>'
-        '<div class="signature-line"><div class="line"></div>'
-        '<p><strong>Chairperson</strong></p>'
-        '<p>Date: ________________________</p></div></div>'
-    )
+    # ----------------------------------------------------------------
+    # Signature blocks — one per director present
+    # ----------------------------------------------------------------
+    sections.append('<div style="margin-top:40px;">')
+    if director_lines:
+        sig_grid = (
+            '<div style="display:flex; flex-wrap:wrap; gap:30px; margin-top:20px;">'
+        )
+        for d in director_lines:
+            name_part = d.split("(")[0].strip() if "(" in d else d
+            din_part = ""
+            if "(" in d and ")" in d:
+                din_part = d[d.index("("):d.index(")") + 1]
+            sig_grid += (
+                '<div style="min-width:200px; margin-bottom:30px;">'
+                '<div style="border-bottom:1px solid #333; width:200px; '
+                'margin-bottom:5px;">&nbsp;</div>'
+                f'<p style="margin:2px 0; font-weight:bold;">{name_part}</p>'
+                f'<p style="margin:2px 0; font-size:11px;">Director {din_part}</p>'
+                '</div>'
+            )
+        sig_grid += '</div>'
+        sections.append(sig_grid)
+    else:
+        sections.append(
+            '<div style="display:flex; gap:40px; margin-top:20px;">'
+            '<div style="min-width:200px;">'
+            '<div style="border-bottom:1px solid #333; width:200px; '
+            'margin-bottom:5px;">&nbsp;</div>'
+            '<p style="margin:2px 0; font-weight:bold;">[Chairperson]</p></div>'
+            '<div style="min-width:200px;">'
+            '<div style="border-bottom:1px solid #333; width:200px; '
+            'margin-bottom:5px;">&nbsp;</div>'
+            '<p style="margin:2px 0; font-weight:bold;">[Director]</p></div>'
+            '</div>'
+        )
+
+    # Company Secretary attestation
+    if cs_name:
+        sections.append(
+            '<div style="margin-top:30px;">'
+            '<div style="border-bottom:1px solid #333; width:200px; '
+            'margin-bottom:5px;">&nbsp;</div>'
+            f'<p style="margin:2px 0; font-weight:bold;">{cs_name}</p>'
+            '<p style="margin:2px 0; font-size:11px;">Company Secretary</p>'
+            '<p style="margin:2px 0; font-size:10px; color:#666;">'
+            '(Certified that the above is a true and correct record of the '
+            'proceedings of the meeting in compliance with Secretarial Standard '
+            'SS-1)</p>'
+            '</div>'
+        )
+
+    sections.append('</div>')
 
     body = "\n".join(sections)
     return _base_html_wrap(

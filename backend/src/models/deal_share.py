@@ -19,11 +19,11 @@ class DealShare(Base):
     __tablename__ = "deal_shares"
 
     id = Column(Integer, primary_key=True, index=True)
-    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False, index=True)
+    company_id = Column(Integer, ForeignKey("companies.id", ondelete="CASCADE"), nullable=False, index=True)
     investor_profile_id = Column(
-        Integer, ForeignKey("stakeholder_profiles.id"), nullable=False, index=True
+        Integer, ForeignKey("stakeholder_profiles.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    shared_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    shared_by = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     status = Column(Enum(DealShareStatus), default=DealShareStatus.ACTIVE)
     message = Column(Text, nullable=True)  # Optional note from founder
     created_at = Column(

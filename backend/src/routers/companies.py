@@ -1,7 +1,8 @@
 import secrets
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 from src.database import get_db
 from src.models.user import User, UserRole
 from src.models.company import Company, CompanyStatus
@@ -13,6 +14,11 @@ from src.models.company_member import CompanyMember, InviteStatus
 from src.utils.security import get_current_user, get_password_hash
 from src.utils.tier_gate import require_tier
 from src.services.segment_service import resolve_segment
+from src.services.document_html_utils import (
+    LETTERHEAD_DESIGNS,
+    generate_letterhead,
+    generate_letterhead_from_company,
+)
 
 router = APIRouter(prefix="/companies", tags=["Companies"])
 
@@ -443,3 +449,205 @@ def get_investor_interests(
             for i in interests
         ]
     }
+
+
+# ---------------------------------------------------------------------------
+# Letterhead System — Section 12(3)(c) Compliant
+# ---------------------------------------------------------------------------
+
+
+class LetterheadPreviewRequest(BaseModel):
+    design: str = "classic"
+    accent_color: Optional[str] = None
+    tagline: Optional[str] = None
+    show_pan_tan: bool = False
+    logo_html: Optional[str] = None
+
+
+class LetterheadSettingsUpdate(BaseModel):
+    """Save letterhead preferences to company.data JSON."""
+    design: str = "classic"
+    accent_color: Optional[str] = None
+    tagline: Optional[str] = None
+    show_pan_tan: bool = False
+    # Company detail overrides (updates the actual columns)
+    registered_office: Optional[str] = None
+    phone: Optional[str] = None
+    email: Optional[str] = None
+    website: Optional[str] = None
+
+
+@router.get("/letterhead/designs")
+def list_letterhead_designs(
+    current_user: User = Depends(get_current_user),
+):
+    """List all available letterhead designs with descriptions."""
+    return {
+        "designs": [
+            {"key": key, "description": desc}
+            for key, desc in LETTERHEAD_DESIGNS.items()
+        ],
+        "default": "classic",
+    }
+
+
+@router.post("/{company_id}/letterhead/preview")
+def preview_letterhead(
+    company_id: int,
+    body: LetterheadPreviewRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Generate letterhead HTML preview for a given design + company data."""
+    company = db.query(Company).filter(
+        Company.id == company_id, Company.user_id == current_user.id
+    ).first()
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+
+    overrides = {"design": body.design, "show_pan_tan": body.show_pan_tan}
+    if body.accent_color:
+        overrides["accent_color"] = body.accent_color
+    if body.tagline:
+        overrides["tagline"] = body.tagline
+    if body.logo_html:
+        overrides["logo_html"] = body.logo_html
+
+    letterhead = generate_letterhead_from_company(company, **overrides)
+
+    # Wrap in a full HTML page so the preview is self-contained
+    html = (
+        '<!DOCTYPE html><html><head><meta charset="utf-8">'
+        '<style>body{font-family:Georgia,serif;margin:40px;'
+        'display:flex;flex-direction:column;min-height:calc(100vh - 80px);}'
+        '.content-area{flex:1 1 auto;padding:30px 0;color:#666;font-size:12px;}'
+        '.letterhead-footer{flex-shrink:0;margin-top:auto;}</style></head>'
+        '<body>'
+        f'<div class="letterhead-header">{letterhead["header"]}</div>'
+        '<div class="content-area">'
+        '<p>[Your document content will appear here, between the header and footer.]</p>'
+        '<p style="color:#999;font-style:italic;">This is a preview of the '
+        f'<strong>{body.design}</strong> letterhead design.</p>'
+        '</div>'
+        f'<div class="letterhead-footer">{letterhead["footer"]}</div>'
+        '</body></html>'
+    )
+
+    return Response(
+        content=html,
+        media_type="text/html",
+        headers={"Content-Disposition": 'inline; filename="letterhead_preview.html"'},
+    )
+
+
+@router.get("/{company_id}/letterhead")
+def get_letterhead_settings(
+    company_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Get current letterhead settings for a company."""
+    company = db.query(Company).filter(
+        Company.id == company_id, Company.user_id == current_user.id
+    ).first()
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+
+    d = company.data or {}
+    return {
+        "company_id": company.id,
+        "company_name": company.approved_name or (
+            company.proposed_names[0] if company.proposed_names else None
+        ),
+        "cin": company.cin,
+        "pan": company.pan,
+        "tan": company.tan,
+        "registered_office": company.registered_office,
+        "phone": company.phone,
+        "email": company.email,
+        "website": company.website,
+        "design": d.get("letterhead_design", "classic"),
+        "accent_color": d.get("letterhead_accent_color"),
+        "tagline": d.get("letterhead_tagline"),
+        "show_pan_tan": d.get("letterhead_show_pan_tan", False),
+    }
+
+
+@router.put("/{company_id}/letterhead")
+def update_letterhead_settings(
+    company_id: int,
+    body: LetterheadSettingsUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Save letterhead preferences for a company."""
+    company = db.query(Company).filter(
+        Company.id == company_id, Company.user_id == current_user.id
+    ).first()
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+
+    if body.design not in LETTERHEAD_DESIGNS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid design. Choose from: {list(LETTERHEAD_DESIGNS.keys())}",
+        )
+
+    # Update letterhead preferences in data JSON
+    d = company.data or {}
+    d["letterhead_design"] = body.design
+    d["letterhead_accent_color"] = body.accent_color
+    d["letterhead_tagline"] = body.tagline
+    d["letterhead_show_pan_tan"] = body.show_pan_tan
+    company.data = d
+
+    # Update company columns if provided
+    if body.registered_office is not None:
+        company.registered_office = body.registered_office
+    if body.phone is not None:
+        company.phone = body.phone
+    if body.email is not None:
+        company.email = body.email
+    if body.website is not None:
+        company.website = body.website
+
+    db.commit()
+    db.refresh(company)
+
+    return {
+        "message": "Letterhead settings updated",
+        "design": body.design,
+        "accent_color": body.accent_color,
+        "tagline": body.tagline,
+    }
+
+
+@router.get("/{company_id}/letterhead/generate")
+def generate_company_letterhead(
+    company_id: int,
+    design: Optional[str] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Generate letterhead dict (header + footer HTML) for use in documents.
+
+    If design is not specified, uses the company's saved preference.
+    """
+    company = db.query(Company).filter(
+        Company.id == company_id, Company.user_id == current_user.id
+    ).first()
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+
+    d = company.data or {}
+    overrides = {
+        "design": design or d.get("letterhead_design", "classic"),
+        "show_pan_tan": d.get("letterhead_show_pan_tan", False),
+    }
+    if d.get("letterhead_accent_color"):
+        overrides["accent_color"] = d["letterhead_accent_color"]
+    if d.get("letterhead_tagline"):
+        overrides["tagline"] = d["letterhead_tagline"]
+
+    letterhead = generate_letterhead_from_company(company, **overrides)
+    return letterhead

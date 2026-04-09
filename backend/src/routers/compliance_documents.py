@@ -18,6 +18,7 @@ from src.models.user import User
 from src.models.legal_template import LegalDocument
 from src.utils.security import get_current_user
 from src.utils.tier_gate import require_tier
+from src.utils.company_access import get_user_company
 from src.services.compliance_document_service import compliance_document_service
 
 router = APIRouter(prefix="/companies", tags=["Compliance Documents"])
@@ -65,6 +66,7 @@ def generate_pas3(
     _tier=Depends(require_tier("growth")),
 ):
     """Generate PAS-3 (Return of Allotment) document."""
+    company = get_user_company(company_id, db, current_user)
     result = compliance_document_service.generate_pas3(
         db, company_id, current_user.id, data.model_dump()
     )
@@ -82,6 +84,7 @@ def generate_mgt14(
     _tier=Depends(require_tier("growth")),
 ):
     """Generate MGT-14 (Filing of Resolutions) document."""
+    company = get_user_company(company_id, db, current_user)
     result = compliance_document_service.generate_mgt14(
         db, company_id, current_user.id, data.model_dump()
     )
@@ -99,6 +102,7 @@ def generate_sh7(
     _tier=Depends(require_tier("growth")),
 ):
     """Generate SH-7 (Increase in Share Capital) document."""
+    company = get_user_company(company_id, db, current_user)
     result = compliance_document_service.generate_sh7(
         db, company_id, current_user.id, data.model_dump()
     )
@@ -120,6 +124,7 @@ def list_compliance_documents(
     _tier=Depends(require_tier("growth")),
 ):
     """List all generated compliance documents for a company."""
+    company = get_user_company(company_id, db, current_user)
     compliance_types = ["pas_3", "mgt_14", "sh_7"]
     docs = (
         db.query(LegalDocument)

@@ -28,8 +28,8 @@ class AccountingConnection(Base):
     __tablename__ = "accounting_connections"
 
     id = Column(Integer, primary_key=True, index=True)
-    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False, unique=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    company_id = Column(Integer, ForeignKey("companies.id", ondelete="CASCADE"), nullable=False, unique=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     platform = Column(Enum(AccountingPlatform), nullable=False)
     status = Column(Enum(ConnectionStatus), default=ConnectionStatus.PENDING)
 

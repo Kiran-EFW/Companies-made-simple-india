@@ -19,7 +19,7 @@ class StakeholderProfile(Base):
     id = Column(Integer, primary_key=True, index=True)
 
     # Link to user account (stakeholder may have a platform login)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=True, unique=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, unique=True)
 
     # Identity
     name = Column(String, nullable=False)

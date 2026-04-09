@@ -21,9 +21,9 @@ from sqlalchemy.orm import Session
 
 from src.database import get_db
 from src.models.user import User
-from src.models.company import Company
 from src.utils.security import get_current_user
 from src.utils.tier_gate import require_tier
+from src.utils.company_access import get_user_company
 from src.services.notification_service import notification_service
 from src.models.notification import NotificationType
 from src.services.cap_table_service import (
@@ -85,6 +85,7 @@ def get_cap_table(
     _tier=Depends(require_tier("growth")),
 ):
     """Get current cap table for a company."""
+    company = get_user_company(company_id, db, current_user)
     cache_key = f"captable:{company_id}"
     cached = cache_get(cache_key)
     if cached is not None:
@@ -103,14 +104,14 @@ def add_shareholder(
     _tier=Depends(require_tier("growth")),
 ):
     """Add a shareholder to the cap table."""
+    company = get_user_company(company_id, db, current_user)
     result = cap_table_service.add_shareholder(db, company_id, entry)
     if "error" in result:
         raise HTTPException(status_code=400, detail=result["error"])
     cache_delete(f"captable:{company_id}")
 
     # Notify company owner
-    company = db.query(Company).filter(Company.id == company_id).first()
-    if company and company.user_id:
+    if company.user_id:
         shareholder_name = entry.name if hasattr(entry, "name") else "New Shareholder"
         notification_service.send_notification(
             db=db,
@@ -134,6 +135,7 @@ def record_transfer(
     _tier=Depends(require_tier("growth")),
 ):
     """Record a share transfer between shareholders."""
+    company = get_user_company(company_id, db, current_user)
     result = cap_table_service.record_transfer(
         db,
         company_id,
@@ -145,8 +147,7 @@ def record_transfer(
     cache_delete(f"captable:{company_id}")
 
     # Notify company owner
-    company = db.query(Company).filter(Company.id == company_id).first()
-    if company and company.user_id:
+    if company.user_id:
         notification_service.send_notification(
             db=db,
             user_id=company.user_id,
@@ -169,6 +170,7 @@ def record_allotment(
     _tier=Depends(require_tier("growth")),
 ):
     """Record new share allotment."""
+    company = get_user_company(company_id, db, current_user)
     result = cap_table_service.record_allotment(db, company_id, request.entries)
     cache_delete(f"captable:{company_id}")
     return result
@@ -185,6 +187,7 @@ def dilution_preview(
     _tier=Depends(require_tier("growth")),
 ):
     """Preview dilution from new investment."""
+    company = get_user_company(company_id, db, current_user)
     return cap_table_service.get_dilution_preview(
         db, company_id, new_shares, investor_name, price_per_share
     )
@@ -198,6 +201,7 @@ def export_cap_table(
     _tier=Depends(require_tier("growth")),
 ):
     """Export cap table with full transaction history."""
+    company = get_user_company(company_id, db, current_user)
     return cap_table_service.export_cap_table(db, company_id)
 
 
@@ -209,6 +213,7 @@ def get_transactions(
     _tier=Depends(require_tier("growth")),
 ):
     """Get transaction history for a company."""
+    company = get_user_company(company_id, db, current_user)
     return cap_table_service.get_transactions(db, company_id)
 
 
@@ -225,6 +230,7 @@ def simulate_round(
     _tier=Depends(require_tier("growth")),
 ):
     """Simulate a funding round with dilution, ESOP pool, and new investors."""
+    company = get_user_company(company_id, db, current_user)
     investors = [{"name": inv.name, "amount": inv.amount} for inv in request.investors]
     return cap_table_service.simulate_round(
         db,
@@ -246,6 +252,7 @@ def simulate_exit(
     _tier=Depends(require_tier("growth")),
 ):
     """Simulate an exit / liquidity event and compute per-shareholder payouts."""
+    company = get_user_company(company_id, db, current_user)
     return cap_table_service.simulate_exit(
         db,
         company_id,
@@ -264,6 +271,7 @@ def save_scenario(
     _tier=Depends(require_tier("growth")),
 ):
     """Save a simulation scenario (in-memory, returns data with generated ID)."""
+    company = get_user_company(company_id, db, current_user)
     return cap_table_service.save_scenario(
         scenario_name=request.scenario_name,
         scenario_type=request.scenario_type,
@@ -284,6 +292,7 @@ def simulate_exit_waterfall(
     _tier=Depends(require_tier("growth")),
 ):
     """Full exit waterfall with liquidation preferences."""
+    company = get_user_company(company_id, db, current_user)
     lp_dicts = None
     if request.liquidation_preferences:
         lp_dicts = [lp.model_dump() for lp in request.liquidation_preferences]
@@ -305,6 +314,7 @@ def get_share_certificate(
     _tier=Depends(require_tier("growth")),
 ):
     """Generate a share certificate for a shareholder."""
+    company = get_user_company(company_id, db, current_user)
     result = cap_table_service.generate_share_certificate(db, company_id, shareholder_id)
     if "error" in result:
         from fastapi import HTTPException
@@ -322,6 +332,7 @@ def send_certificate_for_signing(
     _tier=Depends(require_tier("growth")),
 ):
     """Generate share certificate and send for e-sign by director and CS."""
+    company = get_user_company(company_id, db, current_user)
     # 1. Generate the certificate HTML
     cert_result = cap_table_service.generate_share_certificate(db, company_id, shareholder_id)
     if "error" in cert_result:

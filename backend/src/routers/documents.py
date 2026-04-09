@@ -15,6 +15,7 @@ from src.utils.admin_auth import get_admin_user
 from src.utils.tier_gate import get_active_subscription_tier, TIER_ORDER
 from src.services.orchestrator import ProcessOrchestrator
 from pydantic import BaseModel
+from src.utils.company_access import get_user_company
 
 router = APIRouter(prefix="/documents", tags=["Documents"])
 
@@ -55,9 +56,7 @@ async def upload_document(
     await file.seek(0)
 
     # Verify ownership
-    comp = db.query(Company).filter(Company.id == company_id, Company.user_id == current_user.id).first()
-    if not comp:
-        raise HTTPException(status_code=404, detail="Company not found")
+    comp = get_user_company(company_id, db, current_user)
 
     if director_id:
         dir_record = db.query(Director).filter(Director.id == director_id, Director.company_id == company_id).first()
@@ -122,11 +121,7 @@ def download_document(
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
 
-    comp = db.query(Company).filter(
-        Company.id == doc.company_id, Company.user_id == current_user.id
-    ).first()
-    if not comp:
-        raise HTTPException(status_code=403, detail="Access denied")
+    get_user_company(doc.company_id, db, current_user)
 
     if not os.path.exists(doc.file_path):
         raise HTTPException(status_code=404, detail="File not found on disk")
@@ -172,11 +167,7 @@ async def upload_pitch_deck(
         )
     await file.seek(0)
 
-    comp = db.query(Company).filter(
-        Company.id == company_id, Company.user_id == current_user.id
-    ).first()
-    if not comp:
-        raise HTTPException(status_code=404, detail="Company not found")
+    comp = get_user_company(company_id, db, current_user)
 
     # Pitch deck is a Growth-tier feature
     current_tier = get_active_subscription_tier(company_id, db)
@@ -238,9 +229,7 @@ def list_company_documents(
     current_user: User = Depends(get_current_user)
 ):
     """List all documents for a company."""
-    comp = db.query(Company).filter(Company.id == company_id, Company.user_id == current_user.id).first()
-    if not comp:
-        raise HTTPException(status_code=404, detail="Company not found")
+    comp = get_user_company(company_id, db, current_user)
         
     docs = db.query(Document).filter(Document.company_id == company_id).all()
     return docs

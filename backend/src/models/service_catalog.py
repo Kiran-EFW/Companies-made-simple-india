@@ -49,8 +49,8 @@ class ServiceRequest(Base):
     __tablename__ = "service_requests"
 
     id = Column(Integer, primary_key=True, index=True)
-    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    company_id = Column(Integer, ForeignKey("companies.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
     # What service
     service_key = Column(String, nullable=False, index=True)  # e.g. "gst_registration"
@@ -68,7 +68,7 @@ class ServiceRequest(Base):
     admin_notes = Column(Text, nullable=True)
 
     # Payment
-    payment_id = Column(Integer, ForeignKey("payments.id"), nullable=True)
+    payment_id = Column(Integer, ForeignKey("payments.id", ondelete="SET NULL"), nullable=True)
     is_paid = Column(Boolean, default=False)
 
     # Timestamps
@@ -93,8 +93,8 @@ class Subscription(Base):
     __tablename__ = "subscriptions"
 
     id = Column(Integer, primary_key=True, index=True)
-    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    company_id = Column(Integer, ForeignKey("companies.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
     # Plan details
     plan_key = Column(String, nullable=False)  # e.g. "compliance_growth"

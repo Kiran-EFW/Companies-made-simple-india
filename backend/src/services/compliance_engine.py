@@ -825,20 +825,21 @@ COMPLIANCE_RULES: Dict[str, Any] = {
     # State-aware rules (PT, LWF) — added dynamically based on company.state
     # ------------------------------------------------------------------
     "_state_rules": {
+        # ── States with Professional Tax legislation ──────────────────
         "Maharashtra": [
             {
                 "type": "pt_monthly",
                 "title": "Professional Tax — Payment (MH)",
                 "frequency": "monthly",
                 "due_rule": "monthly_last_day",
-                "description": "MH: PT payment. Rs 200/month (Rs 300 in Feb).",
+                "description": "MH: PT payment. Rs 200/month (Rs 300 in Feb). Maharashtra State Tax on Professions Act.",
             },
             {
                 "type": "lwf_h1",
                 "title": "LWF — H1 (MH)",
                 "frequency": "semi_annual",
                 "due_rule": "june_30",
-                "description": "MH LWF: June contribution.",
+                "description": "MH LWF: June contribution (Maharashtra Labour Welfare Fund Act).",
             },
             {
                 "type": "lwf_h2",
@@ -854,7 +855,7 @@ COMPLIANCE_RULES: Dict[str, Any] = {
                 "title": "Professional Tax — Payment (KA)",
                 "frequency": "monthly",
                 "due_rule": "monthly_20th",
-                "description": "KA: PT due by 20th. Slab-based. Feb annual spike.",
+                "description": "KA: PT due by 20th. Slab-based (max Rs 200/month). Feb annual return.",
             },
             {
                 "type": "lwf_h2",
@@ -870,7 +871,7 @@ COMPLIANCE_RULES: Dict[str, Any] = {
                 "title": "Professional Tax — Payment (TS)",
                 "frequency": "monthly",
                 "due_rule": "monthly_10th",
-                "description": "TS: PT due by 10th. Max Rs 200/month.",
+                "description": "TS: PT due by 10th. Max Rs 200/month. Telangana Tax on Professions Act.",
             },
         ],
         "Tamil Nadu": [
@@ -879,14 +880,14 @@ COMPLIANCE_RULES: Dict[str, Any] = {
                 "title": "Professional Tax — H1 (TN)",
                 "frequency": "semi_annual",
                 "due_rule": "september_30",
-                "description": "TN: PT half-yearly payment (Apr-Sep).",
+                "description": "TN: PT half-yearly (Apr-Sep). Max Rs 2,500/year. Tamil Nadu Tax on Professions Act.",
             },
             {
                 "type": "pt_annual",
                 "title": "Professional Tax — H2 (TN)",
                 "frequency": "semi_annual",
                 "due_rule": "march_31",
-                "description": "TN: PT half-yearly payment (Oct-Mar).",
+                "description": "TN: PT half-yearly (Oct-Mar).",
             },
         ],
         "Gujarat": [
@@ -895,9 +896,178 @@ COMPLIANCE_RULES: Dict[str, Any] = {
                 "title": "Professional Tax — Payment (GJ)",
                 "frequency": "monthly",
                 "due_rule": "monthly_15th",
-                "description": "GJ: PT due by 15th. Max Rs 200/month.",
+                "description": "GJ: PT due by 15th. Max Rs 200/month (Rs 300 in Feb). Gujarat Professions Tax Act.",
             },
         ],
+        "Andhra Pradesh": [
+            {
+                "type": "pt_monthly",
+                "title": "Professional Tax — Payment (AP)",
+                "frequency": "monthly",
+                "due_rule": "monthly_10th",
+                "description": "AP: PT due by 10th. Max Rs 200/month. AP Tax on Professions Act.",
+            },
+        ],
+        "Kerala": [
+            {
+                "type": "pt_annual",
+                "title": "Professional Tax — H1 (KL)",
+                "frequency": "semi_annual",
+                "due_rule": "september_30",
+                "description": "KL: PT half-yearly (Apr-Sep). Kerala Municipalities Act / Panchayat Raj Act.",
+            },
+            {
+                "type": "pt_annual",
+                "title": "Professional Tax — H2 (KL)",
+                "frequency": "semi_annual",
+                "due_rule": "march_31",
+                "description": "KL: PT half-yearly (Oct-Mar). Max Rs 2,500/year.",
+            },
+        ],
+        "West Bengal": [
+            {
+                "type": "pt_monthly",
+                "title": "Professional Tax — Payment (WB)",
+                "frequency": "monthly",
+                "due_rule": "monthly_21st",
+                "description": "WB: PT due by 21st. Max Rs 200/month. West Bengal State Tax on Professions Act.",
+            },
+            {
+                "type": "lwf_h1",
+                "title": "LWF — H1 (WB)",
+                "frequency": "semi_annual",
+                "due_rule": "june_15",
+                "description": "WB LWF: June contribution (West Bengal Labour Welfare Fund Act).",
+            },
+            {
+                "type": "lwf_h2",
+                "title": "LWF — H2 (WB)",
+                "frequency": "semi_annual",
+                "due_rule": "december_15",
+                "description": "WB LWF: December contribution.",
+            },
+        ],
+        "Madhya Pradesh": [
+            {
+                "type": "pt_monthly",
+                "title": "Professional Tax — Payment (MP)",
+                "frequency": "monthly",
+                "due_rule": "monthly_10th",
+                "description": "MP: PT due by 10th. Max Rs 208/month. Madhya Pradesh Vritti Kar Adhiniyam.",
+            },
+        ],
+        "Odisha": [
+            {
+                "type": "pt_monthly",
+                "title": "Professional Tax — Payment (OD)",
+                "frequency": "monthly",
+                "due_rule": "monthly_last_day",
+                "description": "OD: PT due by month-end. Max Rs 200/month. Odisha Entry Tax / PT Act.",
+            },
+        ],
+        "Assam": [
+            {
+                "type": "pt_monthly",
+                "title": "Professional Tax — Payment (AS)",
+                "frequency": "monthly",
+                "due_rule": "monthly_last_day",
+                "description": "AS: PT due by month-end. Max Rs 208/month. Assam Professions Tax Act.",
+            },
+        ],
+        "Bihar": [
+            {
+                "type": "pt_monthly",
+                "title": "Professional Tax — Payment (BR)",
+                "frequency": "monthly",
+                "due_rule": "monthly_15th",
+                "description": "BR: PT due by 15th. Max Rs 208/month. Bihar Tax on Professions Act.",
+            },
+        ],
+        "Jharkhand": [
+            {
+                "type": "pt_monthly",
+                "title": "Professional Tax — Payment (JH)",
+                "frequency": "monthly",
+                "due_rule": "monthly_15th",
+                "description": "JH: PT due by 15th. Max Rs 208/month. Jharkhand Tax on Professions Act.",
+            },
+        ],
+        "Chhattisgarh": [
+            {
+                "type": "pt_monthly",
+                "title": "Professional Tax — Payment (CG)",
+                "frequency": "monthly",
+                "due_rule": "monthly_10th",
+                "description": "CG: PT due by 10th. Max Rs 208/month. Chhattisgarh Vritti Kar Adhiniyam.",
+            },
+        ],
+        "Punjab": [
+            {
+                "type": "pt_monthly",
+                "title": "Professional Tax — Payment (PB)",
+                "frequency": "monthly",
+                "due_rule": "monthly_last_day",
+                "description": "PB: PT due by month-end. Under Punjab Finance Act provisions.",
+            },
+        ],
+        "Meghalaya": [
+            {
+                "type": "pt_monthly",
+                "title": "Professional Tax — Payment (ML)",
+                "frequency": "monthly",
+                "due_rule": "monthly_last_day",
+                "description": "ML: PT due by month-end. Meghalaya Professions Tax Act.",
+            },
+        ],
+        "Tripura": [
+            {
+                "type": "pt_monthly",
+                "title": "Professional Tax — Payment (TR)",
+                "frequency": "monthly",
+                "due_rule": "monthly_last_day",
+                "description": "TR: PT due by month-end. Tripura Professions Tax Act. Max Rs 208/month.",
+            },
+        ],
+        "Manipur": [
+            {
+                "type": "pt_monthly",
+                "title": "Professional Tax — Payment (MN)",
+                "frequency": "monthly",
+                "due_rule": "monthly_last_day",
+                "description": "MN: PT due by month-end. Manipur Professions Tax Act. Max Rs 200/month.",
+            },
+        ],
+        "Sikkim": [
+            {
+                "type": "pt_monthly",
+                "title": "Professional Tax — Payment (SK)",
+                "frequency": "monthly",
+                "due_rule": "monthly_last_day",
+                "description": "SK: PT due by month-end. Sikkim Tax on Professions Act.",
+            },
+        ],
+        "Mizoram": [
+            {
+                "type": "pt_monthly",
+                "title": "Professional Tax — Payment (MZ)",
+                "frequency": "monthly",
+                "due_rule": "monthly_last_day",
+                "description": "MZ: PT due by month-end. Mizoram Professions, Trades Taxation Act.",
+            },
+        ],
+        "Goa": [
+            {
+                "type": "pt_monthly",
+                "title": "Professional Tax — Payment (GA)",
+                "frequency": "monthly",
+                "due_rule": "monthly_last_day",
+                "description": "GA: PT due by month-end. Goa Tax on Professions Act. Max Rs 200/month.",
+            },
+        ],
+        # ── States with NO Professional Tax (Constitutional cap — Art 276) ──
+        # Rajasthan, Haryana, Uttarakhand, Himachal Pradesh, J&K, Ladakh,
+        # Arunachal Pradesh, Nagaland, Delhi (UT) — no PT levy currently.
+        # No entries needed for these states.
     },
 
 
@@ -1479,6 +1649,15 @@ class ComplianceEngine:
                     target = date(today.year, today.month + 1, 10)
             return target
 
+        if due_rule == "monthly_21st":
+            target = date(today.year, today.month, 21)
+            if target < today:
+                if today.month == 12:
+                    target = date(today.year + 1, 1, 21)
+                else:
+                    target = date(today.year, today.month + 1, 21)
+            return target
+
         if due_rule == "monthly_last_day":
             import calendar as cal_mod
             last_day = cal_mod.monthrange(today.year, today.month)[1]
@@ -1837,6 +2016,365 @@ class ComplianceEngine:
                 )
 
         return sent_count
+
+
+    # ── Event-Triggered Compliance Tasks ──────────────────────────────
+
+    # Events that should auto-create compliance tasks when they occur.
+    # Format: event_name → list of tasks to generate
+    EVENT_TRIGGERS: Dict[str, List[Dict[str, Any]]] = {
+        "shareholding_change": [
+            {
+                "type": "ben_2_filing",
+                "title": "BEN-2 — Significant Beneficial Owner Return (§ 90)",
+                "description": (
+                    "File BEN-2 with ROC within 30 days of receiving BEN-1 "
+                    "declaration from a member. Required whenever a Significant "
+                    "Beneficial Owner acquires or changes beneficial interest."
+                ),
+                "deadline_days": 30,
+                "section": "90(4A)",
+                "form": "BEN-2",
+                "penalty_per_day": 100,
+            },
+            {
+                "type": "mgt_14_shareholding",
+                "title": "MGT-14 — Board Resolution for Share Allotment/Transfer",
+                "description": (
+                    "File MGT-14 with ROC within 30 days of passing board "
+                    "resolution for share allotment, transfer, or other changes "
+                    "requiring § 117 filing."
+                ),
+                "deadline_days": 30,
+                "section": "117",
+                "form": "MGT-14",
+                "penalty_per_day": 100,
+            },
+        ],
+        "share_allotment": [
+            {
+                "type": "pas_3_filing",
+                "title": "PAS-3 — Return of Allotment (§ 39)",
+                "description": (
+                    "File PAS-3 with ROC within 30 days of allotment of shares. "
+                    "Must include board resolution, list of allottees, and details "
+                    "of consideration received."
+                ),
+                "deadline_days": 30,
+                "section": "39(4)",
+                "form": "PAS-3",
+                "penalty_per_day": 100,
+            },
+        ],
+        "director_appointment": [
+            {
+                "type": "dir_12_appointment",
+                "title": "DIR-12 — Director Appointment Filing (§ 170)",
+                "description": (
+                    "File DIR-12 with ROC within 30 days of appointment of a "
+                    "new director. Director must have valid DIN."
+                ),
+                "deadline_days": 30,
+                "section": "170(2)",
+                "form": "DIR-12",
+                "penalty_per_day": 100,
+            },
+        ],
+        "director_resignation": [
+            {
+                "type": "dir_12_resignation",
+                "title": "DIR-12 — Director Resignation Filing (§ 168)",
+                "description": (
+                    "File DIR-12 with ROC within 30 days of director's resignation. "
+                    "Director must file DIR-11 independently within 30 days."
+                ),
+                "deadline_days": 30,
+                "section": "168(1)",
+                "form": "DIR-12",
+                "penalty_per_day": 100,
+            },
+        ],
+        "auditor_appointment": [
+            {
+                "type": "adt_1_filing",
+                "title": "ADT-1 — Auditor Appointment Filing (§ 139)",
+                "description": (
+                    "File ADT-1 with ROC within 15 days of appointment of "
+                    "statutory auditor at AGM."
+                ),
+                "deadline_days": 15,
+                "section": "139(1)",
+                "form": "ADT-1",
+                "penalty_per_day": 300,
+            },
+        ],
+        "registered_office_change": [
+            {
+                "type": "inc_22_filing",
+                "title": "INC-22 — Registered Office Change (§ 12)",
+                "description": (
+                    "File INC-22 with ROC within 30 days of change of registered "
+                    "office address. Must include proof of new address."
+                ),
+                "deadline_days": 30,
+                "section": "12(4)",
+                "form": "INC-22",
+                "penalty_per_day": 100,
+            },
+        ],
+        "capital_increase": [
+            {
+                "type": "sh_7_filing",
+                "title": "SH-7 — Authorized Capital Increase (§ 64)",
+                "description": (
+                    "File SH-7 with ROC within 30 days of passing special "
+                    "resolution for increase in authorized share capital."
+                ),
+                "deadline_days": 30,
+                "section": "64(1)",
+                "form": "SH-7",
+                "penalty_per_day": 100,
+            },
+        ],
+        "board_resolution_special": [
+            {
+                "type": "mgt_14_resolution",
+                "title": "MGT-14 — Special Resolution Filing (§ 117)",
+                "description": (
+                    "File MGT-14 with ROC within 30 days of passing a special "
+                    "resolution or board resolution requiring § 117/179(3) filing."
+                ),
+                "deadline_days": 30,
+                "section": "117",
+                "form": "MGT-14",
+                "penalty_per_day": 100,
+            },
+        ],
+        "charge_creation": [
+            {
+                "type": "chg_1_filing",
+                "title": "CHG-1 — Charge Creation/Modification (§ 77)",
+                "description": (
+                    "File CHG-1 with ROC within 30 days of creation or "
+                    "modification of charge on company assets."
+                ),
+                "deadline_days": 30,
+                "section": "77(1)",
+                "form": "CHG-1",
+                "penalty_per_day": 100,
+            },
+        ],
+        "charge_satisfaction": [
+            {
+                "type": "chg_4_filing",
+                "title": "CHG-4 — Charge Satisfaction (§ 82)",
+                "description": (
+                    "File CHG-4 with ROC within 30 days of satisfaction of "
+                    "charge (repayment of secured loan/debenture)."
+                ),
+                "deadline_days": 30,
+                "section": "82(1)",
+                "form": "CHG-4",
+                "penalty_per_day": 100,
+            },
+        ],
+        "loan_or_investment": [
+            {
+                "type": "mgt_14_loan",
+                "title": "MGT-14 — Loan/Investment Resolution Filing (§ 186)",
+                "description": (
+                    "File MGT-14 with ROC within 30 days of board resolution "
+                    "approving loan, guarantee, security, or investment under § 186."
+                ),
+                "deadline_days": 30,
+                "section": "186 / 117",
+                "form": "MGT-14",
+                "penalty_per_day": 100,
+            },
+        ],
+        "rpt_approval": [
+            {
+                "type": "mgt_14_rpt",
+                "title": "MGT-14 — Related Party Transaction Filing (§ 188)",
+                "description": (
+                    "File MGT-14 with ROC within 30 days of passing board/"
+                    "shareholder resolution approving related party transaction."
+                ),
+                "deadline_days": 30,
+                "section": "188 / 117",
+                "form": "MGT-14",
+                "penalty_per_day": 100,
+            },
+        ],
+    }
+
+    # Threshold triggers: auto-create tasks when company crosses metrics
+    THRESHOLD_TRIGGERS: Dict[str, Dict[str, Any]] = {
+        "employees_gte_10": {
+            "field": "employee_count",
+            "operator": "gte",
+            "value": 10,
+            "tasks": [
+                {
+                    "type": "esic_registration",
+                    "title": "ESI Registration — Mandatory (≥10 employees)",
+                    "description": (
+                        "Register with ESIC within 15 days of crossing 10 "
+                        "employees (with salary ≤ Rs 21,000/month). File Form 01."
+                    ),
+                    "deadline_days": 15,
+                },
+            ],
+        },
+        "employees_gte_20": {
+            "field": "employee_count",
+            "operator": "gte",
+            "value": 20,
+            "tasks": [
+                {
+                    "type": "epfo_registration",
+                    "title": "EPF Registration — Mandatory (≥20 employees)",
+                    "description": (
+                        "Register with EPFO within 30 days of crossing 20 "
+                        "employees. File application on EPFO Unified Portal."
+                    ),
+                    "deadline_days": 30,
+                },
+            ],
+        },
+    }
+
+    def create_event_tasks(
+        self,
+        db: Session,
+        company: Company,
+        event_name: str,
+        event_date: Optional[date] = None,
+        notes: str = "",
+    ) -> List[ComplianceTask]:
+        """Create compliance tasks triggered by a corporate event.
+
+        Args:
+            db: Database session
+            company: Company the event occurred for
+            event_name: Key from EVENT_TRIGGERS (e.g., 'share_allotment')
+            event_date: When the event occurred (defaults to today)
+            notes: Additional context about the event
+
+        Returns:
+            List of created ComplianceTask instances
+        """
+        triggers = self.EVENT_TRIGGERS.get(event_name, [])
+        if not triggers:
+            logger.warning("Unknown compliance event: %s", event_name)
+            return []
+
+        if event_date is None:
+            event_date = date.today()
+
+        created: List[ComplianceTask] = []
+        for trigger in triggers:
+            deadline = event_date + timedelta(days=trigger["deadline_days"])
+
+            # Check for duplicate (same type, same company, similar deadline)
+            existing = (
+                db.query(ComplianceTask)
+                .filter(
+                    ComplianceTask.company_id == company.id,
+                    ComplianceTask.task_type == trigger["type"],
+                    ComplianceTask.due_date == deadline.isoformat(),
+                    ComplianceTask.status.in_(["upcoming", "in_progress"]),
+                )
+                .first()
+            )
+            if existing:
+                continue
+
+            task = ComplianceTask(
+                company_id=company.id,
+                task_type=trigger["type"],
+                title=trigger["title"],
+                description=trigger["description"],
+                due_date=deadline.isoformat(),
+                status="upcoming",
+                priority="high",
+                notes=(
+                    f"Event: {event_name} on {event_date.isoformat()}. "
+                    f"Form: {trigger.get('form', 'N/A')} | "
+                    f"Section: {trigger.get('section', 'N/A')}. "
+                    + (notes or "")
+                ),
+            )
+            db.add(task)
+            created.append(task)
+
+        if created:
+            db.commit()
+            for t in created:
+                db.refresh(t)
+            logger.info(
+                "Created %d event-triggered tasks for company %d (event=%s)",
+                len(created), company.id, event_name,
+            )
+
+        return created
+
+    def check_threshold_triggers(
+        self,
+        db: Session,
+        company: Company,
+    ) -> List[ComplianceTask]:
+        """Check if company has crossed any metric thresholds and create tasks.
+
+        Should be called whenever company metrics (employee_count, etc.) are updated.
+        """
+        created: List[ComplianceTask] = []
+        company_data = getattr(company, "data", {}) or {}
+        triggered_keys = company_data.get("_triggered_thresholds", [])
+
+        for key, trigger in self.THRESHOLD_TRIGGERS.items():
+            if key in triggered_keys:
+                continue  # Already triggered
+
+            field_val = getattr(company, trigger["field"], 0) or 0
+            threshold = trigger["value"]
+            op = trigger["operator"]
+
+            crossed = False
+            if op == "gte" and field_val >= threshold:
+                crossed = True
+            elif op == "gt" and field_val > threshold:
+                crossed = True
+
+            if not crossed:
+                continue
+
+            for task_def in trigger["tasks"]:
+                deadline = date.today() + timedelta(days=task_def["deadline_days"])
+                task = ComplianceTask(
+                    company_id=company.id,
+                    task_type=task_def["type"],
+                    title=task_def["title"],
+                    description=task_def["description"],
+                    due_date=deadline.isoformat(),
+                    status="upcoming",
+                    priority="high",
+                    notes=f"Auto-triggered: {key} threshold crossed.",
+                )
+                db.add(task)
+                created.append(task)
+
+            # Mark as triggered so we don't create duplicates
+            triggered_keys.append(key)
+
+        if created:
+            company_data["_triggered_thresholds"] = triggered_keys
+            company.data = company_data
+            db.commit()
+            for t in created:
+                db.refresh(t)
+
+        return created
 
 
 # Module-level singleton

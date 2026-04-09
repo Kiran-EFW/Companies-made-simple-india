@@ -7,9 +7,9 @@ class DataRoomFolder(Base):
     __tablename__ = "data_room_folders"
 
     id = Column(Integer, primary_key=True, index=True)
-    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
+    company_id = Column(Integer, ForeignKey("companies.id", ondelete="CASCADE"), nullable=False, index=True)
     name = Column(String, nullable=False)
-    parent_id = Column(Integer, ForeignKey("data_room_folders.id"), nullable=True)
+    parent_id = Column(Integer, ForeignKey("data_room_folders.id", ondelete="SET NULL"), nullable=True)
     folder_type = Column(String, nullable=True)
     # Standard folders: INCORPORATION, COMPLIANCE, FINANCIALS, AGREEMENTS,
     # CAP_TABLE, BOARD_MEETINGS, IP, HR, TAX, CUSTOM
@@ -27,9 +27,9 @@ class DataRoomFile(Base):
     __tablename__ = "data_room_files"
 
     id = Column(Integer, primary_key=True, index=True)
-    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
-    folder_id = Column(Integer, ForeignKey("data_room_folders.id"), nullable=False)
-    uploaded_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    company_id = Column(Integer, ForeignKey("companies.id", ondelete="CASCADE"), nullable=False, index=True)
+    folder_id = Column(Integer, ForeignKey("data_room_folders.id", ondelete="CASCADE"), nullable=False)
+    uploaded_by = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
     filename = Column(String, nullable=False)
     original_filename = Column(String, nullable=False)
@@ -48,7 +48,7 @@ class DataRoomFile(Base):
 
     # Version tracking
     version = Column(Integer, default=1)
-    previous_version_id = Column(Integer, ForeignKey("data_room_files.id"), nullable=True)
+    previous_version_id = Column(Integer, ForeignKey("data_room_files.id", ondelete="SET NULL"), nullable=True)
 
     is_archived = Column(Boolean, default=False)
 
@@ -64,8 +64,8 @@ class DataRoomShareLink(Base):
     __tablename__ = "data_room_share_links"
 
     id = Column(Integer, primary_key=True, index=True)
-    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
-    created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    company_id = Column(Integer, ForeignKey("companies.id", ondelete="CASCADE"), nullable=False, index=True)
+    created_by = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
     share_token = Column(String, unique=True, nullable=False, index=True)
     name = Column(String, nullable=False)  # "Series A Due Diligence", "Auditor Access"
@@ -94,9 +94,9 @@ class DataRoomAccessLog(Base):
     __tablename__ = "data_room_access_logs"
 
     id = Column(Integer, primary_key=True, index=True)
-    share_link_id = Column(Integer, ForeignKey("data_room_share_links.id"), nullable=True)
-    file_id = Column(Integer, ForeignKey("data_room_files.id"), nullable=True)
-    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
+    share_link_id = Column(Integer, ForeignKey("data_room_share_links.id", ondelete="SET NULL"), nullable=True)
+    file_id = Column(Integer, ForeignKey("data_room_files.id", ondelete="SET NULL"), nullable=True)
+    company_id = Column(Integer, ForeignKey("companies.id", ondelete="CASCADE"), nullable=False, index=True)
 
     action = Column(String, nullable=False)  # view, download, share_link_access
     ip_address = Column(String, nullable=True)

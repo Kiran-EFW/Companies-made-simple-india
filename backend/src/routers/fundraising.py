@@ -35,6 +35,7 @@ from src.models.stakeholder import StakeholderProfile
 from src.models.deal_share import DealShare, DealShareStatus
 from src.utils.security import get_current_user
 from src.utils.tier_gate import require_tier
+from src.utils.company_access import get_user_company
 from src.services.fundraising_service import fundraising_service
 from src.services.notification_service import notification_service
 from src.models.notification import NotificationType
@@ -65,23 +66,21 @@ def create_round(
     _tier=Depends(require_tier("growth")),
 ):
     """Create a new funding round."""
+    company = get_user_company(company_id, db, current_user)
     result = fundraising_service.create_round(db, company_id, data.model_dump())
 
     # Notify company owner
     try:
-        from src.models.company import Company
-        company = db.query(Company).filter(Company.id == company_id).first()
-        if company:
-            round_label = data.round_name or data.instrument_type or "New Round"
-            notification_service.send_notification(
-                db=db,
-                user_id=company.user_id,
-                type=NotificationType.ROUND_CREATED,
-                title=f"Fundraising Round Created: {round_label}",
-                message=f"A new fundraising round '{round_label}' has been created.",
-                company_id=company_id,
-                action_url="/dashboard/fundraising",
-            )
+        round_label = data.round_name or data.instrument_type or "New Round"
+        notification_service.send_notification(
+            db=db,
+            user_id=company.user_id,
+            type=NotificationType.ROUND_CREATED,
+            title=f"Fundraising Round Created: {round_label}",
+            message=f"A new fundraising round '{round_label}' has been created.",
+            company_id=company_id,
+            action_url="/dashboard/fundraising",
+        )
     except Exception:
         pass  # Don't let notification failure block the request
 
@@ -96,6 +95,7 @@ def list_rounds(
     _tier=Depends(require_tier("growth")),
 ):
     """List all funding rounds for a company."""
+    company = get_user_company(company_id, db, current_user)
     return fundraising_service.list_rounds(db, company_id)
 
 
@@ -108,6 +108,7 @@ def get_round(
     _tier=Depends(require_tier("growth")),
 ):
     """Get round detail with investors and documents."""
+    company = get_user_company(company_id, db, current_user)
     result = fundraising_service.get_round(db, round_id, company_id)
     if result is None:
         raise HTTPException(status_code=404, detail="Round not found")
@@ -124,6 +125,7 @@ def update_round(
     _tier=Depends(require_tier("growth")),
 ):
     """Update round details."""
+    company = get_user_company(company_id, db, current_user)
     update_payload = data.model_dump(exclude_unset=True)
     result = fundraising_service.update_round(
         db, round_id, company_id, update_payload
@@ -134,19 +136,16 @@ def update_round(
     # Notify company owner when round is closed
     if update_payload.get("status") == "closed":
         try:
-            from src.models.company import Company
-            company = db.query(Company).filter(Company.id == company_id).first()
-            if company:
-                round_name = result.get("round_name", "Funding Round")
-                notification_service.send_notification(
-                    db=db,
-                    user_id=company.user_id,
-                    type=NotificationType.ROUND_CLOSED,
-                    title=f"Round Closed: {round_name}",
-                    message=f"The fundraising round '{round_name}' has been closed.",
-                    company_id=company_id,
-                    action_url="/dashboard/fundraising",
-                )
+            round_name = result.get("round_name", "Funding Round")
+            notification_service.send_notification(
+                db=db,
+                user_id=company.user_id,
+                type=NotificationType.ROUND_CLOSED,
+                title=f"Round Closed: {round_name}",
+                message=f"The fundraising round '{round_name}' has been closed.",
+                company_id=company_id,
+                action_url="/dashboard/fundraising",
+            )
         except Exception:
             pass  # Don't let notification failure block the request
 
@@ -167,6 +166,7 @@ def save_checklist_state(
     _tier=Depends(require_tier("growth")),
 ):
     """Save the frontend 7-step checklist state for a funding round."""
+    company = get_user_company(company_id, db, current_user)
     result = fundraising_service.save_checklist_state(
         db, round_id, company_id, data.state
     )
@@ -184,6 +184,7 @@ def get_checklist_state(
     _tier=Depends(require_tier("growth")),
 ):
     """Get the current checklist state for a funding round."""
+    company = get_user_company(company_id, db, current_user)
     result = fundraising_service.get_checklist_state(db, round_id, company_id)
     if result is None:
         raise HTTPException(status_code=404, detail="Round not found")
@@ -204,6 +205,7 @@ def add_investor(
     _tier=Depends(require_tier("growth")),
 ):
     """Add an investor to a round."""
+    company = get_user_company(company_id, db, current_user)
     result = fundraising_service.add_investor(
         db, round_id, company_id, data.model_dump()
     )
@@ -212,18 +214,15 @@ def add_investor(
 
     # Notify company owner
     try:
-        from src.models.company import Company
-        company = db.query(Company).filter(Company.id == company_id).first()
-        if company:
-            notification_service.send_notification(
-                db=db,
-                user_id=company.user_id,
-                type=NotificationType.INVESTOR_ADDED,
-                title=f"Investor Added: {data.investor_name}",
-                message=f"Investor '{data.investor_name}' has been added to the funding round.",
-                company_id=company_id,
-                action_url="/dashboard/fundraising",
-            )
+        notification_service.send_notification(
+            db=db,
+            user_id=company.user_id,
+            type=NotificationType.INVESTOR_ADDED,
+            title=f"Investor Added: {data.investor_name}",
+            message=f"Investor '{data.investor_name}' has been added to the funding round.",
+            company_id=company_id,
+            action_url="/dashboard/fundraising",
+        )
     except Exception:
         pass  # Don't let notification failure block the request
 
@@ -241,6 +240,7 @@ def update_investor(
     _tier=Depends(require_tier("growth")),
 ):
     """Update investor details and status flags."""
+    company = get_user_company(company_id, db, current_user)
     result = fundraising_service.update_investor(
         db, investor_id, company_id, data.model_dump(exclude_unset=True)
     )
@@ -259,6 +259,7 @@ def remove_investor(
     _tier=Depends(require_tier("growth")),
 ):
     """Remove an investor from a round."""
+    company = get_user_company(company_id, db, current_user)
     result = fundraising_service.remove_investor(db, investor_id, company_id)
     if "error" in result:
         raise HTTPException(status_code=400, detail=result["error"])
@@ -279,6 +280,7 @@ def link_document(
     _tier=Depends(require_tier("growth")),
 ):
     """Link a legal document (term_sheet/sha/ssa) to a round."""
+    company = get_user_company(company_id, db, current_user)
     result = fundraising_service.link_document(
         db, round_id, company_id, data.doc_type, data.document_id
     )
@@ -297,6 +299,7 @@ def initiate_closing(
     _tier=Depends(require_tier("growth")),
 ):
     """Start the closing room — send documents for e-sign."""
+    company = get_user_company(company_id, db, current_user)
     result = fundraising_service.initiate_closing(
         db, round_id, company_id, current_user.id, data.documents_to_sign
     )
@@ -314,6 +317,7 @@ def get_closing_room(
     _tier=Depends(require_tier("growth")),
 ):
     """Get signing status for the closing room."""
+    company = get_user_company(company_id, db, current_user)
     result = fundraising_service.get_closing_room_status(db, round_id, company_id)
     if "error" in result:
         raise HTTPException(status_code=400, detail=result["error"])
@@ -334,6 +338,7 @@ def complete_allotment(
     _tier=Depends(require_tier("growth")),
 ):
     """Allot shares to investors after closing. Updates cap table."""
+    company = get_user_company(company_id, db, current_user)
     result = fundraising_service.complete_allotment(
         db, round_id, company_id, data.investor_ids
     )
@@ -356,6 +361,7 @@ def conversion_preview(
     _tier=Depends(require_tier("growth")),
 ):
     """Preview SAFE/CCD/Note conversion to equity (read-only)."""
+    company = get_user_company(company_id, db, current_user)
     result = fundraising_service.preview_conversion(
         db, company_id, round_id, trigger_round_id
     )
@@ -374,6 +380,7 @@ def convert_round(
     _tier=Depends(require_tier("growth")),
 ):
     """Execute SAFE/CCD/Note conversion to equity shares."""
+    company = get_user_company(company_id, db, current_user)
     trigger_round_id = (data or {}).get("trigger_round_id")
     result = fundraising_service.convert_instrument(
         db, company_id, round_id, trigger_round_id
@@ -406,11 +413,7 @@ def share_deal(
     on their investor portal. If no StakeholderProfile exists for the email,
     one is created automatically.
     """
-    from src.models.company import Company
-
-    company = db.query(Company).filter(Company.id == company_id).first()
-    if not company:
-        raise HTTPException(status_code=404, detail="Company not found")
+    company = get_user_company(company_id, db, current_user)
 
     # Find or create a stakeholder profile for this investor
     profile = (
@@ -486,6 +489,7 @@ def list_shared_deals(
     _tier=Depends(require_tier("growth")),
 ):
     """List all investors this company's deal has been shared with."""
+    company = get_user_company(company_id, db, current_user)
     shares = (
         db.query(DealShare)
         .filter(DealShare.company_id == company_id)
@@ -521,6 +525,7 @@ def get_valuation_reference(
     _tier=Depends(require_tier("growth")),
 ):
     """Get latest company valuation for fundraising pre-money reference."""
+    company = get_user_company(company_id, db, current_user)
     from src.services.valuation_service import valuation_service
 
     summary = valuation_service.get_latest_valuation_summary(db, company_id)
@@ -545,6 +550,7 @@ def revoke_shared_deal(
     _tier=Depends(require_tier("growth")),
 ):
     """Revoke a deal share — investor will no longer see this deal."""
+    company = get_user_company(company_id, db, current_user)
     share = (
         db.query(DealShare)
         .filter(

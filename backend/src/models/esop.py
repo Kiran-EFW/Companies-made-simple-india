@@ -35,7 +35,7 @@ class ESOPPlan(Base):
     __tablename__ = "esop_plans"
 
     id = Column(Integer, primary_key=True, index=True)
-    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
+    company_id = Column(Integer, ForeignKey("companies.id", ondelete="CASCADE"), nullable=False, index=True)
 
     plan_name = Column(String, nullable=False)
     pool_size = Column(Integer, nullable=False)
@@ -56,14 +56,14 @@ class ESOPPlan(Base):
 
     # Board resolution reference
     board_resolution_date = Column(DateTime, nullable=True)
-    board_resolution_document_id = Column(Integer, ForeignKey("legal_documents.id"), nullable=True)
+    board_resolution_document_id = Column(Integer, ForeignKey("legal_documents.id", ondelete="SET NULL"), nullable=True)
 
     # Shareholder resolution reference
     shareholder_resolution_date = Column(DateTime, nullable=True)
-    shareholder_resolution_document_id = Column(Integer, ForeignKey("legal_documents.id"), nullable=True)
+    shareholder_resolution_document_id = Column(Integer, ForeignKey("legal_documents.id", ondelete="SET NULL"), nullable=True)
 
     # Plan document
-    plan_document_id = Column(Integer, ForeignKey("legal_documents.id"), nullable=True)
+    plan_document_id = Column(Integer, ForeignKey("legal_documents.id", ondelete="SET NULL"), nullable=True)
 
     # Approval workflow state (persisted from frontend 5-step wizard)
     approval_state = Column(JSON, default=dict)
@@ -96,8 +96,8 @@ class ESOPGrant(Base):
     __tablename__ = "esop_grants"
 
     id = Column(Integer, primary_key=True, index=True)
-    plan_id = Column(Integer, ForeignKey("esop_plans.id"), nullable=False)
-    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
+    plan_id = Column(Integer, ForeignKey("esop_plans.id", ondelete="CASCADE"), nullable=False, index=True)
+    company_id = Column(Integer, ForeignKey("companies.id", ondelete="CASCADE"), nullable=False, index=True)
 
     # Grantee info
     grantee_name = Column(String, nullable=False)
@@ -123,11 +123,11 @@ class ESOPGrant(Base):
     status = Column(Enum(ESOPGrantStatus), default=ESOPGrantStatus.DRAFT)
 
     # Grant letter document
-    grant_letter_document_id = Column(Integer, ForeignKey("legal_documents.id"), nullable=True)
+    grant_letter_document_id = Column(Integer, ForeignKey("legal_documents.id", ondelete="SET NULL"), nullable=True)
 
     # Acceptance tracking
     accepted_at = Column(DateTime, nullable=True)
-    acceptance_signature_request_id = Column(Integer, ForeignKey("signature_requests.id"), nullable=True)
+    acceptance_signature_request_id = Column(Integer, ForeignKey("signature_requests.id", ondelete="SET NULL"), nullable=True)
 
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(

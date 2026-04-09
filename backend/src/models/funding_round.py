@@ -27,7 +27,7 @@ class FundingRound(Base):
     __tablename__ = "funding_rounds"
 
     id = Column(Integer, primary_key=True, index=True)
-    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
+    company_id = Column(Integer, ForeignKey("companies.id", ondelete="CASCADE"), nullable=False, index=True)
 
     round_name = Column(String, nullable=False)
     instrument_type = Column(Enum(InstrumentType), default=InstrumentType.EQUITY)
@@ -53,13 +53,13 @@ class FundingRound(Base):
     status = Column(Enum(FundingRoundStatus), default=FundingRoundStatus.DRAFT)
 
     # Linked documents
-    term_sheet_document_id = Column(Integer, ForeignKey("legal_documents.id"), nullable=True)
-    sha_document_id = Column(Integer, ForeignKey("legal_documents.id"), nullable=True)
-    ssa_document_id = Column(Integer, ForeignKey("legal_documents.id"), nullable=True)
+    term_sheet_document_id = Column(Integer, ForeignKey("legal_documents.id", ondelete="SET NULL"), nullable=True)
+    sha_document_id = Column(Integer, ForeignKey("legal_documents.id", ondelete="SET NULL"), nullable=True)
+    ssa_document_id = Column(Integer, ForeignKey("legal_documents.id", ondelete="SET NULL"), nullable=True)
 
     # E-sign tracking (Closing Room)
-    sha_signature_request_id = Column(Integer, ForeignKey("signature_requests.id"), nullable=True)
-    ssa_signature_request_id = Column(Integer, ForeignKey("signature_requests.id"), nullable=True)
+    sha_signature_request_id = Column(Integer, ForeignKey("signature_requests.id", ondelete="SET NULL"), nullable=True)
+    ssa_signature_request_id = Column(Integer, ForeignKey("signature_requests.id", ondelete="SET NULL"), nullable=True)
 
     # Post-close
     allotment_date = Column(DateTime, nullable=True)
@@ -89,8 +89,8 @@ class RoundInvestor(Base):
     __tablename__ = "round_investors"
 
     id = Column(Integer, primary_key=True, index=True)
-    funding_round_id = Column(Integer, ForeignKey("funding_rounds.id"), nullable=False)
-    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
+    funding_round_id = Column(Integer, ForeignKey("funding_rounds.id", ondelete="CASCADE"), nullable=False, index=True)
+    company_id = Column(Integer, ForeignKey("companies.id", ondelete="CASCADE"), nullable=False, index=True)
 
     # Investor info
     investor_name = Column(String, nullable=False)
@@ -110,11 +110,11 @@ class RoundInvestor(Base):
     shares_issued = Column(Boolean, default=False)
 
     # Link to shareholder record (created after allotment)
-    shareholder_id = Column(Integer, ForeignKey("shareholders.id"), nullable=True)
+    shareholder_id = Column(Integer, ForeignKey("shareholders.id", ondelete="SET NULL"), nullable=True)
 
     # Conversion tracking (SAFE/CCD/Note → equity)
     converted = Column(Boolean, default=False)
-    conversion_event_id = Column(Integer, ForeignKey("conversion_events.id"), nullable=True)
+    conversion_event_id = Column(Integer, ForeignKey("conversion_events.id", ondelete="SET NULL"), nullable=True)
 
     notes = Column(Text, nullable=True)
 

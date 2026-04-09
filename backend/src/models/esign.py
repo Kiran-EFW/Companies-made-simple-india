@@ -8,9 +8,9 @@ class SignatureRequest(Base):
     __tablename__ = "signature_requests"
 
     id = Column(Integer, primary_key=True, index=True)
-    legal_document_id = Column(Integer, ForeignKey("legal_documents.id"), nullable=False)
-    company_id = Column(Integer, ForeignKey("companies.id"), nullable=True)
-    created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    legal_document_id = Column(Integer, ForeignKey("legal_documents.id", ondelete="CASCADE"), nullable=False)
+    company_id = Column(Integer, ForeignKey("companies.id", ondelete="SET NULL"), nullable=True, index=True)
+    created_by = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
     title = Column(String, nullable=False)
     message = Column(Text, nullable=True)  # Custom message to signatories
@@ -45,7 +45,7 @@ class Signatory(Base):
     __tablename__ = "signatories"
 
     id = Column(Integer, primary_key=True, index=True)
-    signature_request_id = Column(Integer, ForeignKey("signature_requests.id"), nullable=False)
+    signature_request_id = Column(Integer, ForeignKey("signature_requests.id", ondelete="CASCADE"), nullable=False)
 
     name = Column(String, nullable=False)
     email = Column(String, nullable=False)
@@ -97,8 +97,8 @@ class SignatureAuditLog(Base):
     __tablename__ = "signature_audit_logs"
 
     id = Column(Integer, primary_key=True, index=True)
-    signature_request_id = Column(Integer, ForeignKey("signature_requests.id"), nullable=False)
-    signatory_id = Column(Integer, ForeignKey("signatories.id"), nullable=True)
+    signature_request_id = Column(Integer, ForeignKey("signature_requests.id", ondelete="CASCADE"), nullable=False)
+    signatory_id = Column(Integer, ForeignKey("signatories.id", ondelete="SET NULL"), nullable=True)
 
     action = Column(String, nullable=False)
     # Actions: request_created, email_sent, document_viewed, signature_drawn,

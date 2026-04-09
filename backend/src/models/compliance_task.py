@@ -151,7 +151,7 @@ class ComplianceTask(Base):
     __tablename__ = "compliance_tasks"
 
     id = Column(Integer, primary_key=True, index=True)
-    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
+    company_id = Column(Integer, ForeignKey("companies.id", ondelete="CASCADE"), nullable=False, index=True)
 
     task_type = Column(Enum(ComplianceTaskType), nullable=False)
     title = Column(String, nullable=False)

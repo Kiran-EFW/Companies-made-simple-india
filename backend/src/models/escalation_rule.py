@@ -31,7 +31,7 @@ class EscalationRule(Base):
 
     # Who to escalate to
     escalate_to_role = Column(String, nullable=True)  # e.g. "cs_lead", "admin"
-    escalate_to_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    escalate_to_user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
 
     # What action to take
     action = Column(Enum(EscalationAction), default=EscalationAction.NOTIFY)
@@ -51,19 +51,19 @@ class EscalationLog(Base):
     __tablename__ = "escalation_logs"
 
     id = Column(Integer, primary_key=True, index=True)
-    rule_id = Column(Integer, ForeignKey("escalation_rules.id"), nullable=False)
+    rule_id = Column(Integer, ForeignKey("escalation_rules.id", ondelete="CASCADE"), nullable=False)
     target_type = Column(String, nullable=False)  # "filing_task" or "verification_queue"
     target_id = Column(Integer, nullable=False)
-    company_id = Column(Integer, ForeignKey("companies.id"), nullable=True)
+    company_id = Column(Integer, ForeignKey("companies.id", ondelete="SET NULL"), nullable=True)
 
     # Who was notified / reassigned to
-    escalated_to_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    escalated_to_user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     escalated_to_role = Column(String, nullable=True)
     action_taken = Column(String, nullable=False)
 
     # Resolution
     is_resolved = Column(Boolean, default=False, index=True)
-    resolved_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    resolved_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     resolved_at = Column(DateTime, nullable=True)
     resolution_notes = Column(Text, nullable=True)
 

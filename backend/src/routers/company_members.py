@@ -14,6 +14,7 @@ from src.models.company_member import CompanyMember, CompanyRole, InviteStatus
 from src.models.notification import NotificationType
 from src.services.notification_service import notification_service
 from src.utils.security import get_current_user
+from src.utils.company_access import get_user_company
 
 router = APIRouter(prefix="/companies/{company_id}/members", tags=["company-members"])
 
@@ -120,7 +121,7 @@ def invite_member(
     current_user: User = Depends(get_current_user),
 ):
     """Invite a new member to the company."""
-    company = _get_company_or_404(db, company_id)
+    company = get_user_company(company_id, db, current_user)
     _require_owner(company, current_user)
 
     # Validate role
@@ -207,20 +208,7 @@ def list_members(
     current_user: User = Depends(get_current_user),
 ):
     """List all members of a company, including the owner as a virtual member."""
-    company = _get_company_or_404(db, company_id)
-
-    # Allow owner, admins, and accepted members to view the list
-    is_member = (
-        db.query(CompanyMember)
-        .filter(
-            CompanyMember.company_id == company_id,
-            CompanyMember.user_id == current_user.id,
-            CompanyMember.invite_status == InviteStatus.ACCEPTED,
-        )
-        .first()
-    )
-    if company.user_id != current_user.id and not current_user.is_admin and not is_member:
-        raise HTTPException(status_code=403, detail="Not authorized to view members of this company")
+    company = get_user_company(company_id, db, current_user)
 
     members = db.query(CompanyMember).filter(
         CompanyMember.company_id == company_id,
@@ -259,7 +247,7 @@ def update_member(
     current_user: User = Depends(get_current_user),
 ):
     """Update a member's role or designation. Only the owner can do this."""
-    company = _get_company_or_404(db, company_id)
+    company = get_user_company(company_id, db, current_user)
     _require_owner(company, current_user)
 
     member = (
@@ -294,7 +282,7 @@ def revoke_member(
     current_user: User = Depends(get_current_user),
 ):
     """Revoke/remove a member. Only the owner can do this."""
-    company = _get_company_or_404(db, company_id)
+    company = get_user_company(company_id, db, current_user)
     _require_owner(company, current_user)
 
     member = (
@@ -319,7 +307,7 @@ def resend_invite(
     current_user: User = Depends(get_current_user),
 ):
     """Resend an invite by regenerating the invite token."""
-    company = _get_company_or_404(db, company_id)
+    company = get_user_company(company_id, db, current_user)
     _require_owner(company, current_user)
 
     member = (

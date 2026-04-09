@@ -17,6 +17,7 @@ from src.schemas.statutory_register import (
 )
 from src.utils.security import get_current_user
 from src.utils.tier_gate import require_tier
+from src.utils.company_access import get_user_company
 
 router = APIRouter(
     prefix="/companies/{company_id}/registers",
@@ -129,6 +130,7 @@ REGISTER_DISPLAY_NAMES: Dict[str, str] = {
     "RELATED_PARTY_CONTRACTS": "Register of Related Party Contracts (Section 189)",
     "SHARE_TRANSFERS": "Register of Share Transfers",
     "DEBENTURE_HOLDERS": "Register of Debenture Holders",
+    "SIGNIFICANT_BENEFICIAL_OWNERS": "Register of Significant Beneficial Owners (Section 90)",
 }
 
 
@@ -145,6 +147,7 @@ def get_registers_summary(
     _tier=Depends(require_tier("scale")),
 ):
     """Summary of all registers (entry counts, last updated)."""
+    company = get_user_company(company_id, db, current_user)
     registers = _ensure_all_registers(db, company_id)
     items: List[dict] = []
 
@@ -178,6 +181,7 @@ def list_registers(
     _tier=Depends(require_tier("scale")),
 ):
     """List all registers for company (auto-create if missing)."""
+    company = get_user_company(company_id, db, current_user)
     registers = _ensure_all_registers(db, company_id)
     return [_serialize_register(r) for r in registers]
 
@@ -191,6 +195,7 @@ def get_register(
     _tier=Depends(require_tier("scale")),
 ):
     """Get register with all entries."""
+    company = get_user_company(company_id, db, current_user)
     reg = _get_register(db, company_id, register_type)
     entries = (
         db.query(RegisterEntry)
@@ -211,6 +216,7 @@ def add_entry(
     _tier=Depends(require_tier("scale")),
 ):
     """Add entry to register."""
+    company = get_user_company(company_id, db, current_user)
     reg = _get_register(db, company_id, register_type)
 
     try:
@@ -244,6 +250,7 @@ def update_entry(
     _tier=Depends(require_tier("scale")),
 ):
     """Update entry in register."""
+    company = get_user_company(company_id, db, current_user)
     reg = _get_register(db, company_id, register_type)
     entry = (
         db.query(RegisterEntry)
@@ -280,6 +287,7 @@ def export_register(
     _tier=Depends(require_tier("scale")),
 ):
     """Export register as formatted HTML (printable)."""
+    company = get_user_company(company_id, db, current_user)
     reg = _get_register(db, company_id, register_type)
     entries = (
         db.query(RegisterEntry)

@@ -18,6 +18,10 @@ from src.services.notification_service import notification_service
 from src.services.annual_filing_service import annual_filing_service
 from src.services.tds_service import tds_service
 from src.services.zoho_books_service import zoho_books_service
+from src.services.gst_return_service import (
+    GSTR3BBuilder, build_gstr1_from_invoices,
+    validate_gstin, STATE_CODES,
+)
 from src.utils.cache import cache_get, cache_set, cache_delete_pattern
 
 router = APIRouter(prefix="/companies/{company_id}/compliance", tags=["Compliance"])
@@ -797,4 +801,238 @@ async def get_audit_pack(
             ),
             "books_maintained": connection is not None,
         },
+    }
+
+
+# ---------------------------------------------------------------------------
+# GST Return JSON Generation
+# ---------------------------------------------------------------------------
+
+
+class GSTINValidateRequest(BaseModel):
+    gstin: str
+
+
+@router.post("/gst/validate-gstin")
+def validate_gstin_endpoint(
+    company_id: int,
+    body: GSTINValidateRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Validate a GSTIN and return state information."""
+    _get_user_company(company_id, db, current_user)
+    return validate_gstin(body.gstin)
+
+
+@router.get("/gst/state-codes")
+def get_state_codes(
+    company_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """List all GST state codes."""
+    _get_user_company(company_id, db, current_user)
+    return {"state_codes": STATE_CODES}
+
+
+class GSTR1GenerateRequest(BaseModel):
+    gstin: str
+    filing_period: str  # MMYYYY e.g. '042025'
+    invoices: List[Dict[str, Any]]
+
+
+@router.post("/gst/gstr1/generate")
+def generate_gstr1(
+    company_id: int,
+    body: GSTR1GenerateRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Generate GSTR-1 JSON from invoice data.
+
+    Accepts a list of invoices and auto-classifies them into B2B, B2CL,
+    B2CS, CDNR, exports, and HSN summary sections per GSTN schema.
+    """
+    _get_user_company(company_id, db, current_user)
+
+    # Validate GSTIN
+    v = validate_gstin(body.gstin)
+    if not v.get("valid"):
+        raise HTTPException(status_code=400, detail=v.get("error", "Invalid GSTIN"))
+
+    result = build_gstr1_from_invoices(
+        gstin=body.gstin,
+        filing_period=body.filing_period,
+        invoices=body.invoices,
+    )
+    return {"gstr1": result, "invoice_count": len(body.invoices)}
+
+
+class GSTR3BGenerateRequest(BaseModel):
+    gstin: str
+    filing_period: str  # MMYYYY
+    outward_taxable: Optional[Dict[str, float]] = None
+    outward_zero_rated: Optional[Dict[str, float]] = None
+    outward_nil_exempt: Optional[Dict[str, float]] = None
+    inward_reverse_charge: Optional[Dict[str, float]] = None
+    non_gst_outward: Optional[Dict[str, float]] = None
+    itc: Optional[Dict[str, float]] = None
+    itc_reversed: Optional[Dict[str, float]] = None
+    payment: Optional[Dict[str, float]] = None
+
+
+@router.post("/gst/gstr3b/generate")
+def generate_gstr3b(
+    company_id: int,
+    body: GSTR3BGenerateRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Generate GSTR-3B summary JSON.
+
+    Accepts table-wise data (3.1 outward supplies, 4 ITC, 6.1 payment)
+    and produces GSTN-compliant JSON.
+    """
+    _get_user_company(company_id, db, current_user)
+
+    v = validate_gstin(body.gstin)
+    if not v.get("valid"):
+        raise HTTPException(status_code=400, detail=v.get("error", "Invalid GSTIN"))
+
+    builder = GSTR3BBuilder(body.gstin, body.filing_period)
+
+    if body.outward_taxable:
+        builder.set_outward_taxable(**body.outward_taxable)
+    if body.outward_zero_rated:
+        builder.set_outward_zero_rated(**body.outward_zero_rated)
+    if body.outward_nil_exempt:
+        builder.set_outward_nil_exempt(**body.outward_nil_exempt)
+    if body.inward_reverse_charge:
+        builder.set_inward_reverse_charge(**body.inward_reverse_charge)
+    if body.non_gst_outward:
+        builder.set_non_gst_outward(**body.non_gst_outward)
+    if body.itc:
+        builder.set_itc(**body.itc)
+    if body.itc_reversed:
+        builder.set_itc_reversed(**body.itc_reversed)
+    if body.payment:
+        builder.set_payment(**body.payment)
+
+    return {"gstr3b": builder.build()}
+
+
+# ---------------------------------------------------------------------------
+# Event-Triggered Compliance
+# ---------------------------------------------------------------------------
+
+
+class EventTriggerRequest(BaseModel):
+    event_name: str  # Key from EVENT_TRIGGERS
+    event_date: Optional[str] = None  # ISO date string, defaults to today
+    notes: Optional[str] = None
+
+
+@router.post("/events/trigger")
+def trigger_compliance_event(
+    company_id: int,
+    body: EventTriggerRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Create compliance tasks triggered by a corporate event.
+
+    Valid event names: shareholding_change, share_allotment,
+    director_appointment, director_resignation, auditor_appointment,
+    registered_office_change, capital_increase, board_resolution_special,
+    charge_creation, charge_satisfaction, loan_or_investment, rpt_approval.
+    """
+    company = _get_user_company(company_id, db, current_user)
+
+    valid_events = list(compliance_engine.EVENT_TRIGGERS.keys())
+    if body.event_name not in valid_events:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid event. Valid events: {valid_events}",
+        )
+
+    event_date = None
+    if body.event_date:
+        try:
+            event_date = date.fromisoformat(body.event_date)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid event_date format. Use YYYY-MM-DD.")
+
+    tasks = compliance_engine.create_event_tasks(
+        db, company, body.event_name,
+        event_date=event_date, notes=body.notes or "",
+    )
+
+    return {
+        "event": body.event_name,
+        "tasks_created": len(tasks),
+        "tasks": [
+            {
+                "id": t.id,
+                "type": t.task_type,
+                "title": t.title,
+                "due_date": t.due_date,
+                "status": t.status,
+            }
+            for t in tasks
+        ],
+    }
+
+
+@router.get("/events/types")
+def list_event_types(
+    company_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """List all available compliance event triggers."""
+    _get_user_company(company_id, db, current_user)
+    return {
+        "events": [
+            {
+                "event_name": key,
+                "tasks": [
+                    {
+                        "type": t["type"],
+                        "title": t["title"],
+                        "form": t.get("form", "N/A"),
+                        "section": t.get("section", "N/A"),
+                        "deadline_days": t["deadline_days"],
+                    }
+                    for t in triggers
+                ],
+            }
+            for key, triggers in compliance_engine.EVENT_TRIGGERS.items()
+        ],
+    }
+
+
+@router.post("/thresholds/check")
+def check_threshold_triggers(
+    company_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Check if company has crossed any compliance thresholds (e.g., employee count).
+
+    Automatically creates tasks if thresholds are crossed for the first time.
+    """
+    company = _get_user_company(company_id, db, current_user)
+    tasks = compliance_engine.check_threshold_triggers(db, company)
+    return {
+        "thresholds_triggered": len(tasks),
+        "tasks": [
+            {
+                "id": t.id,
+                "type": t.task_type,
+                "title": t.title,
+                "due_date": t.due_date,
+            }
+            for t in tasks
+        ],
     }

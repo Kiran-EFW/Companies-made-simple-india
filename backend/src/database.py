@@ -45,6 +45,10 @@ def _ensure_pg_columns():
         ("companies", "cin", "VARCHAR"),
         ("companies", "pan", "VARCHAR"),
         ("companies", "tan", "VARCHAR"),
+        ("companies", "registered_office", "VARCHAR"),
+        ("companies", "phone", "VARCHAR"),
+        ("companies", "email", "VARCHAR"),
+        ("companies", "website", "VARCHAR"),
         ("companies", "data", "JSONB DEFAULT '{}'::jsonb"),
         # shareholders
         ("shareholders", "stakeholder_profile_id", "INTEGER REFERENCES stakeholder_profiles(id)"),

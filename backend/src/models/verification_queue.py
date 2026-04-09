@@ -18,11 +18,11 @@ class VerificationQueue(Base):
     __tablename__ = "verification_queue"
 
     id = Column(Integer, primary_key=True, index=True)
-    document_id = Column(Integer, ForeignKey("documents.id"), unique=True, nullable=False)
-    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False, index=True)
+    document_id = Column(Integer, ForeignKey("documents.id", ondelete="CASCADE"), unique=True, nullable=False)
+    company_id = Column(Integer, ForeignKey("companies.id", ondelete="CASCADE"), nullable=False, index=True)
 
     # Reviewer assignment
-    reviewer_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+    reviewer_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
 
     # Review outcome
     decision = Column(Enum(VerificationDecision), default=VerificationDecision.PENDING)

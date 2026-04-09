@@ -35,8 +35,8 @@ class ShareIssuanceWorkflow(Base):
     __tablename__ = "share_issuance_workflows"
 
     id = Column(Integer, primary_key=True, index=True)
-    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    company_id = Column(Integer, ForeignKey("companies.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
 
     issuance_type = Column(Enum(IssuanceType), default=IssuanceType.FRESH_ALLOTMENT)
     status = Column(Enum(IssuanceStatus), default=IssuanceStatus.DRAFT)
@@ -49,15 +49,15 @@ class ShareIssuanceWorkflow(Base):
     issue_price = Column(Float, nullable=True)  # Can be > face value (premium)
 
     # Step 2: Board Resolution
-    board_resolution_document_id = Column(Integer, ForeignKey("legal_documents.id"), nullable=True)
-    board_resolution_signature_request_id = Column(Integer, ForeignKey("signature_requests.id"), nullable=True)
+    board_resolution_document_id = Column(Integer, ForeignKey("legal_documents.id", ondelete="SET NULL"), nullable=True)
+    board_resolution_signature_request_id = Column(Integer, ForeignKey("signature_requests.id", ondelete="SET NULL"), nullable=True)
     board_resolution_signed = Column(Boolean, default=False)
     board_resolution_date = Column(DateTime, nullable=True)
 
     # Step 3: Shareholder Approval (Special Resolution for certain issuances)
     shareholder_resolution_required = Column(Boolean, default=False)
-    shareholder_resolution_document_id = Column(Integer, ForeignKey("legal_documents.id"), nullable=True)
-    shareholder_resolution_signature_request_id = Column(Integer, ForeignKey("signature_requests.id"), nullable=True)
+    shareholder_resolution_document_id = Column(Integer, ForeignKey("legal_documents.id", ondelete="SET NULL"), nullable=True)
+    shareholder_resolution_signature_request_id = Column(Integer, ForeignKey("signature_requests.id", ondelete="SET NULL"), nullable=True)
     shareholder_approved = Column(Boolean, default=False)
 
     # Step 4: Regulatory Filings
@@ -76,11 +76,11 @@ class ShareIssuanceWorkflow(Base):
 
     # Step 7: Allotment
     allotment_date = Column(DateTime, nullable=True)
-    allotment_board_resolution_id = Column(Integer, ForeignKey("legal_documents.id"), nullable=True)
+    allotment_board_resolution_id = Column(Integer, ForeignKey("legal_documents.id", ondelete="SET NULL"), nullable=True)
 
     # Step 8: Post-Allotment
     share_certificates_generated = Column(Boolean, default=False)
-    pas3_document_id = Column(Integer, ForeignKey("legal_documents.id"), nullable=True)
+    pas3_document_id = Column(Integer, ForeignKey("legal_documents.id", ondelete="SET NULL"), nullable=True)
     pas3_filed = Column(Boolean, default=False)
     pas3_filing_date = Column(DateTime, nullable=True)
     register_of_members_updated = Column(Boolean, default=False)

@@ -57,8 +57,8 @@ class Notification(Base):
     __tablename__ = "notifications"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    company_id = Column(Integer, ForeignKey("companies.id"), nullable=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    company_id = Column(Integer, ForeignKey("companies.id", ondelete="SET NULL"), nullable=True, index=True)
     type = Column(Enum(NotificationType), nullable=False)
     title = Column(String, nullable=False)
     message = Column(String, nullable=False)

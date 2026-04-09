@@ -13,6 +13,7 @@ from src.schemas.legal_template import (
     LegalDocumentPreview,
 )
 from src.utils.security import get_current_user
+from src.utils.company_access import get_user_company
 from src.services.contract_template_service import contract_template_service
 
 router = APIRouter(prefix="/legal-docs", tags=["legal-docs"])
@@ -82,9 +83,8 @@ def create_draft(
 
     # Check entity type compatibility
     if body.company_id:
-        from src.models.company import Company
-        company = db.query(Company).filter(Company.id == body.company_id).first()
-        if company and company.entity_type:
+        company = get_user_company(body.company_id, db, current_user)
+        if company.entity_type:
             entity_type_val = company.entity_type.value if hasattr(company.entity_type, 'value') else str(company.entity_type)
             tpl_entity_types = definition.get("entity_types")
             if tpl_entity_types is not None and entity_type_val not in tpl_entity_types:

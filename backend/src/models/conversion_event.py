@@ -9,11 +9,11 @@ class ConversionEvent(Base):
     __tablename__ = "conversion_events"
 
     id = Column(Integer, primary_key=True, index=True)
-    funding_round_id = Column(Integer, ForeignKey("funding_rounds.id"), nullable=False)
-    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
+    funding_round_id = Column(Integer, ForeignKey("funding_rounds.id", ondelete="CASCADE"), nullable=False, index=True)
+    company_id = Column(Integer, ForeignKey("companies.id", ondelete="CASCADE"), nullable=False, index=True)
 
     # Trigger round (the equity round that triggers conversion)
-    trigger_round_id = Column(Integer, ForeignKey("funding_rounds.id"), nullable=True)
+    trigger_round_id = Column(Integer, ForeignKey("funding_rounds.id", ondelete="SET NULL"), nullable=True)
 
     # Conversion details
     conversion_price = Column(Float, nullable=False)

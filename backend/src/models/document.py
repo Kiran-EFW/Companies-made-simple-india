@@ -29,8 +29,8 @@ class Document(Base):
     __tablename__ = "documents"
 
     id = Column(Integer, primary_key=True, index=True)
-    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
-    director_id = Column(Integer, ForeignKey("directors.id"), nullable=True)
+    company_id = Column(Integer, ForeignKey("companies.id", ondelete="CASCADE"), nullable=False, index=True)
+    director_id = Column(Integer, ForeignKey("directors.id", ondelete="SET NULL"), nullable=True)
 
     doc_type = Column(Enum(DocumentType), nullable=False)
     file_path = Column(String, nullable=False)

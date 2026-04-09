@@ -25,6 +25,7 @@ from src.database import get_db
 from src.models.user import User
 from src.utils.security import get_current_user
 from src.utils.tier_gate import require_tier
+from src.utils.company_access import get_user_company
 from src.services.esop_service import esop_service
 from src.services.notification_service import notification_service
 from src.models.notification import NotificationType
@@ -51,6 +52,7 @@ def create_plan(
     _tier=Depends(require_tier("growth")),
 ):
     """Create a new ESOP plan."""
+    company = get_user_company(company_id, db, current_user)
     result = esop_service.create_plan(db, company_id, data.model_dump())
 
     # Notify company owner
@@ -82,6 +84,7 @@ def list_plans(
     _tier=Depends(require_tier("growth")),
 ):
     """List all ESOP plans for a company."""
+    company = get_user_company(company_id, db, current_user)
     return esop_service.list_plans(db, company_id)
 
 
@@ -94,6 +97,7 @@ def get_plan(
     _tier=Depends(require_tier("growth")),
 ):
     """Get plan details with computed pool stats."""
+    company = get_user_company(company_id, db, current_user)
     result = esop_service.get_plan(db, plan_id, company_id)
     if result is None:
         raise HTTPException(status_code=404, detail="Plan not found")
@@ -110,6 +114,7 @@ def update_plan(
     _tier=Depends(require_tier("growth")),
 ):
     """Update plan details. Cannot reduce pool below allocated amount."""
+    company = get_user_company(company_id, db, current_user)
     result = esop_service.update_plan(
         db, plan_id, company_id, data.model_dump(exclude_unset=True)
     )
@@ -127,6 +132,7 @@ def activate_plan(
     _tier=Depends(require_tier("growth")),
 ):
     """Move plan to active status."""
+    company = get_user_company(company_id, db, current_user)
     result = esop_service.activate_plan(db, plan_id, company_id)
     if "error" in result:
         raise HTTPException(status_code=400, detail=result["error"])
@@ -147,6 +153,7 @@ def create_grant(
     _tier=Depends(require_tier("growth")),
 ):
     """Issue a new grant under a plan."""
+    company = get_user_company(company_id, db, current_user)
     result = esop_service.create_grant(db, plan_id, company_id, data.model_dump())
     if "error" in result:
         raise HTTPException(status_code=400, detail=result["error"])

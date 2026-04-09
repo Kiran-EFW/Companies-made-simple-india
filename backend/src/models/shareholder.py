@@ -1,5 +1,5 @@
 import enum
-from sqlalchemy import Column, Integer, String, Boolean, Float, DateTime, ForeignKey, Enum
+from sqlalchemy import Column, Integer, String, Boolean, Float, DateTime, ForeignKey, Enum, UniqueConstraint
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 from src.database import Base
@@ -20,7 +20,7 @@ class Shareholder(Base):
     __tablename__ = "shareholders"
 
     id = Column(Integer, primary_key=True, index=True)
-    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
+    company_id = Column(Integer, ForeignKey("companies.id", ondelete="CASCADE"), nullable=False, index=True)
 
     name = Column(String, nullable=False)
     email = Column(String, nullable=True)
@@ -36,7 +36,7 @@ class Shareholder(Base):
     is_promoter = Column(Boolean, default=False)
 
     # Link to stakeholder profile (for portfolio view across companies)
-    stakeholder_profile_id = Column(Integer, ForeignKey("stakeholder_profiles.id"), nullable=True)
+    stakeholder_profile_id = Column(Integer, ForeignKey("stakeholder_profiles.id", ondelete="SET NULL"), nullable=True)
 
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(
@@ -49,16 +49,20 @@ class Shareholder(Base):
     company = relationship("Company", backref="shareholders")
     stakeholder_profile = relationship("StakeholderProfile", backref="shareholdings")
 
+    __table_args__ = (
+        UniqueConstraint("company_id", "email", name="uq_shareholder_company_email"),
+    )
+
 
 class ShareTransaction(Base):
     __tablename__ = "share_transactions"
 
     id = Column(Integer, primary_key=True, index=True)
-    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
+    company_id = Column(Integer, ForeignKey("companies.id", ondelete="CASCADE"), nullable=False, index=True)
 
     transaction_type = Column(Enum(TransactionType), nullable=False)
-    from_shareholder_id = Column(Integer, ForeignKey("shareholders.id"), nullable=True)
-    to_shareholder_id = Column(Integer, ForeignKey("shareholders.id"), nullable=True)
+    from_shareholder_id = Column(Integer, ForeignKey("shareholders.id", ondelete="SET NULL"), nullable=True)
+    to_shareholder_id = Column(Integer, ForeignKey("shareholders.id", ondelete="SET NULL"), nullable=True)
 
     shares = Column(Integer, nullable=False)
     price_per_share = Column(Float, nullable=False, default=10.0)

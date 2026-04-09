@@ -26,6 +26,7 @@ from src.schemas.data_room import (
 )
 from src.utils.security import get_current_user
 from src.utils.tier_gate import require_tier
+from src.utils.company_access import get_user_company
 
 router = APIRouter(
     prefix="/companies/{company_id}/data-room",
@@ -163,6 +164,7 @@ def list_folders(
     _tier=Depends(require_tier("growth")),
 ):
     """List all folders (tree structure)."""
+    company = get_user_company(company_id, db, current_user)
     folders = (
         db.query(DataRoomFolder)
         .filter(DataRoomFolder.company_id == company_id)
@@ -181,6 +183,7 @@ def create_folder(
     _tier=Depends(require_tier("growth")),
 ):
     """Create a new folder."""
+    company = get_user_company(company_id, db, current_user)
     if body.parent_id:
         parent = (
             db.query(DataRoomFolder)
@@ -216,6 +219,7 @@ def update_folder(
     _tier=Depends(require_tier("growth")),
 ):
     """Rename/move folder."""
+    company = get_user_company(company_id, db, current_user)
     folder = (
         db.query(DataRoomFolder)
         .filter(DataRoomFolder.id == folder_id, DataRoomFolder.company_id == company_id)
@@ -248,6 +252,7 @@ def delete_folder(
     _tier=Depends(require_tier("growth")),
 ):
     """Delete empty folder."""
+    company = get_user_company(company_id, db, current_user)
     folder = (
         db.query(DataRoomFolder)
         .filter(DataRoomFolder.id == folder_id, DataRoomFolder.company_id == company_id)
@@ -297,6 +302,7 @@ def upload_file(
     _tier=Depends(require_tier("growth")),
 ):
     """Upload file to a folder."""
+    company = get_user_company(company_id, db, current_user)
     folder = (
         db.query(DataRoomFolder)
         .filter(DataRoomFolder.id == folder_id, DataRoomFolder.company_id == company_id)
@@ -348,6 +354,7 @@ def list_files(
     _tier=Depends(require_tier("growth")),
 ):
     """List all files (optional filter by folder, tags, retention)."""
+    company = get_user_company(company_id, db, current_user)
     query = db.query(DataRoomFile).filter(DataRoomFile.company_id == company_id)
 
     if not include_archived:
@@ -375,6 +382,7 @@ def get_file_metadata(
     _tier=Depends(require_tier("growth")),
 ):
     """Get file metadata."""
+    company = get_user_company(company_id, db, current_user)
     db_file = (
         db.query(DataRoomFile)
         .filter(DataRoomFile.id == file_id, DataRoomFile.company_id == company_id)
@@ -395,6 +403,7 @@ def download_file(
     _tier=Depends(require_tier("growth")),
 ):
     """Download file."""
+    company = get_user_company(company_id, db, current_user)
     db_file = (
         db.query(DataRoomFile)
         .filter(DataRoomFile.id == file_id, DataRoomFile.company_id == company_id)
@@ -434,6 +443,7 @@ def update_file_metadata(
     _tier=Depends(require_tier("growth")),
 ):
     """Update file metadata (description, tags, retention)."""
+    company = get_user_company(company_id, db, current_user)
     db_file = (
         db.query(DataRoomFile)
         .filter(DataRoomFile.id == file_id, DataRoomFile.company_id == company_id)
@@ -468,6 +478,7 @@ def archive_file(
     _tier=Depends(require_tier("growth")),
 ):
     """Soft delete (archive) file."""
+    company = get_user_company(company_id, db, current_user)
     db_file = (
         db.query(DataRoomFile)
         .filter(DataRoomFile.id == file_id, DataRoomFile.company_id == company_id)
@@ -492,6 +503,7 @@ def upload_new_version(
     _tier=Depends(require_tier("growth")),
 ):
     """Upload new version of a file."""
+    company = get_user_company(company_id, db, current_user)
     existing = (
         db.query(DataRoomFile)
         .filter(DataRoomFile.id == file_id, DataRoomFile.company_id == company_id)
@@ -546,6 +558,7 @@ def create_share_link(
     _tier=Depends(require_tier("growth")),
 ):
     """Create share link."""
+    company = get_user_company(company_id, db, current_user)
     expires_at = None
     if body.expires_at:
         try:
@@ -583,6 +596,7 @@ def list_share_links(
     _tier=Depends(require_tier("growth")),
 ):
     """List active share links."""
+    company = get_user_company(company_id, db, current_user)
     links = (
         db.query(DataRoomShareLink)
         .filter(
@@ -605,6 +619,7 @@ def update_share_link(
     _tier=Depends(require_tier("growth")),
 ):
     """Update share link (toggle active, update expiry)."""
+    company = get_user_company(company_id, db, current_user)
     link = (
         db.query(DataRoomShareLink)
         .filter(DataRoomShareLink.id == link_id, DataRoomShareLink.company_id == company_id)
@@ -637,6 +652,7 @@ def deactivate_share_link(
     _tier=Depends(require_tier("growth")),
 ):
     """Deactivate share link."""
+    company = get_user_company(company_id, db, current_user)
     link = (
         db.query(DataRoomShareLink)
         .filter(DataRoomShareLink.id == link_id, DataRoomShareLink.company_id == company_id)
@@ -659,6 +675,7 @@ def get_access_log(
     _tier=Depends(require_tier("growth")),
 ):
     """View access log for a share link."""
+    company = get_user_company(company_id, db, current_user)
     link = (
         db.query(DataRoomShareLink)
         .filter(DataRoomShareLink.id == link_id, DataRoomShareLink.company_id == company_id)
@@ -689,6 +706,7 @@ def retention_alerts(
     _tier=Depends(require_tier("growth")),
 ):
     """Files approaching retention expiry (within 90 days)."""
+    company = get_user_company(company_id, db, current_user)
     now = datetime.now(timezone.utc)
     threshold = now + timedelta(days=90)
 
@@ -728,6 +746,7 @@ def retention_summary(
     _tier=Depends(require_tier("growth")),
 ):
     """Retention compliance summary."""
+    company = get_user_company(company_id, db, current_user)
     now = datetime.now(timezone.utc)
     threshold = now + timedelta(days=90)
 
@@ -774,6 +793,7 @@ def setup_default_folders(
     _tier=Depends(require_tier("growth")),
 ):
     """Create default folder structure for company."""
+    company = get_user_company(company_id, db, current_user)
     existing = (
         db.query(DataRoomFolder)
         .filter(DataRoomFolder.company_id == company_id)

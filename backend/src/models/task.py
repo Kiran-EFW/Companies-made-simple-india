@@ -18,7 +18,7 @@ class Task(Base):
     __tablename__ = "tasks"
 
     id = Column(Integer, primary_key=True, index=True)
-    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
+    company_id = Column(Integer, ForeignKey("companies.id", ondelete="CASCADE"), nullable=False, index=True)
     agent_name = Column(String, nullable=False)
     status = Column(Enum(TaskStatus), default=TaskStatus.PENDING)
     result = Column(JSON, nullable=True)
@@ -37,7 +37,7 @@ class AgentLog(Base):
     __tablename__ = "agent_logs"
 
     id = Column(Integer, primary_key=True, index=True)
-    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
+    company_id = Column(Integer, ForeignKey("companies.id", ondelete="CASCADE"), nullable=False, index=True)
     agent_name = Column(String, nullable=False)
     message = Column(String, nullable=False)
     level = Column(String, default="INFO")

@@ -15,8 +15,8 @@ class InvestorInterest(Base):
     __tablename__ = "investor_interests"
 
     id = Column(Integer, primary_key=True, index=True)
-    investor_profile_id = Column(Integer, ForeignKey("stakeholder_profiles.id"), nullable=False)
-    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
+    investor_profile_id = Column(Integer, ForeignKey("stakeholder_profiles.id", ondelete="CASCADE"), nullable=False)
+    company_id = Column(Integer, ForeignKey("companies.id", ondelete="CASCADE"), nullable=False, index=True)
     status = Column(Enum(InterestStatus), default=InterestStatus.INTERESTED)
     message = Column(Text, nullable=True)  # Optional note from investor
     investor_name = Column(String, nullable=True)

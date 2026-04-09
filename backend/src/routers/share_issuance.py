@@ -24,6 +24,7 @@ from src.models.user import User
 from src.models.company import Company
 from src.utils.security import get_current_user
 from src.utils.tier_gate import require_tier
+from src.utils.company_access import get_user_company
 from src.services.notification_service import notification_service
 from src.models.notification import NotificationType
 from src.services.share_issuance_service import share_issuance_service
@@ -53,6 +54,7 @@ def create_workflow(
     _tier=Depends(require_tier("growth")),
 ):
     """Create a new share issuance workflow."""
+    company = get_user_company(company_id, db, current_user)
     result = share_issuance_service.create_workflow(
         db, company_id, current_user.id, data.model_dump()
     )
@@ -84,6 +86,7 @@ def list_workflows(
     _tier=Depends(require_tier("growth")),
 ):
     """List all share issuance workflows for a company."""
+    company = get_user_company(company_id, db, current_user)
     return share_issuance_service.list_workflows(db, company_id)
 
 
@@ -96,6 +99,7 @@ def get_workflow(
     _tier=Depends(require_tier("growth")),
 ):
     """Get workflow detail with all associated data."""
+    company = get_user_company(company_id, db, current_user)
     result = share_issuance_service.get_workflow(db, workflow_id, company_id)
     if result is None:
         raise HTTPException(status_code=404, detail="Workflow not found")
@@ -112,6 +116,7 @@ def update_workflow(
     _tier=Depends(require_tier("growth")),
 ):
     """Update workflow fields."""
+    company = get_user_company(company_id, db, current_user)
     updates = data.model_dump(exclude_unset=True)
     result = share_issuance_service.update_workflow(
         db, workflow_id, company_id, updates
@@ -151,6 +156,7 @@ def link_document(
     _tier=Depends(require_tier("growth")),
 ):
     """Link a legal document (board_resolution/shareholder_resolution/pas3) to the workflow."""
+    company = get_user_company(company_id, db, current_user)
     result = share_issuance_service.link_document(
         db, workflow_id, company_id, data.doc_type, data.document_id
     )
@@ -173,6 +179,7 @@ def update_filing_status(
     _tier=Depends(require_tier("growth")),
 ):
     """Update MGT-14 or SH-7 filing status."""
+    company = get_user_company(company_id, db, current_user)
     result = share_issuance_service.update_filing_status(
         db, workflow_id, company_id, data.filing_type,
         data.model_dump(exclude={"filing_type"})
@@ -196,6 +203,7 @@ def add_allottee(
     _tier=Depends(require_tier("growth")),
 ):
     """Add an allottee to the workflow."""
+    company = get_user_company(company_id, db, current_user)
     result = share_issuance_service.add_allottee(
         db, workflow_id, company_id, data.model_dump()
     )
@@ -214,6 +222,7 @@ def remove_allottee(
     _tier=Depends(require_tier("growth")),
 ):
     """Remove an allottee by index."""
+    company = get_user_company(company_id, db, current_user)
     result = share_issuance_service.remove_allottee(
         db, workflow_id, company_id, index
     )
@@ -236,6 +245,7 @@ def record_fund_receipt(
     _tier=Depends(require_tier("growth")),
 ):
     """Record a fund receipt from an allottee."""
+    company = get_user_company(company_id, db, current_user)
     result = share_issuance_service.record_fund_receipt(
         db, workflow_id, company_id, data.model_dump()
     )
@@ -258,6 +268,7 @@ def save_wizard_state(
     _tier=Depends(require_tier("growth")),
 ):
     """Save the full wizard state for frontend restore."""
+    company = get_user_company(company_id, db, current_user)
     result = share_issuance_service.save_wizard_state(
         db, workflow_id, company_id, data.wizard_state
     )
@@ -279,6 +290,7 @@ def complete_allotment(
     _tier=Depends(require_tier("growth")),
 ):
     """Complete allotment — validates prerequisites and creates shareholders via cap table."""
+    company = get_user_company(company_id, db, current_user)
     result = share_issuance_service.complete_allotment(
         db, workflow_id, company_id
     )
@@ -300,6 +312,7 @@ def send_for_signing(
     _tier=Depends(require_tier("growth")),
 ):
     """Send board resolution for e-sign."""
+    company = get_user_company(company_id, db, current_user)
     result = share_issuance_service.send_for_signing(
         db, workflow_id, company_id, current_user.id
     )

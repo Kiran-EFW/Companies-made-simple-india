@@ -524,7 +524,9 @@ def render_agm_notice(tpl: dict, config: dict, parties: dict) -> str:
 
     ordinary_items = config.get("agm_ordinary_business_items", [])
     if isinstance(ordinary_items, str):
-        ordinary_items = [i.strip() for i in ordinary_items.split(",") if i.strip()]
+        # Handle both comma-separated and newline-separated input
+        sep = "\n" if "\n" in ordinary_items else ","
+        ordinary_items = [i.strip() for i in ordinary_items.split(sep) if i.strip()]
     special_items_raw = config.get("agm_special_business_items", "")
     explanatory = config.get("agm_explanatory_statement", "")
     dividend_amount = config.get("agm_dividend_amount", 0)
@@ -550,8 +552,9 @@ def render_agm_notice(tpl: dict, config: dict, parties: dict) -> str:
     if is_virtual:
         venue_text = f'{venue} (via Video Conferencing / Other Audio Visual Means)'
     sections.append(
-        f'<p>NOTICE is hereby given that the Annual General Meeting of the members '
-        f'of <strong>{company}</strong> will be held on '
+        f'<p>NOTICE is hereby given pursuant to Section 96 of the Companies Act, 2013 '
+        f'that the Annual General Meeting of the members of '
+        f'<strong>{company}</strong> will be held on '
         f'<strong>{meeting_date or "________________________"}</strong> at '
         f'<strong>{meeting_time}</strong> at <strong>{venue_text}</strong> '
         f'to transact the following business for the Financial Year '
@@ -610,6 +613,14 @@ def render_agm_notice(tpl: dict, config: dict, parties: dict) -> str:
     # Notes
     sections.append('<h2>NOTES</h2>')
     note_num = 1
+
+    sections.append(
+        f'<p class="clause"><span class="clause-number">{note_num}.</span> '
+        f'This Notice is being sent in compliance with Section 101 of the Companies '
+        f'Act, 2013, which requires not less than <strong>21 clear days\u2019</strong> '
+        f'notice to be given to all members of the Company for a general meeting.</p>'
+    )
+    note_num += 1
 
     if proxy_notice:
         sections.append(

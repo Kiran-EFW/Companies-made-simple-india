@@ -48,7 +48,7 @@ class CAPartnerProfile(Base):
     __tablename__ = "ca_partner_profiles"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True)
 
     # Professional details
     membership_number = Column(String, nullable=False)  # ICAI/ICSI membership number
@@ -89,10 +89,10 @@ class ServiceFulfillment(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     service_request_id = Column(
-        Integer, ForeignKey("service_requests.id"), nullable=False, index=True,
+        Integer, ForeignKey("service_requests.id", ondelete="CASCADE"), nullable=False, index=True,
     )
-    partner_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
-    assigned_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    partner_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    assigned_by = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
     # Status tracking
     status = Column(
@@ -141,9 +141,9 @@ class CASettlement(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     fulfillment_id = Column(
-        Integer, ForeignKey("service_fulfillments.id"), nullable=False, index=True,
+        Integer, ForeignKey("service_fulfillments.id", ondelete="CASCADE"), nullable=False, index=True,
     )
-    partner_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    partner_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
 
     # Amounts (all in rupees)
     gross_amount = Column(Integer, nullable=False)    # fulfillment_fee

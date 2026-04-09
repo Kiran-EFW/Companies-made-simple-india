@@ -13,6 +13,7 @@ from src.models.message import Message, SenderType
 from src.models.notification import NotificationType
 from src.utils.security import get_current_user
 from src.utils.admin_auth import get_admin_user
+from src.utils.company_access import get_user_company
 from src.services.notification_service import notification_service
 
 router = APIRouter(tags=["Messages"])
@@ -69,13 +70,7 @@ def get_company_messages(
     current_user: User = Depends(get_current_user),
 ):
     """Get conversation thread for a company (founder view)."""
-    company = (
-        db.query(Company)
-        .filter(Company.id == company_id, Company.user_id == current_user.id)
-        .first()
-    )
-    if not company:
-        raise HTTPException(status_code=404, detail="Company not found")
+    company = get_user_company(company_id, db, current_user)
 
     messages = (
         db.query(Message)
@@ -113,13 +108,7 @@ def send_founder_message(
     current_user: User = Depends(get_current_user),
 ):
     """Send a message from founder to admin team."""
-    company = (
-        db.query(Company)
-        .filter(Company.id == company_id, Company.user_id == current_user.id)
-        .first()
-    )
-    if not company:
-        raise HTTPException(status_code=404, detail="Company not found")
+    company = get_user_company(company_id, db, current_user)
 
     if not body.content.strip():
         raise HTTPException(status_code=400, detail="Message content cannot be empty")
@@ -156,13 +145,7 @@ def mark_messages_read(
     current_user: User = Depends(get_current_user),
 ):
     """Mark all admin/CA messages as read (founder marking incoming messages as read)."""
-    company = (
-        db.query(Company)
-        .filter(Company.id == company_id, Company.user_id == current_user.id)
-        .first()
-    )
-    if not company:
-        raise HTTPException(status_code=404, detail="Company not found")
+    company = get_user_company(company_id, db, current_user)
 
     now = datetime.now(timezone.utc)
     updated = (

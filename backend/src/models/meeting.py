@@ -7,8 +7,8 @@ class Meeting(Base):
     __tablename__ = "meetings"
 
     id = Column(Integer, primary_key=True, index=True)
-    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    company_id = Column(Integer, ForeignKey("companies.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
     meeting_type = Column(String, nullable=False)
     # Types: BOARD_MEETING, AGM, EGM, COMMITTEE_MEETING, AUDIT_COMMITTEE,
@@ -45,8 +45,8 @@ class Meeting(Base):
     # {resolution_id: {attendee_name: "for"|"against"|"abstain"}}
 
     # Document & signature integration
-    notice_document_id = Column(Integer, ForeignKey("legal_documents.id"), nullable=True)
-    minutes_signature_request_id = Column(Integer, ForeignKey("signature_requests.id"), nullable=True)
+    notice_document_id = Column(Integer, ForeignKey("legal_documents.id", ondelete="SET NULL"), nullable=True)
+    minutes_signature_request_id = Column(Integer, ForeignKey("signature_requests.id", ondelete="SET NULL"), nullable=True)
 
     # Compliance filing tracking (persisted from frontend)
     filing_status = Column(JSON, default=dict)

@@ -32,6 +32,7 @@ from src.services.subscription_service import subscription_service
 from src.models.payment import Payment, PaymentStatus
 from src.config import get_settings
 from src.utils.security import get_current_user
+from src.utils.company_access import get_user_company
 
 settings = get_settings()
 router = APIRouter(prefix="/services", tags=["Services Marketplace"])
@@ -103,12 +104,7 @@ def create_service_request(
 ):
     """Request an add-on service for a company."""
     # Validate company ownership
-    company = db.query(Company).filter(
-        Company.id == req.company_id,
-        Company.user_id == current_user.id,
-    ).first()
-    if not company:
-        raise HTTPException(status_code=404, detail="Company not found")
+    company = get_user_company(req.company_id, db, current_user)
 
     # Validate service exists
     svc = get_service_by_key(req.service_key)
@@ -316,12 +312,7 @@ def create_subscription(
     current_user: User = Depends(get_current_user),
 ):
     """Subscribe to a compliance plan."""
-    company = db.query(Company).filter(
-        Company.id == req.company_id,
-        Company.user_id == current_user.id,
-    ).first()
-    if not company:
-        raise HTTPException(status_code=404, detail="Company not found")
+    company = get_user_company(req.company_id, db, current_user)
 
     plan = get_plan_by_key(req.plan_key)
     if not plan:
@@ -523,12 +514,7 @@ def get_upsell_items(
     current_user: User = Depends(get_current_user),
 ):
     """Get personalised upsell recommendations for a company."""
-    company = db.query(Company).filter(
-        Company.id == company_id,
-        Company.user_id == current_user.id,
-    ).first()
-    if not company:
-        raise HTTPException(status_code=404, detail="Company not found")
+    company = get_user_company(company_id, db, current_user)
 
     # Get existing service request keys for this company
     existing_keys = [
