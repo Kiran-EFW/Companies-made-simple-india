@@ -1499,6 +1499,7 @@ class ContractTemplateService:
                 self._emp_step4_ip(),
                 self._emp_step5_restrictive(),
                 self._emp_step6_termination(),
+                self._emp_step7_statutory_compliance(),
             ],
         }
 
@@ -1966,6 +1967,274 @@ class ContractTemplateService:
                         "mandatory by law for establishments with 10+ employees."
                     ),
                     preview_template="Gratuity provisions: {value}.",
+                ),
+            ],
+        }
+
+    @staticmethod
+    def _emp_step7_statutory_compliance() -> dict:
+        return {
+            "step_number": 7,
+            "title": "Statutory Compliance & Workplace Policies",
+            "description": (
+                "Mandatory provisions under Indian labour and data protection laws."
+            ),
+            "clauses": [
+                _clause(
+                    "posh_policy", "POSH Policy Acknowledgment", "toggle",
+                    (
+                        "Whether the agreement includes acknowledgment of the company's "
+                        "Prevention of Sexual Harassment (POSH) policy."
+                    ),
+                    default=True,
+                    learn_more=(
+                        "The Sexual Harassment of Women at Workplace (Prevention, Prohibition "
+                        "and Redressal) Act 2013 (POSH Act) mandates that every employer with "
+                        "10 or more employees constitute an Internal Complaints Committee (ICC) "
+                        "and adopt an anti-sexual harassment policy. Under Section 19, the "
+                        "employer must provide a safe working environment, display the penal "
+                        "consequences of sexual harassment, organize awareness programmes, and "
+                        "assist in filing complaints. Under Section 26, non-compliance by the "
+                        "employer attracts a fine up to Rs 50,000 (first offence) and cancellation "
+                        "of business licence on repeat offence. Including a POSH acknowledgment "
+                        "in the employment agreement ensures the employee is aware of the policy "
+                        "and the ICC from day one."
+                    ),
+                    india_note=(
+                        "MANDATORY under the Sexual Harassment of Women at Workplace Act 2013 "
+                        "(POSH Act) for employers with 10+ employees. Sections 4 (ICC "
+                        "constitution), 19 (employer duties), and 26 (penalties: Rs 50,000 fine, "
+                        "licence cancellation on repeat). Applies to all employees regardless "
+                        "of gender for the purpose of awareness."
+                    ),
+                    warning=(
+                        "The POSH Act 2013 is mandatory for employers with 10+ employees. "
+                        "Not including this acknowledgment does not exempt you from compliance. "
+                        "Ensure you have an ICC constituted and a POSH policy in place."
+                    ),
+                    warning_condition={
+                        "field": "posh_policy",
+                        "operator": "eq",
+                        "value": False,
+                    },
+                    common_choice_label="Mandatory for 10+ employees",
+                    preview_template=(
+                        "POSH policy acknowledgment: {value}. The Employee acknowledges "
+                        "the Company's anti-sexual harassment policy and the existence of "
+                        "an Internal Complaints Committee (ICC) as per the POSH Act 2013."
+                    ),
+                ),
+                _clause(
+                    "maternity_benefit", "Maternity Benefit Clause", "toggle",
+                    (
+                        "Whether to include maternity leave entitlement as per the "
+                        "Maternity Benefit (Amendment) Act 2017."
+                    ),
+                    default=True,
+                    learn_more=(
+                        "The Maternity Benefit (Amendment) Act 2017 (amending the 1961 Act) "
+                        "entitles women employees to 26 weeks of paid maternity leave for the "
+                        "first two children and 12 weeks for subsequent children (Section 5). "
+                        "Commissioning mothers and adopting mothers are entitled to 12 weeks "
+                        "from the date the child is handed over. Section 11A mandates a "
+                        "'work from home' option (if the nature of work permits) after the "
+                        "26-week period, as mutually agreed. Employers with 50+ employees "
+                        "must provide creche facilities within a prescribed distance (Section 11A). "
+                        "Terminating or dismissing a woman during maternity leave is an offence "
+                        "under Section 12 punishable with imprisonment up to 3 months and fine "
+                        "up to Rs 5,000. Including this in the agreement sets clear expectations."
+                    ),
+                    india_note=(
+                        "MANDATORY under Maternity Benefit (Amendment) Act 2017. Key provisions: "
+                        "26 weeks paid leave (first 2 children), 12 weeks (3rd child onwards "
+                        "and adoption), work-from-home option post leave (Section 11A), creche "
+                        "for 50+ employees, no termination during leave (Section 12). Applies "
+                        "to all establishments with 10+ employees."
+                    ),
+                    warning=(
+                        "Maternity leave is a statutory entitlement. Not including this clause "
+                        "does not exempt you from providing 26 weeks of paid maternity leave. "
+                        "Non-compliance can result in imprisonment up to 3 months."
+                    ),
+                    warning_condition={
+                        "field": "maternity_benefit",
+                        "operator": "eq",
+                        "value": False,
+                    },
+                    common_choice_label="Mandatory by law",
+                    preview_template=(
+                        "Maternity benefit: {value}. Female employees are entitled to "
+                        "26 weeks of paid maternity leave for the first two children as "
+                        "per the Maternity Benefit (Amendment) Act 2017."
+                    ),
+                ),
+                _clause(
+                    "equal_remuneration", "Equal Remuneration Clause", "toggle",
+                    (
+                        "Whether to include an equal pay commitment as per the "
+                        "Code on Wages 2019."
+                    ),
+                    default=True,
+                    learn_more=(
+                        "The Code on Wages 2019 (which subsumes the Equal Remuneration Act "
+                        "1976) prohibits discrimination in wages on the ground of gender for "
+                        "the same work or work of similar nature (Section 3). The employer "
+                        "cannot make any discrimination while recruiting employees for the "
+                        "same work or work of similar nature in conditions of employment "
+                        "(except where employment of women is prohibited or restricted by law). "
+                        "Violation attracts a fine up to Rs 1 lakh on first offence, and "
+                        "imprisonment up to 3 months or fine up to Rs 2 lakhs on subsequent "
+                        "offences. Including this commitment demonstrates compliance and "
+                        "builds employer brand."
+                    ),
+                    india_note=(
+                        "Under the Code on Wages 2019 (Section 3), no gender discrimination "
+                        "in wages for same work or work of similar nature. Penalty: Rs 1 lakh "
+                        "fine (first offence), up to 3 months imprisonment (repeat). Replaces "
+                        "the Equal Remuneration Act 1976."
+                    ),
+                    common_choice_label="Recommended: Yes",
+                    preview_template=(
+                        "Equal remuneration: {value}. The Company commits to equal pay for "
+                        "equal work regardless of gender, as per the Code on Wages 2019."
+                    ),
+                ),
+                _clause(
+                    "minimum_wage_compliance", "Minimum Wage Compliance", "toggle",
+                    (
+                        "Whether to include a clause confirming that compensation meets "
+                        "or exceeds the applicable minimum wage."
+                    ),
+                    default=True,
+                    learn_more=(
+                        "The Code on Wages 2019 (Sections 6-9) mandates a floor wage set by "
+                        "the Central Government below which no state can fix minimum wages. "
+                        "Minimum wages are fixed based on skill level, geographical area, "
+                        "and type of employment. Currently, minimum wages in India vary from "
+                        "approximately Rs 176/day to Rs 700+/day depending on the state and "
+                        "skill category. For tech startups, salaries typically far exceed "
+                        "minimum wages, but including this clause ensures compliance is "
+                        "documented and protects against future changes in minimum wage rates. "
+                        "Non-compliance attracts a fine up to Rs 50,000."
+                    ),
+                    india_note=(
+                        "Under Code on Wages 2019, minimum wages are set by Central/State "
+                        "governments. A national floor wage applies across India. Penalty for "
+                        "non-payment of minimum wages: fine up to Rs 50,000 (first offence), "
+                        "imprisonment up to 3 months on repeat."
+                    ),
+                    common_choice_label="Recommended: Yes",
+                    preview_template=(
+                        "Minimum wage compliance: {value}. The Company confirms that the "
+                        "compensation offered meets or exceeds the applicable minimum wage."
+                    ),
+                ),
+                _clause(
+                    "data_privacy_employee", "Employee Data Privacy (DPDP Act)", "toggle",
+                    (
+                        "Whether to include a clause on employee personal data handling "
+                        "under the Digital Personal Data Protection Act 2023."
+                    ),
+                    default=True,
+                    learn_more=(
+                        "The Digital Personal Data Protection Act 2023 (DPDP Act) applies to "
+                        "processing of employee personal data. As an employer, you are a "
+                        "'Data Fiduciary' (Section 2(i)) and the employee is a 'Data Principal' "
+                        "(Section 2(j)). Key obligations include: obtaining consent for processing "
+                        "personal data beyond what is necessary for employment (Section 6), "
+                        "providing notice of data processing purposes (Section 5), ensuring data "
+                        "accuracy and security (Section 8), granting the right to erasure "
+                        "(Section 8(7)), and appointing a Data Protection Officer if classified "
+                        "as a Significant Data Fiduciary. Employee data includes Aadhaar, PAN, "
+                        "bank details, health records, performance reviews, and biometric data "
+                        "(if used for attendance). Penalties for non-compliance can be up to "
+                        "Rs 250 crore (Section 18)."
+                    ),
+                    india_note=(
+                        "Under DPDP Act 2023: employer is Data Fiduciary, employee is Data "
+                        "Principal. Sections 5-6 (notice & consent), Section 8(7) (right to "
+                        "erasure), Section 18 (penalties up to Rs 250 crore). Employee data "
+                        "includes Aadhaar, PAN, bank details, health records, biometrics."
+                    ),
+                    warning=(
+                        "The DPDP Act 2023 imposes mandatory data protection obligations on "
+                        "employers. Not including this clause does not exempt you from "
+                        "compliance. Penalties can reach Rs 250 crore."
+                    ),
+                    warning_condition={
+                        "field": "data_privacy_employee",
+                        "operator": "eq",
+                        "value": False,
+                    },
+                    common_choice_label="Mandatory under DPDP Act 2023",
+                    preview_template=(
+                        "Employee data privacy: {value}. The Company shall process Employee's "
+                        "personal data in accordance with the Digital Personal Data Protection "
+                        "Act 2023 and provide notice of data processing purposes."
+                    ),
+                ),
+                _clause(
+                    "background_verification", "Background Verification Consent", "toggle",
+                    (
+                        "Whether the employee consents to background verification "
+                        "including education, employment history, and criminal records."
+                    ),
+                    default=True,
+                    learn_more=(
+                        "Background verification is standard practice in India, especially for "
+                        "roles involving access to sensitive data, financial systems, or client "
+                        "information. Under the DPDP Act 2023, explicit consent is required "
+                        "before processing personal data for verification purposes. The "
+                        "verification typically covers: identity (Aadhaar/PAN), educational "
+                        "qualifications, previous employment history, criminal record (through "
+                        "local police verification), and address verification. Third-party "
+                        "verification agencies must also comply with data protection obligations. "
+                        "Including consent in the employment agreement avoids disputes about "
+                        "whether the employee agreed to the verification process."
+                    ),
+                    india_note=(
+                        "Background verification requires explicit consent under DPDP Act 2023 "
+                        "(Section 6). If using Aadhaar for identity verification, comply with "
+                        "Aadhaar Act 2016 Section 8 (authentication only with consent). Criminal "
+                        "record verification is through local police; no centralized database "
+                        "exists in India."
+                    ),
+                    common_choice_label="Recommended: Yes",
+                    preview_template=(
+                        "Background verification: {value}. The Employee consents to background "
+                        "verification covering identity, education, employment history, and "
+                        "criminal records as part of the onboarding process."
+                    ),
+                ),
+                _clause(
+                    "pf_esi_acknowledgment", "PF & ESI Acknowledgment", "toggle",
+                    (
+                        "Whether to include acknowledgment of Provident Fund and Employee "
+                        "State Insurance contributions."
+                    ),
+                    default=True,
+                    learn_more=(
+                        "Provident Fund (PF) under the Employees' Provident Funds and "
+                        "Miscellaneous Provisions Act 1952 is mandatory for establishments "
+                        "with 20+ employees. Both employer and employee contribute 12% of "
+                        "basic salary. Employee State Insurance (ESI) under the ESI Act 1948 "
+                        "applies to employees earning up to Rs 21,000/month (Rs 25,000 for "
+                        "persons with disability). ESI provides medical, sickness, maternity, "
+                        "and disability benefits. Employer contributes 3.25% and employee 0.75% "
+                        "of wages. Including this acknowledgment clarifies the deductions from "
+                        "the employee's salary and the employer's contribution obligations."
+                    ),
+                    india_note=(
+                        "PF: mandatory for 20+ employees, 12% employer + 12% employee on basic "
+                        "salary (EPF Act 1952). ESI: applies to employees earning ≤ Rs 21,000/month, "
+                        "employer 3.25% + employee 0.75% (ESI Act 1948). Non-compliance: "
+                        "imprisonment up to 3 years and fine under both Acts."
+                    ),
+                    common_choice_label="Standard: Yes",
+                    preview_template=(
+                        "PF & ESI: {value}. Provident Fund and ESI contributions (where "
+                        "applicable) shall be deducted and deposited as per statutory requirements."
+                    ),
                 ),
             ],
         }
@@ -2973,6 +3242,97 @@ but are not a substitute for DSC-based signing required for regulatory filings.
                 f'Payment of Gratuity Act, 1972, upon completing 5 years of continuous service.</p>'
             )
         sections.append(term_html)
+
+        # -- Step 7: Statutory Compliance & Workplace Policies ----------------
+        sc_clauses: List[str] = []
+        cn += 1
+        sc_num = 0
+
+        if config.get("posh_policy", True):
+            sc_num += 1
+            sc_clauses.append(
+                f'<p class="clause"><span class="clause-number">{cn}.{sc_num}</span> '
+                f'<strong>Prevention of Sexual Harassment:</strong> The Employee acknowledges '
+                f'the Company\'s policy on prevention of sexual harassment in accordance with '
+                f'the Sexual Harassment of Women at Workplace (Prevention, Prohibition and '
+                f'Redressal) Act, 2013. The Company has constituted an Internal Complaints '
+                f'Committee (ICC) as required under Section 4 of the Act. The Employee agrees '
+                f'to comply with the POSH policy and report any incidents to the ICC.</p>'
+            )
+
+        if config.get("maternity_benefit", True):
+            sc_num += 1
+            sc_clauses.append(
+                f'<p class="clause"><span class="clause-number">{cn}.{sc_num}</span> '
+                f'<strong>Maternity Benefit:</strong> Female employees shall be entitled to '
+                f'26 weeks of paid maternity leave for the first two children and 12 weeks '
+                f'for subsequent children, in accordance with the Maternity Benefit '
+                f'(Amendment) Act, 2017. Commissioning and adopting mothers are entitled to '
+                f'12 weeks of leave. Work-from-home options post maternity leave shall be '
+                f'available as per Section 11A, subject to the nature of work.</p>'
+            )
+
+        if config.get("equal_remuneration", True):
+            sc_num += 1
+            sc_clauses.append(
+                f'<p class="clause"><span class="clause-number">{cn}.{sc_num}</span> '
+                f'<strong>Equal Remuneration:</strong> The Company shall not discriminate in '
+                f'wages on the ground of gender for the same work or work of a similar '
+                f'nature, in accordance with Section 3 of the Code on Wages, 2019.</p>'
+            )
+
+        if config.get("minimum_wage_compliance", True):
+            sc_num += 1
+            sc_clauses.append(
+                f'<p class="clause"><span class="clause-number">{cn}.{sc_num}</span> '
+                f'<strong>Minimum Wage:</strong> The Company confirms that the compensation '
+                f'offered herein meets or exceeds the applicable minimum wage as notified by '
+                f'the Central/State Government under the Code on Wages, 2019.</p>'
+            )
+
+        if config.get("data_privacy_employee", True):
+            sc_num += 1
+            sc_clauses.append(
+                f'<p class="clause"><span class="clause-number">{cn}.{sc_num}</span> '
+                f'<strong>Employee Data Privacy:</strong> The Company shall process the '
+                f'Employee\'s personal data (including Aadhaar, PAN, bank details, and health '
+                f'records) in accordance with the Digital Personal Data Protection Act, 2023. '
+                f'The Company shall provide notice of data processing purposes as required '
+                f'under Section 5, obtain consent where necessary under Section 6, and honour '
+                f'the Employee\'s right to erasure under Section 8(7) upon cessation of '
+                f'employment, subject to retention requirements under other applicable laws.</p>'
+            )
+
+        if config.get("background_verification", True):
+            sc_num += 1
+            sc_clauses.append(
+                f'<p class="clause"><span class="clause-number">{cn}.{sc_num}</span> '
+                f'<strong>Background Verification:</strong> The Employee hereby consents to '
+                f'background verification covering identity documents, educational '
+                f'qualifications, previous employment history, and criminal records. Such '
+                f'verification shall be conducted in compliance with the Digital Personal '
+                f'Data Protection Act, 2023 and, where Aadhaar is used, the Aadhaar '
+                f'(Targeted Delivery of Financial and Other Subsidies, Benefits and Services) '
+                f'Act, 2016.</p>'
+            )
+
+        if config.get("pf_esi_acknowledgment", True):
+            sc_num += 1
+            sc_clauses.append(
+                f'<p class="clause"><span class="clause-number">{cn}.{sc_num}</span> '
+                f'<strong>Provident Fund & ESI:</strong> The Employee acknowledges that '
+                f'Provident Fund contributions shall be deducted as per the Employees\' '
+                f'Provident Funds and Miscellaneous Provisions Act, 1952 (12% of basic salary '
+                f'by each party). Where applicable, Employee State Insurance contributions '
+                f'shall be deducted as per the ESI Act, 1948 (0.75% employee, 3.25% employer '
+                f'for employees earning up to Rs 21,000/month).</p>'
+            )
+
+        if sc_clauses:
+            sections.append(
+                f'<h2>{cn}. Statutory Compliance & Workplace Policies</h2>'
+                + "".join(sc_clauses)
+            )
 
         sections.append(
             '<div class="signature-block"><h2>Signatures</h2>'

@@ -20,6 +20,7 @@ class DocumentType(str, enum.Enum):
 class VerificationStatus(str, enum.Enum):
     PENDING = "pending"
     AI_VERIFIED = "ai_verified"
+    PENDING_REVIEW = "pending_review"  # Moderate confidence — needs human review
     TEAM_VERIFIED = "team_verified"
     REJECTED = "rejected"
 

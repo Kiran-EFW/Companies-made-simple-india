@@ -179,7 +179,7 @@ export default function Footer() {
               <img
                 src="/logo-icon.png"
                 alt="Anvils"
-                className="w-7 h-7 object-contain"
+                className="h-7 w-auto"
               />
               <span
                 className="text-lg font-bold"

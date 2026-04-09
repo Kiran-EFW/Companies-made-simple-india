@@ -839,7 +839,17 @@ class CopilotService:
             "the context, say you don't have that information.\n"
             "- For specific legal or tax advice, recommend consulting a CA or legal professional.\n"
             "- Format responses with bullet points and bold text for readability.\n"
-            "- Use Indian regulatory terminology naturally but always explain it on first mention."
+            "- Use Indian regulatory terminology naturally but always explain it on first mention.\n\n"
+            "=== MANDATORY DISCLAIMER ===\n"
+            "- ALWAYS end every response with this disclaimer:\n"
+            "'*This is general guidance only — not legal or tax advice. Verify deadlines on the "
+            "MCA/GST portal and consult a qualified CA or CS before acting.*'\n"
+            "- NEVER state that a company name is 'reserved' or 'approved' — only MCA can confirm.\n"
+            "- When quoting penalty amounts or deadlines, add 'as per current rules' since these "
+            "may be updated by government notifications.\n"
+            "- Do NOT recommend specific tax-saving strategies or interpret court judgments.\n"
+            "- If the user asks about a legal dispute, litigation, or NCLT proceedings, advise "
+            "them to consult a practicing advocate — do not attempt to guide on litigation."
         )
 
     # ------------------------------------------------------------------

@@ -107,7 +107,7 @@ export default function NotificationPreferencesPage() {
       <nav className="glass-card sticky top-0 z-50 rounded-none border-t-0 border-x-0 border-b">
         <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/dashboard" className="flex items-center gap-2">
-            <img src="/logo-icon.png" alt="Anvils" className="w-5 h-5 object-contain" />
+            <img src="/logo-icon.png" alt="Anvils" className="h-5 w-auto" />
             <span className="font-bold hidden md:block" style={{ fontFamily: "var(--font-display)" }}>Anvils</span>
           </Link>
           <div className="flex items-center gap-4">

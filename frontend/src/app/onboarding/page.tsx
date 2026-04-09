@@ -184,7 +184,7 @@ export default function OnboardingPage() {
     return (
       <div className="min-h-screen flex items-center justify-center glow-bg">
         <div className="animate-pulse-glow w-16 h-16 rounded-full bg-purple-500/20 flex items-center justify-center">
-           <img src="/logo-icon.png" alt="Anvils" className="w-7 h-7 object-contain" />
+           <img src="/logo-icon.png" alt="Anvils" className="h-7 w-auto" />
         </div>
       </div>
     );

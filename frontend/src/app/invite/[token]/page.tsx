@@ -128,7 +128,7 @@ export default function InviteAcceptPage() {
             style={{ cursor: "default" }}
           >
             <Link href="/" className="inline-flex items-center gap-2 mb-6">
-              <img src="/logo-icon.png" alt="Anvils" className="w-8 h-8 object-contain" />
+              <img src="/logo-icon.png" alt="Anvils" className="h-8 w-auto" />
               <span className="text-xl font-bold gradient-text" style={{ fontFamily: "var(--font-display)" }}>
                 Anvils
               </span>
@@ -200,7 +200,7 @@ export default function InviteAcceptPage() {
             style={{ cursor: "default" }}
           >
             <Link href="/" className="inline-flex items-center gap-2 mb-6">
-              <img src="/logo-icon.png" alt="Anvils" className="w-8 h-8 object-contain" />
+              <img src="/logo-icon.png" alt="Anvils" className="h-8 w-auto" />
               <span className="text-xl font-bold gradient-text" style={{ fontFamily: "var(--font-display)" }}>
                 Anvils
               </span>
@@ -244,7 +244,7 @@ export default function InviteAcceptPage() {
             style={{ cursor: "default" }}
           >
             <Link href="/" className="inline-flex items-center gap-2 mb-6">
-              <img src="/logo-icon.png" alt="Anvils" className="w-8 h-8 object-contain" />
+              <img src="/logo-icon.png" alt="Anvils" className="h-8 w-auto" />
               <span className="text-xl font-bold gradient-text" style={{ fontFamily: "var(--font-display)" }}>
                 Anvils
               </span>
@@ -294,7 +294,7 @@ export default function InviteAcceptPage() {
           {/* Logo */}
           <div className="text-center mb-6">
             <Link href="/" className="inline-flex items-center gap-2 mb-2">
-              <img src="/logo-icon.png" alt="Anvils" className="w-8 h-8 object-contain" />
+              <img src="/logo-icon.png" alt="Anvils" className="h-8 w-auto" />
               <span className="text-xl font-bold gradient-text" style={{ fontFamily: "var(--font-display)" }}>
                 Anvils
               </span>

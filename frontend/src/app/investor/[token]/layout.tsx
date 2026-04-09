@@ -27,7 +27,7 @@ export default function InvestorPortalLayout({ children }: { children: ReactNode
       >
         <div className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Image src="/logo-icon.png" alt="Anvils" width={28} height={28} className="object-contain" />
+            <Image src="/logo-icon.png" alt="Anvils" width={43} height={28} className="object-contain" />
             <span
               className="text-lg font-semibold"
               style={{ fontFamily: "var(--font-display)", color: "var(--color-text-primary)" }}

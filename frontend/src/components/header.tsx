@@ -127,7 +127,7 @@ export default function Header() {
         <nav className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 shrink-0">
-            <img src="/logo-icon.png" alt="Anvils" className="w-7 h-7 object-contain" />
+            <img src="/logo-icon.png" alt="Anvils" className="h-7 w-auto" />
             <span
               className="text-lg font-bold"
               style={{ fontFamily: "var(--font-display)", color: "var(--color-text-primary)" }}

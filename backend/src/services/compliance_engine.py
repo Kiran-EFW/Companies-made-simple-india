@@ -23,57 +23,86 @@ logger = logging.getLogger(__name__)
 
 COMPLIANCE_RULES: Dict[str, Any] = {
     "private_limited": [
+        # ── ROC Annual Filings ─────────────────────────────────────────
         {
             "type": "aoc_4",
             "title": "AOC-4 (Financial Statements)",
             "frequency": "annual",
             "due_rule": "within_30_days_of_agm",
-            "description": "File financial statements with ROC including Balance Sheet, P&L, and notes.",
+            "description": (
+                "File financial statements (Balance Sheet, P&L, Cash Flow, Notes) "
+                "with ROC within 30 days of AGM. (Companies Act 2013, § 137)"
+            ),
             "penalty_per_day": 100,
-            "max_penalty": None,
+            "max_penalty": 1000000,  # Rs 10 lakh cap per MCA
+            "section": "137",
         },
         {
             "type": "mgt_7",
             "title": "MGT-7 (Annual Return)",
             "frequency": "annual",
             "due_rule": "within_60_days_of_agm",
-            "description": "File annual return with ROC containing company details, shareholding, and directors.",
+            "description": (
+                "File annual return with ROC within 60 days of AGM. Contains "
+                "company details, shareholding pattern, and director info. (§ 92)"
+            ),
             "penalty_per_day": 100,
-            "max_penalty": None,
+            "max_penalty": 500000,  # Rs 5 lakh cap per § 92(5)
+            "section": "92",
         },
         {
             "type": "dir_3_kyc",
             "title": "DIR-3 KYC (Director KYC)",
             "frequency": "annual",
             "due_rule": "september_30",
-            "description": "Every director must file annual KYC with MCA by September 30.",
+            "description": (
+                "Every DIN holder must file DIR-3 KYC annually by September 30. "
+                "First-time filers use DIR-3 KYC (web form for subsequent years). "
+                "Failure leads to DIN deactivation. (Rule 12A, Companies (Appointment "
+                "and Qualification of Directors) Rules, 2014)"
+            ),
             "penalty_per_day": 0,
             "penalty_late_fee": 5000,
+            "section": "Rule 12A",
         },
         {
             "type": "adt_1_renewal",
-            "title": "ADT-1 (Auditor Reappointment)",
+            "title": "ADT-1 (Auditor Appointment)",
             "frequency": "annual",
             "due_rule": "within_15_days_of_agm",
-            "description": "File notice of auditor appointment/reappointment after AGM.",
+            "description": (
+                "File notice of auditor appointment/reappointment within 15 days "
+                "of AGM. (§ 139(1), Rule 4 of Companies (Audit and Auditors) Rules)"
+            ),
             "penalty_per_day": 100,
             "max_penalty": None,
+            "section": "139",
         },
+        # ── Board Meetings (§ 173) ─────────────────────────────────────
+        # Section 173(1): Minimum 4 board meetings per year.
+        # Maximum gap between two consecutive meetings: 120 days.
+        # Using quarter-end dates as suggested deadlines, but the 120-day
+        # gap rule is the actual legal requirement.
         {
             "type": "board_meeting_q1",
             "title": "Board Meeting — Q1 (Apr-Jun)",
             "frequency": "quarterly",
             "due_rule": "june_30",
-            "description": "Mandatory quarterly board meeting. Maximum 120 days gap between meetings.",
+            "description": (
+                "Minimum 4 board meetings per year, with max 120-day gap between "
+                "consecutive meetings. (§ 173(1)). Penalty: Rs 25,000 on company + "
+                "Rs 5,000 per director for each default."
+            ),
             "penalty_per_day": 0,
             "penalty_fixed": 25000,
+            "section": "173",
         },
         {
             "type": "board_meeting_q2",
             "title": "Board Meeting — Q2 (Jul-Sep)",
             "frequency": "quarterly",
             "due_rule": "september_30",
-            "description": "Mandatory quarterly board meeting.",
+            "description": "Quarterly board meeting. Max 120-day gap rule applies. (§ 173(1))",
             "penalty_per_day": 0,
             "penalty_fixed": 25000,
         },
@@ -82,7 +111,7 @@ COMPLIANCE_RULES: Dict[str, Any] = {
             "title": "Board Meeting — Q3 (Oct-Dec)",
             "frequency": "quarterly",
             "due_rule": "december_31",
-            "description": "Mandatory quarterly board meeting.",
+            "description": "Quarterly board meeting. Max 120-day gap rule applies. (§ 173(1))",
             "penalty_per_day": 0,
             "penalty_fixed": 25000,
         },
@@ -91,64 +120,83 @@ COMPLIANCE_RULES: Dict[str, Any] = {
             "title": "Board Meeting — Q4 (Jan-Mar)",
             "frequency": "quarterly",
             "due_rule": "march_31",
-            "description": "Mandatory quarterly board meeting.",
+            "description": "Quarterly board meeting. Max 120-day gap rule applies. (§ 173(1))",
             "penalty_per_day": 0,
             "penalty_fixed": 25000,
         },
+        # ── AGM (§ 96) ────────────────────────────────────────────────
         {
             "type": "agm",
             "title": "Annual General Meeting",
             "frequency": "annual",
-            "due_rule": "within_6_months_of_fy_end",
-            "description": "Hold AGM within 6 months of financial year end (by September 30).",
-            "penalty_per_day": 0,
+            "due_rule": "agm_dynamic",
+            "description": (
+                "First AGM: within 9 months from close of first FY (§ 96(1)). "
+                "Subsequent AGMs: within 6 months of FY end AND within 15 months "
+                "of last AGM. Max gap between two AGMs: 15 months. "
+                "Penalty: up to Rs 1 lakh on company + Rs 5,000/day for "
+                "continuing default. (§ 99)"
+            ),
+            "penalty_per_day": 5000,
             "penalty_fixed": 100000,
+            "section": "96, 99",
         },
+        # ── Income Tax ─────────────────────────────────────────────────
         {
             "type": "itr_filing",
             "title": "Income Tax Return",
             "frequency": "annual",
             "due_rule": "october_31",
-            "description": "File ITR by October 31 (if audit applicable) or July 31 (otherwise).",
+            "description": (
+                "File ITR by October 31 (companies subject to audit under § 44AB) "
+                "or July 31 (otherwise). (Income Tax Act § 139(1)). "
+                "Late fee: Rs 5,000 (if filed by Dec 31) or Rs 10,000 (after). "
+                "Interest: 1% per month under § 234A."
+            ),
             "penalty_per_day": 0,
             "penalty_late_fee": 10000,
         },
+        # ── Advance Tax (§ 208-211, IT Act) ────────────────────────────
         {
             "type": "advance_tax_q1",
-            "title": "Advance Tax — Q1 (15% of estimated tax)",
+            "title": "Advance Tax — Q1 (15%)",
             "frequency": "quarterly",
             "due_rule": "june_15",
-            "description": "Pay 15% of estimated annual tax liability as advance tax.",
-            "penalty_per_day": 0,
-            "penalty_interest": "1% per month under 234C",
+            "description": "Pay 15% of estimated annual tax liability. (IT Act § 211)",
+            "penalty_interest": "1% per month under § 234C",
         },
         {
             "type": "advance_tax_q2",
             "title": "Advance Tax — Q2 (45% cumulative)",
             "frequency": "quarterly",
             "due_rule": "september_15",
-            "description": "Pay advance tax to bring cumulative payment to 45% of estimated liability.",
+            "description": "Cumulative 45% of estimated tax liability. (IT Act § 211)",
         },
         {
             "type": "advance_tax_q3",
             "title": "Advance Tax — Q3 (75% cumulative)",
             "frequency": "quarterly",
             "due_rule": "december_15",
-            "description": "Pay advance tax to bring cumulative payment to 75% of estimated liability.",
+            "description": "Cumulative 75% of estimated tax liability. (IT Act § 211)",
         },
         {
             "type": "advance_tax_q4",
-            "title": "Advance Tax — Q4 (100% cumulative)",
+            "title": "Advance Tax — Q4 (100%)",
             "frequency": "quarterly",
             "due_rule": "march_15",
-            "description": "Pay remaining advance tax to reach 100% of estimated liability.",
+            "description": "Full 100% of estimated tax liability due. (IT Act § 211)",
         },
+        # ── TDS Returns (IT Act § 200) ────────────────────────────────
         {
             "type": "tds_return_q1",
             "title": "TDS Return — Q1 (Apr-Jun)",
             "frequency": "quarterly",
             "due_rule": "july_31",
-            "description": "File quarterly TDS return (24Q/26Q/27Q) for Q1.",
+            "description": (
+                "File quarterly TDS return (24Q/26Q/27Q). Late fee: Rs 200/day "
+                "under § 234E (capped at TDS amount). Penalty up to Rs 1 lakh "
+                "under § 271H for failure to file."
+            ),
             "penalty_per_day": 200,
             "max_penalty": None,
         },
@@ -157,52 +205,61 @@ COMPLIANCE_RULES: Dict[str, Any] = {
             "title": "TDS Return — Q2 (Jul-Sep)",
             "frequency": "quarterly",
             "due_rule": "october_31",
-            "description": "File quarterly TDS return for Q2.",
+            "description": "File quarterly TDS return for Q2. (IT Act § 200(3))",
             "penalty_per_day": 200,
-            "max_penalty": None,
         },
         {
             "type": "tds_return_q3",
             "title": "TDS Return — Q3 (Oct-Dec)",
             "frequency": "quarterly",
             "due_rule": "january_31",
-            "description": "File quarterly TDS return for Q3.",
+            "description": "File quarterly TDS return for Q3. (IT Act § 200(3))",
             "penalty_per_day": 200,
-            "max_penalty": None,
         },
         {
             "type": "tds_return_q4",
             "title": "TDS Return — Q4 (Jan-Mar)",
             "frequency": "quarterly",
             "due_rule": "may_31",
-            "description": "File quarterly TDS return for Q4.",
+            "description": "File quarterly TDS return for Q4. (IT Act § 200(3))",
             "penalty_per_day": 200,
-            "max_penalty": None,
         },
         {
             "type": "form_16",
             "title": "Form 16 / 16A Issuance",
             "frequency": "annual",
             "due_rule": "june_15",
-            "description": "Issue Form 16 to employees and Form 16A to vendors by June 15.",
+            "description": (
+                "Issue Form 16 (salary TDS certificate) to employees and "
+                "Form 16A (non-salary TDS) to vendors by June 15. (IT Act § 203)"
+            ),
         },
     ],
 
     "opc": [
+        # OPC is exempt from AGM (§ 96(1) proviso) but must file AOC-4
+        # within 180 days of FY end (§ 137 read with Rule 12 proviso).
         {
             "type": "aoc_4",
-            "title": "AOC-4 (Financial Statements)",
+            "title": "AOC-4 (Financial Statements — OPC)",
             "frequency": "annual",
             "due_rule": "within_180_days_of_fy_end",
-            "description": "OPC must file AOC-4 within 180 days of FY end (no AGM required).",
+            "description": (
+                "OPC files AOC-4 within 180 days from close of FY (no AGM "
+                "required). (§ 137, OPC proviso)"
+            ),
             "penalty_per_day": 100,
+            "section": "137",
         },
         {
             "type": "mgt_7",
-            "title": "MGT-7A (Annual Return — Small Company)",
+            "title": "MGT-7A (Annual Return — OPC)",
             "frequency": "annual",
             "due_rule": "within_60_days_of_fy_end_plus_180",
-            "description": "OPC files simplified MGT-7A.",
+            "description": (
+                "OPC files simplified MGT-7A within 60 days from date of "
+                "AOC-4 filing. (§ 92)"
+            ),
             "penalty_per_day": 100,
         },
         {
@@ -210,25 +267,52 @@ COMPLIANCE_RULES: Dict[str, Any] = {
             "title": "DIR-3 KYC (Director KYC)",
             "frequency": "annual",
             "due_rule": "september_30",
-            "description": "Director must file annual KYC.",
+            "description": "Director must file annual KYC by Sep 30. Late fee: Rs 5,000.",
             "penalty_late_fee": 5000,
+        },
+        # OPC with 2+ board meetings per year (§ 173(5) exemption: only
+        # 1 meeting per half-year required, minimum 90-day gap)
+        {
+            "type": "board_meeting_h1",
+            "title": "Board Meeting — H1 (Apr-Sep)",
+            "frequency": "semi_annual",
+            "due_rule": "september_30",
+            "description": (
+                "OPC: minimum 1 board meeting per half-year, minimum 90-day gap. "
+                "(§ 173(5) proviso for OPC)"
+            ),
+            "penalty_fixed": 25000,
+        },
+        {
+            "type": "board_meeting_h2",
+            "title": "Board Meeting — H2 (Oct-Mar)",
+            "frequency": "semi_annual",
+            "due_rule": "march_31",
+            "description": "OPC: Second half-year board meeting. (§ 173(5) proviso)",
+            "penalty_fixed": 25000,
         },
         {
             "type": "itr_filing",
             "title": "Income Tax Return",
             "frequency": "annual",
             "due_rule": "october_31",
-            "description": "File ITR by October 31 (audit applicable) or July 31.",
+            "description": "File ITR by Oct 31 (if audit applicable) or Jul 31.",
+            "penalty_late_fee": 10000,
         },
     ],
 
     "llp": [
+        # LLP Act 2008, Rule 24 & 25 of LLP Rules 2009
         {
             "type": "form_11",
             "title": "Form 11 (LLP Annual Return)",
             "frequency": "annual",
             "due_rule": "may_30",
-            "description": "File LLP Annual Return within 60 days of FY end.",
+            "description": (
+                "File LLP Annual Return within 60 days of FY end (i.e., by May 30). "
+                "(LLP Act § 35, Rule 25 of LLP Rules 2009). "
+                "Late fee: Rs 100/day of delay (no cap)."
+            ),
             "penalty_per_day": 100,
         },
         {
@@ -236,7 +320,12 @@ COMPLIANCE_RULES: Dict[str, Any] = {
             "title": "Form 8 (Statement of Account & Solvency)",
             "frequency": "annual",
             "due_rule": "october_30",
-            "description": "File statement of accounts within 30 days from 6 months of FY end.",
+            "description": (
+                "File Statement of Account & Solvency within 30 days from end of "
+                "6 months of FY end (i.e., by Oct 30 for March FY end). "
+                "(LLP Act § 34, Rule 24 of LLP Rules 2009). "
+                "Late fee: Rs 100/day of delay."
+            ),
             "penalty_per_day": 100,
         },
         {
@@ -244,7 +333,10 @@ COMPLIANCE_RULES: Dict[str, Any] = {
             "title": "DIR-3 KYC (Partner KYC)",
             "frequency": "annual",
             "due_rule": "september_30",
-            "description": "Designated partners must file annual KYC.",
+            "description": (
+                "All DPIN holders must file annual KYC by September 30. "
+                "Late fee: Rs 5,000, DPIN deactivated until filed."
+            ),
             "penalty_late_fee": 5000,
         },
         {
@@ -252,7 +344,11 @@ COMPLIANCE_RULES: Dict[str, Any] = {
             "title": "Income Tax Return (ITR-5)",
             "frequency": "annual",
             "due_rule": "october_31",
-            "description": "LLP must file ITR-5 by October 31 (if audit applicable) or July 31.",
+            "description": (
+                "LLP files ITR-5 by Oct 31 (if audit applicable under § 44AB, "
+                "i.e., turnover > Rs 1 crore) or Jul 31 (otherwise)."
+            ),
+            "penalty_late_fee": 10000,
         },
     ],
 
@@ -262,15 +358,16 @@ COMPLIANCE_RULES: Dict[str, Any] = {
             "title": "AOC-4 (Financial Statements)",
             "frequency": "annual",
             "due_rule": "within_30_days_of_agm",
-            "description": "File financial statements with ROC.",
+            "description": "File financial statements with ROC within 30 days of AGM. (§ 137)",
             "penalty_per_day": 100,
+            "max_penalty": 1000000,
         },
         {
             "type": "mgt_7",
             "title": "MGT-7 (Annual Return)",
             "frequency": "annual",
             "due_rule": "within_60_days_of_agm",
-            "description": "File annual return.",
+            "description": "File annual return within 60 days of AGM. (§ 92)",
             "penalty_per_day": 100,
         },
         {
@@ -278,43 +375,39 @@ COMPLIANCE_RULES: Dict[str, Any] = {
             "title": "DIR-3 KYC",
             "frequency": "annual",
             "due_rule": "september_30",
-            "description": "Director annual KYC.",
+            "description": "Director annual KYC by September 30.",
             "penalty_late_fee": 5000,
         },
         {
             "type": "agm",
             "title": "Annual General Meeting",
             "frequency": "annual",
-            "due_rule": "within_6_months_of_fy_end",
-            "description": "Hold AGM within 6 months of FY end.",
+            "due_rule": "agm_dynamic",
+            "description": (
+                "First AGM within 9 months of first FY close; subsequent AGMs "
+                "within 6 months of FY end. (§ 96)"
+            ),
+            "penalty_fixed": 100000,
         },
+        # Section 8 companies: minimum 2 board meetings per year (§ 173(5))
         {
-            "type": "board_meeting_q1",
-            "title": "Board Meeting — Q1",
-            "frequency": "quarterly",
-            "due_rule": "june_30",
-            "description": "Quarterly board meeting.",
-        },
-        {
-            "type": "board_meeting_q2",
-            "title": "Board Meeting — Q2",
-            "frequency": "quarterly",
+            "type": "board_meeting_h1",
+            "title": "Board Meeting — H1 (Apr-Sep)",
+            "frequency": "semi_annual",
             "due_rule": "september_30",
-            "description": "Quarterly board meeting.",
+            "description": (
+                "Section 8 company: minimum 1 board meeting per half-year, "
+                "minimum 90-day gap. (§ 173(5) exemption for Section 8)"
+            ),
+            "penalty_fixed": 25000,
         },
         {
-            "type": "board_meeting_q3",
-            "title": "Board Meeting — Q3",
-            "frequency": "quarterly",
-            "due_rule": "december_31",
-            "description": "Quarterly board meeting.",
-        },
-        {
-            "type": "board_meeting_q4",
-            "title": "Board Meeting — Q4",
-            "frequency": "quarterly",
+            "type": "board_meeting_h2",
+            "title": "Board Meeting — H2 (Oct-Mar)",
+            "frequency": "semi_annual",
             "due_rule": "march_31",
-            "description": "Quarterly board meeting.",
+            "description": "Section 8 company: Second half-year board meeting.",
+            "penalty_fixed": 25000,
         },
     ],
 
@@ -324,20 +417,30 @@ COMPLIANCE_RULES: Dict[str, Any] = {
     # Cross-entity rules (applied based on conditions, not entity type)
     # ------------------------------------------------------------------
     "_universal": [
+        # ── Day-0 / Post-Incorporation (one-time) ─────────────────────
         {
             "type": "first_board_meeting",
             "title": "First Board Meeting",
             "frequency": "one_time",
             "due_rule": "within_30_days_of_incorporation",
-            "description": "The first meeting of the Board of Directors must be held within 30 days of incorporation.",
+            "description": (
+                "First board meeting must be held within 30 days of incorporation. "
+                "Agenda: appoint first auditor, adopt common seal (optional), "
+                "confirm registered office, allot shares, authorize bank account. "
+                "(§ 173(1))"
+            ),
             "condition": "post_incorporation",
         },
         {
             "type": "auditor_appointment",
-            "title": "First Auditor Appointment",
+            "title": "First Auditor Appointment (ADT-1)",
             "frequency": "one_time",
             "due_rule": "within_30_days_of_incorporation",
-            "description": "First auditor must be appointed by the Board within 30 days of incorporation.",
+            "description": (
+                "Board must appoint first auditor within 30 days of incorporation. "
+                "Auditor holds office until conclusion of first AGM. File ADT-1 "
+                "within 15 days of appointment. (§ 139(6))"
+            ),
             "condition": "post_incorporation",
         },
         {
@@ -345,20 +448,39 @@ COMPLIANCE_RULES: Dict[str, Any] = {
             "title": "INC-20A (Commencement of Business)",
             "frequency": "one_time",
             "due_rule": "within_180_days_of_incorporation",
-            "description": "File declaration for commencement of business. Mandatory for all companies.",
+            "description": (
+                "File declaration that every subscriber has paid the value of "
+                "shares agreed. Company cannot commence business until filed. "
+                "Filing fee: Rs 500. Penalty: Rs 50,000 on company + Rs 1,000/day "
+                "per officer in default. (§ 10A)"
+            ),
+            "penalty_fixed": 50000,
+            "penalty_per_day": 1000,
             "condition": "post_incorporation",
         },
-        # MSME-1 — Semi-annual delayed payment reporting
+        {
+            "type": "share_certificate_issue",
+            "title": "Issue Share Certificates",
+            "frequency": "one_time",
+            "due_rule": "within_60_days_of_incorporation",
+            "description": (
+                "Issue share certificates to all subscribers within 60 days of "
+                "allotment/incorporation. (§ 56(4))"
+            ),
+            "condition": "post_incorporation",
+        },
+        # ── MSME-1 — Semi-annual delayed payment reporting ────────────
+        # (MSMED Act 2006 § 22 read with Companies Act § 405)
         {
             "type": "msme_1_h1",
             "title": "MSME-1 (H1: Apr-Sep delayed payments)",
             "frequency": "semi_annual",
             "due_rule": "october_31",
             "description": (
-                "Report all payments to MSME vendors delayed beyond 45 days for "
-                "Apr-Sep half-year. Applicable to all companies regardless of size."
+                "Report all outstanding payments to MSME vendors delayed beyond "
+                "45 days for Apr-Sep half-year. Applicable to ALL companies with "
+                "MSME suppliers. (MSMED Act § 22, MCA Order dt. 22-01-2019)"
             ),
-            "penalty_per_day": 0,
             "penalty_note": "Interest payable at 3x bank rate on delayed amount.",
             "condition": "has_msme_vendors",
         },
@@ -368,63 +490,333 @@ COMPLIANCE_RULES: Dict[str, Any] = {
             "frequency": "semi_annual",
             "due_rule": "april_30",
             "description": (
-                "Report all payments to MSME vendors delayed beyond 45 days for "
-                "Oct-Mar half-year."
+                "Report all outstanding payments to MSME vendors delayed beyond "
+                "45 days for Oct-Mar half-year."
             ),
-            "penalty_per_day": 0,
             "penalty_note": "Interest payable at 3x bank rate on delayed amount.",
             "condition": "has_msme_vendors",
         },
-        # FEMA/RBI — FDI tracking
+        # ── FEMA/RBI — FDI tracking ──────────────────────────────────
         {
             "type": "fla_return",
             "title": "FLA Return (RBI)",
             "frequency": "annual",
             "due_rule": "july_15",
             "description": (
-                "Annual return of foreign liabilities and assets to RBI. "
-                "Mandatory if company has any FDI or overseas investment."
+                "Annual return of Foreign Liabilities and Assets to RBI. "
+                "Mandatory if company has received FDI or made overseas investment. "
+                "(FEMA Regulations)"
             ),
             "penalty_note": "Non-filing may result in FEMA penalty proceedings.",
             "condition": "has_foreign_investment",
         },
-        # DPT-3 — Deposit return
+        # ── DPT-3 — Return of Deposits (§ 73/74) ────────────────────
         {
             "type": "dpt_3",
             "title": "DPT-3 (Return of Deposits)",
             "frequency": "annual",
             "due_rule": "june_30",
             "description": (
-                "Annual return of deposits. Required for all companies with loans/deposits."
+                "Annual return of deposits and transactions NOT considered as "
+                "deposits (e.g., inter-corporate loans, director loans). Must be "
+                "filed by June 30 each year. Required for all companies that have "
+                "accepted deposits or have outstanding loan transactions. "
+                "(§ 73/74 read with Rule 16 of Companies (Acceptance of Deposits) "
+                "Rules, 2014)"
             ),
-            "penalty_per_day": 0,
-            "penalty_note": "Company and officers liable for non-filing.",
+            "penalty_note": (
+                "Company: Rs 1 crore or twice the deposit amount (whichever is lower). "
+                "Officers: Rs 25 lakh or twice the deposit (whichever is lower). (§ 76A)"
+            ),
             "condition": "private_limited_or_public",
         },
-        # GST Annual Return
+        # ── GST Annual Return ─────────────────────────────────────────
         {
             "type": "gstr_9_annual",
             "title": "GSTR-9 (Annual GST Return)",
             "frequency": "annual",
             "due_rule": "december_31",
             "description": (
-                "Annual consolidated GST return. Mandatory for all regular GST registrants."
+                "Annual consolidated GST return. Mandatory for all regular GST "
+                "registrants with aggregate turnover > Rs 2 crore. "
+                "Exempt if turnover ≤ Rs 2 crore. (CGST Act § 44)"
             ),
             "penalty_per_day": 200,
-            "max_penalty": None,
+            "max_penalty_note": (
+                "Late fee: Rs 100 CGST + Rs 100 SGST per day. "
+                "Capped at 0.04% of turnover in the state/UT "
+                "(0.02% CGST + 0.02% SGST). (§ 47(2) CGST Act)"
+            ),
             "condition": "gst_registered",
         },
-        # Share certificate issuance (Day 0)
+        # ── GSTR-1 — Monthly outward supplies (§ 37) ──────────────────
+        # Monthly filers: turnover > Rs 5 crore. Due 11th of next month.
+        *[
+            {
+                "type": f"gstr_1_m{m:02d}",
+                "title": f"GSTR-1 (Outward Supplies — {month_name})",
+                "frequency": "monthly",
+                "due_rule": f"11th_of_month_after_{m:02d}",
+                "description": (
+                    f"File monthly GSTR-1 for {month_name} by 11th of the "
+                    "following month. Contains B2B invoice details, B2C "
+                    "large/small, credit/debit notes, exports, HSN summary. "
+                    "(CGST Act § 37, Rule 59)"
+                ),
+                "penalty_per_day": 50,
+                "max_penalty_note": (
+                    "Late fee: Rs 25 CGST + Rs 25 SGST per day. "
+                    "Cap: Rs 10,000 (turnover > Rs 5 crore), Rs 5,000 "
+                    "(Rs 1.5-5 crore), Rs 2,000 (< Rs 1.5 crore), "
+                    "Rs 500 (nil return). (§ 47)"
+                ),
+                "section": "37",
+                "condition": "gst_monthly_filer",
+            }
+            for m, month_name in [
+                (1, "April"), (2, "May"), (3, "June"), (4, "July"),
+                (5, "August"), (6, "September"), (7, "October"),
+                (8, "November"), (9, "December"), (10, "January"),
+                (11, "February"), (12, "March"),
+            ]
+        ],
+        # ── GSTR-1 — Quarterly (QRMP scheme, turnover ≤ Rs 5 crore) ─
         {
-            "type": "share_certificate_issue",
-            "title": "Issue Share Certificates",
-            "frequency": "one_time",
-            "due_rule": "within_60_days_of_incorporation",
+            "type": "gstr_1_q1",
+            "title": "GSTR-1 (Outward Supplies — Q1 Apr-Jun)",
+            "frequency": "quarterly",
+            "due_rule": "july_13",
             "description": (
-                "Issue share certificates to all subscribers within 60 days of "
-                "incorporation. Statutory requirement under Companies Act, 2013."
+                "Quarterly GSTR-1 for QRMP filers (turnover ≤ Rs 5 crore). "
+                "Due 13th of the month following the quarter. Contains "
+                "all outward supply invoices for the quarter. (§ 37, Rule 59)"
             ),
-            "condition": "post_incorporation",
+            "penalty_per_day": 50,
+            "section": "37",
+            "condition": "gst_quarterly_filer",
+        },
+        {
+            "type": "gstr_1_q2",
+            "title": "GSTR-1 (Outward Supplies — Q2 Jul-Sep)",
+            "frequency": "quarterly",
+            "due_rule": "october_13",
+            "description": "Quarterly GSTR-1 for Q2 (QRMP). (§ 37)",
+            "penalty_per_day": 50,
+            "condition": "gst_quarterly_filer",
+        },
+        {
+            "type": "gstr_1_q3",
+            "title": "GSTR-1 (Outward Supplies — Q3 Oct-Dec)",
+            "frequency": "quarterly",
+            "due_rule": "january_13",
+            "description": "Quarterly GSTR-1 for Q3 (QRMP). (§ 37)",
+            "penalty_per_day": 50,
+            "condition": "gst_quarterly_filer",
+        },
+        {
+            "type": "gstr_1_q4",
+            "title": "GSTR-1 (Outward Supplies — Q4 Jan-Mar)",
+            "frequency": "quarterly",
+            "due_rule": "april_13",
+            "description": "Quarterly GSTR-1 for Q4 (QRMP). (§ 37)",
+            "penalty_per_day": 50,
+            "condition": "gst_quarterly_filer",
+        },
+        # ── GSTR-3B — Monthly summary + tax payment (§ 39) ──────────
+        *[
+            {
+                "type": f"gstr_3b_m{m:02d}",
+                "title": f"GSTR-3B (Summary Return — {month_name})",
+                "frequency": "monthly",
+                "due_rule": f"20th_of_month_after_{m:02d}",
+                "description": (
+                    f"Monthly GSTR-3B for {month_name}. Summary return for "
+                    "self-assessed tax payment. Must reconcile ITC with "
+                    "GSTR-2B auto-populated data. Due 20th of next month. "
+                    "(CGST Act § 39, Rule 61)"
+                ),
+                "penalty_per_day": 50,
+                "max_penalty_note": (
+                    "Late fee: Rs 25 CGST + Rs 25 SGST per day. "
+                    "Interest: 18% p.a. on net tax liability paid late (§ 50(1)). "
+                    "24% p.a. on wrongly claimed ITC (§ 50(3)). "
+                    "Cap: Rs 10,000/5,000/2,000 by turnover slab; Rs 500 nil. (§ 47)"
+                ),
+                "section": "39",
+                "condition": "gst_monthly_filer",
+            }
+            for m, month_name in [
+                (1, "April"), (2, "May"), (3, "June"), (4, "July"),
+                (5, "August"), (6, "September"), (7, "October"),
+                (8, "November"), (9, "December"), (10, "January"),
+                (11, "February"), (12, "March"),
+            ]
+        ],
+        # ── GSTR-3B — Quarterly (QRMP scheme) ────────────────────────
+        # Due date varies by state category:
+        # Category 1 (Southern/Western states): 22nd
+        # Category 2 (Northern/Eastern states): 24th
+        {
+            "type": "gstr_3b_q1",
+            "title": "GSTR-3B (Summary Return — Q1 Apr-Jun)",
+            "frequency": "quarterly",
+            "due_rule": "gstr3b_quarterly_q1",
+            "description": (
+                "Quarterly GSTR-3B for QRMP filers. Due 22nd (Category 1 "
+                "states: MH, KA, KL, TN, GJ, AP, TG, GA, etc.) or 24th "
+                "(Category 2 states: DL, UP, HR, PB, RJ, WB, etc.) of the "
+                "month following the quarter. (§ 39, Rule 61)"
+            ),
+            "penalty_per_day": 50,
+            "section": "39",
+            "condition": "gst_quarterly_filer",
+        },
+        {
+            "type": "gstr_3b_q2",
+            "title": "GSTR-3B (Summary Return — Q2 Jul-Sep)",
+            "frequency": "quarterly",
+            "due_rule": "gstr3b_quarterly_q2",
+            "description": "Quarterly GSTR-3B for Q2 (QRMP). (§ 39)",
+            "penalty_per_day": 50,
+            "condition": "gst_quarterly_filer",
+        },
+        {
+            "type": "gstr_3b_q3",
+            "title": "GSTR-3B (Summary Return — Q3 Oct-Dec)",
+            "frequency": "quarterly",
+            "due_rule": "gstr3b_quarterly_q3",
+            "description": "Quarterly GSTR-3B for Q3 (QRMP). (§ 39)",
+            "penalty_per_day": 50,
+            "condition": "gst_quarterly_filer",
+        },
+        {
+            "type": "gstr_3b_q4",
+            "title": "GSTR-3B (Summary Return — Q4 Jan-Mar)",
+            "frequency": "quarterly",
+            "due_rule": "gstr3b_quarterly_q4",
+            "description": "Quarterly GSTR-3B for Q4 (QRMP). (§ 39)",
+            "penalty_per_day": 50,
+            "condition": "gst_quarterly_filer",
+        },
+        # ── CMP-08 — Quarterly statement for Composition dealers ─────
+        {
+            "type": "cmp_08_q1",
+            "title": "CMP-08 (Composition — Q1 Apr-Jun)",
+            "frequency": "quarterly",
+            "due_rule": "july_18",
+            "description": (
+                "Quarterly self-assessed tax statement for Composition "
+                "scheme dealers. Due 18th of the month after quarter. "
+                "Tax rates: 1% (manufacturers/traders), 5% (restaurants), "
+                "6% (service providers). (§ 10, Rule 62)"
+            ),
+            "penalty_per_day": 50,
+            "section": "10",
+            "condition": "gst_composition",
+        },
+        {
+            "type": "cmp_08_q2",
+            "title": "CMP-08 (Composition — Q2 Jul-Sep)",
+            "frequency": "quarterly",
+            "due_rule": "october_18",
+            "description": "Quarterly CMP-08 for Q2. (§ 10, Rule 62)",
+            "penalty_per_day": 50,
+            "condition": "gst_composition",
+        },
+        {
+            "type": "cmp_08_q3",
+            "title": "CMP-08 (Composition — Q3 Oct-Dec)",
+            "frequency": "quarterly",
+            "due_rule": "january_18",
+            "description": "Quarterly CMP-08 for Q3. (§ 10, Rule 62)",
+            "penalty_per_day": 50,
+            "condition": "gst_composition",
+        },
+        {
+            "type": "cmp_08_q4",
+            "title": "CMP-08 (Composition — Q4 Jan-Mar)",
+            "frequency": "quarterly",
+            "due_rule": "april_18",
+            "description": "Quarterly CMP-08 for Q4. (§ 10, Rule 62)",
+            "penalty_per_day": 50,
+            "condition": "gst_composition",
+        },
+        # ── GSTR-4 — Annual return for Composition dealers ───────────
+        {
+            "type": "gstr_4_annual",
+            "title": "GSTR-4 (Composition Annual Return)",
+            "frequency": "annual",
+            "due_rule": "april_30",
+            "description": (
+                "Annual return for Composition scheme taxpayers. "
+                "Due April 30 of the following FY. Contains consolidated "
+                "details of self-assessed tax, purchases, and turnover. "
+                "(CGST Act § 39(2), Rule 62)"
+            ),
+            "penalty_per_day": 50,
+            "max_penalty_note": (
+                "Late fee: Rs 25 CGST + Rs 25 SGST per day. "
+                "Cap: Rs 2,000 (non-nil), Rs 500 (nil). (§ 47)"
+            ),
+            "section": "39",
+            "condition": "gst_composition",
+        },
+        # ── GSTR-9C — Reconciliation statement (turnover > Rs 5 crore)
+        {
+            "type": "gstr_9c",
+            "title": "GSTR-9C (GST Reconciliation Statement)",
+            "frequency": "annual",
+            "due_rule": "december_31",
+            "description": (
+                "Self-certified reconciliation statement filed along with "
+                "GSTR-9. Mandatory for taxpayers with aggregate turnover "
+                "exceeding Rs 5 crore. From FY 2020-21 onwards, CA/CMA "
+                "certification is no longer required — self-certified by "
+                "authorized signatory. (§ 44, Rule 80(3))"
+            ),
+            "penalty_per_day": 0,
+            "penalty_note": "Filed as Part-B of GSTR-9. Same late fee applies.",
+            "condition": "gst_turnover_above_5cr",
+        },
+        # ── BEN-2 (Significant Beneficial Ownership — § 90) ──────────
+        {
+            "type": "ben_2",
+            "title": "BEN-2 (Significant Beneficial Ownership)",
+            "frequency": "event_based",
+            "due_rule": "within_30_days_of_ben1",
+            "description": (
+                "Company must file BEN-2 within 30 days of receiving BEN-1 "
+                "declaration from a significant beneficial owner (SBO). SBO = "
+                "individual holding ≥ 10% shares/voting rights/right to receive "
+                "dividends, or exercising significant influence/control. "
+                "BEN-1 must be filed by the SBO within 30 days of acquiring "
+                "significant beneficial ownership. (§ 90, Companies (Significant "
+                "Beneficial Owners) Rules, 2018)"
+            ),
+            "penalty_note": (
+                "Company: Rs 10 lakh + Rs 1,000/day for continuing default. "
+                "Officer: Rs 2.5 lakh + Rs 1,000/day. (§ 90(10)-(11))"
+            ),
+            "condition": "private_limited_or_public",
+        },
+        # ── MGT-14 (Filing of Resolutions — § 117) ───────────────────
+        {
+            "type": "mgt_14",
+            "title": "MGT-14 (Filing of Special Resolutions)",
+            "frequency": "event_based",
+            "due_rule": "within_30_days_of_resolution",
+            "description": (
+                "File copy of special resolutions and certain board resolutions "
+                "with ROC within 30 days of passing. Required for: change in "
+                "registered office, increase in authorized capital, issue of "
+                "shares, appointment of MD/manager, approval of related party "
+                "transactions, etc. (§ 117)"
+            ),
+            "penalty_per_day": 100,
+            "penalty_note": (
+                "Company: Rs 5 lakh. Officer: Rs 1 lakh. (§ 117(2))"
+            ),
+            "condition": "private_limited_or_public",
         },
     ],
 
@@ -568,66 +960,135 @@ COMPLIANCE_RULES: Dict[str, Any] = {
 
 PENALTY_RATES: Dict[str, Dict[str, Any]] = {
     "aoc_4": {
-        "description": "Late filing of AOC-4",
+        "description": "Late filing of AOC-4 (§ 137)",
         "per_day": 100,
-        "max": None,
-        "additional": "Company and every officer in default liable.",
+        "max": 1000000,  # Rs 10 lakh cap
+        "additional": "Company and every officer in default liable. (§ 137(3))",
     },
     "mgt_7": {
-        "description": "Late filing of MGT-7",
+        "description": "Late filing of MGT-7 (§ 92)",
         "per_day": 100,
-        "max": None,
-        "additional": "Company and every officer in default liable.",
+        "max": 500000,  # Rs 5 lakh cap per § 92(5)
+        "additional": "Company: Rs 100/day (max Rs 5 lakh). Officer: Rs 50,000 to Rs 5,00,000. (§ 92(5)-(6))",
     },
     "dir_3_kyc": {
-        "description": "Late DIR-3 KYC",
+        "description": "Late DIR-3 KYC (Rule 12A)",
         "per_day": 0,
         "fixed": 5000,
-        "additional": "DIN will be deactivated until KYC is filed.",
+        "additional": "DIN deactivated until KYC filed. Rs 5,000 late fee to reactivate.",
+    },
+    "adt_1_renewal": {
+        "description": "Late ADT-1 filing (§ 139)",
+        "per_day": 100,
+        "max": None,
+        "additional": "Company: Rs 25,000 to Rs 5,00,000. Officer: Rs 10,000 to Rs 1,00,000. (§ 139(9))",
     },
     "board_meeting_q1": {
-        "description": "Failure to hold Board Meeting",
+        "description": "Failure to hold Board Meeting (§ 173)",
         "per_day": 0,
         "fixed": 25000,
-        "additional": "Each director: Rs 5,000 per meeting missed.",
+        "additional": "Company: Rs 25,000. Each director: Rs 5,000 per meeting missed. (§ 173(4))",
     },
     "board_meeting_q2": {"per_day": 0, "fixed": 25000},
     "board_meeting_q3": {"per_day": 0, "fixed": 25000},
     "board_meeting_q4": {"per_day": 0, "fixed": 25000},
+    "board_meeting_h1": {"per_day": 0, "fixed": 25000},
+    "board_meeting_h2": {"per_day": 0, "fixed": 25000},
     "agm": {
-        "description": "Failure to hold AGM",
-        "per_day": 0,
+        "description": "Failure to hold AGM (§ 96, 99)",
+        "per_day": 5000,
         "fixed": 100000,
-        "additional": "Additional Rs 5,000/day if continued default.",
+        "additional": (
+            "Company: up to Rs 1,00,000. Every officer in default: up to Rs 5,000. "
+            "Continued default: Rs 5,000/day. NCLT may call AGM on application. (§ 99)"
+        ),
+    },
+    "inc_20a": {
+        "description": "Late INC-20A — Commencement of Business (§ 10A)",
+        "per_day": 1000,
+        "fixed": 50000,
+        "additional": (
+            "Company: Rs 50,000. Officers: Rs 1,000/day for continuing default. "
+            "Company cannot commence business until filed. ROC may initiate "
+            "striking off if not filed within 180 days. (§ 10A(2))"
+        ),
     },
     "tds_return_q1": {
-        "description": "Late TDS Return filing",
+        "description": "Late TDS Return (§ 234E IT Act)",
         "per_day": 200,
-        "max": None,
-        "additional": "Plus interest @ 1.5% per month on unpaid TDS.",
+        "max": None,  # capped at TDS amount collectible
+        "additional": (
+            "Rs 200/day (§ 234E), capped at TDS amount. "
+            "Additional penalty Rs 10,000 to Rs 1,00,000 under § 271H. "
+            "Interest: 1.5% per month on TDS not deposited (§ 201(1A))."
+        ),
     },
     "tds_return_q2": {"per_day": 200, "max": None},
     "tds_return_q3": {"per_day": 200, "max": None},
     "tds_return_q4": {"per_day": 200, "max": None},
     "itr_filing": {
-        "description": "Late ITR filing",
+        "description": "Late ITR filing (§ 234F IT Act)",
         "per_day": 0,
         "fixed": 10000,
-        "additional": "Rs 5,000 if filed after Dec 31. Interest @ 1% per month under 234A.",
+        "additional": (
+            "Rs 5,000 if filed by Dec 31; Rs 10,000 if after. "
+            "If total income ≤ Rs 5 lakh: max Rs 1,000. "
+            "Interest: 1% per month under § 234A on unpaid tax."
+        ),
     },
-    "form_11": {"per_day": 100, "max": None},
-    "form_8": {"per_day": 100, "max": None},
+    "form_11": {
+        "description": "Late LLP Form 11 (LLP Act § 35, Rule 25)",
+        "per_day": 100,
+        "max": None,
+        "additional": "Rs 100/day per designated partner. No cap.",
+    },
+    "form_8": {
+        "description": "Late LLP Form 8 (LLP Act § 34, Rule 24)",
+        "per_day": 100,
+        "max": None,
+        "additional": "Rs 100/day per designated partner. No cap.",
+    },
     "msme_1_h1": {
-        "description": "MSME-1 delayed payment reporting",
+        "description": "MSME-1 delayed payment reporting (MSMED Act § 22)",
         "per_day": 0,
         "fixed": 0,
-        "additional": "Interest at 3x bank rate payable on delayed amount to MSME vendors. Buyer company liable.",
+        "additional": (
+            "Interest at 3x bank rate payable on delayed amount to MSME "
+            "vendors. Buyer liable under MSMED Act § 16. No separate MCA penalty "
+            "for MSME-1 non-filing, but persistent default may trigger action "
+            "by MSEFC (Micro and Small Enterprises Facilitation Council)."
+        ),
     },
     "msme_1_h2": {
         "description": "MSME-1 delayed payment reporting",
         "per_day": 0,
         "fixed": 0,
-        "additional": "Interest at 3x bank rate payable on delayed amount to MSME vendors.",
+        "additional": "Same as H1. Interest at 3x bank rate on delayed payments.",
+    },
+    "dpt_3": {
+        "description": "Late DPT-3 — Return of Deposits (§ 73/74)",
+        "per_day": 0,
+        "fixed": 0,
+        "additional": (
+            "Company: up to Rs 1 crore or twice the deposit (whichever lower). "
+            "Officers: up to Rs 25 lakh or twice the deposit. "
+            "Imprisonment: up to 7 years for directors. (§ 76A)"
+        ),
+    },
+    "ben_2": {
+        "description": "Late BEN-2 — Significant Beneficial Ownership (§ 90)",
+        "per_day": 1000,
+        "fixed": 1000000,  # Rs 10 lakh
+        "additional": (
+            "Company: Rs 10 lakh + Rs 1,000/day continuing default. "
+            "Officer: Rs 2.5 lakh + Rs 1,000/day. (§ 90(10)-(11))"
+        ),
+    },
+    "mgt_14": {
+        "description": "Late MGT-14 — Filing of Resolutions (§ 117)",
+        "per_day": 100,
+        "fixed": 0,
+        "additional": "Company: up to Rs 5 lakh. Officer: up to Rs 1 lakh. (§ 117(2))",
     },
     "fc_gpr": {
         "description": "Late FC-GPR filing with RBI",
@@ -642,24 +1103,107 @@ PENALTY_RATES: Dict[str, Dict[str, Any]] = {
         "additional": "Non-filing may attract FEMA penalty proceedings.",
     },
     "epfo_monthly": {
-        "description": "Late PF deposit",
+        "description": "Late PF deposit (EPF Act 1952)",
         "per_day": 0,
         "fixed": 0,
-        "additional": "Interest @ 12% p.a. on delayed deposits. Damages up to 100% of arrears.",
+        "additional": (
+            "Interest: 12% p.a. on delayed deposits. "
+            "Damages: 5% to 100% of arrears based on delay period. "
+            "Employer contribution: 12% (3.67% EPF + 8.33% EPS). (§ 7Q, § 14B)"
+        ),
     },
     "esic_monthly": {
-        "description": "Late ESI deposit",
+        "description": "Late ESI deposit (ESI Act 1948)",
         "per_day": 0,
         "fixed": 0,
-        "additional": "Interest @ 12% p.a. on delayed deposits.",
+        "additional": (
+            "Interest: 12% p.a. on delayed deposits. "
+            "Employer: 3.25%, Employee: 0.75%. "
+            "Threshold: 10+ employees with salary ≤ Rs 21,000/month."
+        ),
     },
     "gstr_9_annual": {
-        "description": "Late GSTR-9 annual return",
+        "description": "Late GSTR-9 (CGST Act § 44, § 47)",
         "per_day": 200,
         "max": None,
-        "additional": "Rs 100 CGST + Rs 100 SGST per day, max 0.25% of turnover.",
+        "additional": (
+            "Late fee: Rs 100 CGST + Rs 100 SGST per day of delay. "
+            "Capped at 0.04% of turnover in the state/UT "
+            "(0.02% CGST + 0.02% SGST). NOT 0.25% — that was the old rule. "
+            "Exempt if aggregate turnover ≤ Rs 2 crore. (CGST Act § 47(2))"
+        ),
+    },
+    "gstr_9c": {
+        "description": "Late GSTR-9C — filed with GSTR-9 (§ 44, Rule 80(3))",
+        "per_day": 0,
+        "fixed": 0,
+        "additional": "Filed as Part-B of GSTR-9. Same late fee as GSTR-9 applies.",
+    },
+    "gstr_4_annual": {
+        "description": "Late GSTR-4 — Composition annual return (§ 39(2))",
+        "per_day": 50,
+        "max": 2000,
+        "additional": (
+            "Late fee: Rs 25 CGST + Rs 25 SGST per day. "
+            "Cap: Rs 2,000 (non-nil), Rs 500 (nil return). (§ 47)"
+        ),
     },
 }
+
+# Generate per-month and per-quarter GSTR penalty entries dynamically
+for m in range(1, 13):
+    _k1 = f"gstr_1_m{m:02d}"
+    _k3b = f"gstr_3b_m{m:02d}"
+    PENALTY_RATES[_k1] = {
+        "description": f"Late GSTR-1 monthly (§ 37, § 47)",
+        "per_day": 50,
+        "max": 10000,
+        "additional": (
+            "Rs 25 CGST + Rs 25 SGST per day. Cap by turnover slab: "
+            "Rs 10,000 (> Rs 5 cr), Rs 5,000 (Rs 1.5-5 cr), "
+            "Rs 2,000 (< Rs 1.5 cr), Rs 500 (nil). (§ 47)"
+        ),
+    }
+    PENALTY_RATES[_k3b] = {
+        "description": f"Late GSTR-3B monthly (§ 39, § 47, § 50)",
+        "per_day": 50,
+        "max": 10000,
+        "additional": (
+            "Rs 25 CGST + Rs 25 SGST per day. Cap same as GSTR-1. "
+            "Plus interest: 18% p.a. on net cash tax liability (§ 50(1)); "
+            "24% p.a. on wrongly claimed ITC (§ 50(3))."
+        ),
+    }
+
+for q in range(1, 5):
+    PENALTY_RATES[f"gstr_1_q{q}"] = {
+        "description": f"Late GSTR-1 quarterly/QRMP (§ 37, § 47)",
+        "per_day": 50,
+        "max": 5000,
+        "additional": (
+            "Rs 25 CGST + Rs 25 SGST per day. QRMP filers (≤ Rs 5 cr turnover). "
+            "Cap: Rs 5,000 or Rs 2,000 by turnover slab. (§ 47)"
+        ),
+    }
+    PENALTY_RATES[f"gstr_3b_q{q}"] = {
+        "description": f"Late GSTR-3B quarterly/QRMP (§ 39, § 47)",
+        "per_day": 50,
+        "max": 5000,
+        "additional": (
+            "Rs 25 CGST + Rs 25 SGST per day. Plus interest: 18% p.a. (§ 50). "
+            "Cap: Rs 5,000 or Rs 2,000 by turnover slab."
+        ),
+    }
+    PENALTY_RATES[f"cmp_08_q{q}"] = {
+        "description": f"Late CMP-08 — Composition quarterly (§ 10, Rule 62)",
+        "per_day": 50,
+        "max": 2000,
+        "additional": (
+            "Rs 25 CGST + Rs 25 SGST per day. "
+            "Cap: Rs 2,000 (non-nil), Rs 500 (nil). "
+            "Interest: 18% p.a. on late tax payment (§ 50)."
+        ),
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -743,6 +1287,22 @@ class ComplianceEngine:
                 continue
             if cond == "gst_registered" and not company_data.get("gstin"):
                 continue
+            if cond == "gst_monthly_filer" and not (
+                company_data.get("gstin") and company_data.get("gst_filing_frequency") == "monthly"
+            ):
+                continue
+            if cond == "gst_quarterly_filer" and not (
+                company_data.get("gstin") and company_data.get("gst_filing_frequency") == "quarterly"
+            ):
+                continue
+            if cond == "gst_composition" and not (
+                company_data.get("gstin") and company_data.get("gst_scheme") == "composition"
+            ):
+                continue
+            if cond == "gst_turnover_above_5cr" and not (
+                company_data.get("gstin") and company_data.get("gst_turnover_above_5cr")
+            ):
+                continue
             if cond == "private_limited_or_public" and entity not in ("private_limited", "public_limited"):
                 continue
             if cond == "post_incorporation" and entity in ("sole_proprietorship", "partnership"):
@@ -796,19 +1356,27 @@ class ComplianceEngine:
 
         # Fixed-date rules
         fixed_dates = {
+            "april_13": date(fy_start.year, 4, 13),
+            "april_18": date(fy_start.year, 4, 18),
             "april_30": date(fy_start.year, 4, 30),
             "may_30": date(fy_start.year, 5, 30),
             "may_31": date(fy_start.year, 5, 31),
             "june_15": date(fy_start.year, 6, 15),
             "june_30": date(fy_start.year, 6, 30),
+            "july_13": date(fy_start.year, 7, 13),
             "july_15": date(fy_start.year, 7, 15),
+            "july_18": date(fy_start.year, 7, 18),
             "july_31": date(fy_start.year, 7, 31),
             "september_15": date(fy_start.year, 9, 15),
             "september_30": date(fy_start.year, 9, 30),
+            "october_13": date(fy_start.year, 10, 13),
+            "october_18": date(fy_start.year, 10, 18),
             "october_30": date(fy_start.year, 10, 30),
             "october_31": date(fy_start.year, 10, 31),
             "december_15": date(fy_start.year, 12, 15),
             "december_31": date(fy_start.year, 12, 31),
+            "january_13": date(fy_end.year, 1, 13),
+            "january_18": date(fy_end.year, 1, 18),
             "january_31": date(fy_end.year, 1, 31),
             "march_15": date(fy_end.year, 3, 15),
             "march_31": date(fy_end.year, 3, 31),
@@ -817,10 +1385,29 @@ class ComplianceEngine:
         if due_rule in fixed_dates:
             return fixed_dates[due_rule]
 
-        # AGM-relative rules
-        # AGM due date is September 30 (6 months from FY end March 31)
-        agm_deadline = date(fy_start.year, 9, 30)
+        # AGM-relative rules (§ 96 Companies Act 2013)
+        # First AGM: within 9 months from close of first financial year
+        # Subsequent AGMs: within 6 months from close of FY
+        # Max gap between two consecutive AGMs: 15 months
+        inc_date = getattr(company, "incorporation_date", None)
+        if inc_date and isinstance(inc_date, datetime):
+            inc_date = inc_date.date()
 
+        is_first_fy = False
+        if inc_date:
+            # First FY ends on March 31 following incorporation
+            first_fy_end = date(inc_date.year + 1, 3, 31) if inc_date.month >= 4 else date(inc_date.year, 3, 31)
+            is_first_fy = (fy_end == first_fy_end)
+
+        if is_first_fy:
+            # First AGM: 9 months from close of first FY (§ 96(1))
+            agm_deadline = fy_end + timedelta(days=270)  # ~9 months
+        else:
+            # Subsequent AGM: 6 months from FY end (September 30 for March FY)
+            agm_deadline = date(fy_start.year, 9, 30)
+
+        if due_rule == "agm_dynamic":
+            return agm_deadline
         if due_rule == "within_6_months_of_fy_end":
             return agm_deadline
         if due_rule == "at_agm":
@@ -843,17 +1430,24 @@ class ComplianceEngine:
             return fy_start + timedelta(days=120)
 
         # Incorporation-relative rules (Day 0 sequence)
-        inc_date = getattr(company, "incorporation_date", None)
-        if inc_date:
-            if isinstance(inc_date, datetime):
+        if not inc_date:
+            inc_date = getattr(company, "incorporation_date", None)
+            if inc_date and isinstance(inc_date, datetime):
                 inc_date = inc_date.date()
-                
+
+        if inc_date:
             if due_rule == "within_30_days_of_incorporation":
                 return inc_date + timedelta(days=30)
             if due_rule == "within_60_days_of_incorporation":
                 return inc_date + timedelta(days=60)
             if due_rule == "within_180_days_of_incorporation":
                 return inc_date + timedelta(days=180)
+
+        # Event-based rules (BEN-2, MGT-14) — cannot calculate exact date
+        # without knowing the event date. Return end of current FY as a
+        # reminder placeholder.
+        if due_rule in ("within_30_days_of_ben1", "within_30_days_of_resolution"):
+            return fy_end
 
         # Monthly rules — return next occurrence (15th/20th/last day of current month)
         today = date.today()
@@ -897,6 +1491,44 @@ class ComplianceEngine:
                     last_day = cal_mod.monthrange(today.year, today.month + 1)[1]
                     target = date(today.year, today.month + 1, last_day)
             return target
+
+        # ── GST Monthly due rules ─────────────────────────────────────
+        # Pattern: "11th_of_month_after_MM" or "20th_of_month_after_MM"
+        # where MM is the FY month (01=April, 12=March)
+        import re as _re
+        m_match = _re.match(r"(\d+)(?:th|st|nd|rd)_of_month_after_(\d{2})$", due_rule)
+        if m_match:
+            day_of_month = int(m_match.group(1))
+            fy_month_num = int(m_match.group(2))  # 01=April, 12=March
+            # Map FY month to calendar month: 01→Apr(4), 12→Mar(3)
+            cal_month = (fy_month_num + 3) % 12 or 12
+            # "month after" the return period month
+            next_month = cal_month + 1
+            year = fy_start.year if cal_month >= 4 else fy_end.year
+            if next_month > 12:
+                next_month = 1
+                year += 1
+            return date(year, next_month, day_of_month)
+
+        # ── GSTR-3B quarterly staggered due rules ────────────────────
+        # Category 1 states (Southern/Western): 22nd
+        # Category 2 states (Northern/Eastern): 24th
+        GSTR3B_CAT1_STATES = {
+            "Maharashtra", "Karnataka", "Kerala", "Tamil Nadu",
+            "Gujarat", "Goa", "Andhra Pradesh", "Telangana",
+            "Madhya Pradesh", "Chhattisgarh", "Puducherry",
+            "Daman and Diu", "Dadra and Nagar Haveli",
+            "Andaman and Nicobar Islands", "Lakshadweep",
+        }
+        if due_rule.startswith("gstr3b_quarterly_q"):
+            q_num = int(due_rule[-1])
+            state_name_local = getattr(company, "state", "") or ""
+            day_of = 22 if state_name_local in GSTR3B_CAT1_STATES else 24
+            # Q1→Jul, Q2→Oct, Q3→Jan, Q4→Apr (month after quarter end)
+            q_months = {1: (7, fy_start.year), 2: (10, fy_start.year),
+                        3: (1, fy_end.year), 4: (4, fy_end.year)}
+            month, year = q_months[q_num]
+            return date(year, month, day_of)
 
         logger.warning("Unknown due_rule: %s", due_rule)
         return None

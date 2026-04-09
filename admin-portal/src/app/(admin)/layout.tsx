@@ -141,7 +141,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <aside className="w-64 glass-card border-r border-t-0 border-b-0 border-l-0 rounded-none flex flex-col">
           <div className="p-6" style={{ borderBottom: "1px solid var(--color-border)" }}>
             <Link href="/dashboard" className="flex items-center gap-2">
-              <img src="/logo-icon.png" alt="Anvils" className="w-6 h-6 object-contain" />
+              <img src="/logo-icon.png" alt="Anvils" className="h-6 w-auto" />
               <span className="font-bold text-lg" style={{ fontFamily: "var(--font-display)" }}>Anvils Admin</span>
             </Link>
             <p className="text-xs mt-1" style={{ color: "var(--color-text-muted)" }}>Ops Command Center</p>

@@ -119,6 +119,32 @@ def _build_company_context(company: Company) -> str:
     return "\n".join(lines)
 
 
+_DISCLAIMER_KEYWORDS = {
+    "compliance", "penalty", "deadline", "filing", "agm", "aoc-4", "mgt-7",
+    "dir-3", "gst", "tds", "itr", "tax", "inc-20a", "dpt-3", "msme",
+    "board meeting", "auditor", "annual return", "fine", "late fee",
+    "registration", "mca", "roc", "spice", "incorporation", "llp",
+    "form 11", "form 8", "adt-1", "legal", "law", "act", "section",
+    "due date", "penalty", "liable", "offence",
+}
+
+
+def _needs_disclaimer(message: str) -> bool:
+    """Check if the user's message touches legal/compliance topics."""
+    msg_lower = message.lower()
+    return any(kw in msg_lower for kw in _DISCLAIMER_KEYWORDS)
+
+
+LEGAL_DISCLAIMER = (
+    "\n\n---\n"
+    "*Disclaimer: This information is for general guidance only and does not "
+    "constitute legal, tax, or professional advice. Rules and deadlines may "
+    "change — always verify with the MCA portal, your Chartered Accountant, "
+    "or a Company Secretary before acting. Anvils is not liable for any "
+    "decisions made based on this guidance.*"
+)
+
+
 def _get_system_prompt(company_context: Optional[str] = None) -> str:
     """Assemble the full system prompt for the chatbot."""
     base = (
@@ -129,6 +155,17 @@ def _get_system_prompt(company_context: Optional[str] = None) -> str:
         "If the user has a company in progress, tailor your advice to their "
         "current status and next steps. "
         "If you are unsure about something, say so rather than guessing.\n\n"
+        "IMPORTANT RULES:\n"
+        "1. NEVER state that a company name is 'available' or 'reserved' — only MCA "
+        "can confirm name availability via the RUN portal.\n"
+        "2. ALWAYS end your response with the standard legal disclaimer when giving "
+        "advice about compliance deadlines, penalties, or legal procedures.\n"
+        "3. When quoting penalties or deadlines, add 'as per current rules — verify "
+        "on the MCA/GST portal for the latest updates'.\n"
+        "4. For specific legal, tax, or regulatory advice, recommend consulting a "
+        "qualified Chartered Accountant (CA) or Company Secretary (CS).\n"
+        "5. Do NOT provide advice on tax-saving strategies, investment decisions, or "
+        "legal disputes — these require professional consultation.\n\n"
         "Use the following knowledge base to answer questions:\n\n"
         f"{KNOWLEDGE_BASE}"
     )
@@ -234,6 +271,9 @@ async def send_message(
             system_prompt=system_prompt,
             conversation_history=req.conversation_history,
         )
+        # Append legal disclaimer to responses about compliance/legal topics
+        if _needs_disclaimer(req.message):
+            ai_response += LEGAL_DISCLAIMER
         return ChatResponse(response=ai_response, sources=sources)
     except Exception:
         # Graceful fallback if all LLM providers fail
@@ -243,6 +283,7 @@ async def send_message(
                 f"(Note: AI service is temporarily unavailable. "
                 f"Showing knowledge base results.)\n\n{fallback_text}"
             )
+        fallback_text += LEGAL_DISCLAIMER
         return ChatResponse(response=fallback_text, sources=fallback_sources)
 
 

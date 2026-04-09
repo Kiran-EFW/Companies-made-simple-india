@@ -572,7 +572,7 @@ function DashboardInner({ children }: { children: React.ReactNode }) {
           </button>
 
           <Link href="/" className="flex items-center gap-2">
-            <img src="/logo-icon.png" alt="Anvils" className="w-6 h-6 object-contain" />
+            <img src="/logo-icon.png" alt="Anvils" className="h-6 w-auto" />
             <span
               className="text-lg font-bold hidden sm:block"
               style={{ fontFamily: "var(--font-display)", color: "var(--color-text-primary)" }}

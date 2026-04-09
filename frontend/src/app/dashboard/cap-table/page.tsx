@@ -435,7 +435,7 @@ export default function CapTablePage() {
         {companyLoading && (
           <div className="flex items-center justify-center py-24">
             <div className="animate-pulse-glow w-16 h-16 rounded-full flex items-center justify-center" style={{ background: "var(--color-purple-bg)" }}>
-              <img src="/logo-icon.png" alt="Anvils" className="w-7 h-7 object-contain" />
+              <img src="/logo-icon.png" alt="Anvils" className="h-7 w-auto" />
             </div>
           </div>
         )}

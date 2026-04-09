@@ -249,33 +249,85 @@ multiple services in a single form:
 
 ## 7. COMMON COMPLIANCE OBLIGATIONS
 
+### Annual General Meeting (AGM) — Section 96
+- **First AGM**: Must be held within 9 MONTHS from the close of the first
+  financial year (NOT 6 months). This is a common misconception.
+  Example: If incorporated in Oct 2025, first FY ends March 2026, first
+  AGM must be held by December 31, 2026.
+- **Subsequent AGMs**: Within 6 months from end of financial year
+  (i.e., by September 30 for March year-end companies).
+- **Maximum gap between two AGMs**: 15 months.
+- **OPC**: Exempt from holding AGM (Section 96(1) proviso).
+- **Penalty (Section 99)**: Up to Rs 1,00,000 on company + Rs 5,000/day
+  for continuing default.
+
 ### Annual Filings (Every Year)
-- **AOC-4**: Filing of financial statements with ROC within 30 days of AGM
-- **MGT-7/MGT-7A**: Filing of annual return within 60 days of AGM
-- **DIR-3 KYC**: Annual KYC for all directors -- due by September 30
-- **Income Tax Return**: Filed with the Income Tax Department by September 30
-  (or October 31 if audit applicable)
-- **AGM**: Annual General Meeting must be held within 6 months from end of
-  financial year (by September 30 for March year-end companies)
+- **AOC-4**: Filing of financial statements with ROC within 30 days of AGM.
+  For OPC: within 180 days of FY end (no AGM needed). Penalty: Rs 100/day,
+  max Rs 10 lakh. (Section 137)
+- **MGT-7/MGT-7A**: Filing of annual return within 60 days of AGM.
+  Penalty: Rs 100/day, max Rs 10 lakh. (Section 92)
+- **DIR-3 KYC**: Annual KYC for all DIN holders -- due by September 30.
+  Late fee: Rs 5,000 and DIN gets deactivated. (Rule 12A)
+- **ADT-1**: Auditor appointment/reappointment notice -- within 15 days of AGM.
+  (Section 139)
+- **Income Tax Return**: Filed by October 31 (if company requires audit under
+  Section 44AB) or July 31 (otherwise). Late fee: Rs 5,000 (before Dec 31)
+  or Rs 10,000 (after). (IT Act Section 139, 234F)
+
+### Board Meetings — Section 173
+- **Pvt Ltd / Public Ltd**: Minimum 4 board meetings per year with maximum
+  120-day gap between consecutive meetings.
+- **OPC / Section 8 / Small Company**: Minimum 2 board meetings per year,
+  minimum 90-day gap between meetings.
+- **First Board Meeting**: Within 30 days of incorporation.
+- **Penalty**: Rs 25,000 on company + Rs 5,000 per director per default.
 
 ### GST Compliance
-- **GSTR-1**: Monthly/quarterly return for outward supplies
-- **GSTR-3B**: Monthly summary return with tax payment
-- **GSTR-9**: Annual return (due by December 31)
-- GST registration is mandatory if turnover exceeds Rs 20 lakh (Rs 10 lakh
-  for special category states)
+- **GSTR-1**: Monthly return for outward supplies -- due by 11th of next month.
+  Quarterly option (QRMP scheme) available if turnover <= Rs 5 crore.
+- **GSTR-3B**: Monthly summary return with tax payment -- due by 20th of next
+  month (exact date varies by state category). Interest: 18% p.a. on late tax
+  payment (Section 50 CGST Act).
+- **GSTR-9**: Annual return -- due by December 31. Exempt if turnover <= Rs 2
+  crore. Late fee: Rs 200/day (Rs 100 CGST + Rs 100 SGST), capped at 0.04%
+  of turnover (NOT 0.25% -- that was the old cap). (CGST Act Section 44, 47)
+- **GSTR-9C**: Self-certified reconciliation statement -- required if turnover
+  exceeds Rs 5 crore. Due with GSTR-9 by December 31.
+- GST registration is mandatory if turnover exceeds Rs 20 lakh (Rs 40 lakh
+  for goods-only dealers in normal states; Rs 10 lakh for special category states).
 
 ### TDS Compliance
-- Monthly TDS deduction and payment by 7th of the following month
-- Quarterly TDS return filing (Form 24Q, 26Q)
-- Annual TDS certificate issuance (Form 16, Form 16A)
+- Monthly TDS deduction and deposit by 7th of the following month
+  (for March: by April 30)
+- Quarterly TDS return filing: Q1 by Jul 31, Q2 by Oct 31, Q3 by Jan 31,
+  Q4 by May 31 (Form 24Q for salary, 26Q for non-salary)
+- Late fee: Rs 200/day under Section 234E (capped at TDS amount)
+- Form 16 (salary) and Form 16A (non-salary) to be issued by June 15
 
-### Other Periodic Filings
-- **MSME Form I**: Half-yearly return if outstanding payments to MSMEs exceed
-  45 days (due April 30 and October 31)
-- **DPT-3**: Annual return of deposits/transactions not considered deposits
-  (due June 30)
-- **BEN-2**: Declaration of significant beneficial ownership (event-based)
+### Other Important Filings
+- **DPT-3**: Annual return of deposits and transactions NOT considered as
+  deposits (inter-corporate loans, director loans). Due by June 30.
+  Applicable to all Pvt Ltd and Public companies. (Section 73/74)
+  Penalty: up to Rs 1 crore or 2x deposit amount. (Section 76A)
+- **MSME Form I**: Half-yearly return if outstanding payments to MSME vendors
+  exceed 45 days. Due: October 31 (H1: Apr-Sep) and April 30 (H2: Oct-Mar).
+  (MSMED Act Section 22)
+- **BEN-2**: Company must file within 30 days of receiving BEN-1 declaration
+  from Significant Beneficial Owner (holding >= 10% shares/voting rights).
+  Penalty: Rs 10 lakh + Rs 1,000/day. (Section 90)
+- **MGT-14**: File copy of special resolutions and certain board resolutions
+  with ROC within 30 days. (Section 117)
+- **INC-20A**: Commencement of business declaration -- within 180 days of
+  incorporation. Company CANNOT commence business until filed. Penalty:
+  Rs 50,000 + Rs 1,000/day per officer. (Section 10A)
+
+### LLP Specific Filings
+- **Form 11**: LLP Annual Return -- within 60 days of FY end (by May 30).
+  Penalty: Rs 100/day. (LLP Act Section 35, Rule 25)
+- **Form 8**: Statement of Account & Solvency -- within 30 days from 6 months
+  after FY end (by October 30). Penalty: Rs 100/day. (LLP Act Section 34, Rule 24)
+- **DIR-3 KYC**: All DPIN holders by September 30. Late fee: Rs 5,000.
 
 
 ## 8. COSTS BREAKDOWN

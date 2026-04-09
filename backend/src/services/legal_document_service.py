@@ -1227,6 +1227,26 @@ def _generate_aoa(
 # LLM-powered business objects generation
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# Legal disclaimer for all AI-generated legal content
+# ---------------------------------------------------------------------------
+
+DOCUMENT_DISCLAIMER = (
+    "IMPORTANT DISCLAIMER: This document has been generated using AI assistance "
+    "and standard templates. It is provided for informational and reference "
+    "purposes only and does NOT constitute legal advice. Before using this "
+    "document for any legal, regulatory, or compliance purpose:\n"
+    "1. Have it reviewed by a qualified Company Secretary (CS) or Advocate.\n"
+    "2. Verify all clauses comply with the latest Companies Act, 2013 amendments "
+    "and applicable MCA notifications.\n"
+    "3. Ensure all factual details (names, addresses, capital, objects) are "
+    "accurate and match your actual company records.\n"
+    "4. State-specific stamp duty and registration requirements may apply.\n"
+    "Anvils Pvt Ltd is not liable for any consequences arising from the use "
+    "of AI-generated legal documents without professional review."
+)
+
+
 async def _generate_business_objects_with_llm(
     business_description: str,
     entity_type: str,
@@ -1234,6 +1254,9 @@ async def _generate_business_objects_with_llm(
     """
     Use LLM to generate custom business objects clause from user's description.
     Falls back to generic objects if LLM is unavailable.
+
+    Note: LLM-generated clauses must be reviewed by a CS/Advocate before filing.
+    The Companies Act 2013 requires objects clauses to be legally precise.
     """
     from src.services.llm_service import llm_service
 
@@ -1248,8 +1271,11 @@ async def _generate_business_objects_with_llm(
         "Each object should:\n"
         "1. Start with 'To' followed by a verb\n"
         "2. Be specific but broad enough for future business expansion\n"
-        "3. Be legally precise\n"
-        "4. Cover the core business and related activities\n\n"
+        "3. Be legally precise and use standard MOA drafting language\n"
+        "4. Cover the core business and related/ancillary activities\n"
+        "5. NOT include any activity that requires a special licence (e.g., banking, "
+        "insurance, NBFC, chit fund) unless the business description explicitly mentions it\n"
+        "6. NOT include objects related to charitable/non-profit activities for non-Section 8 companies\n\n"
         "Return only a JSON array of strings."
     )
 
@@ -1270,7 +1296,15 @@ async def _generate_business_objects_with_llm(
         try:
             objects = json.loads(response)
             if isinstance(objects, list) and len(objects) > 0:
-                return objects
+                # Validate: each object should start with "To"
+                validated = []
+                for obj in objects:
+                    obj_str = str(obj).strip()
+                    if obj_str and obj_str[0:2].lower() == "to":
+                        validated.append(obj_str)
+                    else:
+                        logger.warning("Skipping malformed MOA object: %s", obj_str[:50])
+                return validated if validated else _default_business_objects(business_description)
         except json.JSONDecodeError:
             # Try to extract JSON array
             start = response.find("[")

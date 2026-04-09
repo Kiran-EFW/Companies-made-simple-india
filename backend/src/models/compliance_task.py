@@ -36,10 +36,57 @@ class ComplianceTaskType(str, enum.Enum):
     BOARD_MEETING_Q4 = "board_meeting_q4"
     AGM = "agm"
 
-    # GST
+    # GST — Monthly / Quarterly returns
     GSTR_1 = "gstr_1"
     GSTR_3B = "gstr_3b"
     GSTR_9 = "gstr_9"
+
+    # GST — Individual month returns (monthly filers)
+    GSTR_1_M01 = "gstr_1_m01"   # April
+    GSTR_1_M02 = "gstr_1_m02"   # May
+    GSTR_1_M03 = "gstr_1_m03"   # June
+    GSTR_1_M04 = "gstr_1_m04"   # July
+    GSTR_1_M05 = "gstr_1_m05"   # August
+    GSTR_1_M06 = "gstr_1_m06"   # September
+    GSTR_1_M07 = "gstr_1_m07"   # October
+    GSTR_1_M08 = "gstr_1_m08"   # November
+    GSTR_1_M09 = "gstr_1_m09"   # December
+    GSTR_1_M10 = "gstr_1_m10"   # January
+    GSTR_1_M11 = "gstr_1_m11"   # February
+    GSTR_1_M12 = "gstr_1_m12"   # March
+
+    GSTR_3B_M01 = "gstr_3b_m01"
+    GSTR_3B_M02 = "gstr_3b_m02"
+    GSTR_3B_M03 = "gstr_3b_m03"
+    GSTR_3B_M04 = "gstr_3b_m04"
+    GSTR_3B_M05 = "gstr_3b_m05"
+    GSTR_3B_M06 = "gstr_3b_m06"
+    GSTR_3B_M07 = "gstr_3b_m07"
+    GSTR_3B_M08 = "gstr_3b_m08"
+    GSTR_3B_M09 = "gstr_3b_m09"
+    GSTR_3B_M10 = "gstr_3b_m10"
+    GSTR_3B_M11 = "gstr_3b_m11"
+    GSTR_3B_M12 = "gstr_3b_m12"
+
+    # GST — Quarterly filers (QRMP scheme, turnover ≤ Rs 5 crore)
+    GSTR_1_Q1 = "gstr_1_q1"    # Apr-Jun
+    GSTR_1_Q2 = "gstr_1_q2"    # Jul-Sep
+    GSTR_1_Q3 = "gstr_1_q3"    # Oct-Dec
+    GSTR_1_Q4 = "gstr_1_q4"    # Jan-Mar
+    GSTR_3B_Q1 = "gstr_3b_q1"
+    GSTR_3B_Q2 = "gstr_3b_q2"
+    GSTR_3B_Q3 = "gstr_3b_q3"
+    GSTR_3B_Q4 = "gstr_3b_q4"
+
+    # GST — Composition scheme
+    CMP_08_Q1 = "cmp_08_q1"
+    CMP_08_Q2 = "cmp_08_q2"
+    CMP_08_Q3 = "cmp_08_q3"
+    CMP_08_Q4 = "cmp_08_q4"
+    GSTR_4_ANNUAL = "gstr_4_annual"
+
+    # GST — Annual / Reconciliation
+    GSTR_9C = "gstr_9c"
 
     # TDS
     TDS_RETURN_Q1 = "tds_return_q1"
@@ -68,6 +115,14 @@ class ComplianceTaskType(str, enum.Enum):
 
     # Annual — DPT-3 (deposit return)
     DPT_3 = "dpt_3"
+
+    # Event-based — ROC filings
+    BEN_2 = "ben_2"      # Beneficial ownership (§ 90)
+    MGT_14 = "mgt_14"    # Filing of resolutions (§ 117)
+
+    # Board meetings — Half-yearly (OPC / Section 8 / Small Company)
+    BOARD_MEETING_H1 = "board_meeting_h1"
+    BOARD_MEETING_H2 = "board_meeting_h2"
 
     # GST Annual
     GSTR_9_ANNUAL = "gstr_9_annual"

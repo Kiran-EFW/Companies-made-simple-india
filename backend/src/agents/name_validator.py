@@ -21,18 +21,64 @@ logger = logging.getLogger(__name__)
 # Prohibited words list (~50 common MCA prohibited/restricted words)
 # ---------------------------------------------------------------------------
 
+# Prohibited words per Rule 8(2) of Companies (Incorporation) Rules, 2014
+# and MCA Guidelines for Name Availability.
+# Names containing these words are OUTRIGHT REJECTED (no approval possible).
 PROHIBITED_WORDS = {
+    # Government / constitutional bodies
     "president", "republic", "union", "central", "government", "governor",
     "ministry", "minister", "parliament", "legislative", "judiciary",
     "supreme court", "high court", "reserve bank", "rbi", "sebi",
-    "securities", "exchange board", "stock exchange", "national",
+    "securities", "exchange board", "stock exchange",
+    "comptroller", "auditor general", "attorney general",
+    "solicitor general", "advocate general",
+    "election commission", "niti aayog", "planning commission",
+    # Sovereignty / national emblems
     "bharatiya", "indian", "hindustan", "imperial", "crown", "royal",
     "emperor", "empress", "king", "queen", "prince", "princess",
-    "police", "army", "navy", "air force", "military", "defense",
+    "sovereign", "dominion", "viceroy",
+    "satyameva jayate", "ashoka", "national emblem",
+    # Defence / law enforcement
+    "police", "army", "navy", "air force", "military", "defense", "defence",
+    "paramilitary", "coast guard", "bsf", "crpf", "cisf", "itbp", "ssb",
+    "intelligence bureau", "raw", "cbi", "nia",
+    # Local government
     "municipal", "panchayat", "corporation", "authority", "commission",
-    "tribunal", "board of", "council of", "united nations", "who",
-    "unesco", "unicef", "world bank", "imf", "wto", "olympiad",
-    "olympic", "commonwealth",
+    "tribunal", "board of", "council of", "collectorate", "tehsil",
+    "district", "taluk",
+    # International bodies
+    "united nations", "who", "unesco", "unicef", "world bank", "imf", "wto",
+    "olympiad", "olympic", "commonwealth", "red cross", "interpol",
+    "world trade", "asian development",
+    # Financial regulators
+    "irdai", "irda", "nabard", "sidbi", "exim bank", "nhai", "aadhaar",
+    "uidai",
+    # Offensive / misleading
+    "fraud", "corrupt", "bribe", "scam", "cheat",
+}
+
+# Restricted words — require prior government approval (Rule 8(2)(b)-(f))
+# Names with these words need a No Objection Certificate or special approval.
+RESTRICTED_WORDS = {
+    # Requires Central Government approval
+    "national", "bharat", "hindustan", "india",
+    # Requires state government approval
+    "state", "pradesh",
+    # Requires RBI approval
+    "bank", "banking", "financial services", "insurance",
+    "mutual fund", "asset management", "credit",
+    "nbfc", "microfinance", "nidhi",
+    # Requires SEBI approval
+    "stock exchange", "depository", "clearing corporation",
+    # Requires IRDAI approval
+    "insurance", "assurance", "re-insurance",
+    # Professional body approval needed
+    "chartered", "registered",
+    # Other restricted terms
+    "exchange", "forex", "commodity",
+    "cooperative", "sahakari",
+    "trust", "wakf", "waqf",
+    "small scale", "cottage",
 }
 
 # Valid suffixes by entity type
@@ -119,12 +165,27 @@ def phonetic_similarity(name1: str, name2: str) -> bool:
 # ---------------------------------------------------------------------------
 
 def _check_prohibited_words(name: str) -> List[str]:
-    """Check if the name contains any prohibited words. Return list of violations."""
+    """Check if the name contains prohibited or restricted words.
+
+    Per Rule 8(2) of Companies (Incorporation) Rules, 2014:
+    - Prohibited words: outright rejected, cannot be used
+    - Restricted words: require prior approval from relevant authority
+    """
     violations: List[str] = []
     name_lower = name.lower()
     for word in PROHIBITED_WORDS:
         if word in name_lower:
-            violations.append(f"Contains prohibited word/phrase: '{word}'")
+            violations.append(
+                f"Contains prohibited word/phrase: '{word}' — "
+                f"MCA will reject this name (Rule 8(2), Companies (Incorporation) Rules 2014)"
+            )
+    for word in RESTRICTED_WORDS:
+        if word in name_lower:
+            violations.append(
+                f"Contains restricted word: '{word}' — requires prior approval from "
+                f"the relevant authority (e.g., RBI for 'bank', Central Govt for 'national'). "
+                f"Name may still be approved with a No Objection Certificate."
+            )
     return violations
 
 
@@ -473,21 +534,35 @@ class NameValidatorAgent:
                 llm_acceptable = llm_result.get("is_acceptable", len(issues) == 0)
 
                 if not issues and llm_acceptable:
-                    # Name approved
-                    self.log(comp.id, f"Name check: '{name}' is AVAILABLE and COMPLIANT.", "SUCCESS")
+                    # Name passes pre-screening — but NOT reserved with MCA
+                    # Only MCA's RUN portal can actually reserve a name.
+                    self.log(comp.id, f"Name check: '{name}' passes pre-screening checks.", "SUCCESS")
                     self.log(
                         comp.id,
-                        f"MCA approval likelihood: {llm_result.get('mca_approval_likelihood', 'high')}",
+                        f"Estimated MCA approval likelihood: {llm_result.get('mca_approval_likelihood', 'medium')} "
+                        f"(Note: This is an AI-based estimate only. Actual availability can only "
+                        f"be confirmed by filing RUN on the MCA portal.)",
                         "INFO"
                     )
                     comp.approved_name = name
-                    comp.status = CompanyStatus.NAME_RESERVED
+                    # Move to NAME_PENDING — NOT NAME_RESERVED. Reservation requires
+                    # actual RUN filing on MCA portal (Companies Act 2013, Rule 8 of
+                    # Companies (Incorporation) Rules 2014).
+                    comp.status = CompanyStatus.NAME_PENDING
                     task.status = TaskStatus.COMPLETED
                     task.result = {
                         "approved_name": name,
-                        "status": "reserved",
-                        "mca_approval_likelihood": llm_result.get("mca_approval_likelihood", "high"),
+                        "status": "pre_screened",
+                        "mca_approval_likelihood": llm_result.get("mca_approval_likelihood", "medium"),
                         "validation_details": llm_result,
+                        "disclaimer": (
+                            "This is an AI-based pre-screening only. The name has not been "
+                            "reserved with MCA. Actual name availability can only be confirmed "
+                            "by filing Form RUN (Reserve Unique Name) on the MCA portal. "
+                            "Our pre-screening checks for prohibited words, phonetic similarity, "
+                            "and basic MCA naming rules — but MCA may still reject the name "
+                            "based on their own database of existing companies and trademarks."
+                        ),
                     }
                     approved_name = name
                     break
