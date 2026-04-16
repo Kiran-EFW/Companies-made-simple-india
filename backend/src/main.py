@@ -254,11 +254,17 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS — defaults to localhost for dev; override CORS_ORIGINS env var for production
+# CORS — includes Cloud Run frontend by default; extend via CORS_ORIGINS env var
+_default_origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://cms-india-frontend-979970479540.asia-south1.run.app",
+]
 cors_origins = (
-    [o.strip() for o in settings.cors_origins.split(",") if o.strip()]
+    _default_origins
+    + [o.strip() for o in settings.cors_origins.split(",") if o.strip()]
     if settings.cors_origins
-    else ["http://localhost:3000", "http://127.0.0.1:3000"]
+    else _default_origins
 )
 app.add_middleware(
     CORSMiddleware,
