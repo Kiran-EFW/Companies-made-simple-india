@@ -155,14 +155,17 @@ def init_db():
     from src.models import share_issuance  # noqa
     from src.models import audit_trail  # noqa
 
+    # Always run create_all first — it's idempotent (skips existing tables)
+    # and ensures all tables exist on a fresh database before Alembic runs.
+    try:
+        Base.metadata.create_all(bind=engine)
+    except Exception as exc:
+        logger.warning("create_all error (continuing): %s", exc)
+
     if "sqlite" in settings.database_url:
-        # Dev / SQLite — create_all is fine
-        try:
-            Base.metadata.create_all(bind=engine)
-        except Exception as exc:
-            logger.warning("create_all error (continuing): %s", exc)
+        pass  # create_all above is sufficient for dev/SQLite
     else:
-        # Production / PostgreSQL — run Alembic migrations
+        # Production / PostgreSQL — also run Alembic migrations for column additions
         try:
             import os
             from alembic.config import Config
