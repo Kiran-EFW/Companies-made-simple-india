@@ -266,6 +266,13 @@ cors_origins = (
     if settings.cors_origins
     else _default_origins
 )
+# Security & observability middleware (added first = innermost)
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(RateLimitMiddleware, calls_per_minute=120)
+app.add_middleware(PIIMaskingMiddleware)
+app.add_middleware(RequestLoggingMiddleware)
+
+# CORS must be outermost (added last) so headers are set even on error responses
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,
@@ -273,12 +280,6 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "Accept"],
 )
-
-# Security & observability middleware (added after CORS so CORS runs first)
-app.add_middleware(SecurityHeadersMiddleware)
-app.add_middleware(RateLimitMiddleware, calls_per_minute=120)
-app.add_middleware(PIIMaskingMiddleware)
-app.add_middleware(RequestLoggingMiddleware)
 
 @app.exception_handler(APIError)
 async def api_error_handler(request: Request, exc: APIError):
